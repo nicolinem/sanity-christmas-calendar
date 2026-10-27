@@ -2,8 +2,9 @@ import { NextStudio } from "next-sanity/studio";
 import config from "../../../../sanity.config";
 import { isSanityConfigured } from "@/sanity/env";
 
-// Embeds the whole Sanity Studio at /studio. Players open this in another tab,
-// create an item, publish, and watch it appear in the game.
+// Embeds the whole Sanity Studio at /studio. The game shows it in a pane beside
+// the world (or players open it in its own tab): create an item, publish, and
+// watch it appear in the game.
 export const dynamic = "force-static";
 export { metadata, viewport } from "next-sanity/studio";
 

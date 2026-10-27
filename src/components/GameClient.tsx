@@ -21,10 +21,12 @@ import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { useLiveRefresh } from "./hud/useLive";
 import DevPanel from "./hud/DevPanel";
-import ForgeDialogue, { STUDIO_URL } from "./hud/ForgeDialogue";
+import ForgeDialogue from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
 import { useCombat } from "./hud/useCombat";
 import { IconQuill } from "./hud/icons";
+import { toggleStudio, useStudioPane } from "./hud/studioPane";
+import StudioPane from "./StudioPane";
 
 // Phaser is browser-only: load it with no SSR.
 const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
@@ -81,6 +83,7 @@ export default function GameClient() {
   const [hasMoved, setHasMoved] = useState(false);
   const { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen, jumpTo } = useProgress();
   const dev = useDevMode();
+  const studio = useStudioPane();
   // Dev panel overrides for code checks: true/false wins over npm run quest.
   const [devChecks, setDevChecks] = useState<Record<string, boolean>>({});
 
@@ -266,131 +269,140 @@ export default function GameClient() {
 
   return (
     <div className="game-shell">
-      <div className="stage">
-        <PhaserGame />
-        <div className="stage-vignette" aria-hidden />
-      </div>
+      <div className="game-main">
+        <div className="stage">
+          <PhaserGame />
+          <div className="stage-vignette" aria-hidden />
+        </div>
 
-      <div className="hud">
-        <div className="hud-tl">
-          <h1 className="crest">
-            <span className="crest-title">Winter Quest</span>
-            <span className="crest-place">Frostholm</span>
-          </h1>
-          <QuestTracker
-            key={narrow ? "compact" : "full"}
+        <div className="hud">
+          <div className="hud-tl">
+            <h1 className="crest">
+              <span className="crest-title">Winter Quest</span>
+              <span className="crest-place">Frostholm</span>
+            </h1>
+            <QuestTracker
+              key={narrow ? "compact" : "full"}
+              board={board}
+              forgeLevel={forgeLevel}
+              metBrann={progress.metBlacksmith}
+              compact={narrow}
+              onOpenLog={openLog}
+            />
+          </div>
+
+          <div className="hud-tr">
+            <button
+              type="button"
+              className={`studio-link${studio.open ? " is-open" : ""}`}
+              onClick={toggleStudio}
+              aria-pressed={studio.open}
+            >
+              <IconQuill size={12} />
+              Sanity Studio
+            </button>
+          </div>
+
+          <div className="hud-bc">
+            {dialogueOpen && (
+              <ForgeDialogue
+                key={currentId ?? "none"}
+                board={board}
+                forged={forged}
+                sanityConfigured={configured}
+                fetchFailed={fetchFailed}
+                unclaimed={unclaimed}
+                refreshing={loading}
+                checked={checkedForge}
+                onCheck={checkForge}
+                onOpenLog={openLog}
+                hintsShown={currentId ? (progress.hints[currentId] ?? 0) : 0}
+                onRevealHint={revealHint}
+                onClose={() => setTalking(false)}
+              />
+            )}
+            {zone === "forge" && !dialogueOpen && (
+              <button type="button" className="prompt" onClick={openDialogue}>
+                <kbd>E</kbd> Snakk med Brann
+              </button>
+            )}
+            {!hasMoved && !progress.metBlacksmith && !showOpening && zone !== "forge" && (
+              <p className="prompt prompt--hint">
+                Gå med <kbd>WASD</kbd> eller piltastene. Smia er rett nord.
+              </p>
+            )}
+            {zone === "wraith" && <EncounterPanel combat={combat} weapon={equipped} />}
+
+            <Hotbar
+              items={items}
+              equippedId={equippedId}
+              onEquip={handleEquip}
+              onRefresh={refresh}
+              refreshing={loading}
+              slots={slots}
+            />
+          </div>
+
+          <Toasts />
+
+          <p className="hud-bl controls" aria-label="Kontroller">
+            <span>
+              <kbd>WASD</kbd> gå
+            </span>
+            <span>
+              <kbd>E</kbd> snakk
+            </span>
+            <span>
+              <kbd>Mellomrom</kbd> angrip
+            </span>
+            <span>
+              <kbd>1</kbd>–<kbd>{slots}</kbd> utstyr
+            </span>
+            <span>
+              <kbd>J</kbd> oppdrag
+            </span>
+          </p>
+        </div>
+
+        {logOpen && (
+          <QuestLog
             board={board}
             forgeLevel={forgeLevel}
-            metBrann={progress.metBlacksmith}
-            compact={narrow}
-            onOpenLog={openLog}
+            hintsShown={progress.hints}
+            onRevealHint={revealHint}
+            onClose={() => setLogOpen(false)}
+            onReset={reset}
           />
-        </div>
+        )}
 
-        <div className="hud-tr">
-          <a className="studio-link" href={STUDIO_URL} target="_blank" rel="noreferrer">
-            <IconQuill size={12} />
-            Sanity Studio
-          </a>
-        </div>
+        {showOpening && <Opening onStart={markIntroSeen} />}
 
-        <div className="hud-bc">
-          {dialogueOpen && (
-            <ForgeDialogue
-              key={currentId ?? "none"}
-              board={board}
-              forged={forged}
-              sanityConfigured={configured}
-              fetchFailed={fetchFailed}
-              unclaimed={unclaimed}
-              refreshing={loading}
-              checked={checkedForge}
-              onCheck={checkForge}
-              onOpenLog={openLog}
-              hintsShown={currentId ? (progress.hints[currentId] ?? 0) : 0}
-              onRevealHint={revealHint}
-              onClose={() => setTalking(false)}
-            />
-          )}
-          {zone === "forge" && !dialogueOpen && (
-            <button type="button" className="prompt" onClick={openDialogue}>
-              <kbd>E</kbd> Snakk med Brann
-            </button>
-          )}
-          {!hasMoved && !progress.metBlacksmith && !showOpening && zone !== "forge" && (
-            <p className="prompt prompt--hint">
-              Gå med <kbd>WASD</kbd> eller piltastene. Smia er rett nord.
-            </p>
-          )}
-          {zone === "wraith" && <EncounterPanel combat={combat} weapon={equipped} />}
-
-          <Hotbar
-            items={items}
-            equippedId={equippedId}
-            onEquip={handleEquip}
-            onRefresh={refresh}
-            refreshing={loading}
-            slots={slots}
+        {dev && (
+          <DevPanel
+            board={board}
+            forgeLevel={forgeLevel}
+            liveMode={liveMode}
+            codeChecks={codeChecks}
+            devChecks={devChecks}
+            onDevCheck={(id, done) =>
+              setDevChecks((prev) => {
+                const next = { ...prev };
+                if (done === null) delete next[id];
+                else next[id] = done;
+                return next;
+              })
+            }
+            onJump={jumpTo}
+            onReset={() => {
+              reset();
+              setDevChecks({});
+            }}
+            weaponSprite={equipped?.kind === "weapon" ? equipped.sprite : null}
           />
-        </div>
-
-        <Toasts />
-
-        <p className="hud-bl controls" aria-label="Kontroller">
-          <span>
-            <kbd>WASD</kbd> gå
-          </span>
-          <span>
-            <kbd>E</kbd> snakk
-          </span>
-          <span>
-            <kbd>Mellomrom</kbd> angrip
-          </span>
-          <span>
-            <kbd>1</kbd>–<kbd>{slots}</kbd> utstyr
-          </span>
-          <span>
-            <kbd>J</kbd> oppdrag
-          </span>
-        </p>
+        )}
       </div>
 
-      {logOpen && (
-        <QuestLog
-          board={board}
-          forgeLevel={forgeLevel}
-          hintsShown={progress.hints}
-          onRevealHint={revealHint}
-          onClose={() => setLogOpen(false)}
-          onReset={reset}
-        />
-      )}
-
-      {showOpening && <Opening onStart={markIntroSeen} />}
-
-      {dev && (
-        <DevPanel
-          board={board}
-          forgeLevel={forgeLevel}
-          liveMode={liveMode}
-          codeChecks={codeChecks}
-          devChecks={devChecks}
-          onDevCheck={(id, done) =>
-            setDevChecks((prev) => {
-              const next = { ...prev };
-              if (done === null) delete next[id];
-              else next[id] = done;
-              return next;
-            })
-          }
-          onJump={jumpTo}
-          onReset={() => {
-            reset();
-            setDevChecks({});
-          }}
-          weaponSprite={equipped?.kind === "weapon" ? equipped.sprite : null}
-        />
-      )}
+      {studio.loaded && <StudioPane width={studio.width} open={studio.open} />}
     </div>
   );
 }

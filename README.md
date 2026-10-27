@@ -31,6 +31,9 @@ writes `.env.local`, checks that the game can read it, and prints two links:
   once after `npm run dev`; the Studio remembers you after that.
 
 Then open http://localhost:3000, walk to Brann at the forge and press **E**.
+The **Sanity Studio** button (top right) opens the Studio beside the game in the
+same tab, so you can publish and watch the forge at once. Drag its edge to
+resize, or pop it out into its own tab.
 
 > **Use port 3000 until you've claimed.** An unclaimed project only accepts
 > requests from `localhost:3000`. After claiming, run `npx sanity@latest login`

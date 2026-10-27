@@ -7,6 +7,7 @@ import type { QuestBoard } from "@/game/quests/engine";
 import SpriteIcon from "./SpriteIcon";
 import { IconQuill } from "./icons";
 import { renderText } from "./richText";
+import { openStudio } from "./studioPane";
 
 type Props = {
   board: QuestBoard;
@@ -23,8 +24,6 @@ type Props = {
   onClose: () => void;
 };
 
-export const STUDIO_URL = "/studio";
-
 const FIRST_QUEST = "the-broken-forge";
 
 // Talking to Brann is where Sanity enters the story: he can't forge anything,
@@ -39,7 +38,7 @@ export default function ForgeDialogue(props: Props) {
   const [page, setPage] = useState(0);
   const last = page >= pages.length - 1;
   const continueRef = useRef<HTMLButtonElement>(null);
-  const studioRef = useRef<HTMLAnchorElement>(null);
+  const studioRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     (last ? studioRef.current : continueRef.current)?.focus({ preventScroll: true });
@@ -162,7 +161,7 @@ function Details({
   onRevealHint,
   onClose,
   studioRef,
-}: Props & { studioRef: React.RefObject<HTMLAnchorElement | null> }) {
+}: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
   const current = board.current;
   const onboarding = !current || current.quest.id === FIRST_QUEST;
   const firstForging = onboarding && !forged;
@@ -208,10 +207,10 @@ function Details({
       )}
 
       <div className="dialogue-actions">
-        <a ref={studioRef} className="btn btn--amber" href={STUDIO_URL} target="_blank" rel="noreferrer">
+        <button ref={studioRef} type="button" className="btn btn--amber" onClick={openStudio}>
           <IconQuill />
           Åpne Sanity Studio
-        </a>
+        </button>
         <button type="button" className="btn" onClick={onCheck} disabled={refreshing}>
           {refreshing ? "Sjekker…" : "Sjekk smia"}
         </button>

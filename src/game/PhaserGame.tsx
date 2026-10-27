@@ -14,6 +14,7 @@ export default function PhaserGame() {
 
   useEffect(() => {
     let destroyed = false;
+    let resize: ResizeObserver | undefined;
 
     (async () => {
       const Phaser = (await import("phaser")).default;
@@ -34,6 +35,13 @@ export default function PhaserGame() {
         },
         scene: [WinterQuestScene],
       });
+      // Phaser only polls its parent's size twice a second; follow it exactly,
+      // so the world reflows the moment the Studio pane opens or is dragged.
+      const { scale } = gameRef.current as Phaser.Game;
+      resize = new ResizeObserver(() => {
+        if (scale.getParentBounds()) scale.refresh();
+      });
+      resize.observe(containerRef.current);
       if (process.env.NODE_ENV === "development") {
         (window as unknown as { __game: unknown }).__game = gameRef.current;
       }
@@ -41,6 +49,7 @@ export default function PhaserGame() {
 
     return () => {
       destroyed = true;
+      resize?.disconnect();
       const game = gameRef.current as { destroy: (b: boolean) => void } | null;
       if (game) {
         game.destroy(true);

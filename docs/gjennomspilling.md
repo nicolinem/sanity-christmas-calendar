@@ -4,8 +4,9 @@ Sjekkliste for å teste kapittel 1 som en ny spiller. Kryss av mens du spiller,
 og noter det som skurrer under hvert punkt.
 
 **Oppsett:** en fersk klone, `npm install`, `npm run setup`, `npm run dev` på
-**port 3000** (sanntid virker bare der før prosjektet er overtatt). Ha Studio
-og spillet åpne **side om side**.
+**port 3000** (sanntid virker bare der før prosjektet er overtatt). Åpne Studio
+med «Sanity Studio» øverst til høyre: det legger seg ved siden av spillet i samme
+fane (dra i kanten for å endre bredde, «Egen fane» åpner det for seg).
 
 **Snarveier:** legg til `?dev` på adressen for utviklerpanelet. Der kan du
 hoppe rett til et oppdrag, se alle stegene, late som en kodesjekk er bestått,
