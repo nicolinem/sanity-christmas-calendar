@@ -57,7 +57,24 @@ export function useProgress() {
     [],
   );
 
-  return { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen };
+  // Dev panel: pretend every quest before `questId` is done (and the wraith
+  // beaten), so any quest can be tested without playing up to it.
+  const jumpTo = useCallback((questId: string, briefed: boolean) => {
+    const order = CHAPTERS.flatMap((c) => c.quests.map((q) => q.id));
+    // "__end" means: everything is done.
+    const before = questId === "__end" ? order : order.slice(0, Math.max(0, order.indexOf(questId)));
+    const now = new Date().toISOString();
+    updateProgress(PROJECT, (p) => ({
+      ...p,
+      introSeen: true,
+      metBlacksmith: true,
+      wraithDefeated: before.length > 0 || p.wraithDefeated,
+      completed: Object.fromEntries(before.map((id) => [id, now])),
+      briefed: Object.fromEntries([...before, ...(briefed ? [questId] : [])].map((id) => [id, true as const])),
+    }));
+  }, []);
+
+  return { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen, jumpTo };
 }
 
 type BoardInput = {

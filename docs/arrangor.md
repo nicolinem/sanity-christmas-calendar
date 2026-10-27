@@ -47,7 +47,8 @@ gjenstand først).
 
 - `NEXT_PUBLIC_CALENDAR_START=2026-12-01` i `.env.local` (eller i hostingen)
   åpner kapittel N på dag 1 + (N−1) uker. Uten den er alt åpent.
-- `?dev=quests` på adressen åpner alle quester uansett rekkefølge og dato.
+- `?dev` på adressen viser **utviklerpanelet**: hopp til et oppdrag, les alle stegene, lat som en kodesjekk er bestått, spill av effekter, se om sanntid lytter eller sjekker. Sjekklista for en gjennomspilling ligger i [gjennomspilling.md](gjennomspilling.md).
+- `?dev=quests` åpner i tillegg alle oppdrag uansett rekkefølge og dato.
 - «Reset progress» nederst i questloggen (J) nullstiller fremgangen i nettleseren.
 - Spill selv fra en egen klone, ikke i utviklingsmappa, så løsningene dine ikke
   havner på `main`. Kopier `.env.local` dit for å bruke samme Sanity-prosjekt.

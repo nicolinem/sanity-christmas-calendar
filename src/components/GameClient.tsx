@@ -20,6 +20,7 @@ import Toasts, { pushToast } from "./hud/Toasts";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { useLiveRefresh } from "./hud/useLive";
+import DevPanel from "./hud/DevPanel";
 import ForgeDialogue, { STUDIO_URL } from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
 import { useCombat } from "./hud/useCombat";
@@ -39,6 +40,15 @@ function useNarrow() {
       return () => mq.removeEventListener("change", cb);
     },
     () => window.matchMedia("(max-width: 720px)").matches,
+    () => false,
+  );
+}
+
+// ?dev in the address shows the organizers' panel (see docs/gjennomspilling.md).
+function useDevMode() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(window.location.search).has("dev"),
     () => false,
   );
 }
@@ -69,7 +79,10 @@ export default function GameClient() {
   const [logOpen, setLogOpen] = useState(false);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
-  const { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen } = useProgress();
+  const { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen, jumpTo } = useProgress();
+  const dev = useDevMode();
+  // Dev panel overrides for code checks: true/false wins over npm run quest.
+  const [devChecks, setDevChecks] = useState<Record<string, boolean>>({});
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -100,7 +113,7 @@ export default function GameClient() {
   }, [refresh]);
 
   // Publish in the Studio and the game hears about it straight away.
-  useLiveRefresh(refresh, configured === true);
+  const liveMode = useLiveRefresh(refresh, configured === true);
 
   useEffect(() => bridge.on("moved", () => setHasMoved(true)), []);
 
@@ -157,9 +170,15 @@ export default function GameClient() {
 
   const forged = findForgedWeapon(items);
   const combat = useCombat(equipped);
+  const checks = useMemo(() => {
+    const merged = { ...codeChecks };
+    for (const [id, done] of Object.entries(devChecks))
+      merged[id] = { done, message: done ? undefined : "Utviklerpanelet later som sjekken ikke er bestått." };
+    return merged;
+  }, [codeChecks, devChecks]);
   const board = useQuestBoard({
     items,
-    codeChecks,
+    codeChecks: checks,
     sanityConfigured: configured,
     wraithDefeatedNow: combat.defeated,
     progress,
@@ -211,6 +230,7 @@ export default function GameClient() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || showOpening) return;
+      if ((e.target as HTMLElement)?.closest?.(".dev")) return;
       const onControl = (e.target as HTMLElement)?.closest?.("button, a, input, textarea");
       if (logOpen) {
         if (e.key === "Escape" || e.key === "j" || e.key === "J") setLogOpen(false);
@@ -347,6 +367,30 @@ export default function GameClient() {
       )}
 
       {showOpening && <Opening onStart={markIntroSeen} />}
+
+      {dev && (
+        <DevPanel
+          board={board}
+          forgeLevel={forgeLevel}
+          liveMode={liveMode}
+          codeChecks={codeChecks}
+          devChecks={devChecks}
+          onDevCheck={(id, done) =>
+            setDevChecks((prev) => {
+              const next = { ...prev };
+              if (done === null) delete next[id];
+              else next[id] = done;
+              return next;
+            })
+          }
+          onJump={jumpTo}
+          onReset={() => {
+            reset();
+            setDevChecks({});
+          }}
+          weaponSprite={equipped?.kind === "weapon" ? equipped.sprite : null}
+        />
+      )}
     </div>
   );
 }
