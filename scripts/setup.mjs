@@ -141,10 +141,17 @@ function studioSignInUrl(token, claimUrl) {
 }
 
 function nextSteps() {
+  // Setup runs fine without dependencies (it fetches the Sanity CLI itself),
+  // so a fresh clone can get here before `npm install`.
+  const installed = existsSync(resolve(process.cwd(), "node_modules", "next"));
+  const steps = [
+    ...(installed ? [] : [`${c.cyan("npm install")}  ${c.dim("(the game's dependencies aren't installed yet)")}`]),
+    `${c.cyan("npm run dev")}  ${c.dim("(on port 3000, the only one allowed until you claim)")}`,
+    `Open ${c.cyan("http://localhost:3000")}, find Brann at the forge and press ${c.bold("E")}.`,
+  ];
   say();
   say(c.bold("Next"));
-  say(`  1. ${c.cyan("npm run dev")}  ${c.dim("(on port 3000, the only one allowed until you claim)")}`);
-  say(`  2. Open ${c.cyan("http://localhost:3000")}, find Brann at the forge and press ${c.bold("E")}.`);
+  steps.forEach((step, i) => say(`  ${i + 1}. ${step}`));
   say();
 }
 
@@ -178,7 +185,7 @@ async function createProject() {
   explainRead(await checkPublicRead(projectId, dataset), projectId, dataset);
   printClaim(claimUrl, expiresAt);
   say(c.bold("Sign in to your Studio"));
-  say(`  Start the game, then open this once. It signs you in; keep it private:`);
+  say(`  Start the game, then open this once. It holds your project's access token, so keep it private:`);
   say(`  ${c.cyan(studioSignInUrl(token, claimUrl))}`);
   nextSteps();
 }
@@ -188,7 +195,7 @@ function printClaim(claimUrl, expiresAt) {
   say(c.bold(c.amber("Claim your project, or it's deleted")));
   say(`  ${c.cyan(claimUrl)}`);
   say(`  Deadline: ${formatDeadline(expiresAt)}. Free, about a minute, needs a Sanity account.`);
-  say(`  ${c.dim("Treat the link like a password: whoever opens it owns the project.")}`);
+  say(`  ${c.dim("Treat the link like a password: whoever opens it owns the project. Don't paste it into chats.")}`);
   say();
 }
 

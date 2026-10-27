@@ -36,8 +36,16 @@ Then open http://localhost:3000, walk to Brann at the forge and press **E**.
 > requests from `localhost:3000`. After claiming, run `npx sanity@latest login`
 > and `npm run setup -- --cors` to allow other ports too.
 
-`.env.local` holds your project's access token while it's unclaimed. It's
-gitignored: keep it that way, and never rename the token to `NEXT_PUBLIC_*`.
+> **Keep the setup output to yourself.** The claim link makes whoever opens it
+> the owner of your project, and the sign-in link contains your project's
+> access token, which can read and change everything in it. Don't paste them
+> into the channel, a ticket or an AI chat. If you already have: claim the
+> project right away, run `npx sanity@latest login`, remove `SANITY_AUTH_TOKEN`
+> from `.env.local`, and revoke the token under **API → Tokens** at
+> sanity.io/manage.
+
+`.env.local` holds that token while the project is unclaimed. It's gitignored:
+keep it that way, and never rename the token to `NEXT_PUBLIC_*`.
 
 Already have a Sanity project? `npm run setup -- --project <projectId>`.
 Run `npm run setup` again any time to see which project you're on and the
