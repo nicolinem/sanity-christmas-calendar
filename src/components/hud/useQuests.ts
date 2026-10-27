@@ -14,6 +14,7 @@ import {
   updateProgress,
 } from "@/game/quests/progress";
 import type { CodeCheck } from "@/game/quests/types";
+import { plainText } from "./richText";
 import { pushToast } from "./Toasts";
 
 // One progress record per Sanity project, so a fresh project is a fresh start.
@@ -123,7 +124,7 @@ export function useQuestBoard({ items, codeChecks, sanityConfigured, wraithDefea
     });
     for (const s of finished) {
       pushToast({ title: "Oppdrag fullført", body: s.quest.title, tone: "quest" });
-      pushToast({ title: `Lærdom: ${s.quest.lesson.title}`, body: "Står nå i Branns bok (J).", tone: "lesson" });
+      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står nå i Branns bok (J).", tone: "lesson" });
     }
 
     const after = forgeLevelFor(CHAPTERS, readProgress(PROJECT));

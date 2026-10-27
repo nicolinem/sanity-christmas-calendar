@@ -6,7 +6,7 @@ import type { QuestBoard } from "@/game/quests/engine";
 import type { CodeCheck } from "@/game/quests/types";
 import type { SpriteDef } from "@/game/sprites";
 import type { LiveMode } from "./useLive";
-import { renderCode } from "./QuestTracker";
+import { renderText } from "./richText";
 
 type Props = {
   board: QuestBoard;
@@ -88,24 +88,24 @@ export default function DevPanel({
                     </p>
                   ))}
                   <p>
-                    <span className="dev-label">Mål</span> {renderCode(s.quest.goal)}
+                    <span className="dev-label">Mål</span> {renderText(s.quest.goal)}
                   </p>
                   {s.quest.where && (
                     <p>
-                      <span className="dev-label">Hvor</span> {renderCode(s.quest.where)}
+                      <span className="dev-label">Hvor</span> {renderText(s.quest.where)}
                     </p>
                   )}
                   {s.quest.hints.map((h, i) => (
                     <p key={i}>
-                      <span className="dev-label">Hint {i + 1}</span> {renderCode(h.text)}
+                      <span className="dev-label">Hint {i + 1}</span> {renderText(h.text)}
                     </p>
                   ))}
                   <p>
-                    <span className="dev-label">Lærdom</span> {s.quest.lesson.title}: {renderCode(s.quest.lesson.text)}
+                    <span className="dev-label">Lærdom</span> {s.quest.lesson.title}: {renderText(s.quest.lesson.text)}
                   </p>
                   <p>
                     <span className="dev-label">Sjekk nå</span>{" "}
-                    {s.result.done ? "bestått" : renderCode(s.result.message ?? "ikke bestått")}
+                    {s.result.done ? "bestått" : renderText(s.result.message ?? "ikke bestått")}
                   </p>
                 </div>
               </details>

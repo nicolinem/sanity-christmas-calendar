@@ -18,7 +18,7 @@ export default function StudioPage() {
         <pre style={{ background: "#eef2f8", padding: "12px 16px", borderRadius: 6 }}>npm run setup</pre>
         <p>
           Det lager et prosjekt for deg (uten konto), skriver <code>.env.local</code>, og skriver ut en lenke som
-          logger deg inn på dette tegnebordet. Overta prosjektet innen 72 timer for å beholde det.
+          logger deg inn i Studio. Gjør <em>claim</em> på prosjektet innen 72 timer for å beholde det.
         </p>
         <p>
           Har du allerede et prosjekt? <code>npm run setup -- --project &lt;id&gt;</code>

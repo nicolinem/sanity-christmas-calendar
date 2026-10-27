@@ -383,12 +383,6 @@ kbd {
   line-height: 1.35;
   color: var(--snow);
 }
-.tracker-goal code,
-.tracker-note code,
-.log code {
-  font: inherit;
-  color: var(--amber);
-}
 .tracker-foot {
   display: flex;
   align-items: center;
@@ -982,13 +976,6 @@ kbd {
   line-height: 1.4;
   max-width: 60ch;
 }
-.dialogue-speech code,
-.dialogue-feedback code,
-.dialogue-hint code,
-.tracker-note code {
-  font: inherit;
-  color: var(--amber);
-}
 .dialogue-speech strong {
   color: var(--amber);
   font-weight: 600;
@@ -1040,12 +1027,6 @@ kbd {
   margin-right: 6px;
   font-size: 12px;
   color: var(--amber);
-}
-.dialogue-note code,
-.dialogue-hint-line code {
-  font: inherit;
-  color: var(--parchment);
-  font-weight: 600;
 }
 .dialogue-more-hint {
   padding: 0;
@@ -1289,12 +1270,6 @@ kbd {
   font-size: 13px;
   color: var(--amber);
 }
-.dialogue-lesson code,
-.dialogue-speech code {
-  font: inherit;
-  font-weight: 600;
-  color: var(--amber);
-}
 
 /* --- Quest log tabs and Brann's book -------------------------------------- */
 .log-tabs {
@@ -1414,11 +1389,6 @@ kbd {
   margin: 2px 0;
   color: var(--frost);
 }
-.dev-line code,
-.dev-steps code {
-  font: inherit;
-  color: var(--amber);
-}
 .dev-live.is-live {
   color: #63c74d;
 }
@@ -1494,4 +1464,22 @@ kbd {
 }
 .dev-actions button:hover {
   background: #4d5781;
+}
+
+/* --- Developer words in quest text --------------------------------------- */
+/* `code` for things you type; *term* for Sanity and dev words, in English.  */
+.game-shell code {
+  padding: 0 0.3em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--night) 70%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--frost-dim) 35%, transparent);
+  color: var(--amber);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.86em;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.game-shell .term {
+  color: var(--glacier);
+  font-weight: 600;
 }

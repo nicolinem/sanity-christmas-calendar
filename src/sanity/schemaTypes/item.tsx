@@ -10,50 +10,50 @@ import { KNOWN_SPRITE_IDS } from "../../game/sprites";
 // This file is yours: the chapter 1 quests happen here. Look for the QUEST
 // comments.
 
-// QUEST: Branns protokoll. Gi gjenstandene et ikon, og en forhåndsvisning i
-// lista som viser gjenstandens egen sprite. src/components/SpriteImage.tsx
+// QUEST: Branns protokoll. Gi schema type-en et icon, og en preview i
+// dokumentlista som viser gjenstandens egen sprite. src/components/SpriteImage.tsx
 // tegner en sprite for deg.
 export const item = defineType({
   name: "item",
-  title: "Gjenstand",
+  title: "Item",
   type: "document",
   fields: [
-    // QUEST: Laugets lov. Ingen to gjenstander kan hete det samme.
+    // QUEST: Laugets lov. Validation: ingen to gjenstander kan hete det samme.
     // Hjelpere: src/sanity/lib/guild.ts
     defineField({
       name: "name",
-      title: "Navn",
+      title: "Name",
       type: "string",
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "kind",
-      title: "Type",
+      title: "Kind",
       type: "string",
       options: {
         list: [
-          { title: "Våpen", value: "weapon" },
-          { title: "Materiale", value: "material" },
-          { title: "Drikk", value: "potion" },
+          { title: "Weapon", value: "weapon" },
+          { title: "Material", value: "material" },
+          { title: "Potion", value: "potion" },
         ],
         layout: "radio",
         direction: "horizontal",
       },
       validation: (rule) => rule.required(),
     }),
-    // QUEST: Laugets lov. Alle våpen må ha en sprite (andre gjenstander trenger ikke).
-    // QUEST: Tegnebrettet. Gi feltet en input som viser pikselkunsten du velger
-    // mellom. src/components/SpriteImage.tsx tegner en sprite for deg.
+    // QUEST: Laugets lov. Validation: alle våpen må ha en sprite (andre gjenstander trenger ikke).
+    // QUEST: Spritevelgeren. Gi feltet en custom input component som viser
+    // pikselkunsten du velger mellom. src/components/SpriteImage.tsx tegner en sprite for deg.
     defineField({
       name: "sprite",
       title: "Sprite",
       type: "string",
-      description: "Hvordan den ser ut i spillet. Ukjente sprites får en reserve.",
+      description: "How it looks in the game. Unknown sprites fall back to a default.",
       options: { list: KNOWN_SPRITE_IDS },
     }),
     defineField({
       name: "description",
-      title: "Beskrivelse",
+      title: "Description",
       type: "text",
       rows: 2,
     }),

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { QuestBoard } from "@/game/quests/engine";
 import { IconCheck } from "./icons";
+import { renderText } from "./richText";
 
 type Props = {
   board: QuestBoard;
@@ -45,7 +46,7 @@ export default function QuestTracker({ board, forgeLevel, metBrann, compact, onO
           )}
           {current && !offered && (
             <>
-              <p className="tracker-goal">{renderCode(current.quest.goal)}</p>
+              <p className="tracker-goal">{renderText(current.quest.goal)}</p>
               {current.result.objectives && (
                 <ul className="tracker-list">
                   {current.result.objectives.map((o) => (
@@ -58,7 +59,7 @@ export default function QuestTracker({ board, forgeLevel, metBrann, compact, onO
               )}
               {(current.result.message || current.quest.checkedBy === "code") && (
                 <p className="tracker-note">
-                  {renderCode(
+                  {renderText(
                     current.result.message ?? "Sjekkes fra koden din: kjør `npm run quest` når du er klar.",
                   )}
                 </p>
@@ -86,9 +87,3 @@ export default function QuestTracker({ board, forgeLevel, metBrann, compact, onO
   );
 }
 
-// Quest text marks code with backticks; show it as code.
-export function renderCode(text: string) {
-  return text.split(/(`[^`]+`)/g).map((part, i) =>
-    part.startsWith("`") && part.endsWith("`") ? <code key={i}>{part.slice(1, -1)}</code> : part,
-  );
-}

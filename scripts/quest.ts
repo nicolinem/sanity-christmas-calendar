@@ -44,20 +44,20 @@ const item = types.find((t) => t?.name === "item");
 const field = (name: string) => item?.fields?.find((f: any) => f?.name === name);
 
 const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
-const NO_ITEM = "Brann finner ingen `item`-type i skjemaet ditt.";
+const NO_ITEM = "Brann finner ingen `item`-type i *schema*-et ditt.";
 
 // --- Branns protokoll ----------------------------------------------------------
 
 function checkLedger(): Verdict {
   if (!item) return { done: false, message: NO_ITEM };
-  if (!item.icon) return { done: false, message: "Gjenstander har ikke noe `icon` ennå." };
+  if (!item.icon) return { done: false, message: "`item` har ikke noe `icon` ennå." };
   const preview = item.preview;
   if (typeof preview?.prepare !== "function")
-    return { done: false, message: "Forhåndsvisningen har ingen `prepare()`, så ingenting gjør sprite-id-en om til et bilde." };
+    return { done: false, message: "*Preview*-en har ingen `prepare()`, så ingenting gjør sprite-id-en om til et bilde." };
 
   const select: Record<string, string> = preview.select ?? {};
   const spriteKey = Object.keys(select).find((k) => select[k] === "sprite");
-  if (!spriteKey) return { done: false, message: "`preview.select` henter ikke `sprite`-feltet." };
+  if (!spriteKey) return { done: false, message: "`preview.select` henter ikke *field*-et `sprite`." };
 
   // Feed prepare() the kind of values select would give it.
   const sample: Record<string, unknown> = {};
@@ -153,48 +153,48 @@ async function judge(test: TestDoc): Promise<{ refused: boolean; warned: boolean
 async function checkGuildLaw(): Promise<Verdict> {
   if (!item) return { done: false, message: NO_ITEM };
   if (!field("name") || !field("sprite"))
-    return { done: false, message: "Gjenstander mangler `name`- eller `sprite`-feltet. Spillet trenger begge." };
+    return { done: false, message: "`item` mangler *field*-et `name` eller `sprite`. Spillet trenger begge." };
   if (!client)
     return { done: false, message: "Ingen Sanity-prosjekt i `.env.local`, så Brann kan ikke lete etter like navn. Kjør `npm run setup`." };
 
   const fresh = () => `Stillebladet ${Math.floor(1000 + Math.random() * 9000)}`;
   const only = (r: { warned: boolean }, what: string) =>
-    r.warned ? `${what} får bare en advarsel. Lauget vil at det skal nektes.` : null;
+    r.warned ? `${what} får bare en \`warning\`. Lauget vil at det skal være en \`error\`.` : null;
 
   try {
     const bare = await judge({ name: fresh(), kind: "weapon" });
     if (!bare.refused)
       return {
         done: false,
-        message: only(bare, "Et våpen uten sprite") ?? "Tegnebordet godtar fortsatt et våpen uten sprite.",
+        message: only(bare, "Et våpen uten sprite") ?? "Studio godtar fortsatt et våpen uten sprite.",
       };
     if ((await judge({ name: fresh(), kind: "material" })).refused)
-      return { done: false, message: "Regelen din nekter også et materiale uten sprite. Det er bare våpen som må ha en." };
+      return { done: false, message: "*Rule*-en din nekter også et materiale uten sprite. Det er bare våpen som må ha en." };
     if ((await judge({ name: fresh(), kind: "weapon", sprite: "axe" })).refused)
-      return { done: false, message: "Regelen din nekter et helt vanlig våpen med sprite og et nytt navn." };
+      return { done: false, message: "*Rule*-en din nekter et helt vanlig våpen med sprite og et nytt navn." };
 
     const existing = await client.fetch<string | null>(`*[_type == "item" && defined(name)][0].name`);
     if (!existing)
-      return { done: false, message: "Publiser minst én gjenstand først, så Brann har et navn å teste tvillinger mot." };
+      return { done: false, message: "Publiser minst ett *Item* først, så Brann har et navn å teste tvillinger mot." };
     const twin = await judge({ name: existing, kind: "weapon", sprite: "axe" });
     if (!twin.refused)
       return {
         done: false,
-        message: only(twin, `Et blad nummer to med navnet «${existing}»`) ?? `Tegnebordet godtar fortsatt et blad nummer to med navnet «${existing}».`,
+        message: only(twin, `Et blad nummer to med navnet «${existing}»`) ?? `Studio godtar fortsatt et blad nummer to med navnet «${existing}».`,
       };
   } catch (err) {
-    return { done: false, message: `En valideringsregel krasjet: ${errorText(err)}` };
+    return { done: false, message: `En *validation rule* krasjet: ${errorText(err)}` };
   }
   return { done: true, message: "Laugets lov holder: ingen våpen uten utseende, ingen tvillinger." };
 }
 
-// --- Tegnebrettet ----------------------------------------------------------------
+// --- Spritevelgeren --------------------------------------------------------------
 
 function checkDrawingBoard(): Verdict {
   const sprite = field("sprite");
-  if (!sprite) return { done: false, message: "Brann finner ikke `sprite`-feltet. Spillet leser det, så behold navnet." };
-  if (!sprite.components?.input) return { done: false, message: "Sprite-feltet bruker fortsatt standard-inputen." };
-  return { done: true, message: "Et ordentlig tegnebrett. Brann er fornøyd." };
+  if (!sprite) return { done: false, message: "Brann finner ikke *field*-et `sprite`. Spillet leser det, så behold navnet." };
+  if (!sprite.components?.input) return { done: false, message: "`sprite` bruker fortsatt standard-*input*-en." };
+  return { done: true, message: "En ordentlig spritevelger. Brann er fornøyd." };
 }
 
 // --- Prøvestua -------------------------------------------------------------------
@@ -217,7 +217,7 @@ function checkProvingRoom(): Verdict {
   const structure = (cfg.plugins ?? []).find((p: any) => p?.name === "sanity/structure");
   const resolve = structure?.tools?.[0]?.options?.defaultDocumentNode;
   if (typeof resolve !== "function")
-    return { done: false, message: "Brann finner ingen `defaultDocumentNode` på Structure-verktøyet ditt." };
+    return { done: false, message: "Brann finner ingen `defaultDocumentNode` på `structureTool()`." };
   const { S, calls } = recordStructure();
   try {
     resolve(S, { schemaType: "item", documentId: "winter-quest-check" });
@@ -227,7 +227,7 @@ function checkProvingRoom(): Verdict {
   const view = calls.some(
     (c) => c.name === "component" && c.args.some((a) => typeof a === "function" || (typeof a === "object" && a)),
   );
-  if (!view) return { done: false, message: "Gjenstander har ingen komponentvisning ennå." };
+  if (!view) return { done: false, message: "`item` har ingen `S.view.component` ennå." };
   return { done: true, message: "Prøvestua står klar. Brann vil se hvert eneste blad der inne." };
 }
 
@@ -236,7 +236,7 @@ function checkProvingRoom(): Verdict {
 const QUESTS: { id: string; title: string; run: () => Verdict | Promise<Verdict> }[] = [
   { id: "branns-ledger", title: "Branns protokoll", run: checkLedger },
   { id: "the-guilds-law", title: "Laugets lov", run: checkGuildLaw },
-  { id: "the-drawing-board", title: "Tegnebrettet", run: checkDrawingBoard },
+  { id: "the-drawing-board", title: "Spritevelgeren", run: checkDrawingBoard },
   { id: "the-proving-room", title: "Prøvestua", run: checkProvingRoom },
 ];
 
@@ -255,7 +255,9 @@ for (const quest of QUESTS) {
     verdict = { done: false, message: `Selve sjekken feilet: ${errorText(err)}` };
   }
   checks[quest.id] = { ...verdict, checkedAt: new Date().toISOString() };
-  console.log(`${verdict.done ? green("✓") : "·"} ${quest.title.padEnd(18)} ${verdict.done ? verdict.message : dim(verdict.message)}`);
+  // The game styles *terms*; the terminal just shows the words.
+  const message = verdict.message.replace(/\*([^*]+)\*/g, "$1");
+  console.log(`${verdict.done ? green("✓") : "·"} ${quest.title.padEnd(18)} ${verdict.done ? message : dim(message)}`);
 }
 
 mkdirSync(".quest", { recursive: true });

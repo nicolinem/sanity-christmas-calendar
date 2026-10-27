@@ -6,7 +6,7 @@ import type { QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
 import SpriteIcon from "./SpriteIcon";
 import { IconQuill } from "./icons";
-import { renderCode } from "./QuestTracker";
+import { renderText } from "./richText";
 
 type Props = {
   board: QuestBoard;
@@ -28,7 +28,7 @@ export const STUDIO_URL = "/studio";
 const FIRST_QUEST = "the-broken-forge";
 
 // Talking to Brann is where Sanity enters the story: he can't forge anything,
-// but the player can, at the drafting table (the Studio). He speaks in short
+// but the player can, in the Studio. He speaks in short
 // pages: a word about what you just did, then the next task. The pages are
 // fixed when the conversation starts, so handing over a quest (which flips it
 // from offered to active) doesn't change what he's in the middle of saying.
@@ -129,7 +129,7 @@ function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityC
   }
   return [
     <>
-      {current.quest.title}, ja. {renderCode(current.quest.goal)}
+      {current.quest.title}, ja. {renderText(current.quest.goal)}
     </>,
   ];
 }
@@ -140,8 +140,8 @@ function Reaction({ state }: { state: QuestState }) {
     <>
       Godt jobbet med {state.quest.title.toLowerCase()}! Det du nettopp gjorde, har et navn:
       <span className="dialogue-lesson">
-        <span className="dialogue-lesson-title">{state.quest.lesson.title}</span>
-        {renderCode(state.quest.lesson.text)}
+        <span className="dialogue-lesson-title">{renderText(state.quest.lesson.title)}</span>
+        {renderText(state.quest.lesson.text)}
       </span>
     </>
   );
@@ -171,30 +171,34 @@ function Details({
     <>
       {firstForging && sanityConfigured !== false && (
         <ol className="dialogue-steps">
-          <li>Åpne tegnebordet og lag en ny Gjenstand</li>
           <li>
-            Velg typen <em>Våpen</em>, gi den et navn og et utseende
+            Åpne Sanity Studio og lag et nytt <span className="term">Item</span>-dokument
           </li>
-          <li>Trykk Publish, og se bladet dukke opp i smia</li>
+          <li>
+            Velg <span className="term">Weapon</span>, gi det et navn og en sprite
+          </li>
+          <li>
+            Trykk <span className="term">Publish</span>, og se bladet dukke opp i smia
+          </li>
         </ol>
       )}
 
       {fetchFailed && !refreshing && (
         <p className="dialogue-feedback" role="status">
-          Smia når ikke Sanity-prosjektet ditt. Er datasettet privat, kan ikke spillet lese det. Kjør{" "}
+          Smia når ikke Sanity-prosjektet ditt. Er <span className="term">dataset</span>-et privat, kan ikke spillet lese det. Kjør{" "}
           <code>npm run setup</code> for å sjekke.
         </p>
       )}
 
       {firstForging && checked && !refreshing && !fetchFailed && sanityConfigured !== false && (
         <p className="dialogue-feedback" role="status">
-          Ingenting på ambolten ennå. Bare publiserte våpen når smia.
+          Ingenting på ambolten ennå. Bare publiserte våpen når smia, ikke <span className="term">drafts</span>.
         </p>
       )}
 
       {unclaimed && firstForging && (
         <p className="dialogue-hint">
-          Første gang ved tegnebordet? Åpne innloggingslenken som <code>npm run setup</code> skrev ut. Kjør den på nytt
+          Første gang i Studio? Åpne innloggingslenken som <code>npm run setup</code> skrev ut. Kjør den på nytt
           for å se lenken. Studio husker deg etterpå.
         </p>
       )}
@@ -206,7 +210,7 @@ function Details({
       <div className="dialogue-actions">
         <a ref={studioRef} className="btn btn--amber" href={STUDIO_URL} target="_blank" rel="noreferrer">
           <IconQuill />
-          Åpne tegnebordet
+          Åpne Sanity Studio
         </a>
         <button type="button" className="btn" onClick={onCheck} disabled={refreshing}>
           {refreshing ? "Sjekker…" : "Sjekk smia"}
@@ -243,7 +247,7 @@ function TaskNotes({
     <div className="dialogue-notes">
       {quest.where && (
         <p className="dialogue-note">
-          <span className="dialogue-note-label">Hvor du jobber</span> {renderCode(quest.where)}
+          <span className="dialogue-note-label">Hvor du jobber</span> {renderText(quest.where)}
         </p>
       )}
       {quest.checkedBy === "code" && (
@@ -254,12 +258,12 @@ function TaskNotes({
       )}
       {result.message && !refreshing && !result.done && (
         <p className="dialogue-feedback" role="status">
-          <span className="dialogue-note-label">Branns dom</span> {renderCode(result.message)}
+          <span className="dialogue-note-label">Branns dom</span> {renderText(result.message)}
         </p>
       )}
       {hints.map((hint, i) => (
         <p key={i} className="dialogue-note dialogue-hint-line">
-          <span className="dialogue-note-label">Hint {i + 1}</span> {renderCode(hint.text)}
+          <span className="dialogue-note-label">Hint {i + 1}</span> {renderText(hint.text)}
           {hint.link && (
             <>
               {" "}

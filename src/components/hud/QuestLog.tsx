@@ -6,7 +6,7 @@ import type { QuestBoard } from "@/game/quests/engine";
 import type { QuestState } from "@/game/quests/types";
 import { forgedPower } from "@/game/rules";
 import { IconCheck } from "./icons";
-import { renderCode } from "./QuestTracker";
+import { renderText } from "./richText";
 
 type Props = {
   board: QuestBoard;
@@ -128,8 +128,8 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
               lessons.map((s) => (
                 <article key={s.quest.id} className="log-lesson">
                   <p className="log-lesson-quest">{s.quest.title}</p>
-                  <h3 className="log-lesson-title">{s.quest.lesson.title}</h3>
-                  <p className="log-lesson-text">{renderCode(s.quest.lesson.text)}</p>
+                  <h3 className="log-lesson-title">{renderText(s.quest.lesson.title)}</h3>
+                  <p className="log-lesson-text">{renderText(s.quest.lesson.text)}</p>
                   {s.quest.learn && (
                     <a className="log-learn" href={s.quest.learn.url} target="_blank" rel="noreferrer">
                       Les mer: {s.quest.learn.label}
@@ -185,10 +185,10 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
         {status === "done" && <span className="log-done">Fullført</span>}
       </h3>
       <p className="log-intro">«{quest.intro[quest.intro.length - 1]}»</p>
-      <p className="log-goal">{renderCode(quest.goal)}</p>
+      <p className="log-goal">{renderText(quest.goal)}</p>
       {quest.where && (
         <p className="log-where">
-          <span className="log-where-label">Hvor du jobber</span> {renderCode(quest.where)}
+          <span className="log-where-label">Hvor du jobber</span> {renderText(quest.where)}
         </p>
       )}
 
@@ -202,12 +202,12 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
           ))}
         </ul>
       )}
-      {status !== "done" && result.message && <p className="tracker-note">{renderCode(result.message)}</p>}
+      {status !== "done" && result.message && <p className="tracker-note">{renderText(result.message)}</p>}
 
       <p className="log-checked">
         {quest.checkedBy === "code" ? (
           <>
-            Når det virker: kjør <code>npm run quest</code> i terminalen, og trykk Sjekk smia.
+            Når det virker: kjør <code>npm run quest</code> i terminalen, og trykk «Sjekk smia».
           </>
         ) : (
           "Spillet merker dette av seg selv."
@@ -219,7 +219,7 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
         <div className="log-hints">
           {quest.hints.slice(0, shown).map((hint, i) => (
             <p key={i} className="log-hint">
-              <span className="log-hint-n">Hint {i + 1}</span> {renderCode(hint.text)}
+              <span className="log-hint-n">Hint {i + 1}</span> {renderText(hint.text)}
               {hint.link && (
                 <>
                   {" "}
@@ -240,8 +240,8 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
 
       {status === "done" ? (
         <div className="log-lesson log-lesson--inline">
-          <h4 className="log-lesson-title">Lærdom: {quest.lesson.title}</h4>
-          <p className="log-lesson-text">{renderCode(quest.lesson.text)}</p>
+          <h4 className="log-lesson-title">Lærdom: {renderText(quest.lesson.title)}</h4>
+          <p className="log-lesson-text">{renderText(quest.lesson.text)}</p>
         </div>
       ) : (
         quest.learn && (

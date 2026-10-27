@@ -28,22 +28,22 @@ uansett rekkefølge.
 
 - [ ] Ved Brann: «E Snakk med Brann». E åpner samtalen.
 - [ ] Tre sider (1/3, 2/3, 3/3), E eller «Fortsett» blar. Han presenterer seg,
-      forteller om tegnebordet (Studio), og ber om et våpen.
-- [ ] Siste side har steg-lista og «Åpne tegnebordet», «Sjekk smia», «Gå».
+      forteller om Sanity Studio, og ber om et våpen.
+- [ ] Siste side har steg-lista og «Åpne Sanity Studio», «Sjekk smia», «Gå».
 - [ ] «!» over Brann forsvinner. Oppdragslisten viser nå «Den knuste smia» med
       to delmål.
 - [ ] Første gang i Studio: innloggingslenken fra `npm run setup` slipper deg inn.
-- [ ] Lag en Gjenstand (Navn, Type = Våpen, Sprite), trykk **Publish**.
+- [ ] Lag et `Item`-dokument (Name, Kind = Weapon, Sprite), trykk **Publish**.
 - [ ] **Sanntid:** uten refresh stiger bladet opp av smia, flyr til ridderen,
       og «Nytt fra smia» vises. Bladet ligger i inventarlinja.
-- [ ] En kladd (uten Publish) dukker *ikke* opp i spillet.
+- [ ] En draft (uten Publish) dukker *ikke* opp i spillet.
 - [ ] Frostdraugen i lysningen øst for brønnen: mellomrom angriper, HP-pipsene
       går ned, «… er beseiret!».
-- [ ] Toasts: «Oppdrag fullført: Den knuste smia», «Lærdom: Kladd og publisert»,
+- [ ] Toasts: «Oppdrag fullført: Den knuste smia», «Lærdom: Draft og published»,
       «Smia brenner hetere: nivå 2».
 - [ ] Verktøytipset på bladet viser 6 skade etter nivå 2.
 
-## 2. Branns protokoll: ikon og forhåndsvisning
+## 2. Branns protokoll: icon og preview
 
 - [ ] «!» over Brann igjen. Samtalen starter med «Godt jobbet med den knuste
       smia!» og lærdommen, så den nye oppgaven.
@@ -55,7 +55,7 @@ uansett rekkefølge.
 - [ ] Uten løsning gir `npm run quest` en melding som sier hva som mangler, og
       Brann viser den som «Branns dom».
 
-## 3. Laugets lov: validering
+## 3. Laugets lov: validation
 
 - [ ] Studio nekter å publisere et våpen uten sprite (en feil, ikke en advarsel).
 - [ ] Studio godtar et materiale uten sprite.
@@ -63,24 +63,24 @@ uansett rekkefølge.
 - [ ] `npm run quest` gir ✓ med riktig løsning, og en presis melding hvis regelen
       er for streng eller bare en advarsel.
 
-## 4. Tegnebrettet: egen input
+## 4. Spritevelgeren: custom input component
 
 - [ ] Sprite-feltet viser et rutenett med pikselkunsten. Klikk velger, klikk
       igjen fjerner.
 - [ ] Valget vises i spillet med en gang (sanntid).
 - [ ] `npm run quest` gir ✓.
 
-## 5. Prøvestua: dokumentvisning
+## 5. Prøvestua: document view
 
 - [ ] En gjenstand har en ekstra fane, der ridderen svinger våpenet
       (`KnightPreview`).
 - [ ] Visningen oppdateres mens du endrer feltene, før du publiserer.
 - [ ] `npm run quest` gir ✓.
 
-## 6. Smi-knappen: dokumenthandling
+## 6. Smi-knappen: document action
 
-- [ ] Gjenstander har en «Smi»-knapp i stedet for Publish.
-- [ ] Smi publiserer og setter «Smidd»-tidspunktet.
+- [ ] Items har en «Smi»-knapp i stedet for Publish.
+- [ ] Smi publiserer og setter `forgedAt`.
 - [ ] **Sanntid:** smia i spillet blusser opp idet du trykker Smi.
 - [ ] Oppdraget fullføres av seg selv (ingen `npm run quest`), og smia går til
       nivå 3.

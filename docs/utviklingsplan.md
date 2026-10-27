@@ -32,7 +32,7 @@ Levende dokument. Oppdateres når faser blir ferdige eller beslutninger endres.
 ## Omlegging av kapittel 1 (2026-10-27) ✅
 
 Etter første gjennomspilling fra en fersk klone:
-- **Kortere kapittel 1, et nytt Sanity-konsept per oppdrag:** Den knuste smia (publiser og test på frostdraugen, slått sammen med kampen) → Branns protokoll → Laugets lov → Tegnebrettet → Prøvestua → Smi-knappen. «Prøv bladet» og «Power in a Name» er fjernet.
+- **Kortere kapittel 1, et nytt Sanity-konsept per oppdrag:** Den knuste smia (publiser og test på frostdraugen, slått sammen med kampen) → Branns protokoll → Laugets lov → Spritevelgeren → Prøvestua → Smi-knappen. «Prøv bladet» og «Power in a Name» er fjernet.
 - **Navnemagi er et skjult ekstra**, ikke et tema: elementet vises i verktøytips, draugen er svak mot ild, hemmelige ord virker, men ingen oppdrag krever det. Kan komme tilbake i kapittel 3 via Agent Actions (Skalden).
 - **Laugets lov** er ren Sanity: alle våpen må ha en sprite (regel som ser på `context.document`), og ingen like navn (asynkron validering). `npm run quest` tester fire dokumenter, og fanger også `required()`.
 - **Oppdrag må gis:** et oppdrag er *tilbudt* til Brann har forklart det. Da viser oppdragslista bare «Noen venter ved smia», og det kan ikke fullføres før det er gitt.
@@ -71,7 +71,7 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 
 **Gjort:**
 - `src/game/quests/`: `types.ts`, `chapters.ts` (kapittel 1 med sju quester + navn på kapittel 2 og 3 som smakebit), `engine.ts` (rekkefølge, kalenderdatoer, smienivå), `progress.ts` (localStorage per prosjekt).
-- Kapittel 1: Den knuste smia → Prøv bladet (beseir wraith-en, **+1 smienivå**) → Branns protokoll → Laugets lov → Tegnebrettet → Prøvestua → Smi-knappen (**+1 smienivå**). Quest 3–6 sjekkes fra koden; Smi-knappen sjekkes i data (`forgedAt`).
+- Kapittel 1: Den knuste smia → Prøv bladet (beseir wraith-en, **+1 smienivå**) → Branns protokoll → Laugets lov → Spritevelgeren → Prøvestua → Smi-knappen (**+1 smienivå**). Quest 3–6 sjekkes fra koden; Smi-knappen sjekkes i data (`forgedAt`).
 - Kodesjekker leses fra `.quest/results.json` via `/api/quest-checks` (gitignored). `npm run quest` som skriver fila, kommer i fase 3.
 - HUD: tracker med aktiv quest og fremgang, questlogg (J) med lagvise hint og Learn-lenker, toasts for fullført quest og hetere smie, Brann deler ut quester med egen replikk, «!» over Brann når han har en ny oppgave.
 - `NEXT_PUBLIC_CALENDAR_START=YYYY-MM-DD` slår på datoåpning (kapittel N åpner N−1 uker etter). Uten den er alt åpent. `?dev=quests` åpner alt for testing.
@@ -115,7 +115,7 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 - `npm run quest` → `sanity exec scripts/quest.ts` ✅ (bygget 2026-10-23). Laster `sanity.config.ts` (også `.tsx`-skjema) og tester oppførsel:
   - Branns protokoll: `icon`, `preview.select` henter `sprite`, `prepare()` returnerer React-`media`.
   - Laugets lov: kjører spillerens egne `rule.custom()`-regler (felt- og dokumentnivå) mot testnavn med en ekte klient mot datasettet. Krever at «Flaming Frost Blade» og et eksisterende navn avvises som *feil* (ikke advarsel), og at «Flaming Blade» og et unikt navn godtas. `validateDocument` ble droppet: den krever et helt workspace.
-  - Tegnebrettet: `components.input` på `sprite`-feltet.
+  - Spritevelgeren: `components.input` på `sprite`-feltet.
   - Prøvestua: kaller `defaultDocumentNode` med en opptakende Structure Builder og ser etter `S.view.component(...)`.
   - Testet mot riktig løsning og tre typiske feil (bare advarsel, for streng regel, mangler duplikatsjekk).
 - `src/game/magic.ts` (gjenkjenning av elementer i navn) er laget allerede, fordi Laugets lov trenger den. Kamp og effekter for elementer gjenstår i fase 2.
@@ -155,7 +155,7 @@ solutions   ●─●─●─●─●       ●─●─●─●──>      
 
 ### Fremgangsmåte nå
 
-1. **Referanseløsninger for alle fem kode-questene**, skrevet ordentlig (ikke testvariantene fra checker-testingen): Branns protokoll (din løsning), Laugets lov (med `guild.ts`), Tegnebrettet (rutenett med `SpriteImage`), Prøvestua (visning med sprite, skade og element), Smi-knappen (`useDocumentOperation` → `patch` + `publish`).
+1. **Referanseløsninger for alle fem kode-questene**, skrevet ordentlig (ikke testvariantene fra checker-testingen): Branns protokoll (din løsning), Laugets lov (med `guild.ts`), Spritevelgeren (rutenett med `SpriteImage`), Prøvestua (visning med sprite, skade og element), Smi-knappen (`useDocumentOperation` → `patch` + `publish`).
 2. **Startform for spillerfilene:** `item.tsx` uten ikon og uten `prepare`, med `QUEST: Brann's Ledger`-kommentar. `sanity.config.ts` som nå, med sine QUEST-kommentarer.
 3. **Første commits på `main`:** spillmotoren og startversjonen. Så `solutions`-grenen med én commit og én tagg per quest.
 4. **Automatisk kontroll** (`npm run verify-release`):
