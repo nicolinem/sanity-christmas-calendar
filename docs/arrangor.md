@@ -9,7 +9,9 @@ står i [utviklingsplan.md](utviklingsplan.md).
   (uløste, med `QUEST:`-kommentarer). Ingen løsninger her.
 - **`solutions`** følger `main` og har én commit per kode-quest, tagget
   `solution/<quest-id>`. Grenen og taggene pushes ikke til det felles repoet
-  før løsningen skal slippes.
+  før løsningen skal slippes. Spillerne ser en løsning med
+  `git show solution/<quest-id>` (akkurat den questens commit; `git diff main …`
+  ville også vist senere endringer på `main`).
 
 Spillerfiler (spilleren eier dem): `src/sanity/schemaTypes/**`,
 `sanity.config.ts`, `src/sanity/studio/**`. Etter lansering endrer vi dem

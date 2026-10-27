@@ -109,7 +109,10 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 - Hver quest lenker til Learn-leksjonen den bygger på.
 - Løsningsforslag i egen mappe eller gren, publiseres dagen etter.
 
-## Fase 3b: Startversjon og løsninger (før noen kloner repoet)
+## Fase 3b: Startversjon og løsninger ✅ (ferdig 2026-10-27)
+
+**Gjort:** `main` har startversjonen, `solutions` har fem referanseløsninger tagget `solution/<quest-id>`, og `npm run verify-release` (med `--build`: ren `npm ci` og `next build`) går grønt på begge. Ingenting er pushet: det felles repoet er ikke bestemt ennå.
+
 
 **Problemet:** vi utvikler spillet og spiller det i samme kopi. Løsningen på Branns protokoll ligger allerede i `item.tsx`, så en kollega som kloner nå, får questen gratis. Og når vi slipper kapittel 2, må spillerne kunne hente oppdateringer uten at det krasjer med sine egne løsninger.
 
@@ -132,7 +135,7 @@ solutions   ●─●─●─●─●       ●─●─●─●──>      
 ```
 
 - **`main`** er det kollegaene kloner: spillfiler pluss spillerfiler i startform. Ingen løsninger.
-- **`solutions`** følger `main` og har én commit per kode-quest, med taggen `solution/<quest-id>`. Spilleren kan se en løsning med `git diff main solution/the-guilds-law`, eller på GitHub.
+- **`solutions`** følger `main` og har én commit per kode-quest, med taggen `solution/<quest-id>`. Spilleren kan se en løsning med `git show solution/the-guilds-law`, eller på GitHub.
 - **Løsningene pushes ikke til det felles repoet før de slippes.** Grenen ligger lokalt (eller i et privat repo) til dagen etter at questen åpner, så pusher vi taggen. Det gir noe å diskutere i kanalen: «min løsning vs. fasiten».
 - **Spillerne kloner eller forker** det felles repoet (ikke «Use this template»), slik at `git pull` henter nye kapitler.
 

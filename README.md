@@ -83,7 +83,7 @@ Reference solutions are released the day after a quest opens, as git tags:
 
 ```bash
 git fetch --tags
-git diff main solution/the-guilds-law
+git show solution/the-guilds-law
 ```
 
 Try first. Then compare, and bring your own version to the channel.
