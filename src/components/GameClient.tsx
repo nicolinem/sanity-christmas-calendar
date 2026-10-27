@@ -25,7 +25,7 @@ import ForgeDialogue from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
 import { useCombat } from "./hud/useCombat";
 import { IconQuill } from "./hud/icons";
-import { toggleStudio, useStudioPane } from "./hud/studioPane";
+import { focusGame, toggleStudio, useStudioFocused, useStudioPane } from "./hud/studioPane";
 import StudioPane from "./StudioPane";
 
 // Phaser is browser-only: load it with no SSR.
@@ -84,6 +84,7 @@ export default function GameClient() {
   const { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen, jumpTo } = useProgress();
   const dev = useDevMode();
   const studio = useStudioPane();
+  const studioFocused = useStudioFocused() && studio.open;
   // Dev panel overrides for code checks: true/false wins over npm run quest.
   const [devChecks, setDevChecks] = useState<Record<string, boolean>>({});
 
@@ -269,7 +270,7 @@ export default function GameClient() {
 
   return (
     <div className="game-shell">
-      <div className="game-main">
+      <div className="game-main" onPointerDown={focusGame}>
         <div className="stage">
           <PhaserGame />
           <div className="stage-vignette" aria-hidden />
@@ -344,6 +345,12 @@ export default function GameClient() {
           </div>
 
           <Toasts />
+
+          {studioFocused && (
+            <button type="button" className="keyboard-away" onClick={focusGame}>
+              Studio har tastaturet. Klikk her for å spille.
+            </button>
+          )}
 
           <p className="hud-bl controls" aria-label="Kontroller">
             <span>

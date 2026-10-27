@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { closeStudio, MIN_WIDTH, setStudioWidth, STUDIO_URL } from "./hud/studioPane";
-import { IconQuill } from "./hud/icons";
+import { IconClose, IconQuill } from "./hud/icons";
 
 type Props = { width: number; open: boolean };
 
@@ -74,8 +74,9 @@ export default function StudioPane({ width, open }: Props) {
         <a className="studio-pane-btn" href={STUDIO_URL} target="_blank" rel="noreferrer" onClick={closeStudio}>
           Egen fane
         </a>
-        <button type="button" className="studio-pane-btn" onClick={closeStudio}>
-          {narrow ? "Tilbake til spillet" : "Lukk"}
+        <button type="button" className="btn studio-pane-close" onClick={closeStudio}>
+          <IconClose size={12} />
+          {narrow ? "Tilbake til spillet" : "Lukk Studio"}
         </button>
       </div>
       <iframe className="studio-pane-frame" src={STUDIO_URL} title="Sanity Studio" />

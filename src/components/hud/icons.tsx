@@ -74,3 +74,21 @@ export function IconCheck({ size = 16 }: { size?: number }) {
     />
   );
 }
+
+export function IconClose({ size = 16 }: { size?: number }) {
+  return (
+    <Pixels
+      size={size}
+      rows={[
+        "........",
+        ".##..##.",
+        "..####..",
+        "...##...",
+        "..####..",
+        ".##..##.",
+        "........",
+        "........",
+      ]}
+    />
+  );
+}

@@ -11,6 +11,7 @@ export const STUDIO_URL = "/studio";
 
 const KEY = "winter-quest:studio-pane";
 export const MIN_WIDTH = 380;
+const FOCUS_GAME = "winter-quest:focus-game";
 
 type Pane = { open: boolean; width: number; loaded: boolean };
 
@@ -49,6 +50,39 @@ export const setStudioWidth = (width: number) => set({ width });
 function snapshot() {
   load();
   return pane;
+}
+
+// True while the Studio iframe has focus: then the game's keys go to the Studio,
+// and the HUD says so. Clicking the game takes the keyboard back.
+export function useStudioFocused(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      // Focus moves into the iframe after window blur; check on the next tick.
+      // Any press on the page itself also takes focus out of the iframe.
+      const check = () => window.setTimeout(cb, 0);
+      window.addEventListener("blur", check);
+      window.addEventListener("focus", check);
+      window.addEventListener("pointerdown", check);
+      window.addEventListener(FOCUS_GAME, check);
+      return () => {
+        window.removeEventListener("blur", check);
+        window.removeEventListener("focus", check);
+        window.removeEventListener("pointerdown", check);
+        window.removeEventListener(FOCUS_GAME, check);
+      };
+    },
+    () => document.activeElement?.classList.contains("studio-pane-frame") ?? false,
+    () => false,
+  );
+}
+
+// Hands the keyboard back to the game.
+export function focusGame() {
+  const active = document.activeElement as HTMLElement | null;
+  if (!active?.classList.contains("studio-pane-frame")) return;
+  active.blur();
+  window.focus();
+  window.dispatchEvent(new Event(FOCUS_GAME));
 }
 
 const CLOSED: Pane = { open: false, width: 560, loaded: false };
