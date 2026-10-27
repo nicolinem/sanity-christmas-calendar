@@ -11,6 +11,7 @@ export const EMPTY_PROGRESS: Progress = {
   briefed: {},
   hints: {},
   struck: {},
+  introSeen: false,
 };
 
 const storageKey = (project: string) => `winter-quest:progress:${project}`;

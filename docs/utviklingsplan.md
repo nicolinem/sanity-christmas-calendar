@@ -22,12 +22,26 @@ Levende dokument. Oppdateres når faser blir ferdige eller beslutninger endres.
 
 ## Åpne spørsmål
 
-- [ ] Språk i spillet: norsk eller engelsk dialog og Studio-titler? (Kode og skjemanavn er engelsk uansett.)
+- [x] Språk i spillet: **norsk** (besluttet 2026-10-27). Kode og skjemanavn er engelsk.
 - [ ] Kalender: startdato, og om quester åpnes på dato, i rekkefølge, eller begge deler.
 - [ ] Krever Content Releases og Agent Actions en bestemt Sanity-plan eller har de kvoter? Avgjør om de er obligatoriske eller valgfrie.
 - [ ] Får vi lov til å bruke en innkommende webhook i jobbkanalen (Byropet)?
 
 ---
+
+## Omlegging av kapittel 1 (2026-10-27) ✅
+
+Etter første gjennomspilling fra en fersk klone:
+- **Kortere kapittel 1, et nytt Sanity-konsept per oppdrag:** Den knuste smia (publiser og test på frostdraugen, slått sammen med kampen) → Branns protokoll → Laugets lov → Tegnebrettet → Prøvestua → Smi-knappen. «Prøv bladet» og «Power in a Name» er fjernet.
+- **Navnemagi er et skjult ekstra**, ikke et tema: elementet vises i verktøytips, draugen er svak mot ild, hemmelige ord virker, men ingen oppdrag krever det. Kan komme tilbake i kapittel 3 via Agent Actions (Skalden).
+- **Laugets lov** er ren Sanity: alle våpen må ha en sprite (regel som ser på `context.document`), og ingen like navn (asynkron validering). `npm run quest` tester fire dokumenter, og fanger også `required()`.
+- **Oppdrag må gis:** et oppdrag er *tilbudt* til Brann har forklart det. Da viser oppdragslista bare «Noen venter ved smia», og det kan ikke fullføres før det er gitt.
+- **Brann snakker i sider** (E blar), presenterer seg første gang, og reagerer på forrige oppdrag med lærdommen før neste.
+- **Åpning:** én skjerm med tre linjer første gang, og et «gå»-hint til ridderen har tatt de første skrittene.
+- **Lærdommer:** hvert oppdrag har en lærdom som vises når det er ferdig, og samles i **Branns bok** i oppdragsloggen.
+- **Sanntid:** spillet lytter på Sanity (listener-API, uten token) og henter på nytt når noe publiseres. Et nytt våpen stiger opp av smia og flyr til ridderen, og et nytt `forgedAt`-stempel får smia til å blusse opp. Lytting krever CORS for origin: før prosjektet er overtatt gjelder det bare `localhost:3000`, ellers sjekker spillet hvert 4. sekund.
+- **`KnightPreview`** (`src/components/KnightPreview.tsx`): ridderen som svinger spillerens våpen, ferdig til bruk i Prøvestua.
+- **All spilltekst er på norsk**, også Studio-titler, meldingene fra `npm run quest` og oppsettsiden for Studio. README og terminalverktøyet `npm run setup` er fortsatt på engelsk.
 
 ## Fase 0: Rydd modellen ✅ (ferdig 2026-10-23)
 

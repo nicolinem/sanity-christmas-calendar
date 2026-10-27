@@ -15,7 +15,10 @@ export function chapterOpensAt(chapter: Chapter): Date | undefined {
 
 export type QuestBoard = {
   states: QuestState[];
-  active: QuestState | null; // the next thing to do
+  // The next thing to do: offered (Brann hasn't handed it over yet) or active.
+  current: QuestState | null;
+  // The quest finished just before `current`, so Brann can react to it.
+  previous: QuestState | null;
   completedCount: number;
   total: number;
 };
@@ -37,10 +40,11 @@ export function evaluateQuests(
       const result = quest.check(ctx);
       const done = Boolean(ctx.progress.completed[quest.id]);
       const unlocked = devUnlock || (previousDone && dateOpen);
+      const briefed = Boolean(ctx.progress.briefed[quest.id]);
       states.push({
         quest,
         chapter,
-        status: done ? "done" : unlocked ? "active" : "locked",
+        status: done ? "done" : !unlocked ? "locked" : briefed ? "active" : "offered",
         result,
         opensAt: !done && previousDone && !dateOpen ? opensAt : undefined,
       });
@@ -48,9 +52,11 @@ export function evaluateQuests(
     }
   }
 
+  const index = states.findIndex((s) => s.status === "active" || s.status === "offered");
   return {
     states,
-    active: states.find((s) => s.status === "active") ?? null,
+    current: index >= 0 ? states[index] : null,
+    previous: index > 0 && states[index - 1].status === "done" ? states[index - 1] : null,
     completedCount: states.filter((s) => s.status === "done").length,
     total: states.length,
   };

@@ -38,6 +38,10 @@ export function useProgress() {
 
   const reset = useCallback(() => resetProgress(PROJECT), []);
 
+  const markIntroSeen = useCallback(() => {
+    updateProgress(PROJECT, (p) => (p.introSeen ? p : { ...p, introSeen: true }));
+  }, []);
+
   const revealHint = useCallback((questId: string) => {
     updateProgress(PROJECT, (p) => ({ ...p, hints: { ...p.hints, [questId]: (p.hints[questId] ?? 0) + 1 } }));
   }, []);
@@ -53,7 +57,7 @@ export function useProgress() {
     [],
   );
 
-  return { progress, forgeLevel, metBrann, reset, revealHint };
+  return { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen };
 }
 
 type BoardInput = {
@@ -100,13 +104,16 @@ export function useQuestBoard({ items, codeChecks, sanityConfigured, wraithDefea
       for (const s of finished) completed[s.quest.id] = now;
       return { ...p, completed };
     });
-    for (const s of finished) pushToast({ title: "Quest complete", body: s.quest.title, tone: "quest" });
+    for (const s of finished) {
+      pushToast({ title: "Oppdrag fullført", body: s.quest.title, tone: "quest" });
+      pushToast({ title: `Lærdom: ${s.quest.lesson.title}`, body: "Står nå i Branns bok (J).", tone: "lesson" });
+    }
 
     const after = forgeLevelFor(CHAPTERS, readProgress(PROJECT));
     if (after > before) {
       pushToast({
-        title: `The forge burns hotter: level ${after}`,
-        body: `Every blade you've forged now bites for ${forgedPower(after).damage}.`,
+        title: `Smia brenner hetere: nivå ${after}`,
+        body: `Alle bladene du har smidd, biter nå for ${forgedPower(after).damage}.`,
         tone: "forge",
       });
       bridge.emit("forgeLevelUp", after);

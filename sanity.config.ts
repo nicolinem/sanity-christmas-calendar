@@ -6,19 +6,20 @@ import { visionTool } from "@sanity/vision";
 import { apiVersion, dataset, projectId } from "./src/sanity/env";
 import { schema } from "./src/sanity/schemaTypes";
 
-// Config for the Studio embedded at /studio. Players edit game content here.
+// Config for the Studio embedded at /studio: Brann's drafting table. This file
+// is yours; the later chapter 1 quests happen here.
 export default defineConfig({
   name: "sanity-winter-quest",
-  title: "Sanity Winter Quest",
+  title: "Branns tegnebord",
   basePath: "/studio",
   projectId,
   dataset,
   schema,
   plugins: [
-    // QUEST: The Proving Room. Give items an extra view here, one that shows
-    // the item the way the game will.
+    // QUEST: Prøvestua. Gi gjenstandene en ekstra visning her, en som viser
+    // gjenstanden slik spillet ser den.
     structureTool(),
     visionTool({ defaultApiVersion: apiVersion }),
   ],
-  // QUEST: The Forge Button. Register your Forge action here (`document.actions`).
+  // QUEST: Smi-knappen. Registrer Smi-handlingen din her (`document.actions`).
 });

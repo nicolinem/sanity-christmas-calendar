@@ -6,7 +6,7 @@ import type { GameItemView } from "@/game/items";
 import { isUsableWeapon } from "@/game/items";
 import type { Element } from "@/game/magic";
 
-export const ENEMY_NAME = "Frost Wraith";
+export const ENEMY_NAME = "Frostdraugen";
 export const ENEMY_MAX_HP = 30;
 // What the wraith fears and shrugs off. The weapon's name decides its element.
 export const ENEMY_WEAK_TO: Element = "fire";
@@ -27,7 +27,7 @@ export function useCombat(weapon: GameItemView | null) {
     if (hp <= 0) return;
     if (!isUsableWeapon(weapon) || !weapon) {
       setLog((l) => [
-        `You swing ${weapon ? weapon.name : "nothing"}… it does no damage. Equip a weapon with a damage value!`,
+        `Du svinger ${weapon ? weapon.name : "ingenting"}… men det biter ikke. Ta et ordentlig våpen i hånda!`,
         ...l,
       ]);
       bridge.emit("whiff", undefined);
@@ -40,13 +40,13 @@ export function useCombat(weapon: GameItemView | null) {
     const dmg = affinity === "immune" ? 0 : affinity === "weak" ? Math.round(rolled * WEAK_MULTIPLIER) : rolled;
     const next = Math.max(0, hp - dmg);
     setHp(next);
-    const flavour = affinity === "weak" ? " The wraith shrinks from the fire!" : "";
+    const flavour = affinity === "weak" ? " Draugen viker unna ilden!" : "";
     setLog((l) => [
       affinity === "immune"
-        ? `${weapon.name}'s frost does nothing to a ${ENEMY_NAME}.`
+        ? `Frosten i ${weapon.name} biter ikke på ${ENEMY_NAME.toLowerCase()}.`
         : next <= 0
-          ? `${weapon.name} hits for ${dmg}!${flavour} The ${ENEMY_NAME} is defeated!`
-          : `${weapon.name} hits for ${dmg}.${flavour}`,
+          ? `${weapon.name} treffer for ${dmg}!${flavour} ${ENEMY_NAME} er beseiret!`
+          : `${weapon.name} treffer for ${dmg}.${flavour}`,
       ...l,
     ]);
     bridge.emit("hit", { damage: dmg, defeated: next <= 0, affinity, element });

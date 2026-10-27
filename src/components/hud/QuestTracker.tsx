@@ -7,32 +7,48 @@ import { IconCheck } from "./icons";
 type Props = {
   board: QuestBoard;
   forgeLevel: number;
+  metBrann: boolean;
   compact: boolean;
   onOpenLog: () => void;
 };
 
 // The always-on corner of the quest log: the one thing to do next, and how far
-// the player has come. Everything else lives in the quest log (J).
-export default function QuestTracker({ board, forgeLevel, compact, onOpenLog }: Props) {
+// the player has come. A quest Brann hasn't handed over yet stays a mystery
+// here: you learn what it is by talking to him.
+export default function QuestTracker({ board, forgeLevel, metBrann, compact, onOpenLog }: Props) {
   const [open, setOpen] = useState(!compact);
-  const active = board.active;
-  const waiting = !active ? board.states.find((s) => s.status === "locked" && s.opensAt) : undefined;
+  const current = board.current;
+  const waiting = !current ? board.states.find((s) => s.status === "locked" && s.opensAt) : undefined;
+  const offered = current?.status === "offered";
+
+  const title = !current
+    ? "Ferdig for nå"
+    : offered
+      ? metBrann
+        ? "Brann har en ny oppgave"
+        : "Noen venter ved smia"
+      : current.quest.title;
 
   return (
-    <section className="tracker frame frame--slate" aria-label="Quest">
+    <section className="tracker frame frame--slate" aria-label="Oppdrag">
       <button type="button" className="tracker-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <span className="tracker-week">{active ? `Chapter ${active.chapter.number}` : "Quests"}</span>
-        <span className="tracker-title">{active ? active.quest.title : "All done for now"}</span>
+        <span className="tracker-week">{current ? `Kapittel ${current.chapter.number}` : "Oppdrag"}</span>
+        <span className="tracker-title">{title}</span>
       </button>
 
       {open && (
         <>
-          {active ? (
+          {current && offered && (
+            <p className="tracker-goal">
+              Gå til smia og snakk med Brann <kbd>E</kbd>
+            </p>
+          )}
+          {current && !offered && (
             <>
-              <p className="tracker-goal">{renderCode(active.quest.goal)}</p>
-              {active.result.objectives && (
+              <p className="tracker-goal">{renderCode(current.quest.goal)}</p>
+              {current.result.objectives && (
                 <ul className="tracker-list">
-                  {active.result.objectives.map((o) => (
+                  {current.result.objectives.map((o) => (
                     <li key={o.label} className={o.done ? "is-done" : undefined}>
                       <span className="tracker-box">{o.done && <IconCheck size={12} />}</span>
                       {o.label}
@@ -40,25 +56,28 @@ export default function QuestTracker({ board, forgeLevel, compact, onOpenLog }: 
                   ))}
                 </ul>
               )}
-              {(active.result.message || active.quest.checkedBy === "code") && (
+              {(current.result.message || current.quest.checkedBy === "code") && (
                 <p className="tracker-note">
-                  {renderCode(active.result.message ?? "Checked from your code: run `npm run quest` when it's ready.")}
+                  {renderCode(
+                    current.result.message ?? "Sjekkes fra koden din: kjør `npm run quest` når du er klar.",
+                  )}
                 </p>
               )}
             </>
-          ) : (
+          )}
+          {!current && (
             <p className="tracker-goal">
               {waiting?.opensAt
-                ? `The next task arrives ${waiting.opensAt.toLocaleDateString(undefined, { day: "numeric", month: "long" })}.`
-                : "Brann has nothing more for you yet. New tasks arrive with the calendar."}
+                ? `Neste oppgave kommer ${waiting.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
+                : "Brann har ikke mer til deg ennå. Nye oppgaver kommer med kalenderen."}
             </p>
           )}
           <div className="tracker-foot">
             <span className="tracker-meta">
-              {board.completedCount}/{board.total} quests, forge level {forgeLevel}
+              {board.completedCount}/{board.total} oppdrag, smienivå {forgeLevel}
             </span>
             <button type="button" className="tracker-log" onClick={onOpenLog}>
-              <kbd>J</kbd> Quest log
+              <kbd>J</kbd> Oppdragslogg
             </button>
           </div>
         </>

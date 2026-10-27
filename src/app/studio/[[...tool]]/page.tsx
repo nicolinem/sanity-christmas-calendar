@@ -13,18 +13,17 @@ export default function StudioPage() {
     // "Configuration must contain projectId" crash.
     return (
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 20px", fontFamily: "system-ui, sans-serif", color: "#233245" }}>
-        <h1>No Sanity project connected yet</h1>
-        <p>Every player forges in their own Sanity project. From the repo, run:</p>
+        <h1>Ingen Sanity-prosjekt er koblet til ennå</h1>
+        <p>Hver spiller smir i sitt eget Sanity-prosjekt. Kjør dette i repoet:</p>
         <pre style={{ background: "#eef2f8", padding: "12px 16px", borderRadius: 6 }}>npm run setup</pre>
         <p>
-          It creates a project for you (no account needed), writes <code>.env.local</code>,
-          and prints a link that signs you in to this Studio. Claim the project within
-          72 hours to keep it.
+          Det lager et prosjekt for deg (uten konto), skriver <code>.env.local</code>, og skriver ut en lenke som
+          logger deg inn på dette tegnebordet. Overta prosjektet innen 72 timer for å beholde det.
         </p>
         <p>
-          Already have a project? <code>npm run setup -- --project &lt;id&gt;</code>
+          Har du allerede et prosjekt? <code>npm run setup -- --project &lt;id&gt;</code>
         </p>
-        <p><a href="/">← Back to the game</a></p>
+        <p><a href="/">← Tilbake til spillet</a></p>
       </main>
     );
   }

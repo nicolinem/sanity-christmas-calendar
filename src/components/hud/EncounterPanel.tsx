@@ -19,7 +19,7 @@ export default function EncounterPanel({ combat, weapon }: Props) {
   const usable = isUsableWeapon(weapon);
 
   return (
-    <section className="encounter frame frame--frost" aria-label={`Fight the ${ENEMY_NAME}`}>
+    <section className="encounter frame frame--frost" aria-label={`Kjemp mot ${ENEMY_NAME.toLowerCase()}`}>
       <div className={`encounter-portrait${defeated ? " is-defeated" : ""}`}>
         <SpriteIcon sprite={{ sheet: "dungeon", frame: 121 }} scale={2} />
       </div>
@@ -31,7 +31,7 @@ export default function EncounterPanel({ combat, weapon }: Props) {
             {hp}/{maxHp}
           </span>
         </p>
-        <div className="hp" role="meter" aria-valuemin={0} aria-valuemax={maxHp} aria-valuenow={hp} aria-label="Wraith health">
+        <div className="hp" role="meter" aria-valuemin={0} aria-valuemax={maxHp} aria-valuenow={hp} aria-label="Draugens health">
           {Array.from({ length: pips }, (_, i) => (
             <span key={i} className={i < filled ? "on" : undefined} />
           ))}
@@ -41,11 +41,11 @@ export default function EncounterPanel({ combat, weapon }: Props) {
             (weapon ? (
               <>
                 {weapon.name}, <span className={usable ? "dmg" : "dmg dmg--none"}>
-                  {usable ? `${weapon.power?.damage} damage` : "no damage"}
+                  {usable ? `${weapon.power?.damage} skade` : "ingen skade"}
                 </span>
               </>
             ) : (
-              "Nothing equipped"
+              "Ingenting i hånda"
             ))}
         </p>
       </div>
@@ -53,15 +53,15 @@ export default function EncounterPanel({ combat, weapon }: Props) {
       <div className="encounter-actions">
         {defeated ? (
           <button type="button" className="btn btn--amber" onClick={reset}>
-            Rematch
+            Ny kamp
           </button>
         ) : (
           <>
             <button type="button" className="btn btn--amber" onClick={attack}>
-              Attack <kbd>Space</kbd>
+              Angrip <kbd>Mellomrom</kbd>
             </button>
-            <button type="button" className="btn btn--quiet" onClick={reset} title="Reset the fight">
-              Reset
+            <button type="button" className="btn btn--quiet" onClick={reset} title="Start kampen på nytt">
+              Start på nytt
             </button>
           </>
         )}

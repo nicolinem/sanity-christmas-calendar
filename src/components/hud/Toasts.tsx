@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 // Short banners for moments worth celebrating: a finished quest, a hotter
 // forge. A tiny module-level store so anything can push without prop drilling.
 
-export type Toast = { id: number; title: string; body?: string; tone?: "quest" | "forge" };
+export type Toast = { id: number; title: string; body?: string; tone?: "quest" | "forge" | "lesson" };
 
 let toasts: Toast[] = [];
 let nextId = 1;

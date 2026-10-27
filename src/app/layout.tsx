@@ -16,7 +16,7 @@ const ui = Pixelify_Sans({
 
 export const metadata: Metadata = {
   title: "Sanity Winter Quest",
-  description: "A pixel-art RPG advent calendar powered by Sanity.",
+  description: "Et pikselkunst-rollespill og en julekalender for å lære Sanity.",
 };
 
 export const viewport: Viewport = {
@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${ui.variable}`}>
+    <html lang="nb" className={`${display.variable} ${ui.variable}`}>
       <body>{children}</body>
     </html>
   );

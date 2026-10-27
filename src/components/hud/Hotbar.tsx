@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameItemView } from "@/game/items";
 import { ELEMENTS } from "@/game/magic";
+
+const KIND_LABEL = { weapon: "Våpen", material: "Materiale", potion: "Drikk" } as const;
 import SpriteIcon from "./SpriteIcon";
 import { IconRefresh } from "./icons";
 
@@ -40,14 +42,14 @@ export default function Hotbar({ items, equippedId, onEquip, onRefresh, refreshi
   }, [bagOpen]);
 
   return (
-    <div className="hotbar frame frame--slate" role="toolbar" aria-label="Inventory">
+    <div className="hotbar frame frame--slate" role="toolbar" aria-label="Utstyr">
       <ul className="hotbar-slots">
         {belt.map((item, i) => (
           <li key={item.id}>
             <Slot item={item} hotkey={i + 1} equipped={item.id === equippedId} onEquip={onEquip} />
           </li>
         ))}
-        {items.length === 0 && <li className="hotbar-empty">Your bag is empty</li>}
+        {items.length === 0 && <li className="hotbar-empty">Sekken er tom</li>}
       </ul>
 
       {bag.length > 0 && (
@@ -57,14 +59,14 @@ export default function Hotbar({ items, equippedId, onEquip, onRefresh, refreshi
             className="slot slot--tool"
             aria-expanded={bagOpen}
             onClick={() => setBagOpen((o) => !o)}
-            title={`${bag.length} more in your bag`}
+            title={`${bag.length} til i sekken`}
           >
             <SpriteIcon sprite={{ sheet: "town", frame: 107 }} />
             <span className="slot-count">+{bag.length}</span>
           </button>
           {bagOpen && (
             <div className="bag-panel frame frame--slate">
-              <p className="bag-title">Bag</p>
+              <p className="bag-title">Sekken</p>
               <ul className="bag-grid">
                 {bag.map((item) => (
                   <li key={item.id}>
@@ -82,8 +84,8 @@ export default function Hotbar({ items, equippedId, onEquip, onRefresh, refreshi
         className="slot slot--tool"
         onClick={onRefresh}
         disabled={refreshing}
-        aria-label={refreshing ? "Refreshing inventory" : "Refresh inventory"}
-        title="Refresh inventory from Sanity"
+        aria-label={refreshing ? "Henter gjenstander" : "Hent gjenstander på nytt"}
+        title="Hent gjenstandene dine fra Sanity på nytt"
       >
         <IconRefresh spinning={refreshing} />
       </button>
@@ -124,31 +126,31 @@ function Slot({
       <div className="tooltip frame frame--slate" role="tooltip" id={tipId}>
         <p className="tooltip-name">{item.name}</p>
         <p className="tooltip-stat">
-          {item.kind ?? "Unknown kind"}
-          {power && <span className="tooltip-dmg">{power.damage} damage</span>}
+          {item.kind ? KIND_LABEL[item.kind] : "Ukjent type"}
+          {power && <span className="tooltip-dmg">{power.damage} skade</span>}
         </p>
         {item.magic.kind === "element" && (
           <p className={`tooltip-element el-${item.magic.element}`}>
-            The name carries {ELEMENTS[item.magic.element].title.toLowerCase()}
+            Navnet bærer {ELEMENTS[item.magic.element].title.toLowerCase()}
           </p>
         )}
         {item.magic.kind === "fizzle" && (
-          <p className="tooltip-element el-fizzle">Two elements in one name: the magic fizzles</p>
+          <p className="tooltip-element el-fizzle">To elementer i ett navn: magien fuser ut</p>
         )}
         {item.description && <p className="tooltip-desc">{item.description}</p>}
         <p className="tooltip-source">
           {item.source === "sanity" ? (
             <>
-              <span className="slot-mark slot-mark--inline" /> Forged in Sanity
+              <span className="slot-mark slot-mark--inline" /> Smidd i Sanity
             </>
           ) : (
-            "Built-in"
+            "Innebygd"
           )}
         </p>
         {item.spriteId && !item.knownSprite && (
-          <p className="tooltip-warn">Unknown sprite “{item.spriteId}”, showing a stand-in</p>
+          <p className="tooltip-warn">Ukjent sprite «{item.spriteId}», viser en reserve</p>
         )}
-        {weapon && <p className="tooltip-hint">{equipped ? "Equipped" : "Click to equip"}</p>}
+        {weapon && <p className="tooltip-hint">{equipped ? "I hånda" : "Klikk for å ta i hånda"}</p>}
       </div>
     </div>
   );

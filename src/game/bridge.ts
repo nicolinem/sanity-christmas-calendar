@@ -25,6 +25,9 @@ type EventMap = {
   hit: { damage: number; defeated: boolean; affinity?: "weak" | "immune"; element?: Element | null };
   whiff: void;
   forgeLevelUp: number;
+  itemForged: SpriteDef; // a new blade was published: it rises from the forge
+  forgeFlare: void; // a blade was stamped by the Forge button
+  moved: void; // the knight took its first steps (scene → HUD)
 };
 
 type Listener<T> = (payload: T) => void;

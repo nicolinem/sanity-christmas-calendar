@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import type { SanityItem } from "@/sanity/queries";
 import {
@@ -16,8 +16,10 @@ import type { CodeCheck } from "@/game/quests/types";
 import Hotbar from "./hud/Hotbar";
 import QuestTracker from "./hud/QuestTracker";
 import QuestLog from "./hud/QuestLog";
-import Toasts from "./hud/Toasts";
+import Toasts, { pushToast } from "./hud/Toasts";
+import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
+import { useLiveRefresh } from "./hud/useLive";
 import ForgeDialogue, { STUDIO_URL } from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
 import { useCombat } from "./hud/useCombat";
@@ -26,7 +28,7 @@ import { IconQuill } from "./hud/icons";
 // Phaser is browser-only: load it with no SSR.
 const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
   ssr: false,
-  loading: () => <div className="stage-loading">Lighting the lanterns…</div>,
+  loading: () => <div className="stage-loading">Tenner lyktene…</div>,
 });
 
 function useNarrow() {
@@ -66,7 +68,8 @@ export default function GameClient() {
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const [checkedForge, setCheckedForge] = useState(false);
-  const { progress, forgeLevel, metBrann, reset, revealHint } = useProgress();
+  const [hasMoved, setHasMoved] = useState(false);
+  const { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen } = useProgress();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -96,12 +99,41 @@ export default function GameClient() {
     refresh();
   }, [refresh]);
 
+  // Publish in the Studio and the game hears about it straight away.
+  useLiveRefresh(refresh, configured === true);
+
+  useEffect(() => bridge.on("moved", () => setHasMoved(true)), []);
+
   // Compose the full item list: Sanity content + always-present baseline, plus
   // demo items only while Sanity is unconfigured so the game is never empty.
   const items = useMemo<GameItemView[]>(() => {
     const base = configured === false ? [...DEMO_ITEMS, ...BUILTIN_ITEMS] : BUILTIN_ITEMS;
     return [...sanityItems.map((raw) => toGameItem(raw, forgeLevel)), ...base];
   }, [sanityItems, configured, forgeLevel]);
+
+  // A weapon that wasn't there a moment ago rises out of the forge; a fresh
+  // forgedAt stamp (the Forge button quest) makes the forge flare. The first
+  // load only sets the baseline.
+  const seen = useRef<Map<string, string | null> | null>(null);
+  useEffect(() => {
+    if (configured !== true) return;
+    const sanity = items.filter((i) => i.source === "sanity");
+    if (!seen.current) {
+      seen.current = new Map(sanity.map((i) => [i.id, i.forgedAt]));
+      return;
+    }
+    for (const item of sanity) {
+      if (!seen.current.has(item.id)) {
+        if (item.kind === "weapon") {
+          bridge.emit("itemForged", item.sprite);
+          pushToast({ title: "Nytt fra smia", body: item.name, tone: "forge" });
+        }
+      } else if (item.forgedAt && item.forgedAt !== seen.current.get(item.id)) {
+        bridge.emit("forgeFlare", undefined);
+      }
+      seen.current.set(item.id, item.forgedAt);
+    }
+  }, [items, configured]);
 
   // Auto-equip the strongest usable weapon the first time items load / change,
   // unless the player has already chosen one that still exists.
@@ -132,7 +164,8 @@ export default function GameClient() {
     wraithDefeatedNow: combat.defeated,
     progress,
   });
-  const active = board.active;
+  const current = board.current;
+  const currentId = current?.quest.id;
 
   const checkForge = useCallback(() => {
     setCheckedForge(true);
@@ -141,20 +174,20 @@ export default function GameClient() {
 
   // Walking away from Brann ends the conversation.
   const dialogueOpen = talking && zone === "forge";
-
-  const activeId = active?.quest.id;
   const openDialogue = useCallback(() => setTalking(true), []);
 
-  // Whatever task Brann is talking about counts as explained, including one
-  // that unlocks while the dialogue is open.
+  // Talking to Brann is how a quest is handed over, including one that
+  // unlocks while you're still talking.
   useEffect(() => {
-    if (dialogueOpen) metBrann(activeId);
-  }, [dialogueOpen, activeId, metBrann]);
+    if (dialogueOpen) metBrann(currentId);
+  }, [dialogueOpen, currentId, metBrann]);
 
   const openLog = useCallback(() => {
     setTalking(false);
     setLogOpen(true);
   }, []);
+
+  const showOpening = !progress.introSeen;
 
   // Keep the world in sync with game state.
   useEffect(() => {
@@ -166,18 +199,18 @@ export default function GameClient() {
       weapon: hand,
       forgeLit: Boolean(forged),
       forgeLevel,
-      brannMarker: activeId ? !progress.briefed[activeId] : false,
+      brannMarker: current?.status === "offered",
       wraithDefeated: combat.defeated,
-      frozen: dialogueOpen || logOpen,
+      frozen: dialogueOpen || logOpen || showOpening,
     });
-  }, [equipped, forged, forgeLevel, activeId, progress.briefed, combat.defeated, dialogueOpen, logOpen]);
+  }, [equipped, forged, forgeLevel, current?.status, combat.defeated, dialogueOpen, logOpen, showOpening]);
 
   const slots = narrow ? 5 : 8;
 
   // Action keys. Movement keys belong to Phaser; these belong to the HUD.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || showOpening) return;
       const onControl = (e.target as HTMLElement)?.closest?.("button, a, input, textarea");
       if (logOpen) {
         if (e.key === "Escape" || e.key === "j" || e.key === "J") setLogOpen(false);
@@ -209,7 +242,7 @@ export default function GameClient() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [zone, dialogueOpen, logOpen, openDialogue, openLog, combat, items, slots, handleEquip]);
+  }, [zone, dialogueOpen, logOpen, showOpening, openDialogue, openLog, combat, items, slots, handleEquip]);
 
   return (
     <div className="game-shell">
@@ -228,6 +261,7 @@ export default function GameClient() {
             key={narrow ? "compact" : "full"}
             board={board}
             forgeLevel={forgeLevel}
+            metBrann={progress.metBlacksmith}
             compact={narrow}
             onOpenLog={openLog}
           />
@@ -243,7 +277,8 @@ export default function GameClient() {
         <div className="hud-bc">
           {dialogueOpen && (
             <ForgeDialogue
-              active={active}
+              key={currentId ?? "none"}
+              board={board}
               forged={forged}
               sanityConfigured={configured}
               fetchFailed={fetchFailed}
@@ -252,15 +287,20 @@ export default function GameClient() {
               checked={checkedForge}
               onCheck={checkForge}
               onOpenLog={openLog}
-              hintsShown={active ? (progress.hints[active.quest.id] ?? 0) : 0}
+              hintsShown={currentId ? (progress.hints[currentId] ?? 0) : 0}
               onRevealHint={revealHint}
               onClose={() => setTalking(false)}
             />
           )}
           {zone === "forge" && !dialogueOpen && (
             <button type="button" className="prompt" onClick={openDialogue}>
-              <kbd>E</kbd> Talk to Brann
+              <kbd>E</kbd> Snakk med Brann
             </button>
+          )}
+          {!hasMoved && !progress.metBlacksmith && !showOpening && zone !== "forge" && (
+            <p className="prompt prompt--hint">
+              Gå med <kbd>WASD</kbd> eller piltastene. Smia er rett nord.
+            </p>
           )}
           {zone === "wraith" && <EncounterPanel combat={combat} weapon={equipped} />}
 
@@ -276,21 +316,21 @@ export default function GameClient() {
 
         <Toasts />
 
-        <p className="hud-bl controls" aria-label="Controls">
+        <p className="hud-bl controls" aria-label="Kontroller">
           <span>
-            <kbd>WASD</kbd> walk
+            <kbd>WASD</kbd> gå
           </span>
           <span>
-            <kbd>E</kbd> talk
+            <kbd>E</kbd> snakk
           </span>
           <span>
-            <kbd>Space</kbd> attack
+            <kbd>Mellomrom</kbd> angrip
           </span>
           <span>
-            <kbd>1</kbd>–<kbd>{slots}</kbd> equip
+            <kbd>1</kbd>–<kbd>{slots}</kbd> utstyr
           </span>
           <span>
-            <kbd>J</kbd> quests
+            <kbd>J</kbd> oppdrag
           </span>
         </p>
       </div>
@@ -305,6 +345,8 @@ export default function GameClient() {
           onReset={reset}
         />
       )}
+
+      {showOpening && <Opening onStart={markIntroSeen} />}
     </div>
   );
 }

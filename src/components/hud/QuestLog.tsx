@@ -17,10 +17,14 @@ type Props = {
   onReset: () => void;
 };
 
+type Tab = "quests" | "book";
+
 // The full quest log: every chapter, what's done, what's next, and the layered
-// hints. Locked chapters only show their names, as a taste of what's coming.
+// hints. Brann's book collects what each finished quest taught. Locked
+// chapters only show their names, as a taste of what's coming.
 export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, onClose, onReset }: Props) {
-  const [selectedId, setSelectedId] = useState(board.active?.quest.id ?? board.states[0]?.quest.id);
+  const [tab, setTab] = useState<Tab>("quests");
+  const [selectedId, setSelectedId] = useState(board.current?.quest.id ?? board.states[0]?.quest.id);
   const [confirmReset, setConfirmReset] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -29,6 +33,7 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
   }, []);
 
   const selected = board.states.find((s) => s.quest.id === selectedId) ?? board.states[0];
+  const lessons = board.states.filter((s) => s.status === "done");
 
   return (
     <div className="log-backdrop" onClick={onClose}>
@@ -36,63 +41,105 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
         className="log frame frame--slate"
         role="dialog"
         aria-modal="true"
-        aria-label="Quest log"
+        aria-label="Oppdragslogg"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="log-head">
-          <h2 className="log-title">Quest log</h2>
+          <div className="log-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "quests"}
+              className={`log-tab${tab === "quests" ? " is-on" : ""}`}
+              onClick={() => setTab("quests")}
+            >
+              Oppdrag
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "book"}
+              className={`log-tab${tab === "book" ? " is-on" : ""}`}
+              onClick={() => setTab("book")}
+            >
+              Branns bok
+            </button>
+          </div>
           <p className="log-meta">
-            Forge level {forgeLevel}, blades bite for {forgedPower(forgeLevel).damage}
+            Smienivå {forgeLevel}, bladene biter for {forgedPower(forgeLevel).damage}
           </p>
           <button ref={closeRef} type="button" className="btn btn--quiet" onClick={onClose}>
-            Close <kbd>Esc</kbd>
+            Lukk <kbd>Esc</kbd>
           </button>
         </header>
 
-        <div className="log-body">
-          <nav className="log-list" aria-label="Quests">
-            {CHAPTERS.map((chapter) => {
-              const states = board.states.filter((s) => s.chapter.number === chapter.number);
-              return (
-                <div key={chapter.number} className="log-chapter">
-                  <p className="log-chapter-title">
-                    Chapter {chapter.number}: {chapter.title}
-                  </p>
-                  <ul>
-                    {states.map((s) => (
-                      <li key={s.quest.id}>
-                        <button
-                          type="button"
-                          className={`log-quest is-${s.status}${s === selected ? " is-selected" : ""}`}
-                          onClick={() => setSelectedId(s.quest.id)}
-                          aria-current={s === selected ? "true" : undefined}
-                        >
-                          <span className="tracker-box">{s.status === "done" && <IconCheck size={12} />}</span>
-                          {s.quest.title}
-                        </button>
-                      </li>
-                    ))}
-                    {states.length === 0 &&
-                      chapter.teaser?.map((name) => (
-                        <li key={name} className="log-quest is-teaser">
-                          <span className="tracker-box" />
-                          {name}
+        {tab === "quests" ? (
+          <div className="log-body">
+            <nav className="log-list" aria-label="Oppdrag">
+              {CHAPTERS.map((chapter) => {
+                const states = board.states.filter((s) => s.chapter.number === chapter.number);
+                return (
+                  <div key={chapter.number} className="log-chapter">
+                    <p className="log-chapter-title">
+                      Kapittel {chapter.number}: {chapter.title}
+                    </p>
+                    <ul>
+                      {states.map((s) => (
+                        <li key={s.quest.id}>
+                          <button
+                            type="button"
+                            className={`log-quest is-${s.status}${s === selected ? " is-selected" : ""}`}
+                            onClick={() => setSelectedId(s.quest.id)}
+                            aria-current={s === selected ? "true" : undefined}
+                          >
+                            <span className="tracker-box">{s.status === "done" && <IconCheck size={12} />}</span>
+                            {s.status === "offered" ? "Snakk med Brann" : s.quest.title}
+                          </button>
                         </li>
                       ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </nav>
+                      {states.length === 0 &&
+                        chapter.teaser?.map((name) => (
+                          <li key={name} className="log-quest is-teaser">
+                            <span className="tracker-box" />
+                            {name}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </nav>
 
-          {selected && (
-            <QuestDetail
-              state={selected}
-              shown={hintsShown[selected.quest.id] ?? 0}
-              onMoreHint={() => onRevealHint(selected.quest.id)}
-            />
-          )}
-        </div>
+            {selected && (
+              <QuestDetail
+                state={selected}
+                shown={hintsShown[selected.quest.id] ?? 0}
+                onMoreHint={() => onRevealHint(selected.quest.id)}
+              />
+            )}
+          </div>
+        ) : (
+          <div className="log-book">
+            {lessons.length === 0 ? (
+              <p className="log-locked">
+                Boka er tom ennå. Hver gang du fullfører et oppdrag, skriver Brann ned det du lærte.
+              </p>
+            ) : (
+              lessons.map((s) => (
+                <article key={s.quest.id} className="log-lesson">
+                  <p className="log-lesson-quest">{s.quest.title}</p>
+                  <h3 className="log-lesson-title">{s.quest.lesson.title}</h3>
+                  <p className="log-lesson-text">{renderCode(s.quest.lesson.text)}</p>
+                  {s.quest.learn && (
+                    <a className="log-learn" href={s.quest.learn.url} target="_blank" rel="noreferrer">
+                      Les mer: {s.quest.learn.label}
+                    </a>
+                  )}
+                </article>
+              ))
+            )}
+          </div>
+        )}
 
         <footer className="log-foot">
           <button
@@ -105,7 +152,7 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
             }}
             onBlur={() => setConfirmReset(false)}
           >
-            {confirmReset ? "Click again to wipe your progress" : "Reset progress"}
+            {confirmReset ? "Klikk igjen for å slette fremgangen din" : "Nullstill fremgang"}
           </button>
         </footer>
       </section>
@@ -116,14 +163,16 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
 function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: number; onMoreHint: () => void }) {
   const { quest, status, result } = state;
 
-  if (status === "locked") {
+  if (status === "locked" || status === "offered") {
     return (
       <article className="log-detail">
-        <h3 className="log-quest-title">{quest.title}</h3>
+        <h3 className="log-quest-title">{status === "offered" ? "En ny oppgave" : quest.title}</h3>
         <p className="log-locked">
-          {state.opensAt
-            ? `Opens ${state.opensAt.toLocaleDateString(undefined, { day: "numeric", month: "long" })}.`
-            : "Finish the task before this one to unlock it."}
+          {status === "offered"
+            ? "Brann har noe til deg. Gå til smia og snakk med ham."
+            : state.opensAt
+              ? `Åpner ${state.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
+              : "Fullfør oppdraget før dette for å låse det opp."}
         </p>
       </article>
     );
@@ -133,13 +182,13 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
     <article className="log-detail">
       <h3 className="log-quest-title">
         {quest.title}
-        {status === "done" && <span className="log-done">Done</span>}
+        {status === "done" && <span className="log-done">Fullført</span>}
       </h3>
-      <p className="log-intro">“{quest.intro}”</p>
+      <p className="log-intro">«{quest.intro[quest.intro.length - 1]}»</p>
       <p className="log-goal">{renderCode(quest.goal)}</p>
       {quest.where && (
         <p className="log-where">
-          <span className="log-where-label">Where to work</span> {renderCode(quest.where)}
+          <span className="log-where-label">Hvor du jobber</span> {renderCode(quest.where)}
         </p>
       )}
 
@@ -158,15 +207,15 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
       <p className="log-checked">
         {quest.checkedBy === "code" ? (
           <>
-            When it works, run <code>npm run quest</code> in your terminal, then press Check the forge.
+            Når det virker: kjør <code>npm run quest</code> i terminalen, og trykk Sjekk smia.
           </>
         ) : (
-          "The game notices this one by itself."
+          "Spillet merker dette av seg selv."
         )}
-        {quest.reward && ` Reward: the forge grows hotter.`}
+        {quest.reward && " Belønning: smia brenner hetere."}
       </p>
 
-      {quest.hints.length > 0 && (
+      {quest.hints.length > 0 && status !== "done" && (
         <div className="log-hints">
           {quest.hints.slice(0, shown).map((hint, i) => (
             <p key={i} className="log-hint">
@@ -183,16 +232,23 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
           ))}
           {shown < quest.hints.length && (
             <button type="button" className="btn btn--quiet" onClick={onMoreHint}>
-              {shown === 0 ? "Show a hint" : "Show another hint"}
+              {shown === 0 ? "Vis et hint" : "Vis et hint til"}
             </button>
           )}
         </div>
       )}
 
-      {quest.learn && (
-        <a className="log-learn" href={quest.learn.url} target="_blank" rel="noreferrer">
-          Brann&apos;s book: {quest.learn.label}
-        </a>
+      {status === "done" ? (
+        <div className="log-lesson log-lesson--inline">
+          <h4 className="log-lesson-title">Lærdom: {quest.lesson.title}</h4>
+          <p className="log-lesson-text">{renderCode(quest.lesson.text)}</p>
+        </div>
+      ) : (
+        quest.learn && (
+          <a className="log-learn" href={quest.learn.url} target="_blank" rel="noreferrer">
+            Les mer: {quest.learn.label}
+          </a>
+        )
       )}
     </article>
   );

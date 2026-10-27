@@ -53,6 +53,7 @@ export class WinterQuestScene extends Phaser.Scene {
   private wraithTarget = new Phaser.Math.Vector2(WRAITH_HOME.x, WRAITH_HOME.y);
   private wraithBase = new Phaser.Math.Vector2(WRAITH_HOME.x, WRAITH_HOME.y);
   private wraithGone = false;
+  private hasMoved = false;
   private knock = 0; // visual-only knockback offset, decays each frame
 
   private font = "monospace";
@@ -88,6 +89,8 @@ export class WinterQuestScene extends Phaser.Scene {
       bridge.on("hit", ({ damage, defeated, affinity }) => this.onHit(damage, defeated, affinity)),
       bridge.on("whiff", () => this.onWhiff()),
       bridge.on("forgeLevelUp", () => this.onForgeLevelUp()),
+      bridge.on("itemForged", (sprite) => this.onItemForged(sprite)),
+      bridge.on("forgeFlare", () => this.flareForge()),
     );
     this.applyWorld(bridge.world);
 
@@ -334,10 +337,53 @@ export class WinterQuestScene extends Phaser.Scene {
 
   // A burst of sparks and a flare of light when the forge levels up.
   private onForgeLevelUp() {
+    this.flareForge();
+    if (!this.reducedMotion) this.cameras.main.shake(140, 0.002);
+  }
+
+  private flareForge() {
     this.sparks.explode(28);
     const flare = this.addLight(FORGE_FIRE.x, FORGE_FIRE.y, 0xffd27a, 2, 0.9);
     this.tweens.add({ targets: flare, scale: 6, alpha: 0, duration: 900, ease: "Cubic.out", onComplete: () => flare.destroy() });
-    if (!this.reducedMotion) this.cameras.main.shake(140, 0.002);
+  }
+
+  // A blade published in the Studio rises out of the forge mouth and flies to
+  // the knight: the moment Sanity's live updates become visible.
+  private onItemForged(sprite: SpriteDef) {
+    this.flareForge();
+    const blade = this.add
+      .image(FORGE_FIRE.x, FORGE_FIRE.y, sprite.sheet, sprite.frame)
+      .setDepth(10011)
+      .setAlpha(0);
+    const glow = this.addLight(FORGE_FIRE.x, FORGE_FIRE.y, 0xffd27a, 1.2, 0.8).setDepth(10010);
+    this.tweens.chain({
+      targets: [blade, glow],
+      tweens: [
+        { alpha: 1, y: "-=18", duration: 500, ease: "Back.out" },
+        { angle: { from: 0, to: 360 }, duration: 450, targets: blade },
+        {
+          x: () => this.knight.x + 5,
+          y: () => this.knight.y - 8,
+          duration: 650,
+          ease: "Cubic.in",
+        },
+        { alpha: 0, duration: 150 },
+      ],
+      onComplete: () => {
+        blade.destroy();
+        glow.destroy();
+        this.add
+          .particles(this.knight.x, this.knight.y - 8, "px", {
+            speed: { min: 8, max: 24 },
+            lifespan: 500,
+            tint: [0xffd15a, 0xfff1b8],
+            alpha: { start: 1, end: 0 },
+            emitting: false,
+          })
+          .setDepth(10010)
+          .explode(14);
+      },
+    });
   }
 
   // --- combat effects -------------------------------------------------------
@@ -354,7 +400,7 @@ export class WinterQuestScene extends Phaser.Scene {
     this.wraith.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
     this.time.delayedCall(90, () => this.wraith.setTint(0xbfe4ff).setTintMode(Phaser.TintModes.MULTIPLY));
     this.knock = (Math.sign(this.wraith.x - this.knight.x) || 1) * 5;
-    if (affinity === "immune") this.floatText("immune", "#8fd3ff");
+    if (affinity === "immune") this.floatText("immun", "#8fd3ff");
     else if (affinity === "weak") this.floatText(`-${damage}!`, "#ff8a3c");
     else this.floatText(`-${damage}`, "#fdbe53");
     if (!this.reducedMotion) this.cameras.main.shake(90, 0.003);
@@ -363,7 +409,7 @@ export class WinterQuestScene extends Phaser.Scene {
 
   private onWhiff() {
     this.lunge();
-    this.floatText("no damage", "#c0cbdc");
+    this.floatText("ingen skade", "#c0cbdc");
   }
 
   private floatText(value: string, color: string) {
@@ -454,6 +500,10 @@ export class WinterQuestScene extends Phaser.Scene {
     this.stuckFrames = moved < step * 0.3 ? this.stuckFrames + 1 : 0;
 
     if (vx) this.knight.scaleX = vx < 0 ? -1 : 1;
+    if (!this.hasMoved) {
+      this.hasMoved = true;
+      bridge.emit("moved", undefined);
+    }
     // A two-step hop reads as walking for a single-frame sprite.
     this.walkClock += dt;
     this.knightBody.y = Math.floor(this.walkClock * 8) % 2 ? -1 : 0;

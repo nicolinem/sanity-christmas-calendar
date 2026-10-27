@@ -4,18 +4,18 @@
 // Deliberately simple: words are matched by how they start, in English and
 // Norwegian. That's charming and also brittle ("Gift of Yule" turns out to be
 // poison, Norwegian compounds like "Isbrann" slip through), which is exactly
-// what the chapter 2 quest "The Runes Fail" is about.
+// why it's a hidden extra for the curious rather than something quests rely on.
 //
 // No imports, so the Studio can use it too (the Guild's Law quest).
 
 export type Element = "fire" | "frost" | "lightning" | "poison" | "light";
 
 export const ELEMENTS: Record<Element, { title: string }> = {
-  fire: { title: "Fire" },
+  fire: { title: "Ild" },
   frost: { title: "Frost" },
-  lightning: { title: "Lightning" },
-  poison: { title: "Poison" },
-  light: { title: "Light" },
+  lightning: { title: "Lyn" },
+  poison: { title: "Gift" },
+  light: { title: "Lys" },
 };
 
 // A word carries an element if it starts with one of these.

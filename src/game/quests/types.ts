@@ -10,6 +10,7 @@ export type Progress = {
   briefed: Record<string, true>; // quests Brann has already explained
   hints: Record<string, number>; // how many hints the player has revealed per quest
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
+  introSeen: boolean; // the opening has been shown
 };
 
 // Result of `npm run quest` for quests that can only be judged from code.
@@ -37,11 +38,14 @@ export type Hint = { text: string; link?: { label: string; url: string } };
 export type Quest = {
   id: string;
   title: string;
-  intro: string; // what Brann says when he hands it over
+  intro: string[]; // what Brann says when he hands it over, one short page each
   goal: string; // one line for the tracker: what, not how
   where?: string; // where the work happens: a file or a place, not the answer
   hints: Hint[]; // revealed one at a time, from nudge to near-answer
   learn?: { label: string; url: string };
+  // What the player just learned, in plain words. Shown when the quest is done
+  // and collected in Brann's book.
+  lesson: { title: string; text: string };
   checkedBy: "game" | "code";
   reward?: { forgeLevel: number };
   check: (ctx: QuestContext) => CheckResult;
@@ -54,7 +58,9 @@ export type Chapter = {
   teaser?: string[]; // quest names shown while the chapter isn't built or open yet
 };
 
-export type QuestStatus = "done" | "active" | "locked";
+// offered: unlocked, but Brann hasn't handed it over yet. Its details stay
+// hidden and it can't be completed until he has.
+export type QuestStatus = "done" | "active" | "offered" | "locked";
 
 export type QuestState = {
   quest: Quest;
