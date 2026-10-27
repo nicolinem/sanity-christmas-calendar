@@ -8,8 +8,8 @@
 //   main       the starter players clone: no code quest may pass
 //   solutions  the reference solutions: every code quest must pass
 //
-// Both must typecheck and pass Sanity's schema check (and `next build` with
-// --build). Uses your .env.local so the Guild's Law check can query the dataset.
+// Both must typecheck and pass Sanity's schema check. With --build each branch
+// also gets a clean `npm ci` and `next build`, like a fresh clone (slower). Uses your .env.local so the Guild's Law check can query the dataset.
 
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
@@ -62,7 +62,11 @@ for (const target of TARGETS) {
   const dir = mkdtempSync(join(tmpdir(), `winter-quest-${target.ref}-`));
   try {
     git("worktree", "add", "--detach", dir, target.ref);
-    symlinkSync(join(ROOT, "node_modules"), join(dir, "node_modules"), "dir");
+    // Quick checks borrow your node_modules. A build needs a real install
+    // (Turbopack won't compile through a symlink outside the project), which
+    // is also exactly what a player's fresh clone goes through.
+    if (BUILD) step("npm ci", dir, "npm", ["ci", "--prefer-offline", "--no-audit", "--no-fund"]);
+    else symlinkSync(join(ROOT, "node_modules"), join(dir, "node_modules"), "dir");
     if (existsSync(join(ROOT, ".env.local"))) cpSync(join(ROOT, ".env.local"), join(dir, ".env.local"));
 
     // A fresh checkout has no .next/, where Next keeps its generated route types.
