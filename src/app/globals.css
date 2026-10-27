@@ -1,26 +1,1191 @@
 @import "tailwindcss";
 
+/* Winter Quest. Colours are lifted from Kenney's Tiny Town/Dungeon palette so
+   the HUD and the world read as one thing. The palette is fixed on purpose:
+   it's a game scene at blue hour, not a document that follows OS dark mode. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --night: #262b44; /* Kenney's dark slate */
+  --night-2: #1b1f33;
+  --night-3: #3a4263;
+  --plum: #3f2631; /* Kenney's outline */
+  --frost: #c0cbdc;
+  --frost-dim: #8b9bb4;
+  --snow: #e3ebf5;
+  --evergreen: #2c5a4b;
+  --wood: #bd6c4a;
+  --wood-dark: #763b36;
+  --wood-deep: #2e1d25;
+  --parchment: #f4e4cf;
+  --amber: #fdbe53;
+  --ember: #e38628;
+  --glacier: #8fd3ff;
+  --sanity: #f03e2f;
+
+  --px: 2px; /* one HUD pixel; matches the world zoom on most laptops */
+  --pxn: 2; /* the same, unitless, for sprite scaling */
+  --gutter: 16px;
+  --font-body: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (min-width: 1100px) and (min-height: 760px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --px: 3px;
+    --pxn: 3;
+    --gutter: 24px;
   }
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--night);
+  color: var(--snow);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: none;
+}
+
+:focus-visible {
+  outline: var(--px) solid var(--amber);
+  outline-offset: calc(var(--px) * 2);
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 0.35em;
+  font: inherit;
+  font-size: 0.85em;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--snow);
+  background: var(--night-3);
+  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--night-2), 0 var(--px) 0 0 var(--night-2),
+    calc(var(--px) * -1) 0 0 0 var(--night-2), var(--px) 0 0 0 var(--night-2),
+    inset 0 calc(var(--px) * -1) 0 0 var(--night-2);
+  margin: 0 var(--px);
+}
+
+.sprite {
+  --s: var(--pxn);
+  --t: calc(16px * var(--s));
+  display: inline-block;
+  flex: none;
+  width: var(--t);
+  height: var(--t);
+  background-repeat: no-repeat;
+  background-size: calc(var(--cols) * var(--t)) calc(var(--rows) * var(--t));
+  background-position: calc(var(--col) * var(--t) * -1) calc(var(--row) * var(--t) * -1);
+  image-rendering: pixelated;
+}
+
+/* --- Pixel frames ----------------------------------------------------------
+   Borders drawn with offset box-shadows leave the corners empty, which gives
+   the stepped corner of a hand-drawn RPG window. */
+.frame {
+  --edge: var(--night-2);
+  --hi: var(--night-3);
+  --lo: var(--night-2);
+  --bg: color-mix(in srgb, var(--night) 94%, transparent);
+  background: var(--bg);
+  margin: var(--px);
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(var(--px) * -1) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge),
+    inset 0 var(--px) 0 0 var(--hi),
+    inset 0 calc(var(--px) * -1) 0 0 var(--lo),
+    0 calc(var(--px) * 3) 0 0 rgb(27 31 51 / 0.35);
+}
+.frame--wood {
+  --edge: var(--plum);
+  --bg: var(--wood-deep);
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(var(--px) * -1) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge),
+    inset 0 0 0 var(--px) var(--wood),
+    inset 0 0 0 calc(var(--px) * 2) var(--wood-dark),
+    0 calc(var(--px) * 3) 0 0 rgb(27 31 51 / 0.4);
+}
+.frame--frost {
+  --edge: #10192a;
+  --hi: #4d7ea8;
+  --lo: #142338;
+  --bg: color-mix(in srgb, #1c2e48 95%, transparent);
+}
+.frame--inset {
+  --edge: var(--night-2);
+  --hi: var(--night-2);
+  --lo: var(--night-3);
+  --bg: #33395a;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(var(--px) * -1) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge),
+    inset 0 var(--px) 0 0 var(--hi);
+}
+
+/* --- Buttons ------------------------------------------------------------- */
+.btn {
+  --edge: var(--night-2);
+  --face: var(--night-3);
+  --top: #4d5781;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.35em 0.9em 0.45em;
+  margin: var(--px);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--snow);
+  text-decoration: none;
+  background: var(--face);
+  border: 0;
+  cursor: pointer;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(var(--px) * -1) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge),
+    inset 0 var(--px) 0 0 var(--top),
+    inset 0 calc(var(--px) * -2) 0 0 var(--edge);
+}
+.btn:hover {
+  --face: #464f78;
+}
+.btn:active {
+  transform: translateY(var(--px));
+}
+.btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+  transform: none;
+}
+.btn kbd {
+  font-size: 12px;
+}
+.btn--amber {
+  --edge: #5a2a1a;
+  --face: var(--ember);
+  --top: var(--amber);
+  color: #2a140e;
+  font-weight: 600;
+}
+.btn--amber:hover {
+  --face: #f09a3a;
+}
+.btn--amber kbd {
+  background: #b5601d;
+  color: #fff3dc;
+}
+.btn--quiet {
+  --face: transparent;
+  --top: transparent;
+  --edge: transparent;
+  box-shadow: none;
+  color: var(--frost);
+}
+.btn--quiet:hover {
+  --face: rgb(255 255 255 / 0.06);
+  color: var(--snow);
+}
+
+/* --- Shell ----------------------------------------------------------------- */
+.game-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--snow);
+}
+
+.stage,
+.stage-canvas {
+  position: absolute;
+  inset: 0;
+}
+.stage-canvas canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+/* Frames the world and keeps HUD corners legible against bright snow. */
+.stage-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 55%, rgb(27 31 51 / 0.5) 100%),
+    linear-gradient(to bottom, rgb(27 31 51 / 0.25), transparent 18%, transparent 78%, rgb(27 31 51 / 0.35));
+}
+.stage-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--frost);
+  background: var(--night);
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hud > * {
+  position: absolute;
+  pointer-events: auto;
+}
+.hud-tl {
+  top: var(--gutter);
+  left: var(--gutter);
+  width: min(300px, calc(50vw - var(--gutter)));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--gutter) * 0.75);
+}
+.hud-tr {
+  top: var(--gutter);
+  right: var(--gutter);
+}
+.hud-bc {
+  bottom: var(--gutter);
+  left: 50%;
+  translate: -50% 0;
+  width: min(640px, calc(100vw - var(--gutter) * 2));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+}
+.hud-bl {
+  bottom: var(--gutter);
+  left: var(--gutter);
+  max-width: calc(50vw - 340px);
+}
+/* --- Crest ------------------------------------------------------------------ */
+.crest {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 0.85;
+  pointer-events: none;
+  text-shadow:
+    0 var(--px) 0 var(--night-2),
+    var(--px) 0 0 var(--night-2),
+    calc(var(--px) * -1) 0 0 var(--night-2),
+    0 calc(var(--px) * -1) 0 var(--night-2),
+    0 calc(var(--px) * 3) 0 rgb(27 31 51 / 0.45);
+}
+.crest-title {
+  font-family: var(--font-display), var(--font-body);
+  font-weight: 400;
+  font-size: clamp(34px, 3.2vw, 48px);
+  color: var(--snow);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.crest-place {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--amber);
+  margin-top: 4px;
+  padding-left: 2px;
+}
+
+/* --- Quest tracker --------------------------------------------------------- */
+.tracker {
+  width: 100%;
+  padding: 10px 14px 12px;
+  font-size: 15px;
+}
+.tracker-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.tracker-week {
+  font-size: 13px;
+  color: var(--frost-dim);
+}
+.tracker-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--amber);
+}
+.tracker.is-done .tracker-title {
+  color: var(--snow);
+}
+.tracker-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+  color: var(--snow);
+}
+.tracker-list li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  line-height: 1.25;
+}
+.tracker-list li.is-done {
+  color: var(--frost-dim);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgb(139 155 180 / 0.6);
+}
+.tracker-box {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  color: var(--amber);
+  background: var(--night-2);
+  box-shadow: inset 0 0 0 2px var(--frost-dim);
+}
+.tracker-list li.is-done .tracker-box {
+  box-shadow: inset 0 0 0 2px var(--amber);
+}
+.tracker-note {
+  margin: 9px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--frost);
+}
+.tracker-note--ok {
+  color: var(--amber);
+}
+
+.tracker-goal {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--snow);
+}
+.tracker-goal code,
+.tracker-note code,
+.log code {
+  font: inherit;
+  color: var(--amber);
+}
+.tracker-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: var(--px) solid var(--night-2);
+}
+.tracker-meta {
+  font-size: 12px;
+  color: var(--frost-dim);
+}
+.tracker-log {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--frost);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.tracker-log:hover {
+  color: var(--snow);
+}
+.tracker-log kbd {
+  font-size: 11px;
+}
+
+/* --- Toasts: quest complete, forge level up ------------------------------- */
+.toasts {
+  position: absolute;
+  top: var(--gutter);
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+  pointer-events: none;
+}
+.toast {
+  min-width: 240px;
+  max-width: min(420px, calc(100vw - var(--gutter) * 2));
+  padding: 8px 16px 10px;
+  text-align: center;
+  animation: toast-in 0.35s steps(4) both;
+}
+.toast--forge {
+  --edge: #5a2a1a;
+  --hi: var(--ember);
+  --bg: color-mix(in srgb, #3a2418 95%, transparent);
+}
+.toast-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--amber);
+}
+.toast-body {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--snow);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--px) * -4));
+  }
+}
+
+/* --- Studio link (discreet: it's the tool behind the game) ----------------- */
+.studio-link {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px 7px;
+  font-size: 13px;
+  color: var(--frost);
+  text-decoration: none;
+  background: rgb(27 31 51 / 0.55);
+  box-shadow: inset 0 0 0 var(--px) rgb(192 203 220 / 0.18);
+}
+.studio-link:hover {
+  color: var(--snow);
+  background: rgb(27 31 51 / 0.8);
+}
+.studio-link svg {
+  color: var(--sanity);
+}
+
+/* --- Controls hint -------------------------------------------------------- */
+.controls {
+  margin: 0 0 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: var(--snow);
+  text-shadow: 0 2px 0 var(--night-2);
+  pointer-events: none;
+}
+.controls kbd {
+  text-shadow: none;
+}
+/* Only where there's room beside the hotbar, and for keyboard players. */
+@media (max-width: 1199px), (pointer: coarse) {
+  .controls {
+    display: none;
+  }
+}
+
+/* --- Interaction prompt ---------------------------------------------------- */
+.prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 8px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--snow);
+  background: rgb(27 31 51 / 0.85);
+  border: 0;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 var(--px) var(--amber);
+  animation: prompt-bob 1.2s steps(2) infinite;
+}
+.prompt kbd {
+  background: var(--amber);
+  color: #2a140e;
+}
+@keyframes prompt-bob {
+  50% {
+    transform: translateY(calc(var(--px) * -1));
+  }
+}
+
+/* --- Quest log (J) -------------------------------------------------------- */
+.log-backdrop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+  background: rgb(27 31 51 / 0.55);
+  pointer-events: auto;
+}
+.log {
+  display: flex;
+  flex-direction: column;
+  width: min(820px, 100%);
+  max-height: min(640px, 100%);
+  padding: 16px 18px 12px;
+}
+.log-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.log-title {
+  margin: 0;
+  font-family: var(--font-display), var(--font-body);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--snow);
+}
+.log-meta {
+  margin: 0;
+  flex: 1;
+  font-size: 13px;
+  color: var(--amber);
+}
+.log-body {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: 18px;
+  min-height: 0;
+  margin-top: 12px;
+}
+.log-list {
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.log-chapter + .log-chapter {
+  margin-top: 14px;
+}
+.log-chapter-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--frost-dim);
+}
+.log-chapter ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+.log-quest {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: var(--snow);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.log-quest:hover,
+.log-quest.is-selected {
+  background: var(--night-3);
+}
+.log-quest.is-active {
+  color: var(--amber);
+}
+.log-quest.is-done {
+  color: var(--frost-dim);
+}
+.log-quest.is-done .tracker-box {
+  box-shadow: inset 0 0 0 2px var(--amber);
+}
+.log-quest.is-locked,
+.log-quest.is-teaser {
+  color: #5d6886;
+  cursor: default;
+}
+.log-quest.is-locked:hover {
+  background: none;
+}
+.log-detail {
+  overflow-y: auto;
+  padding: 2px 6px 6px 18px;
+  border-left: var(--px) solid var(--night-2);
+}
+.log-quest-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--snow);
+}
+.log-done {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--amber);
+}
+.log-intro {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #e3c9ad;
+  max-width: 60ch;
+}
+.log-goal {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--snow);
+}
+.log-where {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--frost);
+}
+.log-where-label {
+  margin-right: 6px;
+  font-size: 12px;
+  color: var(--amber);
+}
+.log-locked {
+  margin: 8px 0 0;
+  color: var(--frost-dim);
+}
+.log-checked {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--frost-dim);
+}
+.log-hints {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  justify-items: start;
+}
+.log-hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--frost);
+}
+/* Links are underlined so they don't blend in with amber `code`. */
+.log-hint-link,
+.log-learn {
+  color: var(--amber);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.log-hint-link {
+  white-space: nowrap;
+}
+.log-hint-link:hover,
+.log-learn:hover {
+  color: #ffd98a;
+}
+.log-hint-n {
+  color: var(--glacier);
+  margin-right: 6px;
+}
+.log-learn {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--amber);
+}
+.log-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.log-reset {
+  font-size: 12px;
+}
+
+/* --- Hotbar --------------------------------------------------------------- */
+.hotbar {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 2);
+  padding: calc(var(--px) * 3);
+}
+.hotbar-slots {
+  display: flex;
+  gap: calc(var(--px) * 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hotbar-empty {
+  padding: 0 10px;
+  font-size: 14px;
+  color: var(--frost-dim);
+}
+.slot-wrap {
+  position: relative;
+}
+.slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * 22);
+  height: calc(var(--px) * 22);
+  padding: 0;
+  font: inherit;
+  color: var(--frost);
+  background: var(--night-2);
+  border: 0;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 var(--px) #303755,
+    inset 0 calc(var(--px) * 2) 0 0 rgb(0 0 0 / 0.25);
+}
+.slot:hover {
+  background: #262c46;
+  box-shadow: inset 0 0 0 var(--px) var(--frost-dim);
+}
+.slot.is-passive {
+  cursor: help;
+}
+.slot.is-equipped {
+  background: #3a2a22;
+  box-shadow:
+    inset 0 0 0 var(--px) var(--amber),
+    inset 0 0 0 calc(var(--px) * 2) #8a4f1f;
+}
+.slot-key {
+  position: absolute;
+  left: calc(var(--px) * 2);
+  top: calc(var(--px) * 1);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--frost-dim);
+}
+.slot.is-equipped .slot-key {
+  color: var(--amber);
+}
+/* Sanity's maker's mark: a tiny red corner on items forged in the Studio. */
+.slot-mark {
+  position: absolute;
+  right: calc(var(--px) * 2);
+  top: calc(var(--px) * 2);
+  width: calc(var(--px) * 3);
+  height: calc(var(--px) * 3);
+  background: var(--sanity);
+  box-shadow: 0 0 0 1px var(--night-2);
+}
+.slot-mark--inline {
+  position: static;
+  display: inline-block;
+  vertical-align: 1px;
+  margin-right: 4px;
+}
+/* A dashed corner marks a stand-in sprite. */
+.slot-fallback {
+  position: absolute;
+  left: calc(var(--px) * 2);
+  bottom: calc(var(--px) * 2);
+  width: calc(var(--px) * 4);
+  height: var(--px);
+  background: repeating-linear-gradient(90deg, var(--glacier) 0 var(--px), transparent var(--px) calc(var(--px) * 2));
+}
+.slot--tool {
+  background: transparent;
+  box-shadow: none;
+  color: var(--frost);
+}
+.slot--tool:hover {
+  color: var(--snow);
+}
+.slot--tool:disabled {
+  cursor: progress;
+}
+.slot-count {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  font-size: 12px;
+  color: var(--snow);
+  text-shadow: 0 1px 0 var(--night-2);
+}
+.icon-spin {
+  animation: spin 0.8s steps(8) infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + var(--px) * 6);
+  left: 50%;
+  translate: -50% 0;
+  width: max-content;
+  max-width: 240px;
+  padding: 9px 12px 10px;
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: left;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+.slot-wrap:hover .tooltip,
+.slot-wrap:focus-within .tooltip {
+  visibility: visible;
+}
+.tooltip p {
+  margin: 0;
+}
+.tooltip-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--snow);
+}
+.tooltip-stat {
+  display: flex;
+  gap: 10px;
+  color: var(--frost-dim);
+  text-transform: capitalize;
+}
+.tooltip-dmg {
+  color: var(--amber);
+  text-transform: none;
+}
+.tooltip-element {
+  margin-top: 4px !important;
+  font-size: 13px;
+}
+.el-fire {
+  color: #ff8a3c;
+}
+.el-frost {
+  color: var(--glacier);
+}
+.el-lightning {
+  color: #fee761;
+}
+.el-poison {
+  color: #63c74d;
+}
+.el-light {
+  color: #fff3c4;
+}
+.el-fizzle {
+  color: var(--frost-dim);
+}
+.tooltip-desc {
+  margin-top: 6px !important;
+  color: var(--frost);
+}
+.tooltip-source,
+.tooltip-warn,
+.tooltip-hint {
+  margin-top: 6px !important;
+  font-size: 13px;
+  color: var(--frost-dim);
+}
+.tooltip-warn {
+  color: var(--glacier);
+}
+.tooltip-hint {
+  color: var(--amber);
+}
+
+.bag {
+  position: relative;
+}
+.bag-panel {
+  position: absolute;
+  bottom: calc(100% + var(--px) * 6);
+  right: 0;
+  padding: 10px;
+  z-index: 6;
+}
+.bag-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--frost-dim);
+}
+.bag-grid {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: calc(var(--px) * 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* --- Brann's dialogue ------------------------------------------------------ */
+.dialogue {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  /* Room for the hotbar below and the crest above; scroll if hints pile up. */
+  max-height: calc(100dvh - var(--gutter) * 2 - 130px);
+  overflow-y: auto;
+  padding: 16px 18px 14px;
+  color: var(--parchment);
+}
+.dialogue-portrait {
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  --bg: #4a2e2a;
+}
+.dialogue-body {
+  min-width: 0;
+}
+.dialogue-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--amber);
+}
+.dialogue-task {
+  margin-left: 10px;
+  padding: 1px 7px 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2a140e;
+  background: var(--amber);
+}
+.dialogue-speech {
+  margin: 4px 0 0;
+  font-size: 16px;
+  line-height: 1.4;
+  max-width: 60ch;
+}
+.dialogue-speech code,
+.dialogue-feedback code,
+.dialogue-hint code,
+.tracker-note code {
+  font: inherit;
+  color: var(--amber);
+}
+.dialogue-speech strong {
+  color: var(--amber);
+  font-weight: 600;
+}
+.dialogue-steps {
+  margin: 10px 0 0;
+  padding-left: 1.4em;
+  list-style: decimal;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #e3c9ad;
+}
+.dialogue-steps li::marker {
+  color: var(--amber);
+}
+.dialogue-steps em {
+  font-style: normal;
+  color: var(--parchment);
+  font-weight: 600;
+}
+.dialogue-feedback {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--glacier);
+}
+.dialogue-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e3c9ad;
+}
+.dialogue-notes {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  justify-items: start;
+}
+.dialogue-note,
+.dialogue-notes .dialogue-feedback {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #e3c9ad;
+}
+.dialogue-notes .dialogue-feedback {
+  color: var(--glacier);
+}
+.dialogue-note-label {
+  margin-right: 6px;
+  font-size: 12px;
+  color: var(--amber);
+}
+.dialogue-note code,
+.dialogue-hint-line code {
+  font: inherit;
+  color: var(--parchment);
+  font-weight: 600;
+}
+.dialogue-more-hint {
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  color: var(--amber);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.dialogue-more-hint:hover {
+  color: #ffd98a;
+}
+.dialogue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 12px;
+}
+.dialogue .btn:not(.btn--amber):not(.btn--quiet) {
+  --face: #5a3830;
+  --top: #8a5440;
+  --edge: #1a0f12;
+}
+.dialogue .btn--quiet {
+  color: #d8b99a;
+}
+
+/* --- Encounter: one slim strip, so the fight stays in view ---------------- */
+.encounter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(480px, 100%);
+  padding: 8px 10px;
+}
+.encounter-portrait {
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.encounter-portrait.is-defeated .sprite {
+  opacity: 0.3;
+}
+.encounter-main {
+  flex: 1;
+  min-width: 0;
+}
+.encounter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+}
+.encounter-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #dff2ff;
+}
+.encounter-hp {
+  font-size: 12px;
+  color: #9ab8d6;
+}
+.hp {
+  display: flex;
+  gap: var(--px);
+  margin-top: 4px;
+}
+.hp span {
+  flex: 1;
+  height: calc(var(--px) * 3);
+  background: #10192a;
+}
+.hp span.on {
+  background: var(--glacier);
+  box-shadow: inset 0 calc(var(--px) * -1) 0 0 #4d9fd6;
+}
+.encounter-line {
+  margin: 5px 0 0;
+  font-size: 13px;
+  line-height: 1.2;
+  color: #dff2ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dmg {
+  color: var(--amber);
+}
+.dmg--none {
+  color: #9ab8d6;
+}
+.encounter-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* --- Small screens --------------------------------------------------------- */
+@media (max-width: 720px) {
+  .hud-tl {
+    width: min(240px, 60vw);
+  }
+  .crest-title {
+    font-size: 30px;
+  }
+  .dialogue {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .dialogue-portrait {
+    width: 56px;
+    height: 56px;
+  }
+  .dialogue-portrait .sprite {
+    --s: 3;
+  }
+  .dialogue-speech {
+    font-size: 15px;
+  }
+  .studio-link {
+    font-size: 12px;
+  }
+  .log-body {
+    grid-template-columns: 1fr;
+  }
+  .log-detail {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prompt,
+  .icon-spin,
+  .toast {
+    animation: none;
+  }
 }

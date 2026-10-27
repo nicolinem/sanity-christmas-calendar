@@ -1,0 +1,500 @@
+import Phaser from "phaser";
+import { bridge, type WorldState, type Zone } from "./bridge";
+import { SHEETS, TILE, type SpriteDef } from "./sprites";
+import {
+  BLACKSMITH,
+  BUILDINGS,
+  FORGE_FIRE,
+  FURNACE,
+  GLADE,
+  GROUND,
+  MAP_H,
+  MAP_W,
+  PROPS,
+  SPAWN,
+  TREES,
+  WRAITH_HOME,
+} from "./village";
+
+// Frostholm at blue hour. The world is a 54×30 tile village built from Kenney's
+// Tiny Town/Dungeon sheets; the camera follows the knight at an integer zoom so
+// every sprite pixel lands on whole screen pixels.
+//
+// The scene owns motion and presentation only. Items, damage, HP and quest
+// state live in React and arrive through `bridge` (see bridge.ts).
+
+const WORLD_W = MAP_W * TILE;
+const WORLD_H = MAP_H * TILE;
+const TARGET_VIEW = { w: 480, h: 300 }; // world px we aim to show
+
+const FORGE_RANGE = 28;
+const WRAITH_RANGE = 40;
+
+type Box = { x: number; y: number; w: number; h: number };
+
+export class WinterQuestScene extends Phaser.Scene {
+  private knight!: Phaser.GameObjects.Container;
+  private knightBody!: Phaser.GameObjects.Image;
+  private weapon!: Phaser.GameObjects.Image;
+  private blacksmith!: Phaser.GameObjects.Image;
+  private marker!: Phaser.GameObjects.Text;
+  private wraith!: Phaser.GameObjects.Image;
+  private forgeGlow!: Phaser.GameObjects.Image;
+  private sparks!: Phaser.GameObjects.Particles.ParticleEmitter;
+
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasd!: Record<"up" | "down" | "left" | "right", Phaser.Input.Keyboard.Key>;
+  private solids: Box[] = [];
+  private moveTarget: Phaser.Math.Vector2 | null = null;
+  private stuckFrames = 0;
+  private walkClock = 0;
+  private speed = 64; // world px per second
+
+  private wraithTarget = new Phaser.Math.Vector2(WRAITH_HOME.x, WRAITH_HOME.y);
+  private wraithBase = new Phaser.Math.Vector2(WRAITH_HOME.x, WRAITH_HOME.y);
+  private wraithGone = false;
+  private knock = 0; // visual-only knockback offset, decays each frame
+
+  private font = "monospace";
+  private reducedMotion = false;
+  private unsubscribe: (() => void)[] = [];
+
+  constructor() {
+    super("WinterQuest");
+  }
+
+  preload() {
+    const frame = { frameWidth: TILE, frameHeight: TILE };
+    this.load.spritesheet("town", SHEETS.town.url, frame);
+    this.load.spritesheet("dungeon", SHEETS.dungeon.url, frame);
+  }
+
+  create() {
+    this.font =
+      getComputedStyle(document.documentElement).getPropertyValue("--font-ui").trim() ||
+      "monospace";
+    this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    this.makeTextures();
+    this.buildGround();
+    this.buildVillage();
+    this.buildCharacters();
+    this.buildAtmosphere();
+    this.setupInput();
+    this.setupCamera();
+
+    this.unsubscribe.push(
+      bridge.on("world", (w) => this.applyWorld(w)),
+      bridge.on("hit", ({ damage, defeated, affinity }) => this.onHit(damage, defeated, affinity)),
+      bridge.on("whiff", () => this.onWhiff()),
+      bridge.on("forgeLevelUp", () => this.onForgeLevelUp()),
+    );
+    this.applyWorld(bridge.world);
+
+    const teardown = () => {
+      this.unsubscribe.forEach((u) => u());
+      this.unsubscribe = [];
+      bridge.setZone(null);
+    };
+    // game.destroy() only fires DESTROY; a scene stop only fires SHUTDOWN.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, teardown);
+    this.events.once(Phaser.Scenes.Events.DESTROY, teardown);
+  }
+
+  // --- construction ---------------------------------------------------------
+
+  private makeTextures() {
+    // Stepped radial light: posterised rings read as pixel art when scaled.
+    const size = 32;
+    const tex = this.textures.createCanvas("glow", size, size)!;
+    const ctx = tex.getContext();
+    const c = size / 2;
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const d = Math.hypot(x + 0.5 - c, y + 0.5 - c) / c;
+        if (d >= 1) continue;
+        const a = Math.round((1 - d) * 5) / 5;
+        ctx.fillStyle = `rgba(255,255,255,${a * 0.55})`;
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+    tex.refresh();
+
+    const g = this.make.graphics({}, false);
+    g.fillStyle(0xffffff).fillRect(0, 0, 1, 1);
+    g.generateTexture("px", 1, 1);
+    g.clear().fillStyle(0x262b44, 0.28).fillRect(1, 0, 8, 1).fillRect(0, 1, 10, 2).fillRect(1, 3, 8, 1);
+    g.generateTexture("shadow", 10, 4);
+    g.destroy();
+  }
+
+  private buildGround() {
+    const map = this.make.tilemap({ data: GROUND, tileWidth: TILE, tileHeight: TILE });
+    const tiles = map.addTilesetImage("town", "town", TILE, TILE, 0, 0)!;
+    map.createLayer(0, tiles, 0, 0)!.setDepth(-10);
+  }
+
+  private buildVillage() {
+    for (const b of BUILDINGS) {
+      const w = b.rows[0].length;
+      const h = b.rows.length;
+      const baseY = (b.y + h) * TILE;
+      b.rows.forEach((row, r) =>
+        row.forEach((frame, c) => {
+          this.add
+            .image((b.x + c) * TILE, (b.y + r) * TILE, "town", frame)
+            .setOrigin(0)
+            .setDepth(baseY);
+        }),
+      );
+      // Leave a strip at the roof top walkable so the knight can tuck behind.
+      this.solids.push({ x: b.x * TILE, y: (b.y + 1) * TILE, w: w * TILE, h: (h - 1) * TILE });
+      for (const [wx, wy] of b.windows) this.addLight(wx * TILE + 8, wy * TILE + 7, 0xffc56b, 1.3, 0.9);
+    }
+
+    for (const p of PROPS) {
+      const x = p.x * TILE;
+      const y = p.y * TILE;
+      this.add.image(x, y, p.sheet, p.frame).setOrigin(0).setDepth(y + TILE);
+      if (p.solid) this.solids.push({ x: x + 2, y: y + 6, w: 12, h: 10 });
+    }
+
+    for (const t of TREES) {
+      this.add.image(t.x, t.y, "town", t.frame).setOrigin(0.5, 1).setDepth(t.y);
+      this.solids.push({ x: t.x - 4, y: t.y - 6, w: 8, h: 6 });
+    }
+
+    // World edges.
+    this.solids.push(
+      { x: -16, y: 0, w: 16, h: WORLD_H },
+      { x: WORLD_W, y: 0, w: 16, h: WORLD_H },
+      { x: 0, y: -16, w: WORLD_W, h: 16 },
+      { x: 0, y: WORLD_H, w: WORLD_W, h: 16 },
+    );
+  }
+
+  private buildCharacters() {
+    // The blacksmith, Brann, waits by his anvil with a quest marker overhead.
+    this.add.image(BLACKSMITH.x, BLACKSMITH.y + 1, "shadow").setDepth(BLACKSMITH.y - 1);
+    this.blacksmith = this.add
+      .image(BLACKSMITH.x, BLACKSMITH.y, "dungeon", 86)
+      .setOrigin(0.5, 1)
+      .setDepth(BLACKSMITH.y);
+    this.solids.push({ x: BLACKSMITH.x - 5, y: BLACKSMITH.y - 5, w: 10, h: 5 });
+    this.marker = this.text(BLACKSMITH.x, BLACKSMITH.y - 22, "!", 12, "#fdbe53").setDepth(9000);
+    if (!this.reducedMotion) {
+      this.tweens.add({ targets: this.marker, y: "-=2", duration: 600, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    }
+
+    // The Frost Wraith: Kenney's ghost, tinted to glacier blue.
+    this.wraith = this.add
+      .image(WRAITH_HOME.x, WRAITH_HOME.y, "dungeon", 121)
+      .setOrigin(0.5, 1)
+      .setTint(0xbfe4ff)
+      .setAlpha(0.92);
+    this.time.addEvent({ delay: 2600, loop: true, callback: () => this.pickWraithTarget() });
+
+    // The knight, holding whatever weapon is equipped.
+    const shadow = this.add.image(0, 1, "shadow");
+    this.knightBody = this.add.image(0, 0, "dungeon", 96).setOrigin(0.5, 1);
+    this.weapon = this.add.image(5, -4, "dungeon", 103).setOrigin(0.3, 0.85).setAngle(20).setVisible(false);
+    this.knight = this.add.container(SPAWN.x, SPAWN.y, [shadow, this.weapon, this.knightBody]);
+  }
+
+  private buildAtmosphere() {
+    // Blue-hour wash over the whole world, then warm lights added on top.
+    this.add
+      .rectangle(0, 0, WORLD_W, WORLD_H, 0xaab9da)
+      .setOrigin(0)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY)
+      .setDepth(10000);
+
+    this.forgeGlow = this.addLight(FORGE_FIRE.x, FORGE_FIRE.y, 0xff9a3c, 3, 0.75);
+    const furnace = this.addLight(FURNACE.x, FURNACE.y, 0xff8a2a, 2, 0.8);
+    if (!this.reducedMotion) {
+      this.tweens.add({
+        targets: [this.forgeGlow, furnace],
+        alpha: { from: 0.65, to: 0.95 },
+        duration: 420,
+        yoyo: true,
+        repeat: -1,
+        ease: "Stepped",
+        easeParams: [3],
+      });
+    }
+    this.addLight(WRAITH_HOME.x, WRAITH_HOME.y - 6, 0x7fc8ff, 3.2, 0.35);
+
+    this.sparks = this.add.particles(FURNACE.x, FURNACE.y - 6, "px", {
+      speedY: { min: -26, max: -12 },
+      speedX: { min: -6, max: 6 },
+      lifespan: { min: 500, max: 1100 },
+      frequency: 260,
+      tint: [0xffd15a, 0xff9a3c, 0xfff1b8],
+      alpha: { start: 1, end: 0 },
+    });
+    this.sparks.setDepth(10002);
+
+    if (!this.reducedMotion) {
+      this.add
+        .particles(0, -8, "px", {
+          x: { min: -40, max: WORLD_W + 40 },
+          speedY: { min: 9, max: 18 },
+          speedX: { min: -6, max: 3 },
+          lifespan: 34000,
+          frequency: 70,
+          alpha: { min: 0.55, max: 0.95 },
+          tint: [0xffffff, 0xe3ebf5],
+        })
+        .setDepth(10003);
+    }
+  }
+
+  private addLight(x: number, y: number, color: number, scale: number, alpha: number) {
+    return this.add
+      .image(x, y, "glow")
+      .setTint(color)
+      .setScale(scale)
+      .setAlpha(alpha)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(10001);
+  }
+
+  private text(x: number, y: number, value: string, size: number, color: string) {
+    return this.add
+      .text(x, y, value, {
+        fontFamily: this.font,
+        fontSize: `${size}px`,
+        color,
+        stroke: "#262b44",
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5, 1)
+      .setResolution(6);
+  }
+
+  private setupInput() {
+    const kb = this.input.keyboard!;
+    this.cursors = kb.createCursorKeys();
+    // Space and Shift belong to the HUD (attack / buttons), not movement.
+    kb.removeCapture([Phaser.Input.Keyboard.KeyCodes.SPACE, Phaser.Input.Keyboard.KeyCodes.SHIFT]);
+    this.wasd = {
+      up: kb.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+      down: kb.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+      left: kb.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+      right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+    };
+
+    // Tap/click to walk: makes the game playable without a keyboard.
+    this.input.on("pointerdown", (p: Phaser.Input.Pointer) => {
+      this.moveTarget = new Phaser.Math.Vector2(p.worldX, p.worldY + 4);
+      this.stuckFrames = 0;
+    });
+  }
+
+  private setupCamera() {
+    const cam = this.cameras.main;
+    cam.setBounds(0, 0, WORLD_W, WORLD_H);
+    cam.setRoundPixels(true);
+    cam.setBackgroundColor("#e3ebf5");
+    cam.startFollow(this.knight, true, 0.15, 0.15);
+    const fit = () => {
+      const { width, height } = this.scale;
+      let zoom = Math.max(1, Math.floor(Math.min(width / TARGET_VIEW.w, height / TARGET_VIEW.h)));
+      while (width / zoom > WORLD_W || height / zoom > WORLD_H) zoom++;
+      cam.setZoom(zoom);
+    };
+    fit();
+    this.scale.on(Phaser.Scale.Events.RESIZE, fit);
+    const off = () => this.scale.off(Phaser.Scale.Events.RESIZE, fit);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
+    this.events.once(Phaser.Scenes.Events.DESTROY, off);
+  }
+
+  // --- state from React -----------------------------------------------------
+
+  private applyWorld(w: WorldState) {
+    this.setWeapon(w.weapon);
+    this.marker.setVisible(w.brannMarker);
+    // A cold forge smoulders; once lit it burns brighter with every level.
+    this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
+    this.sparks.frequency = w.forgeLit ? Math.round(150 / w.forgeLevel) : 260;
+    if (w.frozen) this.moveTarget = null;
+
+    if (w.wraithDefeated && !this.wraithGone) this.banishWraith();
+    if (!w.wraithDefeated && this.wraithGone) this.reviveWraith();
+  }
+
+  private setWeapon(sprite: SpriteDef | null) {
+    if (!sprite) {
+      this.weapon.setVisible(false);
+      return;
+    }
+    this.weapon.setTexture(sprite.sheet, sprite.frame).setVisible(true);
+  }
+
+  // A burst of sparks and a flare of light when the forge levels up.
+  private onForgeLevelUp() {
+    this.sparks.explode(28);
+    const flare = this.addLight(FORGE_FIRE.x, FORGE_FIRE.y, 0xffd27a, 2, 0.9);
+    this.tweens.add({ targets: flare, scale: 6, alpha: 0, duration: 900, ease: "Cubic.out", onComplete: () => flare.destroy() });
+    if (!this.reducedMotion) this.cameras.main.shake(140, 0.002);
+  }
+
+  // --- combat effects -------------------------------------------------------
+
+  private lunge() {
+    const dir = Math.sign(this.wraith.x - this.knight.x) || 1;
+    this.knight.scaleX = dir;
+    this.tweens.add({ targets: this.weapon, angle: { from: -40, to: 70 }, duration: 140, yoyo: true });
+    this.tweens.add({ targets: this.knightBody, x: 3, duration: 90, yoyo: true });
+  }
+
+  private onHit(damage: number, defeated: boolean, affinity?: "weak" | "immune") {
+    this.lunge();
+    this.wraith.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+    this.time.delayedCall(90, () => this.wraith.setTint(0xbfe4ff).setTintMode(Phaser.TintModes.MULTIPLY));
+    this.knock = (Math.sign(this.wraith.x - this.knight.x) || 1) * 5;
+    if (affinity === "immune") this.floatText("immune", "#8fd3ff");
+    else if (affinity === "weak") this.floatText(`-${damage}!`, "#ff8a3c");
+    else this.floatText(`-${damage}`, "#fdbe53");
+    if (!this.reducedMotion) this.cameras.main.shake(90, 0.003);
+    if (defeated) this.time.delayedCall(160, () => this.banishWraith());
+  }
+
+  private onWhiff() {
+    this.lunge();
+    this.floatText("no damage", "#c0cbdc");
+  }
+
+  private floatText(value: string, color: string) {
+    const t = this.text(this.wraith.x, this.wraith.y - 16, value, 9, color).setDepth(10010);
+    this.tweens.add({ targets: t, y: "-=12", alpha: 0, duration: 800, ease: "Cubic.out", onComplete: () => t.destroy() });
+  }
+
+  private banishWraith() {
+    if (this.wraithGone) return;
+    this.wraithGone = true;
+    this.add
+      .particles(this.wraith.x, this.wraith.y - 8, "px", {
+        speed: { min: 10, max: 34 },
+        lifespan: 700,
+        quantity: 18,
+        tint: [0xffffff, 0xbfe4ff],
+        alpha: { start: 1, end: 0 },
+        emitting: false,
+      })
+      .setDepth(10010)
+      .explode(18);
+    this.tweens.killTweensOf(this.wraith);
+    this.tweens.add({ targets: this.wraith, alpha: 0, duration: 450 });
+  }
+
+  private reviveWraith() {
+    // Re-forms where it fell, so a rematch starts right where the player is.
+    this.wraithGone = false;
+    this.tweens.killTweensOf(this.wraith);
+    this.wraithTarget.copy(this.wraithBase);
+    this.wraith.setPosition(this.wraithBase.x, this.wraithBase.y).setAlpha(0);
+    this.tweens.add({ targets: this.wraith, alpha: 0.92, duration: 600 });
+  }
+
+  private pickWraithTarget() {
+    if (this.wraithGone || bridge.zone === "wraith") return;
+    this.wraithTarget.set(
+      Phaser.Math.Between((GLADE.x + 1) * TILE, (GLADE.x + GLADE.w - 1) * TILE),
+      Phaser.Math.Between((GLADE.y + 2) * TILE, (GLADE.y + GLADE.h - 1) * TILE),
+    );
+  }
+
+  // --- per frame ------------------------------------------------------------
+
+  update(_time: number, delta: number) {
+    const dt = delta / 1000;
+    this.moveKnight(dt);
+    this.moveWraith(dt);
+    this.knight.setDepth(this.knight.y);
+    this.updateZone();
+  }
+
+  private moveKnight(dt: number) {
+    let vx = 0;
+    let vy = 0;
+    if (!bridge.world.frozen) {
+      if (this.cursors.left.isDown || this.wasd.left.isDown) vx -= 1;
+      if (this.cursors.right.isDown || this.wasd.right.isDown) vx += 1;
+      if (this.cursors.up.isDown || this.wasd.up.isDown) vy -= 1;
+      if (this.cursors.down.isDown || this.wasd.down.isDown) vy += 1;
+    }
+
+    if (vx || vy) {
+      this.moveTarget = null;
+    } else if (this.moveTarget) {
+      const dx = this.moveTarget.x - this.knight.x;
+      const dy = this.moveTarget.y - this.knight.y;
+      if (Math.hypot(dx, dy) < 2 || this.stuckFrames > 8) {
+        this.moveTarget = null;
+      } else {
+        vx = dx;
+        vy = dy;
+      }
+    }
+
+    const len = Math.hypot(vx, vy);
+    if (!len) {
+      this.knightBody.y = 0;
+      this.walkClock = 0;
+      return;
+    }
+
+    const step = this.speed * dt;
+    const before = { x: this.knight.x, y: this.knight.y };
+    this.tryMove((vx / len) * step, 0);
+    this.tryMove(0, (vy / len) * step);
+    const moved = Math.hypot(this.knight.x - before.x, this.knight.y - before.y);
+    this.stuckFrames = moved < step * 0.3 ? this.stuckFrames + 1 : 0;
+
+    if (vx) this.knight.scaleX = vx < 0 ? -1 : 1;
+    // A two-step hop reads as walking for a single-frame sprite.
+    this.walkClock += dt;
+    this.knightBody.y = Math.floor(this.walkClock * 8) % 2 ? -1 : 0;
+  }
+
+  private tryMove(dx: number, dy: number) {
+    const nx = this.knight.x + dx;
+    const ny = this.knight.y + dy;
+    const feet = { x: nx - 4, y: ny - 4, w: 8, h: 4 };
+    const blocked = this.solids.some(
+      (s) => feet.x < s.x + s.w && feet.x + feet.w > s.x && feet.y < s.y + s.h && feet.y + feet.h > s.y,
+    );
+    if (!blocked) this.knight.setPosition(nx, ny);
+  }
+
+  private moveWraith(dt: number) {
+    if (this.wraithGone) return;
+    const near = bridge.zone === "wraith";
+    if (!near) {
+      const dx = this.wraithTarget.x - this.wraithBase.x;
+      const dy = this.wraithTarget.y - this.wraithBase.y;
+      const d = Math.hypot(dx, dy);
+      if (d > 1) {
+        this.wraithBase.x += (dx / d) * 10 * dt;
+        this.wraithBase.y += (dy / d) * 10 * dt;
+      }
+    }
+    const bob = this.reducedMotion ? 0 : Math.round(Math.sin(this.time.now / 380) * 2);
+    this.knock = Math.abs(this.knock) < 0.5 ? 0 : this.knock * Math.pow(0.002, dt);
+    this.wraith.setPosition(Math.round(this.wraithBase.x + this.knock), Math.round(this.wraithBase.y) + bob);
+    this.wraith.flipX = (near ? this.knight.x : this.wraithTarget.x) < this.wraith.x;
+    this.wraith.setDepth(this.wraithBase.y);
+  }
+
+  private updateZone() {
+    const k = this.knight;
+    let zone: Zone = null;
+    if (Phaser.Math.Distance.Between(k.x, k.y, BLACKSMITH.x, BLACKSMITH.y) < FORGE_RANGE) zone = "forge";
+    // Where the wraith stands, or where it fell (which offers a rematch).
+    else if (Phaser.Math.Distance.Between(k.x, k.y, this.wraithBase.x, this.wraithBase.y) < WRAITH_RANGE)
+      zone = "wraith";
+    bridge.setZone(zone);
+  }
+}
