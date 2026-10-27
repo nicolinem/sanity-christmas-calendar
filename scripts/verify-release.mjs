@@ -65,6 +65,8 @@ for (const target of TARGETS) {
     symlinkSync(join(ROOT, "node_modules"), join(dir, "node_modules"), "dir");
     if (existsSync(join(ROOT, ".env.local"))) cpSync(join(ROOT, ".env.local"), join(dir, ".env.local"));
 
+    // A fresh checkout has no .next/, where Next keeps its generated route types.
+    step("generate Next route types", dir, "npx", ["next", "typegen"]);
     step("typecheck", dir, "npx", ["tsc", "--noEmit"]);
     step("Sanity schema check", dir, "npx", ["sanity", "schema", "validate"]);
 
