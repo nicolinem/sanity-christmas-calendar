@@ -1,6 +1,7 @@
 # Utviklingsplan: Sanity Winter Quest
 
 Levende dokument. Oppdateres når faser blir ferdige eller beslutninger endres.
+Forslaget til quester, kalender og gjennomføring står i [questplan.md](questplan.md).
 
 ## Prinsipper (gjelder alle faser)
 
@@ -24,7 +25,7 @@ Levende dokument. Oppdateres når faser blir ferdige eller beslutninger endres.
 
 - [x] Språk i spillet: **norsk** (besluttet 2026-10-27). Kode og skjemanavn er engelsk.
 - [ ] Kalender: startdato, og om quester åpnes på dato, i rekkefølge, eller begge deler.
-- [ ] Krever Content Releases og Agent Actions en bestemt Sanity-plan eller har de kvoter? Avgjør om de er obligatoriske eller valgfrie.
+- [x] Planer: **Content Releases** er et enterprise-tillegg og kuttes. Scheduled drafts, Comments og Tasks er heller ikke på gratisplanen. **Functions** og **Agent Actions** er med på gratisplanen, men Agent Actions bruker AI-kreditter, så det blir bonus (sjekket 2026-10-29, se questplan.md).
 - [ ] Får vi lov til å bruke en innkommende webhook i jobbkanalen (Byropet)?
 
 ---
