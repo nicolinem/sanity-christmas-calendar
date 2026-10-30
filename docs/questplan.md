@@ -221,6 +221,31 @@ desember uten å slippe en ny versjon.
 
 ---
 
+## Spillet på nett (foretrukket retning, 2026-10-30)
+
+Må testes før vi bestemmer oss. Planleggingssiden for møtet har alternativene
+side om side (valg 8).
+
+- **Spillet på nett:** samme Next-app på Vercel, med innlogging (jobbens
+  Google-konto eller en felles kode). Deltakeren kobler til prosjekt-ID-en sin.
+  Serveren leser innholdet (offentlige datasett) og sjekker hvert par sekunder.
+  Fremgang, glør og felles tilstand lagres i arkivprosjektet. Det felles laget
+  under blir da en del av spillet, ikke en egen tjeneste.
+- **Koden lokalt:** deltakerens repo har bare Studio og oppgavefilene.
+  `npm run dev` starter Studio på `localhost:3333` og en vakt som kjører
+  sjekkene ved hver lagring og melder dem til spillet.
+- **Eller Codespaces:** `.devcontainer` for null installasjon. Prosjektet må
+  claimes først, og `npm run setup` legger Codespace-adressen til i CORS.
+- **Alt i nettleseren** (editor i spillet) er vurdert og lagt bort for i år: vi
+  måtte bygget hver deltakers Studio, og CLI-oppgavene (Functions, migrering,
+  TypeGen) faller bort uten terminal.
+
+**Test først (1 dag i uke 45):** om Studio fra `localhost:3333` virker i panelet
+når spillet ligger på https. Chrome kan be om tillatelse til lokalt nettverk, og
+nettleserne skiller lagring og blokkerer tredjeparts-cookies for innhold fra et
+annet domene, noe som kan stoppe innloggingen i Studio. Reserve: Studio i egen
+fane, eller spillet lokalt med innlogging og felles del på nett.
+
 ## Det felles laget: Frostholm-tjenesten
 
 Én liten tjeneste vi hoster, i stedet for PR-er og løse biter. Prinsippet står
@@ -341,4 +366,5 @@ underveis i desember, eller kuttes uten at noe annet brekker.
 - [ ] Frostholm-tjenesten: egen liten app eller ruter i samme repo? Hvem eier
       Vercel-prosjektet og arkivprosjektet i Sanity?
 - [ ] Glør og drakter: med fra start, eller som tillegg i uke 50?
+- [ ] Spillet på nett med kode lokalt eller i Codespaces? Avgjøres etter testen i uke 45.
 - [ ] Får vi en innkommende webhook i kanalen?
