@@ -123,15 +123,15 @@ export function useQuestBoard({ items, codeChecks, sanityConfigured, wraithDefea
       return { ...p, completed };
     });
     for (const s of finished) {
-      pushToast({ title: "Oppdrag fullført", body: s.quest.title, tone: "quest" });
-      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står nå i Branns bok (J).", tone: "lesson" });
+      pushToast({ title: `Luke ${s.quest.door} ferdig`, body: s.quest.title, tone: "quest" });
+      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står under Lærdommer i kalenderen (J).", tone: "lesson" });
     }
 
     const after = forgeLevelFor(CHAPTERS, readProgress(PROJECT));
     if (after > before) {
       pushToast({
-        title: `Smia brenner hetere: nivå ${after}`,
-        body: `Alle bladene du har smidd, biter nå for ${forgedPower(after).damage}.`,
+        title: `Nivå ${after}: våpnene blir sterkere`,
+        body: `Alle våpnene dine gjør nå ${forgedPower(after).damage} skade.`,
         tone: "forge",
       });
       bridge.emit("forgeLevelUp", after);

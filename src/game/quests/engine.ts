@@ -1,16 +1,16 @@
 import { clampForgeLevel } from "../rules";
-import type { Chapter, Progress, QuestContext, QuestState } from "./types";
+import type { Chapter, Progress, Quest, QuestContext, QuestState } from "./types";
 
-// Quests unlock one after another. On top of that, a chapter can wait for its
-// calendar date: chapter N opens (N - 1) weeks after NEXT_PUBLIC_CALENDAR_START.
+// Quests unlock one after another. On top of that, each door waits for its
+// date: door N opens N - 1 days after NEXT_PUBLIC_CALENDAR_START (1 December).
 // Without that variable the calendar is ignored (handy while building).
 const CALENDAR_START = process.env.NEXT_PUBLIC_CALENDAR_START;
 
-export function chapterOpensAt(chapter: Chapter): Date | undefined {
+export function doorOpensAt(quest: Quest): Date | undefined {
   if (!CALENDAR_START) return undefined;
   const start = new Date(`${CALENDAR_START}T00:00:00`);
   if (Number.isNaN(start.getTime())) return undefined;
-  return new Date(start.getTime() + (chapter.number - 1) * 7 * 864e5);
+  return new Date(start.getTime() + (quest.door - 1) * 864e5);
 }
 
 export type QuestBoard = {
@@ -34,9 +34,9 @@ export function evaluateQuests(
   let previousDone = true;
 
   for (const chapter of chapters) {
-    const opensAt = chapterOpensAt(chapter);
-    const dateOpen = devUnlock || !opensAt || opensAt <= now;
     for (const quest of chapter.quests) {
+      const opensAt = doorOpensAt(quest);
+      const dateOpen = devUnlock || !opensAt || opensAt <= now;
       const result = quest.check(ctx);
       const done = Boolean(ctx.progress.completed[quest.id]);
       const unlocked = devUnlock || (previousDone && dateOpen);

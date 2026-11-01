@@ -1,10 +1,10 @@
-// Brann's inspection: `npm run quest`
+// The checker for code doors: `npm run quest`
 //
 // Some quests can only be judged from your code (an icon, a validation rule, a
 // custom input, a Studio view). This script loads your Studio config the same
 // way the Studio does (it runs through `sanity exec`, so .tsx schemas work),
 // tries what you built, and writes the verdicts to .quest/results.json. The
-// game reads that file when you press "Sjekk smia" or refresh.
+// game reads that file when you press "Sjekk på nytt" or refresh.
 //
 // It inspects behaviour, not code style: any solution that works, passes.
 // Verdicts are Norwegian because the game shows them to the player.
@@ -44,9 +44,9 @@ const item = types.find((t) => t?.name === "item");
 const field = (name: string) => item?.fields?.find((f: any) => f?.name === name);
 
 const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
-const NO_ITEM = "Brann finner ingen `item`-type i *schema*-et ditt.";
+const NO_ITEM = "Fant ingen `item`-type i *schema*-et ditt.";
 
-// --- Branns protokoll ----------------------------------------------------------
+// --- Luke 2: ikon og preview ----------------------------------------------------------
 
 function checkLedger(): Verdict {
   if (!item) return { done: false, message: NO_ITEM };
@@ -72,10 +72,10 @@ function checkLedger(): Verdict {
   } catch (err) {
     return { done: false, message: `\`prepare()\` krasjet: ${errorText(err)}` };
   }
-  return { done: true, message: "Brann kjenner igjen bladene sine med ett blikk." };
+  return { done: true, message: "Lista viser ikon og sprite." };
 }
 
-// --- Laugets lov -----------------------------------------------------------------
+// --- Luke 3: validation -----------------------------------------------------------------
 
 type Recorded = { fn: (value: unknown, context: unknown) => unknown; level: "error" | "warning" | "info" };
 
@@ -155,11 +155,11 @@ async function checkGuildLaw(): Promise<Verdict> {
   if (!field("name") || !field("sprite"))
     return { done: false, message: "`item` mangler *field*-et `name` eller `sprite`. Spillet trenger begge." };
   if (!client)
-    return { done: false, message: "Ingen Sanity-prosjekt i `.env.local`, så Brann kan ikke lete etter like navn. Kjør `npm run setup`." };
+    return { done: false, message: "Ingen Sanity-prosjekt i `.env.local`, så det går ikke å lete etter like navn. Kjør `npm run setup`." };
 
   const fresh = () => `Stillebladet ${Math.floor(1000 + Math.random() * 9000)}`;
   const only = (r: { warned: boolean }, what: string) =>
-    r.warned ? `${what} får bare en \`warning\`. Lauget vil at det skal være en \`error\`.` : null;
+    r.warned ? `${what} får bare en \`warning\`. Det skal være en \`error\`.` : null;
 
   try {
     const bare = await judge({ name: fresh(), kind: "weapon" });
@@ -175,29 +175,29 @@ async function checkGuildLaw(): Promise<Verdict> {
 
     const existing = await client.fetch<string | null>(`*[_type == "item" && defined(name)][0].name`);
     if (!existing)
-      return { done: false, message: "Publiser minst ett *Item* først, så Brann har et navn å teste tvillinger mot." };
+      return { done: false, message: "Publiser minst ett *Item* først, så det finnes et navn å teste duplikater mot." };
     const twin = await judge({ name: existing, kind: "weapon", sprite: "axe" });
     if (!twin.refused)
       return {
         done: false,
-        message: only(twin, `Et blad nummer to med navnet «${existing}»`) ?? `Studio godtar fortsatt et blad nummer to med navnet «${existing}».`,
+        message: only(twin, `En gjenstand til med navnet «${existing}»`) ?? `Studio godtar fortsatt en gjenstand til med navnet «${existing}».`,
       };
   } catch (err) {
     return { done: false, message: `En *validation rule* krasjet: ${errorText(err)}` };
   }
-  return { done: true, message: "Laugets lov holder: ingen våpen uten utseende, ingen tvillinger." };
+  return { done: true, message: "Begge reglene virker: ingen våpen uten sprite, ingen like navn." };
 }
 
-// --- Spritevelgeren --------------------------------------------------------------
+// --- Luke 4: custom input --------------------------------------------------------------
 
 function checkDrawingBoard(): Verdict {
   const sprite = field("sprite");
-  if (!sprite) return { done: false, message: "Brann finner ikke *field*-et `sprite`. Spillet leser det, så behold navnet." };
+  if (!sprite) return { done: false, message: "Fant ikke *field*-et `sprite`. Spillet leser det, så behold navnet." };
   if (!sprite.components?.input) return { done: false, message: "`sprite` bruker fortsatt standard-*input*-en." };
-  return { done: true, message: "En ordentlig spritevelger. Brann er fornøyd." };
+  return { done: true, message: "`sprite` har en egen velger." };
 }
 
-// --- Prøvestua -------------------------------------------------------------------
+// --- Luke 5: document view -------------------------------------------------------------------
 
 // A stand-in Structure Builder that accepts any chain of calls and remembers them.
 function recordStructure() {
@@ -217,7 +217,7 @@ function checkProvingRoom(): Verdict {
   const structure = (cfg.plugins ?? []).find((p: any) => p?.name === "sanity/structure");
   const resolve = structure?.tools?.[0]?.options?.defaultDocumentNode;
   if (typeof resolve !== "function")
-    return { done: false, message: "Brann finner ingen `defaultDocumentNode` på `structureTool()`." };
+    return { done: false, message: "Fant ingen `defaultDocumentNode` på `structureTool()`." };
   const { S, calls } = recordStructure();
   try {
     resolve(S, { schemaType: "item", documentId: "winter-quest-check" });
@@ -228,16 +228,16 @@ function checkProvingRoom(): Verdict {
     (c) => c.name === "component" && c.args.some((a) => typeof a === "function" || (typeof a === "object" && a)),
   );
   if (!view) return { done: false, message: "`item` har ingen `S.view.component` ennå." };
-  return { done: true, message: "Prøvestua står klar. Brann vil se hvert eneste blad der inne." };
+  return { done: true, message: "Items har en egen fane i Studio." };
 }
 
 // --- run -------------------------------------------------------------------------
 
 const QUESTS: { id: string; title: string; run: () => Verdict | Promise<Verdict> }[] = [
-  { id: "branns-ledger", title: "Branns protokoll", run: checkLedger },
-  { id: "the-guilds-law", title: "Laugets lov", run: checkGuildLaw },
-  { id: "the-drawing-board", title: "Spritevelgeren", run: checkDrawingBoard },
-  { id: "the-proving-room", title: "Prøvestua", run: checkProvingRoom },
+  { id: "branns-ledger", title: "Luke 2", run: checkLedger },
+  { id: "the-guilds-law", title: "Luke 3", run: checkGuildLaw },
+  { id: "the-drawing-board", title: "Luke 4", run: checkDrawingBoard },
+  { id: "the-proving-room", title: "Luke 5", run: checkProvingRoom },
 ];
 
 const color = (code: number) => (s: string) => (process.stdout.isTTY ? `\x1b[${code}m${s}\x1b[0m` : s);
@@ -246,7 +246,7 @@ const dim = color(2);
 const amber = color(33);
 
 const checks: Record<string, Verdict & { checkedAt: string }> = {};
-console.log(`\n${amber("Brann ser over arbeidet ditt…")}\n`);
+console.log(`\n${amber("Sjekker lukene…")}\n`);
 for (const quest of QUESTS) {
   let verdict: Verdict;
   try {
@@ -257,9 +257,9 @@ for (const quest of QUESTS) {
   checks[quest.id] = { ...verdict, checkedAt: new Date().toISOString() };
   // The game styles *terms*; the terminal just shows the words.
   const message = verdict.message.replace(/\*([^*]+)\*/g, "$1");
-  console.log(`${verdict.done ? green("✓") : "·"} ${quest.title.padEnd(18)} ${verdict.done ? message : dim(message)}`);
+  console.log(`${verdict.done ? green("✓") : "·"} ${quest.title.padEnd(8)} ${verdict.done ? message : dim(message)}`);
 }
 
 mkdirSync(".quest", { recursive: true });
 writeFileSync(join(".quest", "results.json"), JSON.stringify({ checks }, null, 2) + "\n");
-console.log(`\n${dim("Gå tilbake til spillet og trykk")} Sjekk smia ${dim("(eller oppdateringsknappen), så ser Brann resultatet.")}\n`);
+console.log(`\n${dim("Gå tilbake til spillet og trykk")} Sjekk på nytt ${dim("(eller oppdateringsknappen).")}\n`);

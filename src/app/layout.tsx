@@ -15,8 +15,8 @@ const ui = Pixelify_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Sanity Winter Quest",
-  description: "Et pikselkunst-rollespill og en julekalender for å lære Sanity.",
+  title: "Sanity-julekalenderen",
+  description: "En julekalender med små Sanity-oppgaver og et lite pikselspill som viser resultatet.",
 };
 
 export const viewport: Viewport = {

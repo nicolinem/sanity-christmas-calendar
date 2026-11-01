@@ -68,7 +68,7 @@ export default function ForgeDialogue(props: Props) {
       <div className="dialogue-body">
         <p className="dialogue-name">
           Brann, smeden
-          {current && sanityConfigured !== false && <span className="dialogue-task">{current.quest.title}</span>}
+          {current && sanityConfigured !== false && <span className="dialogue-task">Luke {current.quest.door}</span>}
           {pages.length > 1 && (
             <span className="dialogue-page">
               {page + 1}/{pages.length}
@@ -100,15 +100,15 @@ function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityC
   if (sanityConfigured === false) {
     return [
       <>
-        Denne smia er ikke koblet til noe Sanity-prosjekt ennå, så alt jeg kan låne deg er øvingsutstyr. Hver smed
-        trenger sitt eget. Kjør <code>npm run setup</code> i repoet, og kom tilbake.
+        Spillet er ikke koblet til et Sanity-prosjekt ennå, så du får bare øvingsutstyr. Kjør <code>npm run setup</code>{" "}
+        i repoet, og kom tilbake.
       </>,
     ];
   }
   const { current, previous } = board;
   const reaction = previous ? [<Reaction key="r" state={previous} />] : [];
   if (!current) {
-    return [...reaction, <>Det er alt arbeidet jeg har nå. Kom tilbake når kalenderen snur.</>];
+    return [...reaction, <>Det var alle lukene som er åpne nå. Kom tilbake når neste luke åpner.</>];
   }
   if (current.status === "offered") {
     return [...reaction, ...current.quest.intro.map((text) => <>{text}</>)];
@@ -118,8 +118,8 @@ function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityC
     return [
       forged ? (
         <>
-          <strong>{forged.name}</strong>! Rett fra ilden, og det biter for {forged.power?.damage ?? 0}. Nå gjenstår bare
-          frostdraugen i lysningen øst for brønnen.
+          <strong>{forged.name}</strong> er klart, og gjør {forged.power?.damage ?? 0} skade. Nå gjenstår bare
+          snømonsteret øst for brønnen.
         </>
       ) : (
         <>{current.quest.intro[current.quest.intro.length - 1]}</>
@@ -128,7 +128,7 @@ function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityC
   }
   return [
     <>
-      {current.quest.title}, ja. {renderText(current.quest.goal)}
+      Luke {current.quest.door}: {current.quest.title}. {renderText(current.quest.goal)}
     </>,
   ];
 }
@@ -137,7 +137,7 @@ function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityC
 function Reaction({ state }: { state: QuestState }) {
   return (
     <>
-      Godt jobbet med {state.quest.title.toLowerCase()}! Det du nettopp gjorde, har et navn:
+      Bra, luke {state.quest.door} er ferdig! Det du lærte:
       <span className="dialogue-lesson">
         <span className="dialogue-lesson-title">{renderText(state.quest.lesson.title)}</span>
         {renderText(state.quest.lesson.text)}
@@ -177,21 +177,21 @@ function Details({
             Velg <span className="term">Weapon</span>, gi det et navn og en sprite
           </li>
           <li>
-            Trykk <span className="term">Publish</span>, og se bladet dukke opp i smia
+            Trykk <span className="term">Publish</span>, og se våpenet dukke opp i spillet
           </li>
         </ol>
       )}
 
       {fetchFailed && !refreshing && (
         <p className="dialogue-feedback" role="status">
-          Smia når ikke Sanity-prosjektet ditt. Er <span className="term">dataset</span>-et privat, kan ikke spillet lese det. Kjør{" "}
+          Spillet når ikke Sanity-prosjektet ditt. Er <span className="term">dataset</span>-et privat, kan ikke spillet lese det. Kjør{" "}
           <code>npm run setup</code> for å sjekke.
         </p>
       )}
 
       {firstForging && checked && !refreshing && !fetchFailed && sanityConfigured !== false && (
         <p className="dialogue-feedback" role="status">
-          Ingenting på ambolten ennå. Bare publiserte våpen når smia, ikke <span className="term">drafts</span>.
+          Ingen våpen ennå. Bare publiserte våpen kommer med, ikke <span className="term">drafts</span>.
         </p>
       )}
 
@@ -212,11 +212,11 @@ function Details({
           Åpne Sanity Studio
         </button>
         <button type="button" className="btn" onClick={onCheck} disabled={refreshing}>
-          {refreshing ? "Sjekker…" : "Sjekk smia"}
+          {refreshing ? "Sjekker…" : "Sjekk på nytt"}
         </button>
         {!onboarding && (
           <button type="button" className="btn" onClick={onOpenLog}>
-            Oppdragslogg <kbd>J</kbd>
+            Kalender <kbd>J</kbd>
           </button>
         )}
         <button type="button" className="btn btn--quiet" onClick={onClose}>
@@ -251,13 +251,13 @@ function TaskNotes({
       )}
       {quest.checkedBy === "code" && (
         <p className="dialogue-note">
-          <span className="dialogue-note-label">Slik sjekker Brann</span> kjør <code>npm run quest</code> i terminalen,
-          og trykk Sjekk smia.
+          <span className="dialogue-note-label">Slik sjekkes det</span> kjør <code>npm run quest</code> i terminalen,
+          og trykk «Sjekk på nytt».
         </p>
       )}
       {result.message && !refreshing && !result.done && (
         <p className="dialogue-feedback" role="status">
-          <span className="dialogue-note-label">Branns dom</span> {renderText(result.message)}
+          <span className="dialogue-note-label">Status</span> {renderText(result.message)}
         </p>
       )}
       {hints.map((hint, i) => (

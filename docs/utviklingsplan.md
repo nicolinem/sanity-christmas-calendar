@@ -15,6 +15,7 @@ Forslaget til quester, kalender og gjennomføring står i [questplan.md](questpl
 
 ## Beslutninger så langt
 
+- **Enklere språk, tydelig julekalender** (2026-10-31): «Luke N» i stedet for oppdragsnavn, og ingen egne navn på steder og funksjoner i spillet. Luke N åpner N–1 dager etter `NEXT_PUBLIC_CALENDAR_START`. Avsnittene under er skrevet før dette og bruker fortsatt de gamle navnene. Gjeldende plan: [questplan.md](questplan.md).
 - Navnemagi: **delvis skjulte ordlister**. Brann tipser om ild i starten, resten utforskes.
 - Elementbonus er **liten** (×1,5 mot svakhet, ×0 mot immunitet). Mest for moro.
 - **Ingen materialer og ingen skadetall** (besluttet 2026-10-23). Alle smidde våpen slår like hardt; styrken følger **smiens nivå** (4/6/8/10), som stiger når man fullfører quester. Det som skiller våpen, er **navnet og elementet**, og det betyr noe fordi fiender har ulike svakheter.

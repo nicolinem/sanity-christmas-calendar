@@ -19,9 +19,9 @@ type Props = {
 
 type Tab = "quests" | "book";
 
-// The full quest log: every chapter, what's done, what's next, and the layered
-// hints. Brann's book collects what each finished quest taught. Locked
-// chapters only show their names, as a taste of what's coming.
+// The calendar: every door by week, what's done, what's next, and the layered
+// hints. Lessons collects what each finished door taught. Weeks that aren't
+// built yet only show their topics, as a taste of what's coming.
 export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, onClose, onReset }: Props) {
   const [tab, setTab] = useState<Tab>("quests");
   const [selectedId, setSelectedId] = useState(board.current?.quest.id ?? board.states[0]?.quest.id);
@@ -41,7 +41,7 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
         className="log frame frame--slate"
         role="dialog"
         aria-modal="true"
-        aria-label="Oppdragslogg"
+        aria-label="Kalender"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="log-head">
@@ -53,7 +53,7 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
               className={`log-tab${tab === "quests" ? " is-on" : ""}`}
               onClick={() => setTab("quests")}
             >
-              Oppdrag
+              Luker
             </button>
             <button
               type="button"
@@ -62,11 +62,11 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
               className={`log-tab${tab === "book" ? " is-on" : ""}`}
               onClick={() => setTab("book")}
             >
-              Branns bok
+              Lærdommer
             </button>
           </div>
           <p className="log-meta">
-            Smienivå {forgeLevel}, bladene biter for {forgedPower(forgeLevel).damage}
+            Nivå {forgeLevel}: våpnene gjør {forgedPower(forgeLevel).damage} skade
           </p>
           <button ref={closeRef} type="button" className="btn btn--quiet" onClick={onClose}>
             Lukk <kbd>Esc</kbd>
@@ -75,13 +75,13 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
 
         {tab === "quests" ? (
           <div className="log-body">
-            <nav className="log-list" aria-label="Oppdrag">
+            <nav className="log-list" aria-label="Luker">
               {CHAPTERS.map((chapter) => {
                 const states = board.states.filter((s) => s.chapter.number === chapter.number);
                 return (
                   <div key={chapter.number} className="log-chapter">
                     <p className="log-chapter-title">
-                      Kapittel {chapter.number}: {chapter.title}
+                      Uke {chapter.number}: {chapter.title}
                     </p>
                     <ul>
                       {states.map((s) => (
@@ -93,7 +93,7 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
                             aria-current={s === selected ? "true" : undefined}
                           >
                             <span className="tracker-box">{s.status === "done" && <IconCheck size={12} />}</span>
-                            {s.status === "offered" ? "Snakk med Brann" : s.quest.title}
+                            Luke {s.quest.door}: {s.status === "offered" ? "snakk med Brann" : s.quest.title}
                           </button>
                         </li>
                       ))}
@@ -122,12 +122,14 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
           <div className="log-book">
             {lessons.length === 0 ? (
               <p className="log-locked">
-                Boka er tom ennå. Hver gang du fullfører et oppdrag, skriver Brann ned det du lærte.
+                Her samles det du lærer. Fullfør en luke for å få den første.
               </p>
             ) : (
               lessons.map((s) => (
                 <article key={s.quest.id} className="log-lesson">
-                  <p className="log-lesson-quest">{s.quest.title}</p>
+                  <p className="log-lesson-quest">
+                    Luke {s.quest.door}: {s.quest.title}
+                  </p>
                   <h3 className="log-lesson-title">{renderText(s.quest.lesson.title)}</h3>
                   <p className="log-lesson-text">{renderText(s.quest.lesson.text)}</p>
                   {s.quest.learn && (
@@ -166,13 +168,16 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
   if (status === "locked" || status === "offered") {
     return (
       <article className="log-detail">
-        <h3 className="log-quest-title">{status === "offered" ? "En ny oppgave" : quest.title}</h3>
+        <h3 className="log-quest-title">
+          Luke {quest.door}
+          {status === "offered" ? "" : `: ${quest.title}`}
+        </h3>
         <p className="log-locked">
           {status === "offered"
-            ? "Brann har noe til deg. Gå til smia og snakk med ham."
+            ? "Luken er åpen. Snakk med Brann ved smia for å få oppgaven."
             : state.opensAt
               ? `Åpner ${state.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
-              : "Fullfør oppdraget før dette for å låse det opp."}
+              : "Fullfør luken før for å åpne denne."}
         </p>
       </article>
     );
@@ -181,8 +186,8 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
   return (
     <article className="log-detail">
       <h3 className="log-quest-title">
-        {quest.title}
-        {status === "done" && <span className="log-done">Fullført</span>}
+        Luke {quest.door}: {quest.title}
+        {status === "done" && <span className="log-done">Ferdig</span>}
       </h3>
       <p className="log-intro">«{quest.intro[quest.intro.length - 1]}»</p>
       <p className="log-goal">{renderText(quest.goal)}</p>
@@ -207,12 +212,12 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
       <p className="log-checked">
         {quest.checkedBy === "code" ? (
           <>
-            Når det virker: kjør <code>npm run quest</code> i terminalen, og trykk «Sjekk smia».
+            Når det virker: kjør <code>npm run quest</code> i terminalen, og trykk «Sjekk på nytt».
           </>
         ) : (
           "Spillet merker dette av seg selv."
         )}
-        {quest.reward && " Belønning: smia brenner hetere."}
+        {quest.reward && " Belønning: våpnene dine blir sterkere."}
       </p>
 
       {quest.hints.length > 0 && status !== "done" && (

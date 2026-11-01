@@ -10,7 +10,7 @@ import { KNOWN_SPRITE_IDS } from "../../game/sprites";
 // This file is yours: the chapter 1 quests happen here. Look for the QUEST
 // comments.
 
-// QUEST: Branns protokoll. Gi schema type-en et icon, og en preview i
+// QUEST: Luke 2. Gi schema type-en et icon, og en preview i
 // dokumentlista som viser gjenstandens egen sprite. src/components/SpriteImage.tsx
 // tegner en sprite for deg.
 export const item = defineType({
@@ -18,7 +18,7 @@ export const item = defineType({
   title: "Item",
   type: "document",
   fields: [
-    // QUEST: Laugets lov. Validation: ingen to gjenstander kan hete det samme.
+    // QUEST: Luke 3. Validation: ingen to gjenstander kan hete det samme.
     // Hjelpere: src/sanity/lib/guild.ts
     defineField({
       name: "name",
@@ -41,8 +41,8 @@ export const item = defineType({
       },
       validation: (rule) => rule.required(),
     }),
-    // QUEST: Laugets lov. Validation: alle våpen må ha en sprite (andre gjenstander trenger ikke).
-    // QUEST: Spritevelgeren. Gi feltet en custom input component som viser
+    // QUEST: Luke 3. Validation: alle våpen må ha en sprite (andre gjenstander trenger ikke).
+    // QUEST: Luke 4. Gi feltet en custom input component som viser
     // pikselkunsten du velger mellom. src/components/SpriteImage.tsx tegner en sprite for deg.
     defineField({
       name: "sprite",

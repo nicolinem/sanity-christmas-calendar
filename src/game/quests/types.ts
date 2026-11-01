@@ -37,6 +37,7 @@ export type Hint = { text: string; link?: { label: string; url: string } };
 
 export type Quest = {
   id: string;
+  door: number; // which calendar door (luke) this is; door N opens on day N
   title: string;
   intro: string[]; // what Brann says when he hands it over, one short page each
   goal: string; // one line for the tracker: what, not how

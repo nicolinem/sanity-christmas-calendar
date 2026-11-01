@@ -1,10 +1,9 @@
 # Sanity Winter Quest
 
-A pixel-art winter RPG that doubles as a **Sanity** advent calendar. Brann the
-blacksmith hands out quests, and you solve them in your own Sanity Studio:
-publish a weapon and the knight carries it, teach the Studio the Smiths'
-Guild's laws, build it new inputs and views. Every chapter digs a little deeper
-into Sanity.
+A **Sanity** advent calendar: one small Sanity task behind each door, solved in
+your own Sanity Studio, with a little pixel-art game that shows the result.
+Publish a weapon and the knight carries it, add validation, build new inputs
+and views. Each week digs a little deeper into Sanity.
 
 You play against **your own Sanity project**. You own everything in it
 (content, schema, Studio), so experiment freely: the game only ever *reads*
@@ -57,20 +56,20 @@ claim deadline.
 ## Playing
 
 **WASD / arrows** (or click) to walk, **E** to talk, **Space** to attack,
-**1–8** to equip, **J** for the quest log.
+**1–8** to equip, **J** for the calendar.
 
-- **Brann** gives one quest at a time. His dialogue says *where to work* and,
+- **Brann** the blacksmith hands out one door at a time. His dialogue says *where to work* and,
   if you ask, gives hints one by one, with links to the exact docs.
 - **Some quests the game notices by itself**: publishing a weapon, beating the
-  wraith.
+  snow monster.
 - **Code quests are checked from your code.** When you think you're done:
 
   ```bash
   npm run quest
   ```
 
-  Brann loads your Studio config the way the Studio does, tries what you built
-  and writes his verdict. Press **Check the forge** in the game afterwards.
+  It loads your Studio config the way the Studio does, tries what you built
+  and writes the result. Press **Sjekk på nytt** in the game afterwards.
   Any working solution passes: it checks behaviour, not style.
 - **Look for `QUEST:` comments** in the code: they mark where each quest's
   work happens (`grep -rn "QUEST:" src sanity.config.ts`).
@@ -85,7 +84,7 @@ claim deadline.
 | `sanity.config.ts` | `scripts/**`, `public/**` |
 | `src/sanity/studio/**` (anything you add) | `src/sanity/lib/**` (helpers for you to import) |
 
-New chapters arrive with `git pull`. They only add files and never touch
+New doors arrive with `git pull`. They only add files and never touch
 yours, so your solutions stay put.
 
 ## Solutions

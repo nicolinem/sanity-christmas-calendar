@@ -31,7 +31,7 @@ import StudioPane from "./StudioPane";
 // Phaser is browser-only: load it with no SSR.
 const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
   ssr: false,
-  loading: () => <div className="stage-loading">Tenner lyktene…</div>,
+  loading: () => <div className="stage-loading">Laster spillet…</div>,
 });
 
 function useNarrow() {
@@ -143,7 +143,7 @@ export default function GameClient() {
       if (!seen.current.has(item.id)) {
         if (item.kind === "weapon") {
           bridge.emit("itemForged", item.sprite);
-          pushToast({ title: "Nytt fra smia", body: item.name, tone: "forge" });
+          pushToast({ title: "Nytt våpen", body: item.name, tone: "forge" });
         }
       } else if (item.forgedAt && item.forgedAt !== seen.current.get(item.id)) {
         bridge.emit("forgeFlare", undefined);
@@ -279,8 +279,8 @@ export default function GameClient() {
         <div className="hud">
           <div className="hud-tl">
             <h1 className="crest">
-              <span className="crest-title">Winter Quest</span>
-              <span className="crest-place">Frostholm</span>
+              <span className="crest-title">Julekalenderen</span>
+              <span className="crest-place">Sanity · desember 2026</span>
             </h1>
             <QuestTracker
               key={narrow ? "compact" : "full"}

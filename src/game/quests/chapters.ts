@@ -27,23 +27,23 @@ function fromCode(id: string) {
 
 const theBrokenForge: Quest = {
   id: "the-broken-forge",
-  title: "Den knuste smia",
+  door: 1,
+  title: "Lag og publiser et våpen",
   intro: [
-    "Endelig, en som tør gå ut i denne kulda. Jeg er Brann, smeden i Frostholm. Den lengste natta kom, ilden i smia sloknet, og hvert eneste blad i bygda sprakk av frosten.",
-    "Uten tegninger kan jeg ikke smi noe nytt. Men du har Sanity Studio. Det du lager og trykker *Publish* på der, henter jeg rett ut av smia.",
-    "Lag et våpen til meg, gi det et navn og en sprite, og publiser det. Så tester vi det på frostdraugen som lusker i lysningen øst for brønnen.",
+    "Hei! Jeg er Brann, smeden. Hver dag i desember åpner en ny luke med en liten Sanity-oppgave, og det du publiserer i Sanity Studio, dukker opp her i spillet.",
+    "Luke 1: lag et våpen i Studio, gi det et navn og en sprite, og trykk *Publish*. Test det så på snømonsteret øst for brønnen.",
   ],
-  goal: "Lag et våpen i Sanity Studio, trykk *Publish*, og test det på frostdraugen.",
-  where: "I Sanity Studio: åpne det fra samtalen med Brann.",
+  goal: "Lag et våpen i Sanity Studio, trykk *Publish*, og test det på snømonsteret.",
+  where: "I Sanity Studio.",
   hints: [
     { text: "Åpne Studio fra samtalen med Brann, og lag et nytt *Item*-dokument." },
-    { text: "Velg *Weapon* som *Kind*, gi det et navn, og trykk *Publish*. En *draft* når aldri smia." },
-    { text: "Frostdraugen holder til i lysningen øst for brønnen. Gå helt bort til den og trykk mellomrom." },
+    { text: "Velg *Weapon* som *Kind*, gi det et navn, og trykk *Publish*. En *draft* kommer aldri med i spillet." },
+    { text: "Snømonsteret står øst for brønnen. Gå helt bort til det og trykk mellomrom." },
   ],
   learn: { label: "Hello, Studio", url: `${LEARN}/day-one-with-sanity-studio/hello-studio` },
   lesson: {
     title: "*Draft* og *published*",
-    text: "Det du skriver i Studio, er en *draft* helt til du trykker *Publish*. Spillet leser bare publiserte *documents*, og fikk bladet ditt i samme øyeblikk fordi *Content Lake* sender endringer ut i sanntid.",
+    text: "Det du skriver i Studio, er en *draft* helt til du trykker *Publish*. Spillet leser bare publiserte *documents*, og fikk våpenet ditt i samme øyeblikk fordi *Content Lake* sender endringer ut i sanntid.",
   },
   checkedBy: "game",
   reward: { forgeLevel: 1 },
@@ -53,22 +53,23 @@ const theBrokenForge: Quest = {
       done: Boolean(forged) && progress.wraithDefeated,
       objectives: [
         { label: "Publiser et våpen i Sanity Studio", done: Boolean(forged) },
-        { label: "Beseir frostdraugen i lysningen", done: progress.wraithDefeated },
+        { label: "Beseir snømonsteret", done: progress.wraithDefeated },
       ],
       message:
-        sanityConfigured === false ? "Smia er ikke koblet til Sanity ennå. Kjør `npm run setup`." : undefined,
+        sanityConfigured === false ? "Spillet er ikke koblet til Sanity ennå. Kjør `npm run setup`." : undefined,
     };
   },
 };
 
 const brannsLedger: Quest = {
   id: "branns-ledger",
-  title: "Branns protokoll",
+  door: 2,
+  title: "Ikon og preview i lista",
   intro: [
-    "Protokollen min er et rot. Alle bladene ser like ut i dokumentlista i Studio. Gi gjenstandene et ordentlig ikon, og vis hvert blads egen sprite ved siden av navnet.",
+    "Alle våpnene ser like ut i dokumentlista i Studio. Gi dem et ikon, og vis hvert våpens sprite ved siden av navnet.",
   ],
   goal: "Gjør gjenstander lette å kjenne igjen i Studio: et `icon` på *schema type*-en og en *preview* med spriten.",
-  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Branns protokoll`.",
+  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Luke 2`.",
   hints: [
     {
       text: "En *schema type* kan ha et `icon`, og det lista viser styres av `preview`.",
@@ -97,12 +98,13 @@ const brannsLedger: Quest = {
 
 const theGuildsLaw: Quest = {
   id: "the-guilds-law",
-  title: "Laugets lov",
+  door: 3,
+  title: "Validation: regler for våpen",
   intro: [
-    "Smedlauget har to lover. Et våpen uten utseende kan ingen smi, så alle våpen må ha en sprite. Og ingen to blader kan bære samme navn. Få Studio til å nekte begge deler, før de havner på ambolten min.",
+    "To regler: alle våpen må ha en sprite, og ingen to gjenstander kan hete det samme. Få Studio til å nekte begge deler.",
   ],
   goal: "Legg til *validation* så Studio nekter våpen uten sprite, og navn som allerede er tatt.",
-  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Laugets lov`.",
+  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Luke 3`.",
   hints: [
     {
       text: "En *validation rule* kan gjøre akkurat det du vil med `rule.custom(...)`.",
@@ -113,7 +115,7 @@ const theGuildsLaw: Quest = {
       link: { label: "Validating against other fields", url: `${DOCS}/validation#k1d8eb8fbb695` },
     },
     {
-      text: "Duplikater krever *dataset*-et: `context` gir deg `getClient`. Ferdig *GROQ* for å finne tvillinger ligger i `src/sanity/lib/guild.ts`.",
+      text: "Duplikater krever *dataset*-et: `context` gir deg `getClient`. Ferdig *GROQ* for å finne duplikater ligger i `src/sanity/lib/guild.ts`.",
       link: { label: "Asynchronous validation using the client", url: `${DOCS}/validation#k71fb43753fd9` },
     },
     {
@@ -132,12 +134,13 @@ const theGuildsLaw: Quest = {
 
 const theDrawingBoard: Quest = {
   id: "the-drawing-board",
-  title: "Spritevelgeren",
+  door: 4,
+  title: "Custom input: velg sprite med bilder",
   intro: [
-    "Velge utseendet på et blad fra en liste med ord? Ingen smed jobber sånn. Gi `sprite`-feltet en ordentlig velger, en som viser selve pikselkunsten du velger mellom.",
+    "Å velge sprite fra en liste med navn er tungvint. Lag en velger som viser selve pikselkunsten.",
   ],
   goal: "Lag en *custom input component* for `sprite` som viser pikselkunsten i stedet for en liste med navn.",
-  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Spritevelgeren`.",
+  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Luke 4`.",
   hints: [
     {
       text: "Et *field* kan bytte ut *input component*-en sin med din egen: `components: { input: ... }`.",
@@ -160,12 +163,13 @@ const theDrawingBoard: Quest = {
 
 const theProvingRoom: Quest = {
   id: "the-proving-room",
-  title: "Prøvestua",
+  door: 5,
+  title: "Document view: se våpenet i Studio",
   intro: [
-    "Før et blad forlater smia, vil jeg se det i hånda på ridderen. Bygg meg en prøvestue i Studio, en egen fane der jeg ser gjenstanden slik den ser ut i spillet.",
+    "Lag en egen fane i Studio som viser gjenstanden slik den ser ut i spillet, med ridderen som svinger våpenet.",
   ],
   goal: "Legg til en *document view* i Studio som viser gjenstanden slik spillet ser den.",
-  where: "`sanity.config.ts`: se etter kommentaren `QUEST: Prøvestua`.",
+  where: "`sanity.config.ts`: se etter kommentaren `QUEST: Luke 5`.",
   hints: [
     {
       text: "Et *document* kan ha flere *views*: `S.document().views([...])` i *Structure tool*.",
@@ -182,7 +186,7 @@ const theProvingRoom: Quest = {
       text: "Spillet har en ferdig `<KnightPreview spriteId={…} kind={…} />` i `src/components/KnightPreview.tsx`: ridderen som svinger våpenet.",
     },
     {
-      text: "Bare gjenstander trenger prøvestue: *views* kan settes opp per *schema type* (`schemaType`).",
+      text: "Bare items trenger den nye fanen: *views* kan settes opp per *schema type* (`schemaType`).",
       link: {
         label: "Views for specific types",
         url: `${DOCS}/create-custom-document-views-with-structure-builder#k452c82554fbd`,
@@ -200,12 +204,13 @@ const theProvingRoom: Quest = {
 
 const theForgeButton: Quest = {
   id: "the-forge-button",
-  title: "Smi-knappen",
+  door: 6,
+  title: "Document action: egen Smi-knapp",
   intro: [
-    "*Publish* er for papirarbeid. Et blad skal smis! Gi gjenstandene en «Smi»-knapp som stempler tidspunktet bladet ble smidd, og publiserer det. Ha spillet åpent ved siden av, så ser du smia blusse opp.",
+    "Lag en egen knapp i Studio, «Smi», som setter tidspunktet våpenet ble smidd og publiserer det. Ha spillet åpent ved siden av, så ser du smia lyse opp.",
   ],
   goal: "Lag en *document action* «Smi» som setter `forgedAt` og publiserer gjenstanden.",
-  where: "`sanity.config.ts`: se etter kommentaren `QUEST: Smi-knappen`. Selve *action*-en kan ligge i en egen fil.",
+  where: "`sanity.config.ts`: se etter kommentaren `QUEST: Luke 6`. Selve *action*-en kan ligge i en egen fil.",
   hints: [
     {
       text: "*Document actions* settes opp i `sanity.config.ts`, under `document.actions`.",
@@ -239,19 +244,19 @@ const theForgeButton: Quest = {
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
-    title: "Smia",
+    title: "Studio",
     quests: [theBrokenForge, brannsLedger, theGuildsLaw, theDrawingBoard, theProvingRoom, theForgeButton],
   },
   {
     number: 2,
-    title: "Jegeren",
+    title: "Innholdsmodellering",
     quests: [],
-    teaser: ["Bestiariet", "Byttet", "Orakelets gåter", "Laugets nye lov", "Runeskriveren"],
+    teaser: ["Ny document type", "References", "GROQ", "Bilder og assets", "Bonus: migrering", "Bonus: TypeGen"],
   },
   {
     number: 3,
-    title: "Byen våkner",
+    title: "Utover skjemaet",
     quests: [],
-    teaser: ["Byropet", "Skalden", "Prøv før du smir", "Julaftenslippet", "Smiens regnskap", "Del verktøyet"],
+    teaser: ["Singleton", "Portable Text", "Functions", "Webhook", "Bonus: Agent Actions", "Bonus: plugin"],
   },
 ];

@@ -16,10 +16,10 @@ export default defineConfig({
   dataset,
   schema,
   plugins: [
-    // QUEST: Prøvestua. Gi item-dokumentene en ekstra document view her, en som
+    // QUEST: Luke 5. Gi item-dokumentene en ekstra document view her, en som
     // viser gjenstanden slik spillet ser den.
     structureTool(),
     visionTool({ defaultApiVersion: apiVersion }),
   ],
-  // QUEST: Smi-knappen. Registrer document action-en din her (`document.actions`).
+  // QUEST: Luke 6. Registrer document action-en din her (`document.actions`).
 });
