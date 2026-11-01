@@ -33,6 +33,9 @@ det du publiserer, dukker opp med en gang, og kodeoppgaver sjekkes automatisk.
 7. **Gjenbruker det spillet allerede har.** Hver uke får én ny ting i spillet
    (for eksempel monstre), og flere luker bygger på den.
 
+For å vurdere en luke før den bygges: skillen `luke-design` (`.claude/skills/luke-design`) og
+[spillvurdering.md](spillvurdering.md).
+
 ## Lukene
 
 ★ vanlig luke, ☆ bonus. Datoene gjelder 2026: 1. desember er en tirsdag.
