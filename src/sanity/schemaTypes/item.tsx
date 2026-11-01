@@ -7,7 +7,7 @@ import { KNOWN_SPRITE_IDS } from "../../game/sprites";
 // There are no numbers here on purpose: the game decides how hard a weapon
 // hits (src/game/rules.ts). What the player shapes is what the item *is*.
 //
-// This file is yours: the chapter 1 quests happen here. Look for the QUEST
+// This file is yours: doors 2–4 happen here. Look for the QUEST
 // comments.
 
 // QUEST: Luke 2. Gi schema type-en et icon, og en preview i
