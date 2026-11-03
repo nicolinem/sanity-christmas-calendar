@@ -74,6 +74,8 @@ slutt *Verdt det*. Et spill som ikke svarer, hjelper ikke uansett belønning.
 
 ### Poeng og pynt (planlagt)
 
+Erstattet 2026-11-02: ingen poeng. Se «Fremgang» i [questplan.md](questplan.md).
+
 | | | |
 |---|---|---|
 | Tydelig | ? | Må vise hva ting koster, og hva man får |
@@ -114,7 +116,7 @@ grense) eller **målt** (antall og dato).
 | 72 timer for å claime | Kilde | Sanity, `sanity new` |
 | 250 000 API-kall per måned (gratis) | Kilde | Sanitys prisside, sjekket 2026-10-29 |
 | Høyst 25 min per luke | Startverdi | Tid hos 2–3 testere. Over 35 min blir luka bonus |
-| Poeng 3 / 5 / 1–2–4 | Startverdi | Rekker hovedløypa alene til 3–4 ting innen 20. desember? Hvis ikke: senk prisene |
+| Poeng 3 / 5 / 1–2–4 | Utgått | Poeng er tatt ut av planen (2026-11-02) |
 | Skade 4 / 6 / 8 / 10 per nivå | Startverdi | Monsteret skal tåle 3–6 slag på nivå 1. Flere: øk skaden |
 | ×1,5 mot svakhet | Startverdi | Skal merkes uten å bli obligatorisk. Ingen test ennå |
 | Sjekk hvert 4. sekund uten live | Startverdi | Ca. 7 000 kall per åpen fane per dag. Bare reserve når live ikke virker |
