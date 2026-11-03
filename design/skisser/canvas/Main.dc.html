@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Oppstart</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+  <img src="/_blob/208487001bd7ece0606173aba742917e" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; image-rendering: pixelated">
+
+  <div style="position: absolute; left: 40px; bottom: 40px; width: 420px; padding: 16px 18px; background: #11141f; border: 2px solid #3a4263; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.7; color: #c0cbdc">
+    <div style="color: #8b9bb4">$ npm run dev</div>
+    <div><span style="color: #6fd1a8">✓</span> Kalenderen  http://localhost:3000</div>
+    <div><span style="color: #6fd1a8">✓</span> Studio      http://localhost:3000/studio</div>
+    <div><span style="color: #6fd1a8">✓</span> Sjekker oppgavene når du lagrer</div>
+  </div>
+
+  <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 480px; padding: 28px 30px 26px; background: #262b44; border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #3a4263; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 14px; color: #fdbe53">Desember 2026</span>
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 52px; line-height: 0.9; color: #e3ebf5">Sanity-julekalenderen</span>
+    </div>
+    <p style="margin: 0; font-size: 16px; line-height: 1.45; color: #c0cbdc">24 luker med små Sanity-oppgaver. Du løser dem i din egen Studio, og ser resultatet i et lite spill.</p>
+
+    <a href="Kalender.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; padding: 0 16px; background: #e38628; box-shadow: inset 0 3px 0 #fdbe53, 0 3px 0 #5a2a1a; color: #2a140e; font-weight: 600; font-size: 16px; text-decoration: none">Logg inn med jobbkontoen</a>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; background: #1b1f33; font-size: 14px">
+      <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #8b9bb4">Klar</span>
+      <div style="display: flex; gap: 10px"><span style="color: #6fd1a8">✓</span><span>Studio kjører hos deg</span></div>
+      <div style="display: flex; gap: 10px"><span style="color: #6fd1a8">✓</span><span>Koblet til Sanity-prosjektet <span style="font-family: 'JetBrains Mono', monospace; color: #fdbe53">[PROSJEKT-ID]</span></span></div>
+      <div style="display: flex; gap: 10px"><span style="color: #6fd1a8">✓</span><span>Oppgavene sjekkes når du lagrer</span></div>
+      <div style="display: flex; gap: 10px"><span style="color: #fdbe53">!</span><span>Claim prosjektet innen 72 timer. <a href="#claim">Claim nå</a></span></div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px">
+      <a href="Kalender.dc.html" style="color: #8b9bb4">Fortsett uten innlogging</a>
+      <span style="color: #8b9bb4">Codespaces? Alt er satt opp.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Luke ferdig, runde 2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+  <img src="/_blob/208487001bd7ece0606173aba742917e" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; image-rendering: pixelated">
+
+  <div style="position: absolute; top: 16px; left: 16px; width: 340px; padding: 12px 14px; box-sizing: border-box; background: rgba(38, 43, 68, 0.95); border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #3a4263; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 24px; line-height: 1">Julekalenderen</span>
+      <span style="flex: 1"></span>
+      <span style="font-size: 12px; color: #c0cbdc">3 av 24 luker</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: #1b1f33; box-shadow: inset 0 0 0 2px #6fd1a8">
+      <span style="font-size: 12px; color: #6fd1a8">Luke 3 · ferdig ✓</span>
+      <span style="font-size: 16px; line-height: 1.25">Validation: regler for våpen</span>
+      <span style="font-size: 13px; color: #fdbe53">Luke 4 er åpen. Snakk med Brann.</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px">
+      <span style="color: #8b9bb4">Løsningen kommer fredag</span>
+      <span style="flex: 1"></span>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 8px; background: #3a4263; border: 0; box-shadow: inset 0 2px 0 #4d5781; color: #e3ebf5; font: inherit; font-size: 12px">Alle luker <span style="padding: 0 4px; background: #1b1f33; font-size: 10px">J</span></button>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 50%; top: 64px; transform: translateX(-50%); width: 540px; padding: 24px 28px 22px; box-sizing: border-box; background: #262b44; border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #fdbe53; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 46px; line-height: 0.95">Luke 3 er ferdig!</span>
+      <span style="font-size: 15px; color: #c0cbdc">Validation: regler for våpen</span>
+    </div>
+
+    <div style="align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 16px; background: #1b1f33">
+      <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #fdbe53">Bygda fikk</span>
+      <div style="display: flex; align-items: center; gap: 18px">
+        <img src="/_blob/c51d8f340f690695a3c45e628cb61484" alt="Mørkt vindu" style="width: 56px; height: 56px; image-rendering: pixelated">
+        <svg width="40" height="16" viewBox="0 0 40 16" fill="none" stroke="#fdbe53" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8 H36 M30 3 L36 8 L30 13"/></svg>
+        <img src="/_blob/81631ca48488bee7c2396e4665733264" alt="Opplyst vindu" style="width: 56px; height: 56px; image-rendering: pixelated">
+      </div>
+      <span style="font-size: 16px">Lys i vinduene på bakeriet</span>
+    </div>
+
+    <div style="align-self: stretch; display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; background: #1b1f33; text-align: left">
+      <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #8b9bb4">Det du lærte</span>
+      <span style="font-size: 15px; color: #8fd3ff">Validation med <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #fdbe53">context</span></span>
+      <span style="font-size: 14px; line-height: 1.5"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">rule.custom()</span> får både verdien og hele dokumentet. En regel som feiler som <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">error</span>, stopper Publish.</span>
+    </div>
+
+    <div style="display: flex; gap: 10px">
+      <a href="V2-vanlig.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; background: #e38628; box-shadow: inset 0 3px 0 #fdbe53, 0 3px 0 #5a2a1a; color: #2a140e; font-weight: 600; font-size: 15px; text-decoration: none">Se pynten i bygda</a>
+      <a href="V2-kalender.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; background: #3a4263; box-shadow: inset 0 2px 0 #4d5781; color: #e3ebf5; font-size: 15px; text-decoration: none">Til kalenderen</a>
+    </div>
+    <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #8b9bb4">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2 6 H5 L9 3 V13 L5 10 H2 Z"/><path d="M11.5 5.5 Q14 8 11.5 10.5"/></svg>
+      Med lyd på: en kort klokkeklang. Løsningen kommer fredag 4. desember.
+    </span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

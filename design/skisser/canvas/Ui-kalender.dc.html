@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Kalenderen åpen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+  <img src="/_blob/208487001bd7ece0606173aba742917e" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; image-rendering: pixelated">
+
+  <div style="position: absolute; inset: 32px 48px; background: #262b44; border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #3a4263; display: flex; flex-direction: column">
+    <div style="display: flex; align-items: center; gap: 22px; padding: 14px 22px; border-bottom: 2px solid #1b1f33">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 36px; line-height: 1">Julekalenderen</span>
+      <div role="tablist" style="display: flex; gap: 4px">
+        <button type="button" role="tab" aria-selected="true" style="padding: 6px 12px; background: #3a4263; border: 0; box-shadow: inset 0 -3px 0 #fdbe53; color: #e3ebf5; font: inherit; font-size: 14px">Luker</button>
+        <button type="button" role="tab" aria-selected="false" style="padding: 6px 12px; background: transparent; border: 0; color: #8b9bb4; font: inherit; font-size: 14px">Lærdommer</button>
+      </div>
+      <span style="flex: 1"></span>
+      <span style="font-size: 14px; color: #c0cbdc">6 av 8 åpne luker ferdig</span>
+      <span style="font-size: 14px; color: #fdbe53">20 poeng · nivå 2</span>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: 2px solid #8b9bb4; color: #e3ebf5; font: inherit; font-size: 13px">Lukk <span style="padding: 0 4px; background: #3a4263; font-size: 11px">Esc</span></button>
+    </div>
+
+    <div style="flex: 1; display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); min-height: 0">
+      <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid #1b1f33; min-height: 0">
+        <div style="flex: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 10px; min-height: 0">
+          <sc-for list="{{doors}}" as="d" hint-placeholder-count="24">
+            <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 8px 10px; min-height: 0; background: {{d.bg}}; box-shadow: {{d.ring}}">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start">
+                <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: {{d.numColor}}">{{d.n}}</span>
+                <sc-if value="{{d.hasIcon}}" hint-placeholder-val="{{ false }}">
+                  <img src="{{d.icon}}" alt="" style="width: 24px; height: 24px; image-rendering: pixelated">
+                </sc-if>
+              </div>
+              <span style="font-size: 11px; line-height: 1.2; color: {{d.labelColor}}">{{d.label}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #c0cbdc">
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66"></span>Ferdig</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #e38628"></span>I dag</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #3a4263; box-shadow: inset 0 0 0 2px #fdbe53"></span>Åpen, ikke ferdig</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150"></span>Kommer</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #20253a; box-shadow: inset 0 0 0 2px #f03e2f"></span>Julaften</span>
+        </div>
+      </div>
+
+      <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #fdbe53">Luke 8 · i dag, tirsdag 8. desember</span>
+          <span style="font-size: 22px; line-height: 1.25">Lag en egen document type for monstre</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px">
+          <span style="padding: 2px 10px; background: #1b1f33; color: #8fd3ff">document type</span>
+          <span style="padding: 2px 10px; background: #1b1f33; color: #c0cbdc">ca. 20 min</span>
+          <span style="padding: 2px 10px; background: #1b1f33; color: #fdbe53">3 poeng</span>
+        </div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.5">Lag en <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #fdbe53">monster</span>-type med navn, størrelse og sprite. Monstrene du publiserer, dukker opp i spillet.</p>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Fil</span><span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">monster.ts</span> · <a href="#editor">Åpne i editoren</a></span></div>
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Sjekkes</span><span>Automatisk, når du publiserer et monster</span></div>
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Løsning</span><span>Fredag 11. desember</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #1b1f33; font-size: 14px">
+          <span style="color: #8b9bb4">Hint 1 av 3</span>
+          <span>Start med <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">defineType</span>, slik <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">item</span> er laget. <a href="#docs">Schema types i dokumentasjonen</a></span>
+        </div>
+        <span style="flex: 1"></span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" style="padding: 8px 14px; background: #e38628; border: 0; box-shadow: inset 0 2px 0 #fdbe53; color: #2a140e; font: inherit; font-size: 14px; font-weight: 600">Åpne Sanity Studio</button>
+          <button type="button" style="padding: 8px 14px; background: #3a4263; border: 0; box-shadow: inset 0 2px 0 #4d5781; color: #e3ebf5; font: inherit; font-size: 14px">Neste hint</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+const titles = {
+  1: 'Publiser et våpen', 2: 'Ikon og preview', 3: 'Validation', 4: 'Custom input',
+  5: 'Bonus: document view', 6: 'Bonus: GROQ', 7: 'Document action', 8: 'Document type'
+};
+const icons = {
+  1: '/_blob/564c767e26e4d22f71dba28a993ca8e9',
+  2: '/_blob/bff06d00b77e04bc0a49acee816ce39f',
+  3: '/_blob/faef14ffa4c21020995fc2751626d46c',
+  4: '/_blob/e1bdd56373651fb72699fe7cd84d68a8',
+  5: '/_blob/1d6a0615ea99491d77d7158453be16e1',
+  7: '/_blob/3cc2246536ea30bf96eb116e16545a60'
+};
+const weekend = [12, 13, 19, 20];
+const state = (n) => (icons[n] ? 'done' : n === 6 ? 'open' : n === 8 ? 'today' : n === 24 ? 'eve' : 'locked');
+const look = {
+  done: ['#2c5a4b', 'inset 0 0 0 2px #3f7a66', '#e3ebf5', '#c0cbdc'],
+  open: ['#3a4263', 'inset 0 0 0 2px #fdbe53', '#e3ebf5', '#c0cbdc'],
+  today: ['#e38628', 'inset 0 0 0 2px #fdbe53, 0 0 0 3px #1b1f33, 0 0 0 5px #fdbe53', '#2a140e', '#2a140e'],
+  locked: ['#20253a', 'inset 0 0 0 2px #2b3150', '#5a6488', '#6f7aa0'],
+  eve: ['#20253a', 'inset 0 0 0 2px #f03e2f', '#f03e2f', '#f03e2f']
+};
+const doors = [];
+for (let n = 1; n <= 24; n++) {
+  const s = state(n);
+  const l = look[s];
+  const label = titles[n] || (n === 24 ? 'Julaften' : (weekend.includes(n) ? 'Bonus · ' : '') + n + '. des');
+  doors.push({
+    n, label, bg: l[0], ring: l[1], numColor: l[2], labelColor: l[3],
+    hasIcon: Boolean(icons[n]), icon: icons[n] || ''
+  });
+}
+return { doors };
+}
+}
+</script>
+</body>
+</html>

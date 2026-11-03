@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Alternativ 3: kalender med ukerader</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+  <img src="/_blob/208487001bd7ece0606173aba742917e" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; image-rendering: pixelated">
+  <div style="position: absolute; inset: 32px 48px; background: #262b44; border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #3a4263; display: flex; flex-direction: column">
+    <div style="display: flex; align-items: center; gap: 22px; padding: 14px 22px; border-bottom: 2px solid #1b1f33">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 36px; line-height: 1">Julekalenderen</span>
+
+      <span style="flex: 1"></span>
+      <span style="font-size: 14px; color: #fdbe53">5 av 12 oppgaver</span>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: 2px solid #8b9bb4; color: #e3ebf5; font: inherit; font-size: 13px">Lukk <span style="padding: 0 4px; background: #3a4263; font-size: 11px">Esc</span></button>
+    </div>
+    <div style="flex: 1; display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); min-height: 0">
+      <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid #1b1f33; min-height: 0">
+        <div style="flex: 1; display: grid; grid-template-columns: 116px repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 10px; min-height: 0">
+        <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-right: 6px">
+          <span style="font-size: 17px; color: #6fd1a8">Uke 1</span>
+          <span style="font-size: 12px; color: #c0cbdc">Studio</span>
+          <span style="font-size: 12px; color: #6fd1a8">ferdig ✓</span>
+        </div>
+          <div title="Publiser et våpen" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">1</span>
+              <img src="/_blob/81631ca48488bee7c2396e4665733264" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 1">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">schema</span>
+          </div>
+          <div title="Ikon og preview" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">2</span>
+              <img src="/_blob/76c27a0d2de19be811e89dde436500c5" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 1">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">preview</span>
+          </div>
+          <div title="Regler for våpen" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">3</span>
+              <img src="/_blob/81631ca48488bee7c2396e4665733264" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 1">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">validation</span>
+          </div>
+          <div title="Velg sprite med bilder" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">4</span>
+              <img src="/_blob/1c48bbb90d0d6b963e51f09a324cc6c8" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 1">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">custom input</span>
+          </div>
+          <div title="Se våpenet i Studio" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">★</span>
+              <img src="/_blob/b619ad868ecb2e0a3071bae4660e4d96" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 1">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">Bonus</span>
+          </div>
+        <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-right: 6px">
+          <span style="font-size: 17px; color: #fdbe53">Uke 2</span>
+          <span style="font-size: 12px; color: #c0cbdc">Innholdsmodellering</span>
+          <span style="font-size: 12px; color: #fdbe53">denne uka</span>
+        </div>
+          <div title="Ny type for monstre" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">5</span>
+              <img src="/_blob/76c27a0d2de19be811e89dde436500c5" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 1">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">document type</span>
+          </div>
+          <div title="Bytte fra monstre" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #e38628; box-shadow: inset 0 0 0 2px #fdbe53, 0 0 0 3px #1b1f33, 0 0 0 5px #fdbe53; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #2a140e">6</span>
+              <img src="/_blob/81631ca48488bee7c2396e4665733264" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.6">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #2a140e">reference</span>
+          </div>
+          <div title="Finn de sterkeste monstrene" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #3a4263; box-shadow: inset 0 0 0 2px #fdbe53; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">7</span>
+              <img src="/_blob/1c48bbb90d0d6b963e51f09a324cc6c8" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.6">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">GROQ</span>
+          </div>
+          <div title="Egen pikselkunst" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #3a4263; box-shadow: inset 0 0 0 2px #fdbe53; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">8</span>
+              <img src="/_blob/81631ca48488bee7c2396e4665733264" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.6">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">image</span>
+          </div>
+          <div title="Flere GROQ-oppgaver" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #3a4263; box-shadow: inset 0 0 0 2px #8fd3ff; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #e3ebf5">★</span>
+              <img src="/_blob/d477a06fc47ee68099afd02779949375" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.6">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #e3ebf5">Bonus</span>
+          </div>
+        <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-right: 6px">
+          <span style="font-size: 17px; color: #6f7aa0">Uke 3</span>
+          <span style="font-size: 12px; color: #c0cbdc">Utover skjemaet</span>
+          <span style="font-size: 12px; color: #6f7aa0">åpner 14. des</span>
+        </div>
+          <div title="Egen Smi-knapp" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #5a6488">9</span>
+              <img src="/_blob/81631ca48488bee7c2396e4665733264" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.3">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #5a6488">document action</span>
+          </div>
+          <div title="Tekst med bilder" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #5a6488">10</span>
+              <img src="/_blob/76c27a0d2de19be811e89dde436500c5" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.3">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #5a6488">Portable Text</span>
+          </div>
+          <div title="Svar når du publiserer" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #5a6488">11</span>
+              <img src="/_blob/1c48bbb90d0d6b963e51f09a324cc6c8" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.3">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #5a6488">Functions</span>
+          </div>
+          <div title="Pynt juletreet" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150; ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #5a6488">12</span>
+              <img src="/_blob/db824591736e6ef54c550bf1199a6837" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.3">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #5a6488">GROQ</span>
+          </div>
+          <div title="Typer fra schema" style="display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; min-height: 0; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150; border: 2px dashed #8fd3ff;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start">
+              <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: #5a6488">★</span>
+              <img src="/_blob/619c0aec40cb6fb6b285b75f1bd35682" alt="" style="width: 26px; height: 26px; image-rendering: pixelated; opacity: 0.3">
+            </div>
+            <span style="font-size: 11px; line-height: 1.2; color: #5a6488">Bonus</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #c0cbdc">
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66"></span>Ferdig</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #e38628"></span>Pågår</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #3a4263; box-shadow: inset 0 0 0 2px #fdbe53"></span>Åpen</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150"></span>Kommer</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="color: #fdbe53">★</span>Bonus, valgfri</span>
+        </div>
+      </div>
+      <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #fdbe53">Uke 2 · oppgave 2 · pågår</span>
+          <span style="font-size: 22px; line-height: 1.25">Bytte fra monstre</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px">
+          <span style="padding: 2px 10px; background: #1b1f33; color: #8fd3ff">reference</span>
+          <span style="padding: 2px 10px; background: #1b1f33; color: #c0cbdc">ca. 15 min</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #1b1f33">
+          <img src="/_blob/81631ca48488bee7c2396e4665733264" alt="" style="width: 40px; height: 40px; image-rendering: pixelated">
+          <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #8b9bb4">Gir</span><span style="font-size: 15px">Lys i vaktbua</span></div>
+        </div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.5">Koble hvert monster til gjenstandene det slipper. Bruk en <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #8fd3ff">reference</span> til <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #8fd3ff">item</span>.</p>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Fil</span><span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">monster.ts</span> · <a href="#editor">Åpne i editoren</a></span></div>
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Sjekkes</span><span>Av seg selv når du publiserer et monster med bytte</span></div>
+        </div>
+        <span style="flex: 1"></span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" style="padding: 8px 14px; background: #e38628; border: 0; box-shadow: inset 0 2px 0 #fdbe53; color: #2a140e; font: inherit; font-weight: 600; font-size: 14px">Åpne Sanity Studio</button>
+          <button type="button" style="padding: 8px 14px; background: #3a4263; border: 0; box-shadow: inset 0 2px 0 #4d5781; color: #e3ebf5; font: inherit; font-size: 14px">Vis et hint</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

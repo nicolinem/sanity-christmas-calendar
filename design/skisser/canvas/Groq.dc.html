@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>GROQ-luke</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+  <img src="/_blob/208487001bd7ece0606173aba742917e" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; image-rendering: pixelated">
+
+  <div style="position: absolute; inset: 48px 120px; background: #262b44; border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #3a4263; padding: 24px 28px; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 36px; line-height: 1">Luke 6 · GROQ</span>
+      <span style="padding: 2px 10px; background: #3a4263; font-size: 13px; color: #fdbe53">Bonus · 2 poeng</span>
+      <span style="flex: 1"></span>
+      <span style="font-size: 14px; color: #8b9bb4">Flere GROQ-oppgaver: 4 av 15 løst</span>
+    </div>
+
+    <p style="margin: 0; max-width: 62ch; font-size: 18px; line-height: 1.5">Hvilke boder på julemarkedet selger pepperkaker? Gi navnene, sortert alfabetisk.</p>
+    <p style="margin: 0; font-size: 14px; color: #8b9bb4">Spørringen kjøres mot et felles eksempeldatasett, så alle får samme svar. Prøv i Vision først om du vil.</p>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; flex: 1; min-height: 0">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="groq" style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #8b9bb4">Din spørring</label>
+        <textarea id="groq" style="flex: 1; resize: none; padding: 14px 16px; background: #11141f; border: 2px solid #3a4263; color: #e3ebf5; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; line-height: 1.7">*[_type == "bod"
+  &amp;&amp; "Pepperkaker" in varer[]-&gt;navn
+] | order(navn asc) { navn }</textarea>
+        <div style="display: flex; gap: 8px">
+          <button type="button" style="padding: 8px 16px; background: #e38628; border: 0; box-shadow: inset 0 2px 0 #fdbe53; color: #2a140e; font: inherit; font-size: 14px; font-weight: 600">Kjør</button>
+          <button type="button" style="padding: 8px 14px; background: #3a4263; border: 0; box-shadow: inset 0 2px 0 #4d5781; color: #e3ebf5; font: inherit; font-size: 14px">Vis hint</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+        <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #8b9bb4">Resultat</span>
+        <div style="flex: 1; padding: 14px 16px; background: #11141f; border: 2px solid #6fd1a8; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.7; color: #c0cbdc; overflow: hidden">[<br>  { "navn": "Bakeriet" },<br>  { "navn": "Gløggbua" },<br>  { "navn": "Nissens kiosk" }<br>]</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: #1b1f33; box-shadow: inset 0 0 0 2px #6fd1a8">
+          <span style="font-size: 16px; color: #6fd1a8">Riktig, på 2. forsøk</span>
+          <span style="font-size: 14px; color: #c0cbdc">Samme tre rader som fasiten. +2 poeng.</span>
+        </div>
+        <button type="button" style="align-self: flex-start; padding: 6px 12px; background: transparent; border: 2px solid #8fd3ff; color: #8fd3ff; font: inherit; font-size: 14px">Del: «Luke 6 ✓ på 2 forsøk»</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
