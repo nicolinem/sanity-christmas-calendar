@@ -158,7 +158,7 @@ export function useQuestBoard({
     });
     for (const s of finished) {
       pushToast({ title: `Luke ${s.quest.door} ferdig`, body: s.quest.title, tone: "quest" });
-      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står under Lærdommer i kalenderen (J).", tone: "lesson" });
+      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står under Lærdommer i kalenderen.", tone: "lesson" });
     }
 
     const after = forgeLevelFor(CHAPTERS, readProgress(PROJECT));

@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import dynamic from "next/dynamic";
 import type { SanityItem } from "@/sanity/queries";
 import {
@@ -11,6 +18,7 @@ import {
   type GameItemView,
 } from "@/game/items";
 import { bridge, type Zone } from "@/game/bridge";
+import type { QuestSiteId } from "@/game/village";
 import { findForgedWeapon } from "@/game/quests/chapters";
 import type { CodeCheck } from "@/game/quests/types";
 import Hotbar from "./hud/Hotbar";
@@ -25,7 +33,12 @@ import ForgeDialogue from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
 import { useCombat } from "./hud/useCombat";
 import { IconQuill } from "./hud/icons";
-import { focusGame, toggleStudio, useStudioFocused, useStudioPane } from "./hud/studioPane";
+import {
+  focusGame,
+  toggleStudio,
+  useStudioFocused,
+  useStudioPane,
+} from "./hud/studioPane";
 import StudioPane from "./StudioPane";
 
 // Phaser is browser-only: load it with no SSR.
@@ -35,7 +48,9 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
 });
 
 // The editor and the compiler only load when the code window opens.
-const CodeWindow = dynamic(() => import("./hud/codeWindow/CodeWindow"), { ssr: false });
+const CodeWindow = dynamic(() => import("./hud/codeWindow/CodeWindow"), {
+  ssr: false,
+});
 
 function useNarrow() {
   return useSyncExternalStore(
@@ -83,6 +98,10 @@ export default function GameClient() {
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const [logInitialTab, setLogInitialTab] = useState<"quests" | "map" | "book">(
+    "quests",
+  );
+  const [logInitialQuestId, setLogInitialQuestId] = useState<string | undefined>();
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
@@ -146,7 +165,8 @@ export default function GameClient() {
   // Compose the full item list: Sanity content + always-present baseline, plus
   // demo items only while Sanity is unconfigured so the game is never empty.
   const items = useMemo<GameItemView[]>(() => {
-    const base = configured === false ? [...DEMO_ITEMS, ...BUILTIN_ITEMS] : BUILTIN_ITEMS;
+    const base =
+      configured === false ? [...DEMO_ITEMS, ...BUILTIN_ITEMS] : BUILTIN_ITEMS;
     return [...sanityItems.map((raw) => toGameItem(raw, forgeLevel)), ...base];
   }, [sanityItems, configured, forgeLevel]);
 
@@ -199,7 +219,12 @@ export default function GameClient() {
   const checks = useMemo(() => {
     const merged = { ...codeChecks };
     for (const [id, done] of Object.entries(devChecks))
-      merged[id] = { done, message: done ? undefined : "Utviklerpanelet later som sjekken ikke er bestått." };
+      merged[id] = {
+        done,
+        message: done
+          ? undefined
+          : "Utviklerpanelet later som sjekken ikke er bestått.",
+      };
     return merged;
   }, [codeChecks, devChecks]);
   const board = useQuestBoard({
@@ -212,6 +237,17 @@ export default function GameClient() {
   });
   const current = board.current;
   const currentId = current?.quest.id;
+  const siteQuest =
+    zone && zone !== "forge"
+      ? board.states.find(
+          (state) =>
+            state.quest.villageSite === zone && state.status === "active",
+        ) ??
+        board.states.find(
+          (state) =>
+            state.quest.villageSite === zone && state.status === "skipped",
+        )
+      : undefined;
 
   const checkForge = useCallback(() => {
     setCheckedForge(true);
@@ -230,7 +266,29 @@ export default function GameClient() {
 
   const openLog = useCallback(() => {
     setTalking(false);
+    setLogInitialTab("quests");
+    setLogInitialQuestId(undefined);
     setLogOpen(true);
+  }, []);
+
+  const openMap = useCallback(() => {
+    setTalking(false);
+    setLogInitialTab("map");
+    setLogInitialQuestId(undefined);
+    setLogOpen(true);
+  }, []);
+
+  const openQuestLog = useCallback((questId: string) => {
+    setTalking(false);
+    setLogInitialTab("quests");
+    setLogInitialQuestId(questId);
+    setLogOpen(true);
+  }, []);
+
+  const travelToSite = useCallback((siteId: QuestSiteId) => {
+    setTalking(false);
+    setLogOpen(false);
+    bridge.emit("travelToSite", siteId);
   }, []);
 
   const openCode = useCallback((questId: string) => {
@@ -238,7 +296,9 @@ export default function GameClient() {
     setLogOpen(false);
     setCodeQuestId(questId);
   }, []);
-  const codeState = board.states.find((s) => s.quest.id === codeQuestId && s.status !== "locked");
+  const codeState = board.states.find(
+    (s) => s.quest.id === codeQuestId && s.status !== "locked",
+  );
   const codeOpen = Boolean(codeState);
   const onSolved = useCallback(
     (how: Parameters<typeof solveTask>[1]) => {
@@ -252,7 +312,9 @@ export default function GameClient() {
   // Keep the world in sync with game state.
   useEffect(() => {
     const hand =
-      equipped && equipped.kind === "weapon" && !(equipped.source === "builtin" && !equipped.spriteId)
+      equipped &&
+      equipped.kind === "weapon" &&
+      !(equipped.source === "builtin" && !equipped.spriteId)
         ? equipped.sprite
         : null;
     bridge.setWorld({
@@ -260,10 +322,50 @@ export default function GameClient() {
       forgeLit: Boolean(forged),
       forgeLevel,
       brannMarker: current?.status === "offered",
+      noticeboardMarker:
+        board.states.find(
+          (state) =>
+            state.quest.villageSite === "noticeboard" &&
+            state.status === "active",
+        )
+          ? "!"
+          : board.states.some(
+                (state) =>
+                  state.quest.villageSite === "noticeboard" &&
+                  state.status === "skipped",
+              )
+            ? "↩"
+            : null,
+      westHouseMarker:
+        board.states.find(
+          (state) =>
+            state.quest.villageSite === "westHouse" &&
+            state.status === "active",
+        )
+          ? "!"
+          : board.states.some(
+                (state) =>
+                  state.quest.villageSite === "westHouse" &&
+                  state.status === "skipped",
+              )
+            ? "↩"
+            : null,
       wraithDefeated: combat.defeated,
       frozen: dialogueOpen || logOpen || codeOpen || showOpening,
     });
-  }, [equipped, forged, forgeLevel, current?.status, combat.defeated, dialogueOpen, logOpen, codeOpen, showOpening]);
+  }, [
+    equipped,
+    forged,
+    forgeLevel,
+    current?.status,
+    current?.quest.villageSite,
+    board.states,
+    combat.defeated,
+    dialogueOpen,
+    logOpen,
+    codeOpen,
+    showOpening,
+  ]);
 
   const slots = narrow ? 5 : 8;
 
@@ -277,13 +379,16 @@ export default function GameClient() {
         if (e.key === "Escape") setCodeQuestId(null);
         return;
       }
-      const onControl = (e.target as HTMLElement)?.closest?.("button, a, input, textarea");
+      const onControl = (e.target as HTMLElement)?.closest?.(
+        "button, a, input, textarea",
+      );
       if (logOpen) {
-        if (e.key === "Escape" || e.key === "j" || e.key === "J") setLogOpen(false);
+        if (e.key === "Escape" || e.key === "j" || e.key === "J")
+          setLogOpen(false);
         return;
       }
       if (e.key === "j" || e.key === "J") {
-        openLog();
+        openMap();
         return;
       }
       if (e.key === "Escape" && dialogueOpen) {
@@ -293,6 +398,14 @@ export default function GameClient() {
       if ((e.key === "e" || e.key === "E") && zone === "forge") {
         if (dialogueOpen) setTalking(false);
         else openDialogue();
+        return;
+      }
+      if (
+        (e.key === "e" || e.key === "E") &&
+        siteQuest &&
+        (zone === "noticeboard" || zone === "westHouse")
+      ) {
+        openQuestLog(siteQuest.quest.id);
         return;
       }
       if (e.key === " " && zone === "wraith" && !onControl) {
@@ -308,7 +421,21 @@ export default function GameClient() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [zone, dialogueOpen, logOpen, codeOpen, showOpening, openDialogue, openLog, combat, items, slots, handleEquip]);
+  }, [
+    zone,
+    siteQuest,
+    dialogueOpen,
+    logOpen,
+    codeOpen,
+    showOpening,
+    openDialogue,
+    openMap,
+    openQuestLog,
+    combat,
+    items,
+    slots,
+    handleEquip,
+  ]);
 
   return (
     <div className="game-shell">
@@ -359,10 +486,8 @@ export default function GameClient() {
                 checked={checkedForge}
                 onCheck={checkForge}
                 onOpenLog={openLog}
+                onTravelToSite={travelToSite}
                 onOpenCode={openCode}
-                onSkipQuest={skipQuest}
-                hintsShown={currentId ? (progress.hints[currentId] ?? 0) : 0}
-                onRevealHint={revealHint}
                 onClose={() => setTalking(false)}
               />
             )}
@@ -371,12 +496,28 @@ export default function GameClient() {
                 <kbd>E</kbd> Snakk med Brann
               </button>
             )}
-            {!hasMoved && !progress.metBlacksmith && !showOpening && zone !== "forge" && (
-              <p className="prompt prompt--hint">
-                Gå med <kbd>WASD</kbd> eller piltastene. Smia er rett nord.
-              </p>
+            {siteQuest &&
+              !logOpen &&
+              (zone === "noticeboard" || zone === "westHouse") && (
+                <button
+                  type="button"
+                  className="prompt"
+                  onClick={() => siteQuest && openQuestLog(siteQuest.quest.id)}
+                >
+                  <kbd>E</kbd> {siteQuest?.status === "skipped" ? "Ta igjen luka" : "Åpne luka her"}
+                </button>
+              )}
+            {!hasMoved &&
+              !progress.metBlacksmith &&
+              !showOpening &&
+              zone !== "forge" && (
+                <p className="prompt prompt--hint">
+                  Gå med <kbd>WASD</kbd> eller piltastene. Smia er rett nord.
+                </p>
+              )}
+            {zone === "wraith" && (
+              <EncounterPanel combat={combat} weapon={equipped} />
             )}
-            {zone === "wraith" && <EncounterPanel combat={combat} weapon={equipped} />}
 
             <Hotbar
               items={items}
@@ -410,7 +551,7 @@ export default function GameClient() {
               <kbd>1</kbd>–<kbd>{slots}</kbd> utstyr
             </span>
             <span>
-              <kbd>J</kbd> oppdrag
+              <kbd>J</kbd> kart
             </span>
           </p>
         </div>
@@ -418,12 +559,15 @@ export default function GameClient() {
         {logOpen && (
           <QuestLog
             board={board}
+            initialTab={logInitialTab}
+            initialQuestId={logInitialQuestId}
             forgeLevel={forgeLevel}
             hintsShown={progress.hints}
             onRevealHint={revealHint}
             onOpenCode={openCode}
             onSkipQuest={skipQuest}
             onResumeQuest={resumeQuest}
+            onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}
           />

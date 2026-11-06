@@ -4,41 +4,51 @@ import { useEffect, useRef, useState } from "react";
 import { CHAPTERS } from "@/game/quests/chapters";
 import type { QuestBoard } from "@/game/quests/engine";
 import type { QuestState } from "@/game/quests/types";
+import type { QuestSiteId } from "@/game/village";
 import { forgedPower } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
 import { renderText } from "./richText";
+import VillageMap from "./VillageMap";
 
 type Props = {
   board: QuestBoard;
+  initialTab?: "quests" | "map" | "book";
+  initialQuestId?: string;
   forgeLevel: number;
   hintsShown: Record<string, number>;
   onRevealHint: (questId: string) => void;
   onOpenCode: (questId: string) => void;
   onSkipQuest: (questId: string) => void;
   onResumeQuest: (questId: string) => void;
+  onTravelToSite: (siteId: QuestSiteId) => void;
   onClose: () => void;
   onReset: () => void;
 };
 
-type Tab = "quests" | "book";
+type Tab = "quests" | "map" | "book";
 
 // The calendar: every door by week, what's done, what's next, and the layered
 // hints. Lessons collects what each finished door taught. Weeks that aren't
 // built yet only show their topics, as a taste of what's coming.
 export default function QuestLog({
   board,
+  initialTab = "quests",
+  initialQuestId,
   forgeLevel,
   hintsShown,
   onRevealHint,
   onOpenCode,
   onSkipQuest,
   onResumeQuest,
+  onTravelToSite,
   onClose,
   onReset,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("quests");
-  const [selectedId, setSelectedId] = useState(board.current?.quest.id ?? board.states[0]?.quest.id);
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const [selectedId, setSelectedId] = useState(
+    initialQuestId ?? board.current?.quest.id ?? board.states[0]?.quest.id,
+  );
   const [confirmReset, setConfirmReset] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -46,7 +56,8 @@ export default function QuestLog({
     closeRef.current?.focus({ preventScroll: true });
   }, []);
 
-  const selected = board.states.find((s) => s.quest.id === selectedId) ?? board.states[0];
+  const selected =
+    board.states.find((s) => s.quest.id === selectedId) ?? board.states[0];
   const lessons = board.states.filter((s) => s.status === "done");
 
   return (
@@ -78,11 +89,26 @@ export default function QuestLog({
             >
               Lærdommer
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "map"}
+              className={`log-tab${tab === "map" ? " is-on" : ""}`}
+              onClick={() => setTab("map")}
+            >
+              Kart
+            </button>
           </div>
           <p className="log-meta">
-            Nivå {forgeLevel}: våpnene gjør {forgedPower(forgeLevel).damage} skade
+            Nivå {forgeLevel}: våpnene gjør {forgedPower(forgeLevel).damage}{" "}
+            skade
           </p>
-          <button ref={closeRef} type="button" className="btn btn--quiet" onClick={onClose}>
+          <button
+            ref={closeRef}
+            type="button"
+            className="btn btn--quiet"
+            onClick={onClose}
+          >
             Lukk <kbd>Esc</kbd>
           </button>
         </header>
@@ -91,7 +117,9 @@ export default function QuestLog({
           <div className="log-body">
             <nav className="log-list" aria-label="Luker">
               {CHAPTERS.map((chapter) => {
-                const states = board.states.filter((s) => s.chapter.number === chapter.number);
+                const states = board.states.filter(
+                  (s) => s.chapter.number === chapter.number,
+                );
                 return (
                   <div key={chapter.number} className="log-chapter">
                     <p className="log-chapter-title">
@@ -106,11 +134,23 @@ export default function QuestLog({
                             onClick={() => setSelectedId(s.quest.id)}
                             aria-current={s === selected ? "true" : undefined}
                           >
-                            <span className="tracker-box">{s.status === "done" && <IconCheck size={12} />}</span>
+                            <span className="tracker-box">
+                              {s.status === "done" && <IconCheck size={12} />}
+                            </span>
                             <span>
-                              Luke {s.quest.door}: {s.status === "offered" ? "snakk med Brann" : s.quest.title}
-                              {s.status === "skipped" && <span className="log-skipped">Hoppet over</span>}
-                              {s.quest.bonus && <span className="log-bonus"> ☆ Bonus · valgfri</span>}
+                              Luke {s.quest.door}:{" "}
+                              {s.status === "offered"
+                                ? "snakk med Brann"
+                                : s.quest.title}
+                              {s.status === "skipped" && (
+                                <span className="log-skipped">Hoppet over</span>
+                              )}
+                              {s.quest.bonus && (
+                                <span className="log-bonus">
+                                  {" "}
+                                  ☆ Bonus · valgfri
+                                </span>
+                              )}
                             </span>
                           </button>
                         </li>
@@ -139,6 +179,20 @@ export default function QuestLog({
               />
             )}
           </div>
+        ) : tab === "map" ? (
+          <div className="log-map-panel">
+            <VillageMap
+              board={board}
+              selectedId={selected?.quest.id}
+              onSelect={setSelectedId}
+              onTravel={onTravelToSite}
+              onResume={onResumeQuest}
+              onOpenQuest={(questId) => {
+                setSelectedId(questId);
+                setTab("quests");
+              }}
+            />
+          </div>
         ) : (
           <div className="log-book">
             {lessons.length === 0 ? (
@@ -151,10 +205,19 @@ export default function QuestLog({
                   <p className="log-lesson-quest">
                     Luke {s.quest.door}: {s.quest.title}
                   </p>
-                  <h3 className="log-lesson-title">{renderText(s.quest.lesson.title)}</h3>
-                  <p className="log-lesson-text">{renderText(s.quest.lesson.text)}</p>
+                  <h3 className="log-lesson-title">
+                    {renderText(s.quest.lesson.title)}
+                  </h3>
+                  <p className="log-lesson-text">
+                    {renderText(s.quest.lesson.text)}
+                  </p>
                   {s.quest.learn && (
-                    <a className="log-learn" href={s.quest.learn.url} target="_blank" rel="noreferrer">
+                    <a
+                      className="log-learn"
+                      href={s.quest.learn.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       Les mer: {s.quest.learn.label}
                     </a>
                   )}
@@ -175,7 +238,9 @@ export default function QuestLog({
             }}
             onBlur={() => setConfirmReset(false)}
           >
-            {confirmReset ? "Klikk igjen for å slette fremgangen din" : "Nullstill fremgang"}
+            {confirmReset
+              ? "Klikk igjen for å slette fremgangen din"
+              : "Nullstill fremgang"}
           </button>
         </footer>
       </section>
@@ -226,14 +291,19 @@ function QuestDetail({
         Luke {quest.door}: {quest.title}
         {quest.bonus && <span className="log-bonus">☆ Bonus · valgfri</span>}
         {status === "done" && <span className="log-done">Ferdig</span>}
-        {status === "skipped" && <span className="log-skipped">Hoppet over</span>}
+        {status === "skipped" && (
+          <span className="log-skipped">Hoppet over</span>
+        )}
       </h3>
-      <p className="log-intro">«{renderText(quest.intro[quest.intro.length - 1])}»</p>
+      <p className="log-intro">
+        «{renderText(quest.intro[quest.intro.length - 1])}»
+      </p>
       <p className="log-goal">{renderText(quest.goal)}</p>
       {status !== "done" && <GoalPreview quest={quest} />}
       {quest.where && (
         <p className="log-where">
-          <span className="log-where-label">Hvor du jobber</span> {renderText(quest.where)}
+          <span className="log-where-label">Hvor du jobber</span>{" "}
+          {renderText(quest.where)}
         </p>
       )}
 
@@ -241,18 +311,23 @@ function QuestDetail({
         <ul className="tracker-list">
           {result.objectives.map((o) => (
             <li key={o.label} className={o.done ? "is-done" : undefined}>
-              <span className="tracker-box">{o.done && <IconCheck size={12} />}</span>
+              <span className="tracker-box">
+                {o.done && <IconCheck size={12} />}
+              </span>
               {o.label}
             </li>
           ))}
         </ul>
       )}
-      {status !== "done" && result.message && <p className="tracker-note">{renderText(result.message)}</p>}
+      {status !== "done" && result.message && (
+        <p className="tracker-note">{renderText(result.message)}</p>
+      )}
 
       <p className="log-checked">
         {quest.checkedBy === "code" ? (
           <>
-            Når det virker: kjør <code>npm run quest</code> i terminalen, og trykk «Sjekk på nytt».
+            Når det virker: kjør <code>npm run quest</code> i terminalen, og
+            trykk «Sjekk på nytt».
           </>
         ) : quest.checkedBy === "window" ? (
           "Kodevinduet prøver koden din mens du skriver."
@@ -262,20 +337,29 @@ function QuestDetail({
         {quest.reward && " Belønning: våpnene dine blir sterkere."}
       </p>
       {quest.checkedBy === "window" && status !== "skipped" && (
-        <button type="button" className="btn btn--amber log-code" onClick={onOpenCode}>
+        <button
+          type="button"
+          className="btn btn--amber log-code"
+          onClick={onOpenCode}
+        >
           {status === "done" ? "Se koden igjen" : "Åpne kodevinduet"}
         </button>
       )}
-
       {quest.hints.length > 0 && status !== "done" && status !== "skipped" && (
         <div className="log-hints">
           {quest.hints.slice(0, shown).map((hint, i) => (
             <p key={i} className="log-hint">
-              <span className="log-hint-n">Hint {i + 1}</span> {renderText(hint.text)}
+              <span className="log-hint-n">Hint {i + 1}</span>{" "}
+              {renderText(hint.text)}
               {hint.link && (
                 <>
                   {" "}
-                  <a className="log-hint-link" href={hint.link.url} target="_blank" rel="noreferrer">
+                  <a
+                    className="log-hint-link"
+                    href={hint.link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {hint.link.label}
                   </a>
                 </>
@@ -283,7 +367,11 @@ function QuestDetail({
             </p>
           ))}
           {shown < quest.hints.length && (
-            <button type="button" className="btn btn--quiet" onClick={onMoreHint}>
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={onMoreHint}
+            >
               {shown === 0 ? "Vis et hint" : "Vis et hint til"}
             </button>
           )}
@@ -292,33 +380,51 @@ function QuestDetail({
 
       {status === "done" ? (
         <div className="log-lesson log-lesson--inline">
-          <h4 className="log-lesson-title">Lærdom: {renderText(quest.lesson.title)}</h4>
+          <h4 className="log-lesson-title">
+            Lærdom: {renderText(quest.lesson.title)}
+          </h4>
           <p className="log-lesson-text">{renderText(quest.lesson.text)}</p>
         </div>
       ) : (
         quest.learn && (
-          <a className="log-learn" href={quest.learn.url} target="_blank" rel="noreferrer">
+          <a
+            className="log-learn"
+            href={quest.learn.url}
+            target="_blank"
+            rel="noreferrer"
+          >
             Les mer: {quest.learn.label}
           </a>
         )
       )}
-      {status === "active" && (
-        confirmSkip ? (
-          <div className="log-skipped-actions" role="group" aria-label="Bekreft å hoppe over luka">
+      {status === "active" &&
+        (confirmSkip ? (
+          <div
+            className="log-skipped-actions"
+            role="group"
+            aria-label="Bekreft å hoppe over luka"
+          >
             <p className="log-locked">Du kan ta igjen luka senere.</p>
             <button type="button" className="btn btn--amber" onClick={onSkip}>
               Gå videre
             </button>
-            <button type="button" className="btn btn--quiet" onClick={() => setConfirmSkip(false)}>
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={() => setConfirmSkip(false)}
+            >
               Avbryt
             </button>
           </div>
         ) : (
-          <button type="button" className="btn btn--quiet log-skip" onClick={() => setConfirmSkip(true)}>
+          <button
+            type="button"
+            className="btn btn--quiet log-skip"
+            onClick={() => setConfirmSkip(true)}
+          >
             Hopp over og gå videre
           </button>
-        )
-      )}
+        ))}
       {status === "skipped" && (
         <div className="log-skipped-actions">
           <p className="log-locked">Du kan ta igjen denne luka når du vil.</p>
