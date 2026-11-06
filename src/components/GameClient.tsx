@@ -34,6 +34,9 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
   loading: () => <div className="stage-loading">Laster spillet…</div>,
 });
 
+// The editor and the compiler only load when the code window opens.
+const CodeWindow = dynamic(() => import("./hud/codeWindow/CodeWindow"), { ssr: false });
+
 function useNarrow() {
   return useSyncExternalStore(
     (cb) => {
@@ -69,6 +72,7 @@ export default function GameClient() {
   const [loading, setLoading] = useState(false);
   const [fetchFailed, setFetchFailed] = useState(false);
   const [unclaimed, setUnclaimed] = useState(false);
+  const [unpublishedDrafts, setUnpublishedDrafts] = useState(0);
   const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
   const [equippedId, setEquippedId] = useState<string | null>(null);
   // While true, the game keeps the strongest weapon equipped as content loads.
@@ -79,9 +83,10 @@ export default function GameClient() {
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
-  const { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen, jumpTo } = useProgress();
+  const { progress, forgeLevel, metBrann, reset, revealHint, solveTask, markIntroSeen, jumpTo } = useProgress();
   const dev = useDevMode();
   const studio = useStudioPane();
   const studioFocused = useStudioFocused() && studio.open;
@@ -97,11 +102,17 @@ export default function GameClient() {
           .then((r) => r.json())
           .catch(() => ({ checks: {} })),
       ]);
-      const data: { configured: boolean; unclaimed?: boolean; items: SanityItem[]; error?: string } =
-        await res.json();
+      const data: {
+        configured: boolean;
+        unclaimed?: boolean;
+        unpublishedDrafts?: number;
+        items: SanityItem[];
+        error?: string;
+      } = await res.json();
       setCodeChecks(checks.checks ?? {});
       setConfigured(data.configured);
       setUnclaimed(Boolean(data.unclaimed));
+      setUnpublishedDrafts(data.unpublishedDrafts ?? 0);
       setFetchFailed(Boolean(data.error));
       setSanityItems(data.items ?? []);
     } catch {
@@ -184,6 +195,7 @@ export default function GameClient() {
     items,
     codeChecks: checks,
     sanityConfigured: configured,
+    unpublishedDrafts,
     wraithDefeatedNow: combat.defeated,
     progress,
   });
@@ -210,6 +222,20 @@ export default function GameClient() {
     setLogOpen(true);
   }, []);
 
+  const openCode = useCallback((questId: string) => {
+    setTalking(false);
+    setLogOpen(false);
+    setCodeQuestId(questId);
+  }, []);
+  const codeState = board.states.find((s) => s.quest.id === codeQuestId && s.status !== "locked");
+  const codeOpen = Boolean(codeState);
+  const onSolved = useCallback(
+    (how: Parameters<typeof solveTask>[1]) => {
+      if (codeQuestId) solveTask(codeQuestId, how);
+    },
+    [codeQuestId, solveTask],
+  );
+
   const showOpening = !progress.introSeen;
 
   // Keep the world in sync with game state.
@@ -224,9 +250,9 @@ export default function GameClient() {
       forgeLevel,
       brannMarker: current?.status === "offered",
       wraithDefeated: combat.defeated,
-      frozen: dialogueOpen || logOpen || showOpening,
+      frozen: dialogueOpen || logOpen || codeOpen || showOpening,
     });
-  }, [equipped, forged, forgeLevel, current?.status, combat.defeated, dialogueOpen, logOpen, showOpening]);
+  }, [equipped, forged, forgeLevel, current?.status, combat.defeated, dialogueOpen, logOpen, codeOpen, showOpening]);
 
   const slots = narrow ? 5 : 8;
 
@@ -235,6 +261,11 @@ export default function GameClient() {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || showOpening) return;
       if ((e.target as HTMLElement)?.closest?.(".dev")) return;
+      // Typing in the code window: every key is code, except Escape.
+      if (codeOpen) {
+        if (e.key === "Escape") setCodeQuestId(null);
+        return;
+      }
       const onControl = (e.target as HTMLElement)?.closest?.("button, a, input, textarea");
       if (logOpen) {
         if (e.key === "Escape" || e.key === "j" || e.key === "J") setLogOpen(false);
@@ -266,7 +297,7 @@ export default function GameClient() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [zone, dialogueOpen, logOpen, showOpening, openDialogue, openLog, combat, items, slots, handleEquip]);
+  }, [zone, dialogueOpen, logOpen, codeOpen, showOpening, openDialogue, openLog, combat, items, slots, handleEquip]);
 
   return (
     <div className="game-shell">
@@ -317,6 +348,7 @@ export default function GameClient() {
                 checked={checkedForge}
                 onCheck={checkForge}
                 onOpenLog={openLog}
+                onOpenCode={openCode}
                 hintsShown={currentId ? (progress.hints[currentId] ?? 0) : 0}
                 onRevealHint={revealHint}
                 onClose={() => setTalking(false)}
@@ -377,8 +409,21 @@ export default function GameClient() {
             forgeLevel={forgeLevel}
             hintsShown={progress.hints}
             onRevealHint={revealHint}
+            onOpenCode={openCode}
             onClose={() => setLogOpen(false)}
             onReset={reset}
+          />
+        )}
+
+        {codeState && (
+          <CodeWindow
+            key={codeState.quest.id}
+            state={codeState}
+            solved={Boolean(progress.solved[codeState.quest.id])}
+            onSolved={onSolved}
+            hintsShown={progress.hints[codeState.quest.id] ?? 0}
+            onRevealHint={() => revealHint(codeState.quest.id)}
+            onClose={() => setCodeQuestId(null)}
           />
         )}
 

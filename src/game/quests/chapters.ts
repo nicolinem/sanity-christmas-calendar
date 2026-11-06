@@ -47,7 +47,7 @@ const theBrokenForge: Quest = {
   },
   checkedBy: "game",
   reward: { forgeLevel: 1 },
-  check: ({ items, progress, sanityConfigured }) => {
+  check: ({ items, progress, sanityConfigured, unpublishedDrafts }: QuestContext) => {
     const forged = findForgedWeapon(items);
     return {
       done: Boolean(forged) && progress.wraithDefeated,
@@ -56,7 +56,11 @@ const theBrokenForge: Quest = {
         { label: "Beseir snømonsteret", done: progress.wraithDefeated },
       ],
       message:
-        sanityConfigured === false ? "Spillet er ikke koblet til Sanity ennå. Kjør `npm run setup`." : undefined,
+        sanityConfigured === false
+          ? "Spillet er ikke koblet til Sanity ennå. Kjør `npm run setup`."
+          : !forged && unpublishedDrafts
+            ? "Du har et utkast som ikke er publisert. Trykk *Publish* i Studio."
+            : undefined,
     };
   },
 };
@@ -69,14 +73,14 @@ const brannsLedger: Quest = {
     "Alle våpnene ser like ut i dokumentlista i Studio. Gi dem et ikon, og vis hvert våpens sprite ved siden av navnet.",
   ],
   goal: "Gjør gjenstander lette å kjenne igjen i Studio: et `icon` på *schema type*-en og en *preview* med spriten.",
-  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Luke 2`.",
+  where: "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen (J).",
   hints: [
     {
       text: "En *schema type* kan ha et `icon`, og det lista viser styres av `preview`.",
       link: { label: "Document type properties", url: `${DOCS}/document-type#fadba8b5-f0d1-4f90-a181-e14aca95598e` },
     },
     {
-      text: "Sanity sitt eget ikonsett følger med Studio: `@sanity/icons`.",
+      text: "Sanity sitt eget ikonsett følger med Studio. Hvert ikon har sin egen sti: `import { BoltIcon } from \"@sanity/icons/Bolt\"`.",
       link: { label: "Sanity Icons", url: "https://icons.sanity.build" },
     },
     {
@@ -84,7 +88,7 @@ const brannsLedger: Quest = {
       link: { label: "React components in previews", url: `${DOCS}/previews-list-views#k75b9321e2389` },
     },
     {
-      text: "Du trenger ikke tegne pikselkunsten selv: `<SpriteImage spriteId={…} kind={…} />` i `src/components/SpriteImage.tsx` gjør det.",
+      text: "Du trenger ikke tegne pikselkunsten selv: `<SpriteImage spriteId={…} kind={…} />` gjør det. Den er allerede importert, og i fanen `SpriteImage.tsx` ser du hvordan den virker.",
     },
   ],
   learn: { label: "Sublime schemas", url: `${LEARN}/studio-excellence/sublime-schemas` },
@@ -92,8 +96,8 @@ const brannsLedger: Quest = {
     title: "*Previews*",
     text: "`preview.select` henter rå verdier fra dokumentet, og `prepare()` gjør dem om til det lista viser, også en React-komponent som `media`.",
   },
-  checkedBy: "code",
-  check: fromCode("branns-ledger"),
+  checkedBy: "window",
+  check: ({ progress }) => ({ done: Boolean(progress.solved["branns-ledger"]) }),
 };
 
 const theGuildsLaw: Quest = {
@@ -104,7 +108,7 @@ const theGuildsLaw: Quest = {
     "To regler: alle våpen må ha en sprite, og ingen to gjenstander kan hete det samme. Få Studio til å nekte begge deler.",
   ],
   goal: "Legg til *validation* så Studio nekter våpen uten sprite, og navn som allerede er tatt.",
-  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Luke 3`.",
+  where: "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen (J).",
   hints: [
     {
       text: "En *validation rule* kan gjøre akkurat det du vil med `rule.custom(...)`.",
@@ -115,7 +119,7 @@ const theGuildsLaw: Quest = {
       link: { label: "Validating against other fields", url: `${DOCS}/validation#k1d8eb8fbb695` },
     },
     {
-      text: "Duplikater krever *dataset*-et: `context` gir deg `getClient`. Ferdig *GROQ* for å finne duplikater ligger i `src/sanity/lib/guild.ts`.",
+      text: "Duplikater krever *dataset*-et: `context` gir deg `getClient`, og den vil ha en `apiVersion`. Ferdig *GROQ* for å finne duplikater er allerede importert: `SAME_NAME_QUERY` og `sameNameParams()`. I fanen `guild.ts` ser du hva de gjør.",
       link: { label: "Asynchronous validation using the client", url: `${DOCS}/validation#k71fb43753fd9` },
     },
     {
@@ -128,8 +132,8 @@ const theGuildsLaw: Quest = {
     title: "*Validation* med `context`",
     text: "`rule.custom()` får både verdien og en `context`: hele dokumentet, og en klient som kan spørre *dataset*-et. En *rule* som feiler som `error`, stopper *Publish*; en `warning` gjør det ikke.",
   },
-  checkedBy: "code",
-  check: fromCode("the-guilds-law"),
+  checkedBy: "window",
+  check: ({ progress }) => ({ done: Boolean(progress.solved["the-guilds-law"]) }),
 };
 
 const theDrawingBoard: Quest = {
@@ -138,19 +142,30 @@ const theDrawingBoard: Quest = {
   title: "Custom input: velg sprite med bilder",
   intro: [
     "Å velge sprite fra en liste med navn er tungvint. Lag en velger som viser selve pikselkunsten.",
+    "Dette er en bonus, og den er annerledes: du løser den ikke i kodevinduet, men i selve koden, i din egen editor. En *custom input component* er en React-komponent i Studio, og den trenger mer enn én fil.",
   ],
   goal: "Lag en *custom input component* for `sprite` som viser pikselkunsten i stedet for en liste med navn.",
-  where: "`src/sanity/schemaTypes/item.tsx`: se etter kommentaren `QUEST: Luke 4`.",
+  goalPreview: {
+    before: "I dag velger du sprite fra en liste med navn.",
+    after: "Etterpå ser du bildene og klikker på den du vil ha.",
+  },
+  where:
+    "I editoren din: startfila `src/sanity/studio/SpritePicker.tsx`, og `src/sanity/schemaTypes/item.tsx` (kommentaren `QUEST: Luke 4`).",
   hints: [
     {
-      text: "Et *field* kan bytte ut *input component*-en sin med din egen: `components: { input: ... }`.",
-      link: { label: "Form components", url: `${DOCS}/form-components#f5793c951d53` },
+      text: "Åpne `src/sanity/studio/SpritePicker.tsx`. Den er klar, men viser bare standardfeltet.",
     },
     {
-      text: "Endre verdien med `onChange(set(...))` og `unset()` fra `sanity`.",
+      text: "Lag en `<button type=\"button\">` per id i `KNOWN_SPRITE_IDS`, med en `SpriteImage` inni.",
+    },
+    {
+      text: "Klikket endrer verdien med `props.onChange(set(id))`. `unset()` fjerner den.",
       link: { label: "Form components API reference", url: `${DOCS}/form-components-reference` },
     },
-    { text: "`SpriteImage` tegner én sprite, og `KNOWN_SPRITE_IDS` i `src/game/sprites.ts` er lista over alle." },
+    {
+      text: "Koble den på: i `item.tsx` kan et *field* bytte ut *input component*-en sin med `components: { input: ... }`.",
+      link: { label: "Form components", url: `${DOCS}/form-components#f5793c951d53` },
+    },
   ],
   learn: { label: "Custom input components", url: `${LEARN}/studio-excellence/custom-form-components` },
   lesson: {
@@ -158,6 +173,7 @@ const theDrawingBoard: Quest = {
     text: "Et *field* kan bytte ut *input component*-en sin med `components.input`. Komponenten får verdien, og endrer den med `onChange(set(...))` eller `unset()`.",
   },
   checkedBy: "code",
+  bonus: true,
   check: fromCode("the-drawing-board"),
 };
 
@@ -167,26 +183,32 @@ const theProvingRoom: Quest = {
   title: "Document view: se våpenet i Studio",
   intro: [
     "Lag en egen fane i Studio som viser gjenstanden slik den ser ut i spillet, med ridderen som svinger våpenet.",
+    "Dette er en bonus, og den løses i selve koden, i din egen editor, ikke i kodevinduet. En *document view* er en React-komponent i Studio, og den trenger mer enn én fil.",
   ],
   goal: "Legg til en *document view* i Studio som viser gjenstanden slik spillet ser den.",
-  where: "`sanity.config.ts`: se etter kommentaren `QUEST: Luke 5`.",
+  goalPreview: {
+    before: "I dag har et item bare skjemaet.",
+    after: "Etterpå har det en ekstra fane, «I spillet», med ridderen og våpenet.",
+  },
+  where:
+    "I editoren din: `sanity.config.ts` (kommentaren `QUEST: Luke 5`), og en ny fil for selve visningen. Legg den for eksempel i `src/sanity/studio/`.",
   hints: [
     {
-      text: "Et *document* kan ha flere *views*: `S.document().views([...])` i *Structure tool*.",
-      link: { label: "Custom document views", url: `${DOCS}/create-custom-document-views-with-structure-builder` },
-    },
-    {
-      text: "En `S.view.component` får dokumentets verdier som props, også mens du skriver (`document.displayed`).",
+      text: "Lag en ny komponent som tar imot `document` som prop. Verdiene ligger i `document.displayed`, også mens du skriver.",
       link: {
         label: "Displaying document data",
         url: `${DOCS}/create-custom-document-views-with-structure-builder#k62b9d3ceb281`,
       },
     },
     {
-      text: "Spillet har en ferdig `<KnightPreview spriteId={…} kind={…} />` i `src/components/KnightPreview.tsx`: ridderen som svinger våpenet.",
+      text: "Spillet har en ferdig `<KnightPreview spriteId={…} kind={…} />` i `src/components/KnightPreview.tsx`. Bruk den i komponenten din.",
     },
     {
-      text: "Bare items trenger den nye fanen: *views* kan settes opp per *schema type* (`schemaType`).",
+      text: "Gi `structureTool()` i `sanity.config.ts` en `defaultDocumentNode` som returnerer `S.document().views([...])`.",
+      link: { label: "Custom document views", url: `${DOCS}/create-custom-document-views-with-structure-builder` },
+    },
+    {
+      text: "Lista må ha både skjemaet, `S.view.form()`, og din egen, `S.view.component(...)`. Bare items skal ha den nye fanen: sjekk `schemaType`.",
       link: {
         label: "Views for specific types",
         url: `${DOCS}/create-custom-document-views-with-structure-builder#k452c82554fbd`,
@@ -199,10 +221,12 @@ const theProvingRoom: Quest = {
     text: "*Structure tool* lar et *document* ha flere faner. En `S.view.component` får dokumentets verdier mens du skriver, og kan vise hva som helst du kan bygge i React.",
   },
   checkedBy: "code",
+  bonus: true,
   check: fromCode("the-proving-room"),
 };
 
-const theForgeButton: Quest = {
+// Belongs to week 3 (listed in its teaser), so it's not in any chapter yet.
+export const theForgeButton: Quest = {
   id: "the-forge-button",
   door: 6,
   title: "Document action: egen Smi-knapp",
@@ -245,7 +269,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 1,
     title: "Studio",
-    quests: [theBrokenForge, brannsLedger, theGuildsLaw, theDrawingBoard, theProvingRoom, theForgeButton],
+    quests: [theBrokenForge, brannsLedger, theGuildsLaw, theDrawingBoard, theProvingRoom],
   },
   {
     number: 2,
@@ -257,6 +281,6 @@ export const CHAPTERS: Chapter[] = [
     number: 3,
     title: "Utover skjemaet",
     quests: [],
-    teaser: ["Singleton", "Portable Text", "Functions", "Webhook", "Bonus: Agent Actions", "Bonus: plugin"],
+    teaser: ["Singleton", "Portable Text", "Document action: Smi-knapp", "Functions", "Webhook", "Bonus: Agent Actions", "Bonus: plugin"],
   },
 ];

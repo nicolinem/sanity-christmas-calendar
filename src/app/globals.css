@@ -1624,3 +1624,495 @@ kbd {
     max-width: calc(100cqw - var(--gutter) * 2);
   }
 }
+
+/* --- Code window ------------------------------------------------------------ */
+/* Small code tasks are written here. Left: the editor. Right: the Studio list  */
+/* the player's code would draw, and the check.                                */
+.cw {
+  display: flex;
+  flex-direction: column;
+  width: min(1080px, 100%);
+  /* A fixed height, so the window doesn't jump while you type. Hidden
+     overflow keeps a long file from growing the centring grid around it. */
+  height: min(720px, 100%);
+  overflow: hidden;
+  padding: 16px 18px 14px;
+}
+.cw-goal {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--snow);
+}
+.cw-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  /* Both columns get the window's height; the side scrolls when it's long. */
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1;
+  gap: 18px;
+  min-height: 0;
+  margin-top: 12px;
+}
+.cw-code {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.cw-file {
+  margin: 0;
+  font-size: 12px;
+  color: var(--frost-dim);
+}
+/* The player's file, then the files it imports (read only). */
+.cw-tabs {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+.cw-tab {
+  padding: 5px 10px;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--frost-dim);
+  background: var(--night-2);
+  cursor: pointer;
+}
+.cw-tab[aria-selected="true"] {
+  color: var(--amber);
+  box-shadow: inset 0 calc(-1 * var(--px)) 0 var(--amber);
+}
+.cw-tab-tag {
+  margin-left: 4px;
+  font-family: inherit;
+  opacity: 0.7;
+}
+.cw-ref {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cw-ref-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--frost-dim);
+}
+.cw-ref-examples li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cw-editor[hidden] {
+  display: none;
+}
+.cw-editor {
+  flex: 1;
+  min-height: 320px;
+  overflow: hidden;
+  box-shadow: 0 0 0 var(--px) var(--night-2);
+  -webkit-font-smoothing: auto;
+}
+.cw-editor .cm-editor {
+  height: 100%;
+  font-size: 13px;
+}
+.cw-editor .cm-scroller {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+/* Always there, one line or two: whether the code runs, or why not. */
+.cw-status {
+  margin: 0;
+  min-height: 3.2em;
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--frost-dim);
+  background: var(--night-2);
+}
+.cw-status.is-error {
+  color: #ffd2c9;
+  background: color-mix(in srgb, var(--sanity) 28%, var(--night-2));
+}
+/* The last result that ran, kept while the code doesn't. */
+.cw-stale {
+  opacity: 0.5;
+}
+.cw-stale-note {
+  margin-left: 8px;
+  color: var(--frost-dim);
+}
+.cw-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.cw-label {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--amber);
+}
+/* A small stand-in for the Studio's document list, in the Studio's own colours. */
+.cw-studio {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #ffffff;
+  color: #1f2430;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: auto;
+  box-shadow: 0 0 0 var(--px) var(--night-2);
+}
+.cw-studio-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 7px 10px;
+  border-bottom: 1px solid #e2e5ea;
+}
+.cw-studio-row:last-child {
+  border-bottom: 0;
+}
+.cw-studio-media {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #f3f4f6;
+  color: #6b7385;
+  font-size: 21px;
+}
+.cw-studio-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cw-studio-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.cw-studio-sub {
+  font-size: 12px;
+  color: #6b7385;
+}
+.cw-studio-empty {
+  padding: 10px;
+  font-size: 13px;
+  color: #6b7385;
+}
+/* Example documents as small Studio forms: field errors in red, Publish grey when there are any. */
+.cw-forms {
+  display: grid;
+  gap: 8px;
+}
+.cw-form {
+  padding: 8px 10px;
+}
+.cw-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e5ea;
+}
+.cw-form-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7385;
+}
+.cw-publish {
+  padding: 3px 12px;
+  border: 0;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #2d9f6b;
+}
+.cw-publish:disabled {
+  color: #9aa1b0;
+  background: #e2e5ea;
+}
+.cw-field {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 8px;
+  padding-top: 6px;
+  font-size: 13px;
+}
+.cw-field-label {
+  color: #6b7385;
+}
+.cw-field-msg {
+  grid-column: 2;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #c4291c;
+  overflow-wrap: anywhere;
+}
+.cw-field-msg.is-warning {
+  color: #a35a00;
+}
+.cw-field-msg.is-info {
+  color: #6b7385;
+}
+.cw-reqs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+.cw-reqs li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+}
+.cw-reqs li.is-done {
+  color: var(--frost-dim);
+}
+.cw-reqs li.is-done .tracker-box {
+  box-shadow: inset 0 0 0 2px var(--amber);
+}
+.cw-req-msg {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--frost);
+}
+.cw-wait {
+  margin: 0;
+  font-size: 13px;
+  color: var(--frost-dim);
+}
+.cw-hints {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  margin-top: 4px;
+}
+.cw-solved {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--evergreen) 45%, var(--night-2));
+  font-size: 14px;
+}
+.cw-solved p {
+  margin: 0;
+}
+.cw-solved summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--frost);
+}
+.cw-ours {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--snow);
+  background: var(--night-2);
+  -webkit-font-smoothing: auto;
+}
+.cw-extend {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding-top: 8px;
+  border-top: var(--px) solid var(--night-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.cw-extend-title {
+  font-size: 12px;
+  color: var(--amber);
+}
+.cw-extend code {
+  overflow-wrap: anywhere;
+}
+.log-bonus {
+  font-size: 12px;
+  color: var(--frost-dim);
+}
+.log-code {
+  margin-top: 10px;
+}
+@container game (max-width: 720px) {
+  .cw-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    overflow-y: auto;
+  }
+  .cw-editor {
+    min-height: 260px;
+  }
+}
+
+/* --- "Slik blir det": Før / Etter picture of a quest's goal, drawn like the Studio --- */
+.gp {
+  margin-top: 10px;
+  color: inherit;
+}
+.gp-title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--amber);
+}
+.gp-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 250px));
+  gap: 14px;
+}
+.gp-fig {
+  margin: 0;
+  display: grid;
+  gap: 5px;
+  align-content: start;
+  min-width: 0;
+}
+.gp-fig figcaption {
+  font-size: 13px;
+  line-height: 1.35;
+}
+.gp-tag {
+  margin-right: 4px;
+  padding: 0 5px 1px;
+  font-size: 12px;
+  color: #2a140e;
+  background: var(--frost-dim, #8fa3b8);
+}
+.gp-tag--after {
+  background: var(--amber);
+}
+.gp-pic {
+  pointer-events: none;
+  user-select: none;
+}
+.gp-card {
+  padding: 8px 10px 10px;
+  background: #ffffff;
+  color: #1f2430;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: auto;
+  box-shadow: 0 0 0 var(--px) var(--night-2);
+}
+.gp-label {
+  margin: 4px 0 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3c4354;
+}
+.gp-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  font-size: 13px;
+  border: 1px solid #cdd1d9;
+  border-radius: 3px;
+  background: #fff;
+}
+.gp-chevron {
+  width: 6px;
+  height: 6px;
+  margin: -3px 2px 0 0;
+  border-right: 1.5px solid #6b7385;
+  border-bottom: 1.5px solid #6b7385;
+  transform: rotate(45deg);
+}
+.gp-menu {
+  margin: 2px 0 0;
+  padding: 2px 0;
+  list-style: none;
+  font-size: 13px;
+  border: 1px solid #cdd1d9;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
+}
+.gp-menu li {
+  padding: 2px 8px;
+}
+.gp-menu li.is-on {
+  background: #e8f0fe;
+}
+.gp-more {
+  color: #6b7385;
+}
+.gp-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.gp-pick {
+  display: grid;
+  place-items: center;
+  padding: 2px 0;
+  border-radius: 3px;
+  background: #f3f4f6;
+  box-shadow: inset 0 0 0 1px #e2e5ea;
+}
+.gp-pick.is-on {
+  background: #e8f0fe;
+  box-shadow: 0 0 0 2px #2276fc;
+}
+.gp-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 0 -10px 6px;
+  padding: 0 10px;
+  border-bottom: 1px solid #e2e5ea;
+}
+.gp-tab {
+  padding: 3px 9px 5px;
+  font-size: 13px;
+  color: #6b7385;
+  border-bottom: 2px solid transparent;
+}
+.gp-tab.is-on {
+  color: #1f2430;
+  font-weight: 600;
+  border-bottom-color: #2276fc;
+}
+.gp-stage {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 4px 0 0;
+}
+.gp-stage-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.dialogue-notes .gp {
+  color: #e3c9ad;
+}
+.log-detail .gp {
+  color: var(--frost);
+}
+@container game (max-width: 720px) {
+  .gp-pair {
+    grid-template-columns: minmax(0, 250px);
+  }
+}

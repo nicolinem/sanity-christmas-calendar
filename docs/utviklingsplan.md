@@ -5,15 +5,26 @@ Forslaget til quester, kalender og gjennomføring står i [questplan.md](questpl
 
 ## Prinsipper (gjelder alle faser)
 
-1. **Sanity beskriver, spillet avgjør.** Innhold sier *hva* noe er (navn, type, sprite). Det finnes **ingen tall å fylle inn** i Studio: skade, HP, elementbonus og hvilke sprites som finnes, ligger i spillkoden. Monstre får for eksempel type og størrelse, ikke HP.
+1. **Sanity beskriver, spillet avgjør.** Innhold sier _hva_ noe er (navn, type, sprite). Det finnes **ingen tall å fylle inn** i Studio: skade, HP, elementbonus og hvilke sprites som finnes, ligger i spillkoden. Monstre får for eksempel type og størrelse, ikke HP.
 2. **Ett Sanity-prosjekt per spiller.** Spillet leser bare publisert innhold. Deling skjer ved at noe leser fra alles prosjekter, aldri ved felles redigering.
 3. **Bevisste feil, ingen tilfeldige.** Startmodellen er ryddig, bortsett fra det en quest skal lære spilleren å fikse.
-4. **Quester sier *hva*, ikke *hvordan*.** Tips kommer lagvis: questtekst → Branns bok (Learn-lenke) → `npm run quest` → løsningsforslag dagen etter.
+4. **Quester sier _hva_, ikke _hvordan_.** Tips kommer lagvis: questtekst → Learn-lenke → automatisk sjekk med forklaring → fasit når den er sluppet. `npm run quest` er reserve for kodeoppgaver som ikke kan sjekkes trygt automatisk.
 5. **Ingen mekanikk før spilleren har møtt den.** En quest kan bare bygge på noe spilleren har sett i spillet (Laugets lov kom før navnemagi var introdusert, og ble flyttet). Hver quest har en «Where to work»-linje (fil eller sted, ikke svaret), og kode-quester sier hvordan de sjekkes.
 6. **Hver fase kan sendes for seg.** Etter hver fase: `tsc`, lint, build og en sjekk i nettleseren på 1280×720, 1440×900, 1920×1080 og mobilbredde.
 7. **Ingen dominerte valg.** Et felt i Studio skal bare finnes hvis valget betyr noe. Finnes det ett svar som alltid er best, er det ikke et valg.
+8. **To løyper, én felles historie.** Teknisk og ikke-teknisk løype har egne oppgaver som gir synlig verdi og går mot samme finale. Den ikke-tekniske løypa krever ikke at deltakeren skriver kode.
+9. **Sekvensiell, men ikke låst progresjon.** Lukene tas i rekkefølge. «Gi opp og gå videre» viser fasit når tilgjengelig og lar deltakeren komme tilbake; en sjekk som ikke kan bekrefte en løsning, kan ikke blokkere spillet.
+10. **Poeng for fullføring, ikke konkurranse.** Poeng og nivå vises i egen progresjon og, etter opt-in, deltakeroversikten. Ingen toppliste i første versjon; verdier/nivågrenser fastsettes etter testing. `?dev`-overstyring skal aldri publiseres som deltakerresultat.
 
 ## Beslutninger så langt
+
+- **Produktretning (2026-11-06):** tre ukentlige kapitler, ikke 24 daglige luker. Valgt løype går gjennom lukene i rekkefølge; deltakeren kan be om fasit, hoppe over og senere fullføre en luke. Det finnes en teknisk og en ikke-teknisk løype. Poeng er med. Felles fremgang vises i deltakeroversikt med figurer og utvalgte resultater; ingen krav om at bygda endrer lys/dekor for hver oppgave.
+- **Uke 1 (2026-11-06):** custom input er kjerneoppgave i teknisk løype. Ikke-teknisk løype trenger et eget oppgavesett; det er ikke bare samme kodeoppgave med flere hint.
+
+Avsnittene om gamle questnavn, smienivåbelønninger, luke-for-luke-implementasjon
+og faser under er delvis historikk fra prototypen. Nye endringer følger
+«Byggerekkefølge for produktet» nederst, og faseinnhold er med bare dersom det
+støtter vedtatt sluttprodukt.
 
 - **Enklere språk, tydelig julekalender** (2026-10-31): «Luke N» i stedet for oppdragsnavn, og ingen egne navn på steder og funksjoner i spillet. Luke N åpner N–1 dager etter `NEXT_PUBLIC_CALENDAR_START`. Avsnittene under er skrevet før dette og bruker fortsatt de gamle navnene. Gjeldende plan: [questplan.md](questplan.md).
 - Navnemagi: **delvis skjulte ordlister**. Brann tipser om ild i starten, resten utforskes.
@@ -25,7 +36,7 @@ Forslaget til quester, kalender og gjennomføring står i [questplan.md](questpl
 ## Åpne spørsmål
 
 - [x] Språk i spillet: **norsk** (besluttet 2026-10-27). Kode og skjemanavn er engelsk.
-- [ ] Kalender: startdato, og om quester åpnes på dato, i rekkefølge, eller begge deler.
+- [ ] Kalender: bekreft startdato og kapittelåpning på dato; rekkefølgen blant lukene i valgt løype er besluttet.
 - [x] Planer: **Content Releases** er et enterprise-tillegg og kuttes. Scheduled drafts, Comments og Tasks er heller ikke på gratisplanen. **Functions** og **Agent Actions** er med på gratisplanen, men Agent Actions bruker AI-kreditter, så det blir bonus (sjekket 2026-10-29, se questplan.md).
 - [ ] Får vi lov til å bruke en innkommende webhook i jobbkanalen (Byropet)?
 
@@ -34,10 +45,11 @@ Forslaget til quester, kalender og gjennomføring står i [questplan.md](questpl
 ## Omlegging av kapittel 1 (2026-10-27) ✅
 
 Etter første gjennomspilling fra en fersk klone:
+
 - **Kortere kapittel 1, et nytt Sanity-konsept per oppdrag:** Den knuste smia (publiser og test på frostdraugen, slått sammen med kampen) → Branns protokoll → Laugets lov → Spritevelgeren → Prøvestua → Smi-knappen. «Prøv bladet» og «Power in a Name» er fjernet.
 - **Navnemagi er et skjult ekstra**, ikke et tema: elementet vises i verktøytips, draugen er svak mot ild, hemmelige ord virker, men ingen oppdrag krever det. Kan komme tilbake i kapittel 3 via Agent Actions (Skalden).
 - **Laugets lov** er ren Sanity: alle våpen må ha en sprite (regel som ser på `context.document`), og ingen like navn (asynkron validering). `npm run quest` tester fire dokumenter, og fanger også `required()`.
-- **Oppdrag må gis:** et oppdrag er *tilbudt* til Brann har forklart det. Da viser oppdragslista bare «Noen venter ved smia», og det kan ikke fullføres før det er gitt.
+- **Oppdrag må gis:** et oppdrag er _tilbudt_ til Brann har forklart det. Da viser oppdragslista bare «Noen venter ved smia», og det kan ikke fullføres før det er gitt.
 - **Brann snakker i sider** (E blar), presenterer seg første gang, og reagerer på forrige oppdrag med lærdommen før neste.
 - **Åpning:** én skjerm med tre linjer første gang, og et «gå»-hint til ridderen har tatt de første skrittene.
 - **Lærdommer:** hvert oppdrag har en lærdom som vises når det er ferdig, og samles i **Branns bok** i oppdragsloggen.
@@ -72,6 +84,7 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 **Ferdig når:** kapittel 1-questene vises, åpnes i rekkefølge, gir belønning, og fremgangen tåler en reload.
 
 **Gjort:**
+
 - `src/game/quests/`: `types.ts`, `chapters.ts` (kapittel 1 med sju quester + navn på kapittel 2 og 3 som smakebit), `engine.ts` (rekkefølge, kalenderdatoer, smienivå), `progress.ts` (localStorage per prosjekt).
 - Kapittel 1: Den knuste smia → Prøv bladet (beseir wraith-en, **+1 smienivå**) → Branns protokoll → Laugets lov → Spritevelgeren → Prøvestua → Smi-knappen (**+1 smienivå**). Quest 3–6 sjekkes fra koden; Smi-knappen sjekkes i data (`forgedAt`).
 - Kodesjekker leses fra `.quest/results.json` via `/api/quest-checks` (gitignored). `npm run quest` som skriver fila, kommer i fase 3.
@@ -82,12 +95,11 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 
 **Allerede på plass:** `magic.ts` (gjenkjenning), elementet vises i verktøytips og i Branns vurdering, wraith-en er svak mot ild (×1,5) og immun mot frost (×0), og questen «Power in a Name» introduserer navnemagi med Branns ild-tips. **Gjenstår:** visuelle effekter (aura, Kenney 60/61/62), brannskade over tid, runeboka, hemmelige ord med egne sitater.
 
-
 - `src/game/magic.ts`, uten avhengigheter, slik at Studio kan importere den senere:
   - Elementer: 🔥 ild, ❄ frost, ⚡ lyn, ☠ gift, ✨ lys.
   - Ordstammer på engelsk og norsk, normalisering (små bokstaver, æøå beholdes), match på starten av hvert ord.
   - Hemmelige ord (Surt, Muspel, Brann, Nifl, Ymir, Mjølner, Thor, Jormund, Balder) gir et eget sitat eller en ekstra effekt.
-  - Maks ett element. Ild + frost = damp (fuser ut, +0). Negasjoner («Unburnt») tolkes bevisst *feil*, siden det er poenget i «Runene svikter» i kapittel 2.
+  - Maks ett element. Ild + frost = damp (fuser ut, +0). Negasjoner («Unburnt») tolkes bevisst _feil_, siden det er poenget i «Runene svikter» i kapittel 2.
 - Kamp: ×1,5 mot svakhet, ×0 mot immunitet, og en liten brannskade over tid for ild. Frost Wraith: svak mot ild, immun mot frost.
 - Visuelt i verden:
   - Partikkelaura i elementfarge rundt våpenet i ridderens hånd.
@@ -97,26 +109,26 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
   - Skadetall i elementfarge, og «Svak!» / «Immun» over fienden.
 - HUD: elementmerke i verktøytips og kampstripe.
 - **Runeboka** i questloggen samler ord man har oppdaget. Uoppdagede vises som «???» med antall per element.
-- Brann tipser om ild første gang: *«De gamle smedene sa at navn som taler om flamme, biter dypere.»*
+- Brann tipser om ild første gang: _«De gamle smedene sa at navn som taler om flamme, biter dypere.»_
 
 **Ferdig når:** «Flaming Sword» gir ild-effekt og bonus mot wraith-en, frost gir «Immun», og runeboka fylles.
 
 ## Fase 3: Kapittel 1 – Smia
 
-| # | Quest | Konsept | Sjekkes av |
-| --- | --- | --- | --- |
-| 1 | Den knuste smia | Publisering | Spillet (GROQ) |
-| 1b | Prøv bladet | Kamp (ingen Sanity) | Spillet |
-| 1c | Power in a Name | Navnemagi: et navn med ild, slå wraith-en med det | Spillet |
-| 2 | Branns protokoll | Ikoner, grupper, preview med sprite | `npm run quest` (leser skjema) |
-| 3 | Laugets regler | «Et navn bærer bare ett element» (`rule.custom()` som deler `magic.ts` med spillet) og «ingen to våpen med samme navn» (asynkron validering mot datasettet) | `npm run quest` (validerer testdokumenter mot skjemaet) |
-| 4 | Smiens tegnebrett | Egen input (`components.input`) | `npm run quest` |
-| 5 | Prøvestua | Egen visning i Studio som viser utregnet skade og element | `npm run quest` |
-| 6 | Smi-knappen | Egen dokumenthandling som setter `forgedAt` | Spillet (ser `forgedAt` i data) |
+| #   | Quest             | Konsept                                                                                                                                                     | Sjekkes av                                              |
+| --- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1   | Den knuste smia   | Publisering                                                                                                                                                 | Spillet (GROQ)                                          |
+| 1b  | Prøv bladet       | Kamp (ingen Sanity)                                                                                                                                         | Spillet                                                 |
+| 1c  | Power in a Name   | Navnemagi: et navn med ild, slå wraith-en med det                                                                                                           | Spillet                                                 |
+| 2   | Branns protokoll  | Ikoner, grupper, preview med sprite                                                                                                                         | `npm run quest` (leser skjema)                          |
+| 3   | Laugets regler    | «Et navn bærer bare ett element» (`rule.custom()` som deler `magic.ts` med spillet) og «ingen to våpen med samme navn» (asynkron validering mot datasettet) | `npm run quest` (validerer testdokumenter mot skjemaet) |
+| 4   | Smiens tegnebrett | Egen input (`components.input`)                                                                                                                             | `npm run quest`                                         |
+| 5   | Prøvestua         | Egen visning i Studio som viser utregnet skade og element                                                                                                   | `npm run quest`                                         |
+| 6   | Smi-knappen       | Egen dokumenthandling som setter `forgedAt`                                                                                                                 | Spillet (ser `forgedAt` i data)                         |
 
 - `npm run quest` → `sanity exec scripts/quest.ts` ✅ (bygget 2026-10-23). Laster `sanity.config.ts` (også `.tsx`-skjema) og tester oppførsel:
   - Branns protokoll: `icon`, `preview.select` henter `sprite`, `prepare()` returnerer React-`media`.
-  - Laugets lov: kjører spillerens egne `rule.custom()`-regler (felt- og dokumentnivå) mot testnavn med en ekte klient mot datasettet. Krever at «Flaming Frost Blade» og et eksisterende navn avvises som *feil* (ikke advarsel), og at «Flaming Blade» og et unikt navn godtas. `validateDocument` ble droppet: den krever et helt workspace.
+  - Laugets lov: kjører spillerens egne `rule.custom()`-regler (felt- og dokumentnivå) mot testnavn med en ekte klient mot datasettet. Krever at «Flaming Frost Blade» og et eksisterende navn avvises som _feil_ (ikke advarsel), og at «Flaming Blade» og et unikt navn godtas. `validateDocument` ble droppet: den krever et helt workspace.
   - Spritevelgeren: `components.input` på `sprite`-feltet.
   - Prøvestua: kaller `defaultDocumentNode` med en opptakende Structure Builder og ser etter `S.view.component(...)`.
   - Testet mot riktig løsning og tre typiske feil (bare advarsel, for streng regel, mangler duplikatsjekk).
@@ -129,18 +141,17 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 
 **Gjort:** `main` har startversjonen, `solutions` har fem referanseløsninger tagget `solution/<quest-id>`, og `npm run verify-release` (med `--build`: ren `npm ci` og `next build`) går grønt på begge. Ingenting er pushet: det felles repoet er ikke bestemt ennå.
 
-
 **Problemet:** vi utvikler spillet og spiller det i samme kopi. Løsningen på Branns protokoll ligger allerede i `item.tsx`, så en kollega som kloner nå, får questen gratis. Og når vi slipper kapittel 2, må spillerne kunne hente oppdateringer uten at det krasjer med sine egne løsninger.
 
 ### Prinsipp: spillerfiler og spillfiler
 
-| Spillerfiler (spilleren endrer, vi rører dem ikke etter lansering) | Spillfiler (vi oppdaterer, spilleren lar dem være) |
-| --- | --- |
-| `src/sanity/schemaTypes/**` | `src/game/**`, `src/components/**` |
-| `sanity.config.ts` | `src/app/**`, `scripts/**` |
-| `src/sanity/studio/**` (nye komponenter spilleren lager) | `src/sanity/lib/**` (hjelpere vi gir dem), `public/**` |
+| Spillerfiler (spilleren endrer, vi rører dem ikke etter lansering) | Spillfiler (vi oppdaterer, spilleren lar dem være)     |
+| ------------------------------------------------------------------ | ------------------------------------------------------ |
+| `src/sanity/schemaTypes/**`                                        | `src/game/**`, `src/components/**`                     |
+| `sanity.config.ts`                                                 | `src/app/**`, `scripts/**`                             |
+| `src/sanity/studio/**` (nye komponenter spilleren lager)           | `src/sanity/lib/**` (hjelpere vi gir dem), `public/**` |
 
-Nye kapitler legger til *nye* filer og hjelpere, men endrer aldri spillerfiler. Da gir `git pull` ingen konflikter. Trenger et kapittel en endring i en spillerfil, blir det en del av questen («registrer typen din i `index.ts`»), ikke noe vi gjør for dem. Lista står også i README, så spillerne vet hva de kan endre.
+Nye kapitler legger til _nye_ filer og hjelpere, men endrer aldri spillerfiler. Da gir `git pull` ingen konflikter. Trenger et kapittel en endring i en spillerfil, blir det en del av questen («registrer typen din i `index.ts`»), ikke noe vi gjør for dem. Lista står også i README, så spillerne vet hva de kan endre.
 
 ### Grener og tagger
 
@@ -161,10 +172,10 @@ solutions   ●─●─●─●─●       ●─●─●─●──>      
 2. **Startform for spillerfilene:** `item.tsx` uten ikon og uten `prepare`, med `QUEST: Brann's Ledger`-kommentar. `sanity.config.ts` som nå, med sine QUEST-kommentarer.
 3. **Første commits på `main`:** spillmotoren og startversjonen. Så `solutions`-grenen med én commit og én tagg per quest.
 4. **Automatisk kontroll** (`npm run verify-release`):
-   - på `main`: `npm run quest` gir *ingen* fullførte kode-quester, og hver melding sier hva som mangler;
+   - på `main`: `npm run quest` gir _ingen_ fullførte kode-quester, og hver melding sier hva som mangler;
    - på `solutions`: alle fullført;
    - typecheck, Sanity-skjemasjekk og build på begge.
-   Kjøres før hver lansering, så en løsning aldri lekker inn i `main`.
+     Kjøres før hver lansering, så en løsning aldri lekker inn i `main`.
 5. **Dokumentasjon:** README skrives for spillere (kom i gang, hvordan quester virker, hvilke filer som er deres). Ny `docs/arrangor.md` for oss (slippe kapittel, slippe løsning, kjøre kontrollen).
 6. **Du spiller videre fra en egen klone**, slik kollegaene gjør, ikke i utviklingsmappa. Sanity-prosjektet ditt kan gjenbrukes der: kopier `.env.local`.
 
@@ -200,3 +211,17 @@ Runene i ilden (Function setter `element` ut fra navnet ved publisering) · Byro
 ## Fase 7: Felles lag
 
 Hallen i Frostholm (leser alle registrerte prosjekter på serveren) og Frostkjempen (felles HP; serveren regner ut skaden selv fra smienivå og element).
+
+## Byggerekkefølge for produktet
+
+Dette er rekkefølgen på eksisterende tekniske arbeid før release, med avhengigheter. Oppgavene under fase 4–7 er eldre ideer og er ikke automatisk del av release-scope.
+
+1. **Produktkontrakt:** lås læringsmål og lukeinnhold for begge løypene, poengregel, skip/fasit/ta-igjen-flyt og databeslutning for deltakeroversikten. Avklar dette før nye mekanikker bygges.
+2. **Progresjonsfundament:** støtt valg av løype, ukentlig kapittelåpning, lineær lukeprogresjon, statusene låst/aktiv/fullført/hoppet over og gjenopptakelse etter reload. Poeng må knyttes til reell fullføring og kan ikke være nødvendig for å låse opp innhold.
+3. **Teknisk løype uke 1:** ta custom input inn som kjerneoppgave. Kodesjekker kjøres automatisk der det er robust; behold CLI-sjekk som eksplisitt reserve for oppgaver der automatikk ikke er praktisk.
+4. **Ikke-teknisk løype uke 1:** bygg oppgaver rundt innhold og grunnleggende Sanity-bruk, uten å kreve kode. Gjenbruk ukas historie og spillverden, men ikke samme ferdighetskrav.
+5. **Felles deltakeroversikt:** bygg først etter at offentliggjorte felt, samtykke, avmelding/skjuling og eier av deltakerlista er bestemt. Kun nødvendige publiserte data; ingen token i klienten og ingen sist-sett-posisjon i første release.
+6. **Uke 2–3 og finale:** utvid begge løypene. Felleskapitler og karakterer kan gjenbrukes, men oppgaver og belønninger må utformes og testes for hver målgruppe. Finalen må virke uten deltakeroversikt.
+7. **Releasekontroll:** tester for framgang, poeng, skip/revisit og løypeavhengighet; ferskkloneprøve for begge målgruppene; lint, typecheck, Sanity-validering, build og nettleserprøve. Oppdater README, gjennomspillingsguide og arrangørguide først når de samsvarer med det som faktisk er implementert.
+
+**Scope-varsel:** To fullverdige løyper dobler ikke nødvendigvis spillmekanikken, men gir reelt mer oppgave- og testarbeid. Dersom tidsplanen blir for stram, kutt bonusoppgaver, spøkelser og sanntid først; ikke slipp en løype som bare er en utestet idé.

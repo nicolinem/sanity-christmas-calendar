@@ -72,6 +72,13 @@
       "w": 1280,
       "h": 800,
       "title": "Egne figurer i lag (prototype)"
+    },
+    "Kodevindu.dc.html": {
+      "x": 1360,
+      "y": 4280,
+      "w": 1280,
+      "h": 800,
+      "title": "Kodevinduet (prototype)"
     }
   },
   "order": [
@@ -83,7 +90,8 @@
     "Uke-smal.dc.html",
     "Fremgang-kuler.dc.html",
     "Fremgang-figur.dc.html",
-    "Figur-lag.dc.html"
+    "Figur-lag.dc.html",
+    "Kodevindu.dc.html"
   ],
   "notes": {
     "title": {
@@ -105,7 +113,7 @@
       "y": 300,
       "w": 380,
       "fill": "yellow",
-      "text": "Hver mandag åpner fire oppgaver og én bonus. Man gjør dem i den rekkefølgen man vil i løpet av arbeidsuka. Fredag kommer løsningene. Oppgavene står åpne ut desember. Fire og én er en startverdi."
+      "text": "Hver mandag åpner tre oppgaver og bonus, ca. 1 time i alt. Man gjør dem i den rekkefølgen man vil. Ingen frist: fredag kommer løsningene, og alt står åpent ut desember. Små kodeoppgaver løses i kodevinduet i spillet, større i eget repo og Studio."
     },
     "uka-sporsmal": {
       "x": 2720,
@@ -130,14 +138,14 @@
     },
     "figur": {
       "x": 2720,
-      "y": 4280,
+      "y": 4700,
       "w": 380,
       "fill": "green",
       "text": "Figurskaperen lages av oss før uke 1 og skal være det fineste i Studio. Senere lager deltakerne enklere custom inputs selv: sprite-velgeren i uke 1 og tegnebrettet for kuler i uke 3."
     },
     "eksempel": {
       "x": 2720,
-      "y": 4700,
+      "y": 5180,
       "w": 380,
       "fill": "gray",
       "text": "Navn, tall og oppgaver i skissene er eksempler."

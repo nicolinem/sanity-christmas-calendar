@@ -27,7 +27,10 @@ export default function QuestTracker({ board, forgeLevel, metBrann, compact, onO
   return (
     <section className="tracker frame frame--slate" aria-label="Dagens luke">
       <button type="button" className="tracker-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <span className="tracker-week">{current ? `Luke ${current.quest.door}` : "Julekalenderen"}</span>
+        <span className="tracker-week">
+          {current ? `Luke ${current.quest.door}` : "Julekalenderen"}
+          {current?.quest.bonus && " · ☆ Bonus · valgfri"}
+        </span>
         <span className="tracker-title">{title}</span>
       </button>
 

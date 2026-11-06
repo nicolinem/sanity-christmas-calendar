@@ -15,6 +15,16 @@ export const itemsQuery = groq`
   }
 `;
 
+// How many weapons exist only as a draft (saved, never published). Needs the
+// "raw" perspective and a token: drafts are not public. Only this number leaves
+// the server, never the drafts themselves.
+export const unpublishedWeaponDraftsQuery = groq`
+  count(*[
+    _type == "item" && kind == "weapon" && _id in path("drafts.**")
+    && !defined(*[_id == string::split(^._id, "drafts.")[1]][0]._id)
+  ])
+`;
+
 export type SanityItem = {
   id: string;
   name: string | null;

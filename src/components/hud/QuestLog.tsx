@@ -6,6 +6,7 @@ import type { QuestBoard } from "@/game/quests/engine";
 import type { QuestState } from "@/game/quests/types";
 import { forgedPower } from "@/game/rules";
 import { IconCheck } from "./icons";
+import GoalPreview from "./goalPreviews";
 import { renderText } from "./richText";
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
   forgeLevel: number;
   hintsShown: Record<string, number>;
   onRevealHint: (questId: string) => void;
+  onOpenCode: (questId: string) => void;
   onClose: () => void;
   onReset: () => void;
 };
@@ -22,7 +24,7 @@ type Tab = "quests" | "book";
 // The calendar: every door by week, what's done, what's next, and the layered
 // hints. Lessons collects what each finished door taught. Weeks that aren't
 // built yet only show their topics, as a taste of what's coming.
-export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, onClose, onReset }: Props) {
+export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, onOpenCode, onClose, onReset }: Props) {
   const [tab, setTab] = useState<Tab>("quests");
   const [selectedId, setSelectedId] = useState(board.current?.quest.id ?? board.states[0]?.quest.id);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -93,7 +95,10 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
                             aria-current={s === selected ? "true" : undefined}
                           >
                             <span className="tracker-box">{s.status === "done" && <IconCheck size={12} />}</span>
-                            Luke {s.quest.door}: {s.status === "offered" ? "snakk med Brann" : s.quest.title}
+                            <span>
+                              Luke {s.quest.door}: {s.status === "offered" ? "snakk med Brann" : s.quest.title}
+                              {s.quest.bonus && <span className="log-bonus"> ☆ Bonus · valgfri</span>}
+                            </span>
                           </button>
                         </li>
                       ))}
@@ -115,6 +120,7 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
                 state={selected}
                 shown={hintsShown[selected.quest.id] ?? 0}
                 onMoreHint={() => onRevealHint(selected.quest.id)}
+                onOpenCode={() => onOpenCode(selected.quest.id)}
               />
             )}
           </div>
@@ -162,7 +168,17 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
   );
 }
 
-function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: number; onMoreHint: () => void }) {
+function QuestDetail({
+  state,
+  shown,
+  onMoreHint,
+  onOpenCode,
+}: {
+  state: QuestState;
+  shown: number;
+  onMoreHint: () => void;
+  onOpenCode: () => void;
+}) {
   const { quest, status, result } = state;
 
   if (status === "locked" || status === "offered") {
@@ -171,6 +187,7 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
         <h3 className="log-quest-title">
           Luke {quest.door}
           {status === "offered" ? "" : `: ${quest.title}`}
+          {quest.bonus && <span className="log-bonus">☆ Bonus · valgfri</span>}
         </h3>
         <p className="log-locked">
           {status === "offered"
@@ -187,10 +204,12 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
     <article className="log-detail">
       <h3 className="log-quest-title">
         Luke {quest.door}: {quest.title}
+        {quest.bonus && <span className="log-bonus">☆ Bonus · valgfri</span>}
         {status === "done" && <span className="log-done">Ferdig</span>}
       </h3>
-      <p className="log-intro">«{quest.intro[quest.intro.length - 1]}»</p>
+      <p className="log-intro">«{renderText(quest.intro[quest.intro.length - 1])}»</p>
       <p className="log-goal">{renderText(quest.goal)}</p>
+      {status !== "done" && <GoalPreview quest={quest} />}
       {quest.where && (
         <p className="log-where">
           <span className="log-where-label">Hvor du jobber</span> {renderText(quest.where)}
@@ -214,11 +233,18 @@ function QuestDetail({ state, shown, onMoreHint }: { state: QuestState; shown: n
           <>
             Når det virker: kjør <code>npm run quest</code> i terminalen, og trykk «Sjekk på nytt».
           </>
+        ) : quest.checkedBy === "window" ? (
+          "Kodevinduet prøver koden din mens du skriver."
         ) : (
           "Spillet merker dette av seg selv."
         )}
         {quest.reward && " Belønning: våpnene dine blir sterkere."}
       </p>
+      {quest.checkedBy === "window" && (
+        <button type="button" className="btn btn--amber log-code" onClick={onOpenCode}>
+          {status === "done" ? "Se koden igjen" : "Åpne kodevinduet"}
+        </button>
+      )}
 
       {quest.hints.length > 0 && status !== "done" && (
         <div className="log-hints">

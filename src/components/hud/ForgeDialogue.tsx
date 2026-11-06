@@ -6,6 +6,7 @@ import type { QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
 import SpriteIcon from "./SpriteIcon";
 import { IconQuill } from "./icons";
+import GoalPreview from "./goalPreviews";
 import { renderText } from "./richText";
 import { openStudio } from "./studioPane";
 
@@ -19,6 +20,7 @@ type Props = {
   checked: boolean; // the player has asked the forge at least once
   onCheck: () => void;
   onOpenLog: () => void;
+  onOpenCode: (questId: string) => void;
   hintsShown: number; // hints revealed so far for the current quest
   onRevealHint: (questId: string) => void;
   onClose: () => void;
@@ -111,7 +113,7 @@ function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityC
     return [...reaction, <>Det var alle lukene som er åpne nå. Kom tilbake når neste luke åpner.</>];
   }
   if (current.status === "offered") {
-    return [...reaction, ...current.quest.intro.map((text) => <>{text}</>)];
+    return [...reaction, ...current.quest.intro.map((text) => <>{renderText(text)}</>)];
   }
   // Already handed over: a short reminder.
   if (current.quest.id === FIRST_QUEST) {
@@ -157,6 +159,7 @@ function Details({
   checked,
   onCheck,
   onOpenLog,
+  onOpenCode,
   hintsShown,
   onRevealHint,
   onClose,
@@ -165,6 +168,8 @@ function Details({
   const current = board.current;
   const onboarding = !current || current.quest.id === FIRST_QUEST;
   const firstForging = onboarding && !forged;
+  // Written in the game's code window, not in the Studio or the repo.
+  const inWindow = current?.quest.checkedBy === "window" && sanityConfigured !== false;
 
   return (
     <>
@@ -207,13 +212,27 @@ function Details({
       )}
 
       <div className="dialogue-actions">
-        <button ref={studioRef} type="button" className="btn btn--amber" onClick={openStudio}>
-          <IconQuill />
-          Åpne Sanity Studio
-        </button>
-        <button type="button" className="btn" onClick={onCheck} disabled={refreshing}>
-          {refreshing ? "Sjekker…" : "Sjekk på nytt"}
-        </button>
+        {inWindow && current ? (
+          <>
+            <button ref={studioRef} type="button" className="btn btn--amber" onClick={() => onOpenCode(current.quest.id)}>
+              Åpne kodevinduet
+            </button>
+            <button type="button" className="btn" onClick={openStudio}>
+              <IconQuill />
+              Sanity Studio
+            </button>
+          </>
+        ) : (
+          <>
+            <button ref={studioRef} type="button" className="btn btn--amber" onClick={openStudio}>
+              <IconQuill />
+              Åpne Sanity Studio
+            </button>
+            <button type="button" className="btn" onClick={onCheck} disabled={refreshing}>
+              {refreshing ? "Sjekker…" : "Sjekk på nytt"}
+            </button>
+          </>
+        )}
         {!onboarding && (
           <button type="button" className="btn" onClick={onOpenLog}>
             Kalender <kbd>J</kbd>
@@ -244,6 +263,7 @@ function TaskNotes({
   const hints = quest.hints.slice(0, hintsShown);
   return (
     <div className="dialogue-notes">
+      <GoalPreview quest={quest} />
       {quest.where && (
         <p className="dialogue-note">
           <span className="dialogue-note-label">Hvor du jobber</span> {renderText(quest.where)}
@@ -253,6 +273,12 @@ function TaskNotes({
         <p className="dialogue-note">
           <span className="dialogue-note-label">Slik sjekkes det</span> kjør <code>npm run quest</code> i terminalen,
           og trykk «Sjekk på nytt».
+        </p>
+      )}
+      {quest.checkedBy === "window" && (
+        <p className="dialogue-note">
+          <span className="dialogue-note-label">Slik sjekkes det</span> kodevinduet prøver koden din mens du skriver.
+          Når den virker, slås det samme på i Studio.
         </p>
       )}
       {result.message && !refreshing && !result.done && (

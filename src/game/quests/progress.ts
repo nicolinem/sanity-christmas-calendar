@@ -12,9 +12,14 @@ export const EMPTY_PROGRESS: Progress = {
   hints: {},
   struck: {},
   introSeen: false,
+  solved: {},
 };
 
-const storageKey = (project: string) => `winter-quest:progress:${project}`;
+// One record per Sanity project, so a fresh project is a fresh start.
+export const PROGRESS_PROJECT = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo";
+
+// Exported for the Studio, which reads `solved` from the same record.
+export const storageKey = (project: string) => `winter-quest:progress:${project}`;
 
 let cache: { project: string; value: Progress } | null = null;
 const listeners = new Set<() => void>();

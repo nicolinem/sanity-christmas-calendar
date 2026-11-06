@@ -38,7 +38,7 @@ def mandag():
     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center">
       <span style="font-size: 13px; color: #fdbe53">Mandag 7. desember</span>
       <span style="{JERSEY}; font-size: 48px; line-height: 0.95">Uke 2 er åpen</span>
-      <span style="font-size: 15px; color: #c0cbdc">{w["theme"]}: fire oppgaver, ca. 75 minutter i alt</span>
+      <span style="font-size: 15px; color: #c0cbdc">{w["theme"]}: tre oppgaver, ca. 50 minutter i alt</span>
     </div>
     <div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 4px; background: #1b1f33">
 {rows}
@@ -52,7 +52,7 @@ def mandag():
       {big_btn("Se oppgavene " + key("J"))}
       {big_btn("Spill videre " + key("Esc"), main=False)}
     </div>
-    <span style="text-align: center; font-size: 12px; color: #6fd1a8">Uke 1: 4 av 4 ferdig ✓ · Uke 3 åpner 14. des</span>
+    <span style="text-align: center; font-size: 12px; color: #6fd1a8">Uke 1: 3 av 3 ferdig ✓ · Uke 3 åpner 14. des</span>
   </div>'''
     return bright_page("Mandag: en ny uke åpner", card)
 
@@ -66,12 +66,12 @@ def kule_tegnet():
 def ferdig():
     c = corner_at(16, 16, "Oppgave 2 · ferdig ✓", "#6fd1a8", "Bytte fra monstre",
                   [(True, "Ny julekule å tegne")],
-                  '<span style="color: #8b9bb4">2 av 4 denne uka</span>', [G, G, O, O])
+                  '<span style="color: #8b9bb4">2 av 3 denne uka</span>', [G, G, O])
     card = f'''  <div style="position: absolute; left: 50%; top: 64px; transform: translateX(-50%); width: 540px; padding: 24px 28px 22px; box-sizing: border-box; background: #262b44; border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #fdbe53; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
       <span style="{JERSEY}; font-size: 46px; line-height: 0.95">Oppgave ferdig!</span>
       <span style="font-size: 15px; color: #c0cbdc">Bytte fra monstre</span>
-      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #c0cbdc"><span>Uke 2</span><div style="display: flex; gap: 4px">{dots(G, G, O, O)}</div><span>2 av 4</span></div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #c0cbdc"><span>Uke 2</span><div style="display: flex; gap: 4px">{dots(G, G, O)}</div><span>2 av 3</span></div>
     </div>
     <div style="align-self: stretch; display: flex; align-items: center; gap: 16px; padding: 14px 16px; background: #1b1f33; text-align: left">
       {kule_tegnet()}
@@ -115,7 +115,7 @@ def fredag():
         <button type="button" role="tab" aria-selected="true" style="padding: 6px 12px; background: #3a4263; border: 0; box-shadow: inset 0 -3px 0 #fdbe53; color: #e3ebf5; font: inherit; font-size: 14px">Uke 2</button>
         <button type="button" role="tab" aria-selected="false" style="padding: 6px 12px; background: transparent; border: 0; color: #5a6488; font: inherit; font-size: 14px">Uke 3 · 14. des</button>
       </div>'''
-    states = ["done", "sel", "todo", "todo"]
+    states = ["done", "sel", "todo"]
     rows = "\n".join(sol_row(t, s) for t, s in zip(w["tasks"], states))
     left = f'''      <div style="padding: 18px 12px; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid #1b1f33; min-width: 0">
         <div style="display: flex; align-items: center; gap: 10px; margin: 0 10px; padding: 10px 12px; background: #1b1f33; box-shadow: inset 0 0 0 2px #8fd3ff; font-size: 14px">
@@ -123,7 +123,7 @@ def fredag():
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 0 10px">
           <span style="font-size: 20px">Uke 2: {w["theme"]}</span>
-          <span style="font-size: 13px; color: #8b9bb4">2 av 4 ferdig</span>
+          <span style="font-size: 13px; color: #8b9bb4">2 av 3 ferdig</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 2px">
 {rows}
@@ -156,7 +156,7 @@ defineField({
           <a href="#docs" style="align-self: center; font-size: 14px">Reference type i dokumentasjonen</a>
         </div>
       </div>'''
-    inner = header(tabs).replace("5 av 12 oppgaver", "6 av 12 oppgaver") + f'''
+    inner = header(tabs).replace("4 av 9 oppgaver", "5 av 9 oppgaver") + f'''
     <div style="flex: 1; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); min-height: 0">
 {left}
 {right}
@@ -192,7 +192,7 @@ def smal():
     </div>
     <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px 8px; min-height: 0">
       <div style="display: flex; flex-direction: column; gap: 2px">
-{section("Uke 2 · 1 av 4 ferdig · frist fredag")}
+{section("Uke 2 · 1 av 3 ferdig")}
 {chr(10).join(rows)}
       </div>
       <div style="display: flex; flex-direction: column; gap: 2px">

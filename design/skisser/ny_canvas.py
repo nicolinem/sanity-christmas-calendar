@@ -40,6 +40,18 @@ def figur_board():
     return page("Egne figurer i lag", 1280, 800, body)
 
 
+def kodevindu_board():
+    body = f'''  <div style="position: absolute; inset: 0; background: rgba(27, 31, 51, 0.85)"></div>
+  <div style="position: absolute; inset: 36px 48px; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="{JERSEY}; font-size: 44px; line-height: 1">Kodevinduet</span>
+      <span style="font-size: 15px; line-height: 1.5; color: #c0cbdc; max-width: 900px">Små kodeoppgaver løses i et vindu i spillet. Koden prøves på eksempler mens du skriver, og når sjekken er grønn, slår Studio på vår versjon av den samme koden. Filene oppgaven bruker, kan leses i egne faner. Åpnes fra Brann eller fra oppgaven i lista.</span>
+    </div>
+    <img src="/_blob/@kodevindu.png" alt="Kodevinduet underveis: fanen SpriteImage.tsx er åpen, lista viser ikon, og to av tre punkter i sjekken er grønne" style="width: 940px; height: auto; align-self: flex-start; box-shadow: 0 0 0 2px #3a4263">
+  </div>'''
+    return page("Kodevinduet", 1280, 800, body)
+
+
 BOARDS = {
     "Uke-liste.dc.html": (0, 300, 1280, 800, "Oversikten: en liste per uke (J)", alt_liste),
     "Uke-hjorne.dc.html": (1360, 300, 1280, 400, "Hjørnekortet", corner_board),
@@ -50,21 +62,22 @@ BOARDS = {
     "Fremgang-kuler.dc.html": (0, 3360, 1280, 800, "Tegn din egen julekule", baubles.board),
     "Fremgang-figur.dc.html": (1360, 3360, 1280, 800, "Pynt på figuren din", progress.wardrobe),
     "Figur-lag.dc.html": (0, 4280, 1280, 800, "Egne figurer i lag (prototype)", figur_board),
+    "Kodevindu.dc.html": (1360, 4280, 1280, 800, "Kodevinduet (prototype)", kodevindu_board),
 }
 
 NOTES = {
     "title": {"x": 0, "y": -200, "text": "Sanity-julekalenderen: skisser", "kind": "title1", "maxW": 2640},
     "uka": {"x": 0, "y": 0, "text": "Tre uker med oppgaver, en liste per uke", "kind": "title1", "maxW": 2640},
     "uka-regler": {"x": 2720, "y": 300, "w": 380, "fill": "yellow",
-                   "text": "Hver mandag åpner fire oppgaver og én bonus. Man gjør dem i den rekkefølgen man vil i løpet av arbeidsuka. Fredag kommer løsningene. Oppgavene står åpne ut desember. Fire og én er en startverdi."},
+                   "text": "Hver mandag åpner tre oppgaver og bonus, ca. 1 time i alt. Man gjør dem i den rekkefølgen man vil. Ingen frist: fredag kommer løsningene, og alt står åpent ut desember. Små kodeoppgaver løses i kodevinduet i spillet, større i eget repo og Studio."},
     "uka-sporsmal": {"x": 2720, "y": 2140, "w": 380, "fill": "blue",
                      "text": "Åpne spørsmål: Skal løsningen vises i spillet eller bare som lenke til koden? Skal «Sammenlign med din kode» være med?"},
     "fremgang": {"x": 0, "y": 3060, "text": "Fremgang: koselig fra start, og vi ser hverandre", "kind": "title1", "maxW": 2640},
     "fremgang-regler": {"x": 2720, "y": 3360, "w": 380, "fill": "green",
                         "text": "Bygda er pyntet fra start. Fremgang er det du lager i Studio, julekulene du tegner (de henger på samme tre som alle andres), og figuren din. Vi ser hverandre gjennom offentlige datasett og «spøkelser» der de andre var sist, uten egen server."},
-    "figur": {"x": 2720, "y": 4280, "w": 380, "fill": "green",
+    "figur": {"x": 2720, "y": 4700, "w": 380, "fill": "green",
               "text": "Figurskaperen lages av oss før uke 1 og skal være det fineste i Studio. Senere lager deltakerne enklere custom inputs selv: sprite-velgeren i uke 1 og tegnebrettet for kuler i uke 3."},
-    "eksempel": {"x": 2720, "y": 4700, "w": 380, "fill": "gray", "text": "Navn, tall og oppgaver i skissene er eksempler."},
+    "eksempel": {"x": 2720, "y": 5180, "w": 380, "fill": "gray", "text": "Navn, tall og oppgaver i skissene er eksempler."},
 }
 
 

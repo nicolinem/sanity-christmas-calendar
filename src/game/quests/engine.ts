@@ -19,6 +19,7 @@ export type QuestBoard = {
   current: QuestState | null;
   // The quest finished just before `current`, so Brann can react to it.
   previous: QuestState | null;
+  // Bonus quests are optional and left out of both.
   completedCount: number;
   total: number;
 };
@@ -48,7 +49,8 @@ export function evaluateQuests(
         result,
         opensAt: !done && previousDone && !dateOpen ? opensAt : undefined,
       });
-      previousDone = done;
+      // A bonus is optional: it never holds back what comes after it.
+      if (!quest.bonus) previousDone = done;
     }
   }
 
@@ -57,8 +59,8 @@ export function evaluateQuests(
     states,
     current: index >= 0 ? states[index] : null,
     previous: index > 0 && states[index - 1].status === "done" ? states[index - 1] : null,
-    completedCount: states.filter((s) => s.status === "done").length,
-    total: states.length,
+    completedCount: states.filter((s) => s.status === "done" && !s.quest.bonus).length,
+    total: states.filter((s) => !s.quest.bonus).length,
   };
 }
 

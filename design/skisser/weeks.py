@@ -18,23 +18,20 @@ BTN_MAIN = "background: #e38628; border: 0; box-shadow: inset 0 2px 0 #fdbe53; c
 
 # (title, term, minutes, status, gives-icon, gives-text)
 WEEKS = [
-    {"n": 1, "theme": "Studio", "dates": "30. nov–4. des", "state": "done", "tasks": [
-        ("Publiser et våpen", "schema", 15, "done", LIT, "En julekule"),
+    {"n": 1, "theme": "Tilpass Studio", "dates": "30. nov–4. des", "state": "done", "tasks": [
+        ("Lag og publiser et våpen", "Publish", 10, "done", LIT, "En julekule"),
         ("Ikon og preview", "preview", 15, "done", BANNER, "En julekule"),
         ("Regler for våpen", "validation", 20, "done", LIT, "En julekule"),
-        ("Velg sprite med bilder", "custom input", 25, "done", SIGN, "En julekule"),
-    ], "bonus": ("Se våpenet i Studio", "document view", 30, "done", VIKING, "Ny figur: viking")},
+    ], "bonus": ("Velg sprite med bilder", "custom input", 25, "done", VIKING, "Ny figur: viking")},
     {"n": 2, "theme": "Innholdsmodellering", "dates": "7.–11. des", "state": "now", "tasks": [
         ("Ny type for monstre", "document type", 20, "done", BANNER, "En julekule"),
         ("Bytte fra monstre", "reference", 15, "active", LIT, "En julekule"),
         ("Finn de sterkeste monstrene", "GROQ", 15, "todo", SIGN, "En julekule"),
-        ("Egen pikselkunst", "image", 25, "todo", LIT, "En julekule"),
     ], "bonus": ("Flere GROQ-oppgaver", "GROQ", 30, "todo", MAGE, "Ny figur: magiker")},
     {"n": 3, "theme": "Utover skjemaet", "dates": "14.–18. des", "state": "locked", "tasks": [
         ("Egen Smi-knapp", "document action", 20, "locked", LIT, ""),
         ("Tekst med bilder", "Portable Text", 20, "locked", BANNER, ""),
         ("Svar når du publiserer", "Functions", 25, "locked", SIGN, ""),
-        ("Pynt juletreet", "GROQ", 15, "locked", TREE, "En julekule"),
     ], "bonus": ("Typer fra schema", "TypeGen", 30, "locked", RANGER, "Ny figur: jeger")},
 ]
 
@@ -92,7 +89,7 @@ def header(right_extra=""):
       <span style="{JERSEY}; font-size: 36px; line-height: 1">Julekalenderen</span>
 {right_extra}
       <span style="flex: 1"></span>
-      <span style="font-size: 14px; color: #fdbe53">5 av 12 oppgaver</span>
+      <span style="font-size: 14px; color: #fdbe53">4 av 9 oppgaver</span>
       <button type="button" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: 2px solid #8b9bb4; color: #e3ebf5; font: inherit; font-size: 13px">Lukk <span style="padding: 0 4px; background: #3a4263; font-size: 11px">Esc</span></button>
     </div>'''
 
@@ -168,7 +165,7 @@ def alt_liste():
           <span style="font-size: 13px; color: #8b9bb4">{w["dates"]}</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 2px">
-{section("Oppgaver · 1 av 4 ferdig")}
+{section("Oppgaver · 1 av 3 ferdig")}
 {rows}
         </div>
         <div style="display: flex; flex-direction: column; gap: 2px">
@@ -199,7 +196,7 @@ def big_door_open(w, current):
     b = w["bonus"]
     rows.append(f'''          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 14px; color: #c0cbdc; border-top: 1px dashed #3a4263"><span style="width: 14px; color: #fdbe53">{"★" if b[3] == "done" else "☆"}</span><span style="flex: 1">Bonus: {b[0]}</span><img src="{b[4]}" alt="" style="width: 20px; height: 20px; image-rendering: pixelated; opacity: {1 if b[3] == 'done' else 0.45}"></div>''')
     done = sum(1 for t in w["tasks"] if t[3] == "done")
-    foot = "Frist fredag 11. des" if current else "Ferdig ✓"
+    foot = "Løsninger fredag 11. des" if current else "Ferdig ✓"
     return f'''      <div style="position: relative; display: flex; flex-direction: column; min-width: 0; background: #1b1f33; box-shadow: inset 0 0 0 3px {ring}{', 0 0 0 3px #1b1f33, 0 0 0 6px #fdbe53' if current else ''}">
         <div style="position: absolute; top: 0; bottom: 0; left: -22px; width: 22px; background: #8a4b2a; box-shadow: inset 0 0 0 2px #5a2a1a, inset -4px 0 0 #b46a3a; transform: skewY(-8deg); transform-origin: right"></div>
         <div style="display: flex; align-items: baseline; gap: 10px; padding: 14px 16px 8px">
@@ -210,7 +207,7 @@ def big_door_open(w, current):
 {chr(10).join(rows)}
         </div>
         <span style="flex: 1"></span>
-        <div style="display: flex; justify-content: space-between; padding: 10px 16px; border-top: 2px solid #262b44; font-size: 13px"><span style="color: {ring}">{foot}</span><span style="color: #c0cbdc">{done} av 4</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 10px 16px; border-top: 2px solid #262b44; font-size: 13px"><span style="color: {ring}">{foot}</span><span style="color: #c0cbdc">{done} av {len(w['tasks'])}</span></div>
       </div>'''
 
 
@@ -369,7 +366,7 @@ def corner(left, label, ring, title, steps, footer, dots):
       <span style="{JERSEY}; font-size: 24px; line-height: 1">Uke 2</span>
       <div style="display: flex; gap: 4px">{dot_html}</div>
       <span style="flex: 1"></span>
-      <span style="font-size: 12px; color: #c0cbdc">frist fredag</span>
+      <span style="font-size: 12px; color: #c0cbdc">løsninger fredag</span>
     </div>
     <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: #1b1f33; box-shadow: inset 0 0 0 2px {ring}">
       <span style="font-size: 12px; color: {ring}">{label}</span>
@@ -388,15 +385,15 @@ def corner(left, label, ring, title, steps, footer, dots):
 
 def corner_board():
     G = ("#2c5a4b", "#3f7a66"); A = ("#e38628", "#fdbe53"); O = ("#3a4263", "#fdbe53")
-    a = corner(40, "Oppgave 2 av 4 · pågår", "#fdbe53", "Bytte fra monstre",
+    a = corner(40, "Oppgave 2 av 3 · pågår", "#fdbe53", "Bytte fra monstre",
                [(True, "Feltet <span style=\"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53\">drops</span> finnes"), (False, "Publiser et monster med bytte")],
-               f'<span style="{MONO}; color: #fdbe53">monster.ts</span><a href="#editor">Åpne i editoren</a>', [G, A, O, O])
+               f'<span style="{MONO}; color: #fdbe53">monster.ts</span><a href="#editor">Åpne i editoren</a>', [G, A, O])
     b = corner(470, "Oppgave 2 · ferdig ✓", "#6fd1a8", "Bytte fra monstre",
                [(True, "En julekule")],
-               '<span style="color: #fdbe53">Neste: Finn de sterkeste monstrene</span>', [G, G, O, O])
-    c = corner(900, "Uke 2 · ferdig ✓", "#6fd1a8", "Alle fire oppgavene er gjort",
-               [(True, "4 kuler på treet"), (False, "Bonus: Flere GROQ-oppgaver")],
-               '<span style="color: #8b9bb4">Uke 3 åpner mandag</span>', [G, G, G, G])
+               '<span style="color: #fdbe53">Neste: Finn de sterkeste monstrene</span>', [G, G, O])
+    c = corner(900, "Uke 2 · ferdig ✓", "#6fd1a8", "Alle tre oppgavene er gjort",
+               [(True, "3 kuler på treet"), (False, "Bonus: Flere GROQ-oppgaver")],
+               '<span style="color: #8b9bb4">Uke 3 åpner mandag</span>', [G, G, G])
     labels = '''  <div style="position: absolute; left: 40px; right: 40px; bottom: 28px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 90px; font-size: 14px; color: #c0cbdc">
     <span>Mens du jobber: én prikk per oppgave, og den du holder på med.</span>
     <span>Når en oppgave er ferdig: kortet blir grønt og viser neste.</span>

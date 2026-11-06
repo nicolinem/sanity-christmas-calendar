@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
+      // `import source from "./File?raw"` gives the file's text, so the code
+      // window can show the real component a task imports.
+      "*.tsx": {
+        condition: { query: "?raw" },
+        type: "raw",
+      },
+      "*.ts": {
+        condition: { query: "?raw" },
+        type: "raw",
+      },
     },
   },
 };
