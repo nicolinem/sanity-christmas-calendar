@@ -8,17 +8,15 @@ import { CHAPTERS } from "@/game/quests/chapters";
 import { evaluateQuests, forgeLevelFor } from "@/game/quests/engine";
 import {
   EMPTY_PROGRESS,
+  PROGRESS_PROJECT as PROJECT,
   readProgress,
   resetProgress,
   subscribeProgress,
   updateProgress,
 } from "@/game/quests/progress";
-import type { CodeCheck } from "@/game/quests/types";
+import type { CodeCheck, QuestContext, SolvedTask } from "@/game/quests/types";
 import { plainText } from "./richText";
 import { pushToast } from "./Toasts";
-
-// One progress record per Sanity project, so a fresh project is a fresh start.
-const PROJECT = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo";
 
 const noSubscribe = () => () => {};
 
@@ -45,6 +43,13 @@ export function useProgress() {
 
   const revealHint = useCallback((questId: string) => {
     updateProgress(PROJECT, (p) => ({ ...p, hints: { ...p.hints, [questId]: (p.hints[questId] ?? 0) + 1 } }));
+  }, []);
+
+  // The code window passed every example. Like quests, never taken back.
+  const solveTask = useCallback((questId: string, how: Omit<SolvedTask, "at">) => {
+    updateProgress(PROJECT, (p) =>
+      p.solved[questId] ? p : { ...p, solved: { ...p.solved, [questId]: { ...how, at: new Date().toISOString() } } },
+    );
   }, []);
 
   // Remember every element the player has struck the wraith with (quests and,
@@ -75,20 +80,28 @@ export function useProgress() {
     }));
   }, []);
 
-  return { progress, forgeLevel, metBrann, reset, revealHint, markIntroSeen, jumpTo };
+  return { progress, forgeLevel, metBrann, reset, revealHint, solveTask, markIntroSeen, jumpTo };
 }
 
 type BoardInput = {
   items: GameItemView[];
   codeChecks: Record<string, CodeCheck>;
   sanityConfigured: boolean | null;
+  unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
   wraithDefeatedNow: boolean;
   progress: ReturnType<typeof useProgress>["progress"];
 };
 
 // Evaluates every quest against the current game state and makes completions
 // stick: once a check passes for an unlocked quest it's recorded for good.
-export function useQuestBoard({ items, codeChecks, sanityConfigured, wraithDefeatedNow, progress }: BoardInput) {
+export function useQuestBoard({
+  items,
+  codeChecks,
+  sanityConfigured,
+  unpublishedDrafts,
+  wraithDefeatedNow,
+  progress,
+}: BoardInput) {
   const devUnlock = useSyncExternalStore(
     noSubscribe,
     () => new URLSearchParams(window.location.search).get("dev") === "quests",
@@ -96,8 +109,11 @@ export function useQuestBoard({ items, codeChecks, sanityConfigured, wraithDefea
   );
 
   const board = useMemo(
-    () => evaluateQuests(CHAPTERS, { items, progress, codeChecks, sanityConfigured }, new Date(), devUnlock),
-    [items, progress, codeChecks, sanityConfigured, devUnlock],
+    () => {
+      const ctx: QuestContext = { items, progress, codeChecks, sanityConfigured, unpublishedDrafts };
+      return evaluateQuests(CHAPTERS, ctx, new Date(), devUnlock);
+    },
+    [items, progress, codeChecks, sanityConfigured, unpublishedDrafts, devUnlock],
   );
 
   // The first win over the wraith counts forever, even after a rematch reset.
@@ -123,15 +139,15 @@ export function useQuestBoard({ items, codeChecks, sanityConfigured, wraithDefea
       return { ...p, completed };
     });
     for (const s of finished) {
-      pushToast({ title: "Oppdrag fullført", body: s.quest.title, tone: "quest" });
-      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står nå i Branns bok (J).", tone: "lesson" });
+      pushToast({ title: `Luke ${s.quest.door} ferdig`, body: s.quest.title, tone: "quest" });
+      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står under Lærdommer i kalenderen (J).", tone: "lesson" });
     }
 
     const after = forgeLevelFor(CHAPTERS, readProgress(PROJECT));
     if (after > before) {
       pushToast({
-        title: `Smia brenner hetere: nivå ${after}`,
-        body: `Alle bladene du har smidd, biter nå for ${forgedPower(after).damage}.`,
+        title: `Nivå ${after}: våpnene blir sterkere`,
+        body: `Alle våpnene dine gjør nå ${forgedPower(after).damage} skade.`,
         tone: "forge",
       });
       bridge.emit("forgeLevelUp", after);

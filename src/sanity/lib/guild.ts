@@ -1,4 +1,4 @@
-// Helpers for the quest "Laugets lov".
+// Helpers for door 3 (validation).
 //
 // They take care of the fiddly parts (the GROQ, and how drafts are stored), so
 // the quest is about the Sanity part: which rule goes where, what it gets in

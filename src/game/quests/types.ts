@@ -11,7 +11,12 @@ export type Progress = {
   hints: Record<string, number>; // how many hints the player has revealed per quest
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
   introSeen: boolean; // the opening has been shown
+  solved: Record<string, SolvedTask>; // tasks solved in the code window (quest id → how)
 };
+
+// A task solved in the game's code window. The Studio reads this and switches
+// on our own version of the same code (src/sanity/lib/solved.tsx).
+export type SolvedTask = { at: string; icon?: string };
 
 // Result of `npm run quest` for quests that can only be judged from code.
 export type CodeCheck = { done: boolean; message?: string; checkedAt?: string };
@@ -21,6 +26,7 @@ export type QuestContext = {
   progress: Progress;
   codeChecks: Record<string, CodeCheck>;
   sanityConfigured: boolean | null;
+  unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
 };
 
 export type Objective = { label: string; done: boolean };
@@ -37,16 +43,25 @@ export type Hint = { text: string; link?: { label: string; url: string } };
 
 export type Quest = {
   id: string;
+  door: number; // which calendar door (luke) this is; door N opens on day N
   title: string;
   intro: string[]; // what Brann says when he hands it over, one short page each
   goal: string; // one line for the tracker: what, not how
   where?: string; // where the work happens: a file or a place, not the answer
+  // "Slik blir det": a Før / Etter picture of the goal, with a short caption
+  // under each. The pictures are React, so they live in a registry keyed by
+  // quest id (src/components/hud/goalPreviews.tsx); only the captions are here.
+  goalPreview?: { before: string; after: string };
   hints: Hint[]; // revealed one at a time, from nudge to near-answer
   learn?: { label: string; url: string };
   // What the player just learned, in plain words. Shown when the quest is done
   // and collected in Brann's book.
   lesson: { title: string; text: string };
-  checkedBy: "game" | "code";
+  // game: the game sees it in your content. code: `npm run quest` judges your
+  // files. window: you write it in the game's code window, which checks it.
+  checkedBy: "game" | "code" | "window";
+  // Optional: shown with a ☆ and left out of the "N av M" totals.
+  bonus?: true;
   reward?: { forgeLevel: number };
   check: (ctx: QuestContext) => CheckResult;
 };

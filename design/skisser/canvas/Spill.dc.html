@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Spillet med Studio og automatisk sjekk</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; display: flex; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+
+  <div style="position: relative; width: 760px; height: 800px; overflow: hidden">
+    <img src="/_blob/208487001bd7ece0606173aba742917e" alt="Spillverdenen Frostholm" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 30% 40%; image-rendering: pixelated">
+
+    <div style="position: absolute; top: 20px; left: 20px; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 40px; line-height: 0.9; text-shadow: 0 2px 0 #1b1f33">Julekalenderen</span>
+      <span style="font-size: 13px; color: #fdbe53">Luke 3 av 24</span>
+    </div>
+
+    <div style="position: absolute; top: 88px; left: 20px; width: 330px; padding: 14px 16px; background: rgba(38, 43, 68, 0.94); border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #3a4263; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; gap: 8px; align-items: baseline"><span style="font-size: 12px; color: #8b9bb4">Luke 3</span><span style="font-size: 17px; color: #fdbe53">Validation</span></div>
+      <p style="margin: 0; font-size: 14px; line-height: 1.45; color: #e3ebf5">Få Studio til å nekte våpen uten sprite, og navn som allerede er tatt.</p>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px">
+        <div style="display: flex; gap: 8px"><span style="color: #6fd1a8">✓</span><span>Våpen uten sprite blir nektet</span></div>
+        <div style="display: flex; gap: 8px; color: #8b9bb4"><span>·</span><span>Navn som er tatt, blir nektet</span></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid #3a4263; font-size: 13px">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">item.tsx</span>
+        <a href="#editor">Åpne i editoren</a>
+      </div>
+    </div>
+
+    <div style="position: absolute; right: 20px; bottom: 112px; width: 300px; padding: 12px 14px; background: rgba(27, 31, 51, 0.95); box-shadow: inset 0 0 0 2px #6fd1a8; display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #6fd1a8">Sjekket da du lagret item.tsx</span>
+      <span style="font-size: 15px">Én av to regler virker. Nå mangler bare navn som er tatt.</span>
+    </div>
+
+    <div style="position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; gap: 6px; padding: 8px; background: rgba(38, 43, 68, 0.94); border: 2px solid #1b1f33">
+      <div style="width: 52px; height: 52px; display: grid; place-items: center; background: #1b1f33; box-shadow: inset 0 0 0 2px #fdbe53"><img src="/_blob/564c767e26e4d22f71dba28a993ca8e9" alt="Sverd" style="width: 40px; height: 40px; image-rendering: pixelated"></div>
+      <div style="width: 52px; height: 52px; display: grid; place-items: center; background: #1b1f33"><img src="/_blob/e1bdd56373651fb72699fe7cd84d68a8" alt="Øks" style="width: 40px; height: 40px; image-rendering: pixelated"></div>
+      <div style="width: 52px; height: 52px; display: grid; place-items: center; background: #1b1f33"><img src="/_blob/3cc2246536ea30bf96eb116e16545a60" alt="Hammer" style="width: 40px; height: 40px; image-rendering: pixelated"></div>
+      <div style="width: 52px; height: 52px; background: #1b1f33"></div>
+      <div style="width: 52px; height: 52px; background: #1b1f33"></div>
+    </div>
+  </div>
+
+  <div style="width: 520px; height: 800px; display: flex; flex-direction: column; background: #ffffff; box-shadow: -2px 0 0 #1b1f33">
+    <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 8px 0 14px; background: #1b1f33; font-size: 13px; color: #c0cbdc">
+      <span style="color: #f03e2f">■</span>
+      <span style="flex: 1">Sanity Studio</span>
+      <a href="#fane" style="color: #c0cbdc; text-decoration: none; padding: 4px 8px">Egen fane</a>
+      <button type="button" style="padding: 4px 10px; background: #3a4263; border: 0; box-shadow: inset 0 2px 0 #4d5781; color: #e3ebf5; font: inherit">✕ Lukk Studio</button>
+    </div>
+
+    <div style="flex: 1; display: flex; font-family: Inter, system-ui, sans-serif; color: #101112; min-height: 0">
+      <div style="width: 190px; border-right: 1px solid #e3e4e8; display: flex; flex-direction: column">
+        <div style="padding: 12px 12px 8px; font-size: 13px; font-weight: 600">Item</div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #eaf1fe; font-size: 13px"><img src="/_blob/564c767e26e4d22f71dba28a993ca8e9" alt="" style="width: 28px; height: 28px; image-rendering: pixelated; background: #262b44"><div style="display: flex; flex-direction: column"><span style="font-weight: 500">Frostbiteren</span><span style="font-size: 11px; color: #6e7683">weapon</span></div></div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 13px"><img src="/_blob/e1bdd56373651fb72699fe7cd84d68a8" alt="" style="width: 28px; height: 28px; image-rendering: pixelated; background: #262b44"><div style="display: flex; flex-direction: column"><span style="font-weight: 500">Glødøksa</span><span style="font-size: 11px; color: #6e7683">weapon</span></div></div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 13px"><img src="/_blob/3cc2246536ea30bf96eb116e16545a60" alt="" style="width: 28px; height: 28px; image-rendering: pixelated; background: #262b44"><div style="display: flex; flex-direction: column"><span style="font-weight: 500">Tordenhammeren</span><span style="font-size: 11px; color: #6e7683">weapon</span></div></div>
+      </div>
+
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <div style="padding: 14px 18px; border-bottom: 1px solid #e3e4e8; font-size: 15px; font-weight: 600">Frostbiteren</div>
+        <div style="flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 18px; font-size: 13px">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <label for="f-name" style="font-weight: 600">Name</label>
+            <input id="f-name" value="Frostbiteren" style="padding: 8px 10px; border: 1px solid #ced2d9; border-radius: 3px; font: inherit">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-weight: 600">Kind</span>
+            <div style="display: flex; gap: 14px"><span>◉ Weapon</span><span style="color: #6e7683">○ Material</span><span style="color: #6e7683">○ Potion</span></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-weight: 600">Sprite</span>
+            <div style="padding: 10px; border: 1px solid #f03e2f; border-radius: 3px; color: #6e7683">Velg en sprite</div>
+            <span style="color: #c4242a">Et våpen må ha en sprite.</span>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid #e3e4e8">
+          <button type="button" disabled style="padding: 8px 16px; border: 0; border-radius: 3px; background: #b9c0cc; color: #ffffff; font: inherit; font-weight: 600">Publish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<title>Winter Quest gjennomføringsplan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+  /* Layout: a one-page memo, one reading column. */
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --fg: #1c2232;
+    --muted: #5a6377;
+    --line: #dce0e8;
+    --accent: #34508f;
+    --good: #1d7356;
+    --code-bg: #eef0f5;
+    --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151d; --surface: #1a1f2a; --fg: #e4e8f1; --muted: #9aa3b8;
+      --line: #2c3343; --accent: #9db4ec; --good: #6fd1a8; --code-bg: #232a38;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151d; --surface: #1a1f2a; --fg: #e4e8f1; --muted: #9aa3b8;
+    --line: #2c3343; --accent: #9db4ec; --good: #6fd1a8; --code-bg: #232a38;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.55;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 64px;
+  }
+  .page { max-width: 680px; margin: 0 auto; display: grid; gap: 32px; }
+  .page > * { min-width: 0; }
+  h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.15; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(28px, 6vw, 38px); letter-spacing: -0.01em; }
+  h2 { font-size: 21px; }
+  p { margin: 0; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  code { font-family: var(--font-mono); font-size: 0.84em; background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 4px; }
+  ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+  section { display: grid; gap: 12px; }
+  header { display: grid; gap: 10px; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .lede { font-size: 19px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; line-height: 1.45; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.rec td { font-weight: 600; }
+  tr.rec td:first-child { box-shadow: inset 3px 0 0 var(--good); }
+  .pick { color: var(--good); font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+  .checks { list-style: none; padding: 0; }
+  .checks li { display: grid; grid-template-columns: 1.3em 1fr; gap: 6px; }
+  .checks li::before { content: "☐"; color: var(--muted); }
+
+  footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+
+<div class="page">
+
+<header>
+  <p class="eyebrow">Notat · oppdatert 1. november 2026</p>
+  <h1>Winter Quest gjennomføringsplan</h1>
+  <p class="lede">En julekalender der kolleger lærer Sanity ved å løse oppgaver i sin egen Studio. Et lite pikselspill viser det de lager, og sjekker oppgavene automatisk. Luke 1–6 er ferdige og testet.</p>
+</header>
+
+<section aria-labelledby="h-forslag">
+  <h2 id="h-forslag">Forslaget</h2>
+  <ul>
+    <li><strong>24 luker, én per dag.</strong> Hverdager: vanlige luker på 15–25 minutter. Helger: frivillige bonusluker. Alle luker står åpne ut desember.</li>
+    <li><strong>Spillet og Studio kjører hos deltakeren</strong>, eller i Codespaces. Innlogging, fremgang og en deltakerside ligger på nett.</li>
+    <li><strong>Valgfritt for de ivrige:</strong> ekstra oppgaver, GROQ-oppgaver og poeng til pynt i spillet. Ingen toppliste.</li>
+    <li><strong>Sosialt:</strong> en deltakerside viser hva alle har laget. Kort felles gjennomgang og løsninger hver fredag.</li>
+    <li><strong>Kolleger kan lage én oppgave hver</strong> etter en mal.</li>
+    <li><strong>Felles oppsettøkt</strong> fredag 27. november, så ingen stopper på installasjonen.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="h-test">
+  <h2 id="h-test">Testet 30. oktober</h2>
+  <p>Studio kan ikke vises i et panel i spillet hvis spillet ligger på et annet nettsted: nettleseren deler ikke innloggingen, og innloggingssidene til Google, GitHub og Sanity nekter å vises i et panel. Derfor kjører spillet og Studio hos deltakeren, og bare innlogging og deltakersiden ligger på nett.</p>
+</section>
+
+<section aria-labelledby="h-pakker">
+  <h2 id="h-pakker">Hva det koster</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pakke</th><th>Innhold</th><th class="num">Dagsverk</th></tr></thead>
+      <tbody>
+        <tr><td>Liten</td><td>Luke 1–13, uten innlogging og deltakerside</td><td class="num">ca. 9</td></tr>
+        <tr class="rec"><td>Anbefalt <span class="pick">vårt forslag</span></td><td>Luke 1–20, innlogging og deltakerside, GROQ-oppgaver</td><td class="num">ca. 19</td></tr>
+        <tr><td>Full</td><td>Alle 24 luker, pluss poeng, Slack-varsler og felles avslutning</td><td class="num">ca. 23</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Grove anslag. Anbefalt er omtrent halv tid på hver av oss i november. Liten kan vokse til anbefalt underveis.</p>
+</section>
+
+<section aria-labelledby="h-plan">
+  <h2 id="h-plan">Før 1. desember</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Uke</th><th>Arbeid</th></tr></thead>
+      <tbody>
+        <tr><td class="num">45</td><td>Ta valgene. Automatisk sjekk av kodeoppgaver. Spør testere og bidragsytere.</td></tr>
+        <tr><td class="num">46</td><td>Monstre i spillet og luke 7–13. Innlogging og fremgang på nett.</td></tr>
+        <tr><td class="num">47</td><td>Luke 14–20 og GROQ-oppgavene. Deltakersiden. Test av luke 1–13.</td></tr>
+        <tr><td class="num">48</td><td>Test av luke 14–20. Buffer. Invitasjon og oppsettøkt.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="h-valg">
+  <h2 id="h-valg">Må bestemmes</h2>
+  <ul class="checks">
+    <li>Hvilken pakke</li>
+    <li>24 luker med bonus i helgene, eller færre</li>
+    <li>Hvem lager hva, og hvem tester</li>
+    <li>Om vi vil ha poeng og pynt</li>
+  </ul>
+</section>
+
+<section aria-labelledby="h-avklar">
+  <h2 id="h-avklar">Må avklares med andre</h2>
+  <ul>
+    <li>Hvor repoet skal ligge (jobbens GitHub)</li>
+    <li>Vercel og innlogging med jobbens Google-konto</li>
+    <li>Om deltakerne kan bruke arbeidstid</li>
+    <li>Om vi får poste i Slack-kanalen</li>
+  </ul>
+</section>
+
+<section aria-labelledby="h-risiko">
+  <h2 id="h-risiko">Største risiko</h2>
+  <ul>
+    <li><strong>Vi rekker ikke alt.</strong> Liten pakke fungerer alene, og kolleger kan ta oppgaver.</li>
+    <li><strong>Folk faller av midt i desember.</strong> Lukene står åpne, og helgene er frivillige, så det går an å ta igjen.</li>
+    <li><strong>Folk stopper på oppsettet.</strong> Derfor oppsettøkta.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Detaljer om oppgavene og tekniske valg: <code>docs/questplan.md</code> i repoet.</p>
+</footer>
+
+</div>

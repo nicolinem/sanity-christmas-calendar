@@ -65,7 +65,7 @@ export default function DevPanel({
         Sanntid: <span className={`dev-live is-${liveMode}`}>{LIVE[liveMode]}</span>
       </p>
       <p className="dev-line">
-        Smienivå {forgeLevel}, {board.completedCount}/{board.total} ferdig, prosjekt{" "}
+        Nivå {forgeLevel}, {board.completedCount}/{board.total} luker ferdig, prosjekt{" "}
         <code>{process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo"}</code>
       </p>
 
@@ -78,7 +78,9 @@ export default function DevPanel({
             <li key={s.quest.id} className={s === board.current ? "is-current" : undefined}>
               <details>
                 <summary>
-                  <span className="dev-quest-title">{s.quest.title}</span>
+                  <span className="dev-quest-title">
+                    Luke {s.quest.door}: {s.quest.title}
+                  </span>
                   <span className={`dev-status is-${s.status}`}>{STATUS[s.status]}</span>
                 </summary>
                 <div className="dev-steps">
@@ -101,7 +103,7 @@ export default function DevPanel({
                     </p>
                   ))}
                   <p>
-                    <span className="dev-label">Lærdom</span> {s.quest.lesson.title}: {renderText(s.quest.lesson.text)}
+                    <span className="dev-label">Lærdom</span> {renderText(s.quest.lesson.title)}: {renderText(s.quest.lesson.text)}
                   </p>
                   <p>
                     <span className="dev-label">Sjekk nå</span>{" "}
@@ -141,13 +143,13 @@ export default function DevPanel({
       <h3 className="dev-title">Effekter</h3>
       <div className="dev-actions">
         <button type="button" onClick={() => bridge.emit("itemForged", weaponSprite ?? { sheet: "dungeon", frame: 105 })}>
-          Nytt blad fra smia
+          Nytt våpen
         </button>
         <button type="button" onClick={() => bridge.emit("forgeFlare", undefined)}>
-          Smia blusser
+          Smia lyser opp
         </button>
         <button type="button" onClick={() => bridge.emit("forgeLevelUp", forgeLevel)}>
-          Smienivå opp
+          Nivå opp
         </button>
       </div>
 

@@ -6,7 +6,7 @@ import type { GameItemView } from "@/game/items";
 import { isUsableWeapon } from "@/game/items";
 import type { Element } from "@/game/magic";
 
-export const ENEMY_NAME = "Frostdraugen";
+export const ENEMY_NAME = "Snømonsteret";
 export const ENEMY_MAX_HP = 30;
 // What the wraith fears and shrugs off. The weapon's name decides its element.
 export const ENEMY_WEAK_TO: Element = "fire";
@@ -40,7 +40,7 @@ export function useCombat(weapon: GameItemView | null) {
     const dmg = affinity === "immune" ? 0 : affinity === "weak" ? Math.round(rolled * WEAK_MULTIPLIER) : rolled;
     const next = Math.max(0, hp - dmg);
     setHp(next);
-    const flavour = affinity === "weak" ? " Draugen viker unna ilden!" : "";
+    const flavour = affinity === "weak" ? " Monsteret tåler ikke ild!" : "";
     setLog((l) => [
       affinity === "immune"
         ? `Frosten i ${weapon.name} biter ikke på ${ENEMY_NAME.toLowerCase()}.`

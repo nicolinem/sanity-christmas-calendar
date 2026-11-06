@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Brann og neste luke</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+  <img src="/_blob/208487001bd7ece0606173aba742917e" alt="Spillverdenen" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated">
+
+  <div style="position: absolute; top: 0; left: 0; right: 0; padding: 14px 24px 16px; background: linear-gradient(#1b1f33f2, #1b1f33cc); display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: baseline; gap: 16px">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 32px; line-height: 1">Julekalenderen</span>
+      <span style="font-size: 14px; color: #c0cbdc">3 av 4 åpne luker ferdig · 9 poeng</span>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: 6px">
+      <sc-for list="{{doors}}" as="d" hint-placeholder-count="24">
+        <div style="width: {{d.w}}px; height: {{d.h}}px; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4px 0 5px; box-sizing: border-box; background: {{d.bg}}; box-shadow: {{d.ring}}">
+          <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: {{d.fs}}px; line-height: 0.9; color: {{d.numColor}}">{{d.n}}</span>
+          <sc-if value="{{d.hasIcon}}" hint-placeholder-val="{{ false }}">
+            <img src="{{d.icon}}" alt="" style="width: 24px; height: 24px; image-rendering: pixelated">
+          </sc-if>
+          <span style="font-size: 10px; color: {{d.markColor}}">{{d.mark}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: absolute; top: 176px; right: 24px; width: 260px; padding: 10px 14px; background: rgba(27, 31, 51, 0.95); box-shadow: inset 0 0 0 2px #6fd1a8; display: flex; flex-direction: column; gap: 2px">
+    <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #6fd1a8">Luke 3 ferdig</span>
+    <span style="font-size: 15px">+3 poeng · nivå 2</span>
+  </div>
+
+  <div style="position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 760px; padding: 18px 20px; background: #2e1d25; border: 2px solid #3f2631; box-shadow: inset 0 0 0 2px #763b36; display: flex; gap: 18px">
+    <img src="/_blob/df5f2c915dcc2c86108e255a23b55652" alt="Smeden Brann" style="width: 80px; height: 80px; flex: none; image-rendering: pixelated; background: #1b1f33; box-shadow: inset 0 0 0 2px #763b36">
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: baseline; gap: 10px">
+        <span style="font-size: 15px; color: #fdbe53">Brann, smeden</span>
+        <span style="padding: 1px 8px; background: #763b36; font-size: 12px; color: #f4e4cf">Luke 4</span>
+      </div>
+      <p style="margin: 0; font-size: 17px; line-height: 1.5; color: #f4e4cf">Bra jobba! Luke 4 er allerede åpen. Å velge sprite fra en liste med navn er tungvint. Lag en velger som viser selve pikselkunsten.</p>
+      <div style="display: flex; gap: 8px">
+        <button type="button" style="padding: 8px 16px; background: #e38628; border: 0; box-shadow: inset 0 2px 0 #fdbe53; color: #2a140e; font: inherit; font-size: 14px; font-weight: 600">Ta luke 4 nå</button>
+        <button type="button" style="padding: 8px 14px; background: transparent; border: 0; color: #f4e4cf; font: inherit; font-size: 14px">Senere</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+const icons = {
+  1: '/_blob/564c767e26e4d22f71dba28a993ca8e9',
+  2: '/_blob/bff06d00b77e04bc0a49acee816ce39f',
+  3: '/_blob/faef14ffa4c21020995fc2751626d46c'
+};
+const look = {
+  done: ['#2c5a4b', 'inset 0 0 0 2px #3f7a66', '#e3ebf5', '✓', '#6fd1a8'],
+  fresh: ['#2c5a4b', 'inset 0 0 0 2px #6fd1a8, 0 0 0 3px #1b1f33, 0 0 0 5px #6fd1a8', '#e3ebf5', 'nå', '#6fd1a8'],
+  today: ['#e38628', 'inset 0 0 0 2px #fdbe53, 0 0 0 3px #1b1f33, 0 0 0 5px #fdbe53', '#2a140e', 'i dag', '#2a140e'],
+  locked: ['#20253a', 'inset 0 0 0 2px #2b3150', '#5a6488', '', '#5a6488'],
+  eve: ['#20253a', 'inset 0 0 0 2px #f03e2f', '#f03e2f', 'jul', '#f03e2f']
+};
+const state = (n) => (n === 3 ? 'fresh' : icons[n] ? 'done' : n === 4 ? 'today' : n === 24 ? 'eve' : 'locked');
+const doors = [];
+for (let n = 1; n <= 24; n++) {
+  const s = state(n);
+  const l = look[s];
+  const big = s === 'today' || s === 'fresh';
+  doors.push({
+    n, w: big ? 60 : 44, h: big ? 76 : 62, fs: big ? 30 : 22,
+    bg: l[0], ring: l[1], numColor: l[2], mark: l[3], markColor: l[4],
+    hasIcon: Boolean(icons[n]), icon: icons[n] || ''
+  });
+}
+return { doors };
+}
+}
+</script>
+</body>
+</html>

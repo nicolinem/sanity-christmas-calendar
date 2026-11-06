@@ -322,6 +322,11 @@ export class WinterQuestScene extends Phaser.Scene {
     this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
     this.sparks.frequency = w.forgeLit ? Math.round(150 / w.forgeLevel) : 260;
     if (w.frozen) this.moveTarget = null;
+    // While a window is open, arrows and WASD are letters to type (the code
+    // window), so stop swallowing them.
+    const kb = this.input.keyboard;
+    if (w.frozen) kb?.disableGlobalCapture();
+    else kb?.enableGlobalCapture();
 
     if (w.wraithDefeated && !this.wraithGone) this.banishWraith();
     if (!w.wraithDefeated && this.wraithGone) this.reviveWraith();

@@ -22,18 +22,15 @@ export default function QuestTracker({ board, forgeLevel, metBrann, compact, onO
   const waiting = !current ? board.states.find((s) => s.status === "locked" && s.opensAt) : undefined;
   const offered = current?.status === "offered";
 
-  const title = !current
-    ? "Ferdig for nå"
-    : offered
-      ? metBrann
-        ? "Brann har en ny oppgave"
-        : "Noen venter ved smia"
-      : current.quest.title;
+  const title = !current ? "Ferdig for nå" : offered ? "Snakk med Brann" : current.quest.title;
 
   return (
-    <section className="tracker frame frame--slate" aria-label="Oppdrag">
+    <section className="tracker frame frame--slate" aria-label="Dagens luke">
       <button type="button" className="tracker-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <span className="tracker-week">{current ? `Kapittel ${current.chapter.number}` : "Oppdrag"}</span>
+        <span className="tracker-week">
+          {current ? `Luke ${current.quest.door}` : "Julekalenderen"}
+          {current?.quest.bonus && " · ☆ Bonus · valgfri"}
+        </span>
         <span className="tracker-title">{title}</span>
       </button>
 
@@ -41,7 +38,7 @@ export default function QuestTracker({ board, forgeLevel, metBrann, compact, onO
         <>
           {current && offered && (
             <p className="tracker-goal">
-              Gå til smia og snakk med Brann <kbd>E</kbd>
+              {metBrann ? "Ny luke er åpen. Gå til Brann ved smia" : "Gå til Brann ved smia"} <kbd>E</kbd>
             </p>
           )}
           {current && !offered && (
@@ -69,16 +66,16 @@ export default function QuestTracker({ board, forgeLevel, metBrann, compact, onO
           {!current && (
             <p className="tracker-goal">
               {waiting?.opensAt
-                ? `Neste oppgave kommer ${waiting.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
-                : "Brann har ikke mer til deg ennå. Nye oppgaver kommer med kalenderen."}
+                ? `Neste luke åpner ${waiting.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
+                : "Ingen flere luker ennå. Nye kommer med kalenderen."}
             </p>
           )}
           <div className="tracker-foot">
             <span className="tracker-meta">
-              {board.completedCount}/{board.total} oppdrag, smienivå {forgeLevel}
+              {board.completedCount} av {board.total} luker, nivå {forgeLevel}
             </span>
             <button type="button" className="tracker-log" onClick={onOpenLog}>
-              <kbd>J</kbd> Oppdragslogg
+              <kbd>J</kbd> Kalender
             </button>
           </div>
         </>

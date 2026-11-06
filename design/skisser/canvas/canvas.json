@@ -1,0 +1,444 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-30T10:00:00Z"
+  },
+  "title": "Winter Quest konseptskisser",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 800,
+      "title": "1 · Oppstart"
+    },
+    "Kalender.dc.html": {
+      "x": 1360,
+      "y": 0,
+      "w": 1280,
+      "h": 800,
+      "title": "2 · Kalenderen, variant A: rutenett"
+    },
+    "Spill.dc.html": {
+      "x": 0,
+      "y": 920,
+      "w": 1280,
+      "h": 800,
+      "title": "3 · Spillet med Studio"
+    },
+    "Groq.dc.html": {
+      "x": 1360,
+      "y": 920,
+      "w": 1280,
+      "h": 800,
+      "title": "4 · GROQ-luke"
+    },
+    "Hallen.dc.html": {
+      "x": 0,
+      "y": 1840,
+      "w": 1280,
+      "h": 1040,
+      "title": "5 · Deltakere (nettside)",
+      "expand": "fill"
+    },
+    "Kalender-B.dc.html": {
+      "x": 0,
+      "y": 3300,
+      "w": 1280,
+      "h": 800,
+      "title": "Variant B: adventsrekke"
+    },
+    "Kalender-C.dc.html": {
+      "x": 1360,
+      "y": 3300,
+      "w": 1280,
+      "h": 800,
+      "title": "Variant C: klassisk julekalender"
+    },
+    "Ferdig-kort.dc.html": {
+      "x": 0,
+      "y": 4420,
+      "w": 1280,
+      "h": 800,
+      "title": "Luke ferdig 1: kortet"
+    },
+    "Ferdig-Brann.dc.html": {
+      "x": 1360,
+      "y": 4420,
+      "w": 1280,
+      "h": 800,
+      "title": "Luke ferdig 2: Brann og neste luke"
+    },
+    "Ui-kart.dc.html": {
+      "x": 0,
+      "y": 5540,
+      "w": 1280,
+      "h": 800,
+      "title": "Grensesnitt 1: kart over skjermen"
+    },
+    "Ui-vanlig.dc.html": {
+      "x": 1360,
+      "y": 5540,
+      "w": 1280,
+      "h": 800,
+      "title": "Grensesnitt 2: vanlig visning"
+    },
+    "Ui-kalender.dc.html": {
+      "x": 0,
+      "y": 6460,
+      "w": 1280,
+      "h": 800,
+      "title": "Grensesnitt 3: kalenderen åpen (J)"
+    },
+    "Ui-studio.dc.html": {
+      "x": 1360,
+      "y": 6460,
+      "w": 1280,
+      "h": 800,
+      "title": "Grensesnitt 4: med Studio åpent"
+    },
+    "Konsept-v2.dc.html": {
+      "x": 0,
+      "y": 7580,
+      "w": 1280,
+      "h": 800,
+      "title": "Runde 2 · 1: konseptet"
+    },
+    "V2-vanlig.dc.html": {
+      "x": 1360,
+      "y": 7580,
+      "w": 1280,
+      "h": 800,
+      "title": "Runde 2 · 2: vanlig visning"
+    },
+    "V2-ferdig.dc.html": {
+      "x": 0,
+      "y": 8500,
+      "w": 1280,
+      "h": 800,
+      "title": "Runde 2 · 3: luke ferdig"
+    },
+    "V2-kalender.dc.html": {
+      "x": 1360,
+      "y": 8500,
+      "w": 1280,
+      "h": 800,
+      "title": "Runde 2 · 4: kalenderen (J)"
+    },
+    "V2-julaften.dc.html": {
+      "x": 0,
+      "y": 9420,
+      "w": 1280,
+      "h": 800,
+      "title": "Runde 2 · 5: julaften"
+    },
+    "V2-kamp.dc.html": {
+      "x": 1360,
+      "y": 9420,
+      "w": 640,
+      "h": 400,
+      "title": "Runde 2 · 6: kamp, svakhet før slaget"
+    },
+    "Uke-liste.dc.html": {
+      "x": 0,
+      "y": 10840,
+      "w": 1280,
+      "h": 800,
+      "title": "Uker A: liste per uke (valgt)"
+    },
+    "Uke-luker.dc.html": {
+      "x": 1360,
+      "y": 10840,
+      "w": 1280,
+      "h": 800,
+      "title": "Uker B: tre store luker"
+    },
+    "Uke-rader.dc.html": {
+      "x": 0,
+      "y": 11760,
+      "w": 1280,
+      "h": 800,
+      "title": "Uker C: kalender med en rad per uke"
+    },
+    "Uke-lys.dc.html": {
+      "x": 1360,
+      "y": 11760,
+      "w": 1280,
+      "h": 800,
+      "title": "Uker D: liste med adventslys"
+    },
+    "Uke-hjorne.dc.html": {
+      "x": 0,
+      "y": 12680,
+      "w": 1280,
+      "h": 400,
+      "title": "Hjørnekortet med uker"
+    },
+    "Uke-mandag.dc.html": {
+      "x": 0,
+      "y": 13480,
+      "w": 1280,
+      "h": 800,
+      "title": "Uka 1 · mandag: en ny uke åpner"
+    },
+    "Uke-ferdig.dc.html": {
+      "x": 1360,
+      "y": 13480,
+      "w": 1280,
+      "h": 800,
+      "title": "Uka 2 · en oppgave er ferdig"
+    },
+    "Uke-fredag.dc.html": {
+      "x": 0,
+      "y": 14400,
+      "w": 1280,
+      "h": 800,
+      "title": "Uka 3 · fredag: løsningene kommer"
+    },
+    "Uke-smal.dc.html": {
+      "x": 1360,
+      "y": 14400,
+      "w": 1280,
+      "h": 800,
+      "title": "Uka 4 · lista med Studio åpent"
+    },
+    "Fremgang.dc.html": {
+      "x": 0,
+      "y": 15620,
+      "w": 1280,
+      "h": 800,
+      "title": "Fremgang 1 · seks retninger"
+    },
+    "Fremgang-figur.dc.html": {
+      "x": 1360,
+      "y": 15620,
+      "w": 1280,
+      "h": 800,
+      "title": "Fremgang 2 · pynt på figuren"
+    },
+    "Fremgang-tre.dc.html": {
+      "x": 0,
+      "y": 16540,
+      "w": 1280,
+      "h": 800,
+      "title": "Fremgang 3 · felles juletre"
+    },
+    "Fremgang-kuler.dc.html": {
+      "x": 1360,
+      "y": 16540,
+      "w": 1280,
+      "h": 800,
+      "title": "Fremgang 4 · tegn din egen julekule"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Kalender.dc.html",
+    "Spill.dc.html",
+    "Groq.dc.html",
+    "Hallen.dc.html",
+    "Kalender-B.dc.html",
+    "Kalender-C.dc.html",
+    "Ferdig-kort.dc.html",
+    "Ferdig-Brann.dc.html",
+    "Ui-kart.dc.html",
+    "Ui-vanlig.dc.html",
+    "Ui-kalender.dc.html",
+    "Ui-studio.dc.html",
+    "Konsept-v2.dc.html",
+    "V2-vanlig.dc.html",
+    "V2-ferdig.dc.html",
+    "V2-kalender.dc.html",
+    "V2-julaften.dc.html",
+    "V2-kamp.dc.html",
+    "Uke-liste.dc.html",
+    "Uke-luker.dc.html",
+    "Uke-rader.dc.html",
+    "Uke-lys.dc.html",
+    "Uke-hjorne.dc.html",
+    "Uke-mandag.dc.html",
+    "Uke-ferdig.dc.html",
+    "Uke-fredag.dc.html",
+    "Uke-smal.dc.html",
+    "Fremgang.dc.html",
+    "Fremgang-figur.dc.html",
+    "Fremgang-tre.dc.html",
+    "Fremgang-kuler.dc.html"
+  ],
+  "notes": {
+    "title": {
+      "x": 0,
+      "y": -300,
+      "text": "Sanity-julekalenderen: konseptskisser",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "antakelse": {
+      "x": 2720,
+      "y": 0,
+      "w": 380,
+      "text": "Spillet og Studio kjører hos deltakeren (eller i Codespaces), fordi Studio-panelet bare virker da. Innlogging, fremgang og deltakeroversikten ligger på nett.",
+      "fill": "blue"
+    },
+    "rytme": {
+      "x": 2720,
+      "y": 420,
+      "w": 380,
+      "text": "Gammel rytme (erstattet): luker på dato. Ny rytme: tre uker, alle oppgavene åpner mandag, løsninger fredag. Se nederst.",
+      "fill": "green"
+    },
+    "eksempel": {
+      "x": 1360,
+      "y": 1840,
+      "w": 380,
+      "text": "Navn, tall og spørringer i skissene er eksempler.",
+      "fill": "gray"
+    },
+    "kalendere": {
+      "x": 0,
+      "y": 3000,
+      "text": "Kalenderen: tre retninger",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "kalendere-forklaring": {
+      "x": 2720,
+      "y": 3300,
+      "w": 380,
+      "text": "A (øverst): rutenett i et panel som åpnes med J. B: en rekke med 24 luker langs toppen av spillet, alltid synlig. C: en klassisk julekalender med lukene spredt over et vinterbilde.",
+      "fill": "yellow"
+    },
+    "ferdig": {
+      "x": 0,
+      "y": 4120,
+      "text": "Når en luke blir ferdig",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "ferdig-forklaring": {
+      "x": 2720,
+      "y": 4420,
+      "w": 380,
+      "text": "1: Kortet kommer med en gang sjekken går gjennom, uansett hvor du er i spillet. 2: Neste gang du snakker med Brann, gir han deg neste luke, og kalenderen viser luka som ferdig.",
+      "fill": "yellow"
+    },
+    "grensesnitt": {
+      "x": 0,
+      "y": 5240,
+      "text": "Hele grensesnittet: dagens luke i hjørnet, alle luker på J",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "grensesnitt-regler": {
+      "x": 2720,
+      "y": 5540,
+      "w": 380,
+      "fill": "yellow",
+      "text": "Regler: 1) Hver ting har én fast plass. 2) Dagens luke og neste handling er alltid synlig. 3) Alt annet åpnes ved behov og lukkes med Esc. 4) Lukene har samme farger overalt. 5) Hver handling har både en knapp og en tast."
+    },
+    "runde2": {
+      "x": 0,
+      "y": 7280,
+      "text": "Runde 2: spillet svarer selv, og bygda pyntes for hver luke",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "runde2-hvorfor": {
+      "x": 2720,
+      "y": 7580,
+      "w": 380,
+      "fill": "green",
+      "text": "Etter vurderingen (docs/spillvurdering.md): Svarer: kodeluker sjekkes når filen lagres. Belønnende: tre kanaler når en luke blir ferdig (kort, luka åpnes, pynt i bygda) og valgfri lyd. Verdt det: hver luke pynter bygda, så fremgangen synes. Tydelig: kalenderen viser hva hver luke gir, og kampen viser svakheten før slaget. Enklere: poeng og butikk er borte. (Pynt i bygda er senere byttet ut, se «Fremgang» nederst.)"
+    },
+    "uker": {
+      "x": 0,
+      "y": 10540,
+      "text": "Tre uker: fire måter å vise oppgavene på",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "uker-forklaring": {
+      "x": 2720,
+      "y": 10840,
+      "w": 380,
+      "fill": "yellow",
+      "text": "Ny rytme: tre uker med oppgaver. Alle oppgavene for en uke åpner mandag, og man gjør dem i løpet av arbeidsuka. Løsningene kommer fredag. A: listevisningen, ryddig og rask. B: én stor luke per uke, med lista inni. C: kalenderen, men én rad per uke i stedet for én luke per dag. D: lista, med tre adventslys som tennes uke for uke."
+    },
+    "uker-tall": {
+      "x": 2720,
+      "y": 11760,
+      "w": 380,
+      "fill": "gray",
+      "text": "Fire oppgaver og én bonus per uke er en startverdi, ikke bestemt. Temaene og navnene er eksempler."
+    },
+    "uker-anbefaling": {
+      "x": 2720,
+      "y": 12680,
+      "w": 380,
+      "fill": "green",
+      "text": "Valgt: A, liste per uke. Oppgavene er ikke dedikerte luker, så deltakeren gjør dem i den rekkefølgen hen vil i løpet av uka. B, C og D står igjen som referanse. Skissene med 24 luker over er erstattet."
+    },
+    "uka": {
+      "x": 0,
+      "y": 13180,
+      "text": "Lista gjennom en uke",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "uka-forklaring": {
+      "x": 2720,
+      "y": 13480,
+      "w": 380,
+      "fill": "yellow",
+      "text": "1: Mandag kommer et kort med ukas oppgaver, én gang. Esc lukker, J åpner lista. 2: Når en oppgave er ferdig, får bygda pynt, og knappen sender deg til lista for å velge neste, siden rekkefølgen er fri. 3: Fredag får hver oppgave en «Se løsning». Oppgaver du ikke har gjort, står åpne. 4: Med Studio åpent blir lista én kolonne, og detaljene åpnes inne i lista."
+    },
+    "uka-sporsmal": {
+      "x": 2720,
+      "y": 14400,
+      "w": 380,
+      "fill": "blue",
+      "text": "Åpne spørsmål: Skal løsningen vises inne i spillet (som her) eller bare som lenke til koden? Skal «Sammenlign med din kode» finnes, eller er det for mye? Får man pynt for en oppgave man gjør etter å ha sett løsningen? (Forslag: ja, sjekken avgjør.)"
+    },
+    "fremgang": {
+      "x": 0,
+      "y": 15320,
+      "text": "Fremgang: koselig fra start, og fungerer med flere spillere",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "fremgang-forklaring": {
+      "x": 2720,
+      "y": 15620,
+      "w": 380,
+      "fill": "yellow",
+      "text": "Problemet: med flere spillere i samme bygd blir det rart at «mitt» lys tennes, og en mørk bygd er ikke koselig. Derfor er bygda pyntet fra start i alle forslagene. Fremgang vises i stedet på tre nivåer: det du lager i Studio (finnes allerede), figuren din (personlig og synlig for andre), og et felles juletre (det dere gjør sammen)."
+    },
+    "fremgang-sporsmal": {
+      "x": 2720,
+      "y": 16540,
+      "w": 380,
+      "fill": "blue",
+      "text": "Å avklare: Blir det flerspiller, eller er det en ønskeliste? Figurpynt trenger nye sprites (Kenney har lite klær), så vi må sjekke hva som finnes. Juletreet trenger et felles sted å lagre kulene, som vi uansett trenger for innlogging og deltakeroversikt."
+    },
+    "kuler": {
+      "x": 2720,
+      "y": 16980,
+      "w": 380,
+      "fill": "green",
+      "text": "Tegnede kuler: hver oppgave gir en kule du tegner selv (8 × 8 ruter, startverdi). Alle kulene henger på samme tre, og du ser hvem som laget hvilken. Arrangøren må kunne skjule en kule."
+    },
+    "flerspiller": {
+      "x": 2720,
+      "y": 17400,
+      "w": 380,
+      "fill": "blue",
+      "text": "Samme verden? Mulig, i tre nivåer. A: Felles tre uten sanntid. Kulene lagres i én felles tjeneste og hentes når du åpner spillet. Lite arbeid, og trengs uansett for innlogging. B: Se hverandre gå rundt. Hver spiller sender posisjonen sin noen ganger i sekundet via en sanntidstjeneste, og spillet tegner de andre. Middels arbeid. C: Spille sammen (felles monstre og kamp). Mye arbeid, anbefales ikke. Forslag: A først, B hvis tiden strekker til."
+    }
+  },
+  "designSystems": []
+}

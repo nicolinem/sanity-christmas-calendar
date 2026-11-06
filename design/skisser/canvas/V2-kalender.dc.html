@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Kalenderen, runde 2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&amp;family=Pixelify+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8fd3ff}a:hover{color:#e3ebf5}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #1b1f33; font-family: 'Pixelify Sans', system-ui, sans-serif; color: #e3ebf5">
+  <img src="/_blob/208487001bd7ece0606173aba742917e" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; image-rendering: pixelated">
+
+  <div style="position: absolute; inset: 32px 48px; background: #262b44; border: 2px solid #1b1f33; box-shadow: inset 0 0 0 2px #3a4263; display: flex; flex-direction: column">
+    <div style="display: flex; align-items: center; gap: 22px; padding: 14px 22px; border-bottom: 2px solid #1b1f33">
+      <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 36px; line-height: 1">Julekalenderen</span>
+      <div role="tablist" style="display: flex; gap: 4px">
+        <button type="button" role="tab" aria-selected="true" style="padding: 6px 12px; background: #3a4263; border: 0; box-shadow: inset 0 -3px 0 #fdbe53; color: #e3ebf5; font: inherit; font-size: 14px">Luker</button>
+        <button type="button" role="tab" aria-selected="false" style="padding: 6px 12px; background: transparent; border: 0; color: #8b9bb4; font: inherit; font-size: 14px">Lærdommer</button>
+      </div>
+      <span style="flex: 1"></span>
+      <span style="font-size: 14px; color: #fdbe53">6 av 24 luker</span>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: 2px solid #8b9bb4; color: #e3ebf5; font: inherit; font-size: 13px">Lukk <span style="padding: 0 4px; background: #3a4263; font-size: 11px">Esc</span></button>
+    </div>
+
+    <div style="flex: 1; display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); min-height: 0">
+      <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid #1b1f33; min-height: 0">
+        <div style="flex: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 10px; min-height: 0">
+          <sc-for list="{{doors}}" as="d" hint-placeholder-count="24">
+            <div title="{{d.gives}}" style="display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 8px 10px; min-height: 0; background: {{d.bg}}; box-shadow: {{d.ring}}">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start">
+                <span style="font-family: 'Jersey 10', 'Pixelify Sans', sans-serif; font-size: 30px; line-height: 0.85; color: {{d.numColor}}">{{d.n}}</span>
+                <sc-if value="{{d.hasIcon}}" hint-placeholder-val="{{ false }}">
+                  <img src="{{d.icon}}" alt="" style="width: 28px; height: 28px; image-rendering: pixelated; opacity: {{d.iconOpacity}}">
+                </sc-if>
+              </div>
+              <span style="font-size: 11px; line-height: 1.2; color: {{d.labelColor}}">{{d.label}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #c0cbdc">
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #2c5a4b; box-shadow: inset 0 0 0 2px #3f7a66"></span>Ferdig</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #e38628"></span>I dag</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #3a4263; box-shadow: inset 0 0 0 2px #fdbe53"></span>Åpen</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #20253a; box-shadow: inset 0 0 0 2px #2b3150"></span>Kommer</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><img src="/_blob/81631ca48488bee7c2396e4665733264" alt="" style="width: 14px; height: 14px; image-rendering: pixelated">Pynt i bygda</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><img src="/_blob/b619ad868ecb2e0a3071bae4660e4d96" alt="" style="width: 14px; height: 14px; image-rendering: pixelated">Bonus: ny figur</span>
+        </div>
+      </div>
+
+      <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #fdbe53">Luke 8 · i dag, tirsdag 8. desember</span>
+          <span style="font-size: 22px; line-height: 1.25">Lag en egen document type for monstre</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px">
+          <span style="padding: 2px 10px; background: #1b1f33; color: #8fd3ff">document type</span>
+          <span style="padding: 2px 10px; background: #1b1f33; color: #c0cbdc">ca. 20 min</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #1b1f33">
+          <img src="/_blob/76c27a0d2de19be811e89dde436500c5" alt="" style="width: 40px; height: 40px; image-rendering: pixelated">
+          <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #8b9bb4">Gir</span><span style="font-size: 15px">Banner på torget</span></div>
+        </div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.5">Lag en <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #fdbe53">monster</span>-type med navn, størrelse og sprite. Monstrene du publiserer, dukker opp i spillet.</p>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Fil</span><span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fdbe53">monster.ts</span> · <a href="#editor">Åpne i editoren</a></span></div>
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Sjekkes</span><span>Av seg selv: når du lagrer, og når du publiserer et monster</span></div>
+          <div style="display: flex; gap: 10px"><span style="width: 96px; flex: none; color: #8b9bb4">Løsning</span><span>Fredag 11. desember</span></div>
+        </div>
+        <span style="flex: 1"></span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" style="padding: 8px 14px; background: #e38628; border: 0; box-shadow: inset 0 2px 0 #fdbe53; color: #2a140e; font: inherit; font-size: 14px; font-weight: 600">Åpne Sanity Studio</button>
+          <button type="button" style="padding: 8px 14px; background: #3a4263; border: 0; box-shadow: inset 0 2px 0 #4d5781; color: #e3ebf5; font: inherit; font-size: 14px">Vis et hint</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+const lit = '/_blob/81631ca48488bee7c2396e4665733264';
+const banner = '/_blob/76c27a0d2de19be811e89dde436500c5';
+const sign = '/_blob/1c48bbb90d0d6b963e51f09a324cc6c8';
+const tree = '/_blob/db824591736e6ef54c550bf1199a6837';
+const viking = '/_blob/b619ad868ecb2e0a3071bae4660e4d96';
+const mage = '/_blob/d477a06fc47ee68099afd02779949375';
+const ranger = '/_blob/619c0aec40cb6fb6b285b75f1bd35682';
+const known = {
+  1: ['done', 'Publiser et våpen', lit, 'Lys i smia'],
+  2: ['done', 'Ikon og preview', banner, 'Banner på smia'],
+  3: ['done', 'Validation', lit, 'Lys på bakeriet'],
+  4: ['done', 'Custom input', sign, 'Skilt ved brønnen'],
+  5: ['done', 'Bonus: document view', viking, 'Ny figur: viking'],
+  6: ['open', 'Bonus: GROQ', mage, 'Ny figur: magiker'],
+  7: ['done', 'Document action', lit, 'Lys i vaktbua'],
+  8: ['today', 'Document type', banner, 'Banner på torget'],
+  12: ['locked', 'Bonus · 12. des', ranger, 'Ny figur'],
+  13: ['locked', 'Bonus · 13. des', ranger, 'Ny figur'],
+  19: ['locked', 'Bonus · 19. des', ranger, 'Ny figur'],
+  20: ['locked', 'Bonus · 20. des', ranger, 'Ny figur'],
+  24: ['eve', 'Julaften', tree, 'Juletreet tennes']
+};
+const look = {
+  done: ['#2c5a4b', 'inset 0 0 0 2px #3f7a66', '#e3ebf5', '#c0cbdc', 1],
+  open: ['#3a4263', 'inset 0 0 0 2px #fdbe53', '#e3ebf5', '#c0cbdc', 0.45],
+  today: ['#e38628', 'inset 0 0 0 2px #fdbe53, 0 0 0 3px #1b1f33, 0 0 0 5px #fdbe53', '#2a140e', '#2a140e', 0.6],
+  locked: ['#20253a', 'inset 0 0 0 2px #2b3150', '#5a6488', '#6f7aa0', 0.3],
+  eve: ['#20253a', 'inset 0 0 0 2px #f03e2f', '#f03e2f', '#f03e2f', 0.6]
+};
+const doors = [];
+for (let n = 1; n <= 24; n++) {
+  const k = known[n] || ['locked', n + '. des', '', 'Pynt i bygda'];
+  const l = look[k[0]];
+  doors.push({
+    n, label: k[1], icon: k[2], hasIcon: Boolean(k[2]), gives: 'Gir: ' + k[3],
+    bg: l[0], ring: l[1], numColor: l[2], labelColor: l[3], iconOpacity: l[4]
+  });
+}
+return { doors };
+}
+}
+</script>
+</body>
+</html>

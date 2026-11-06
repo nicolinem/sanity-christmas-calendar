@@ -29,7 +29,7 @@ npm run verify-release -- --build   # også next build
 Den sjekker ut `main` og `solutions` i midlertidige worktrees, så din egen
 arbeidskopi blir ikke rørt. Den feiler hvis en kode-quest er løst på `main`
 (en løsning har lekket) eller ikke er løst på `solutions`. Bruker `.env.local`,
-så Laugets lov kan teste duplikater mot datasettet ditt (publiser minst én
+så luke 3 (validation) kan teste duplikater mot datasettet ditt (publiser minst én
 gjenstand først).
 
 ## Slippe et kapittel
