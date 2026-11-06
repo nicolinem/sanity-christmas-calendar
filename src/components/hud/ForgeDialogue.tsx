@@ -4,9 +4,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { GameItemView } from "@/game/items";
 import type { QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
+import { QUEST_SITES, type QuestSiteId } from "@/game/village";
 import SpriteIcon from "./SpriteIcon";
 import { IconQuill } from "./icons";
-import GoalPreview from "./goalPreviews";
 import { renderText } from "./richText";
 import { openStudio } from "./studioPane";
 
@@ -20,21 +20,16 @@ type Props = {
   checked: boolean; // the player has asked the forge at least once
   onCheck: () => void;
   onOpenLog: () => void;
+  onTravelToSite: (siteId: QuestSiteId) => void;
   onOpenCode: (questId: string) => void;
-  onSkipQuest: (questId: string) => void;
-  hintsShown: number; // hints revealed so far for the current quest
-  onRevealHint: (questId: string) => void;
   onClose: () => void;
 };
 
 const FIRST_QUEST = "the-broken-forge";
 
-// Talking to Brann is where Sanity enters the story: he can't forge anything,
-// but the player can, in the Studio. He speaks in short
-// pages: a word about what you just did, then the next task. The pages are
-// fixed when the conversation starts, so handing over a quest (which flips it
-// from offered to active) doesn't change what he's in the middle of saying.
-// GameClient remounts this component when the current quest changes.
+// Brann introduces the task and points toward its place in Frostholm. The
+// location is optional; the quest log and code window are available anywhere.
+// The pages stay fixed during a conversation; GameClient remounts on new quests.
 export default function ForgeDialogue(props: Props) {
   const { board, forged, sanityConfigured } = props;
   const [pages] = useState(() => buildPages(board, forged, sanityConfigured));
@@ -44,7 +39,9 @@ export default function ForgeDialogue(props: Props) {
   const studioRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    (last ? studioRef.current : continueRef.current)?.focus({ preventScroll: true });
+    (last ? studioRef.current : continueRef.current)?.focus({
+      preventScroll: true,
+    });
   }, [last, page]);
 
   // E or Enter turns the page. Capture phase, so GameClient's "E closes the
@@ -64,18 +61,30 @@ export default function ForgeDialogue(props: Props) {
   const current = board.current;
 
   return (
-    <section className="dialogue frame frame--wood" role="dialog" aria-label="Brann, smeden">
+    <section
+      className="dialogue frame frame--wood"
+      role="dialog"
+      aria-label="Brann, smeden"
+    >
       <div className="dialogue-portrait frame frame--inset">
         <SpriteIcon sprite={{ sheet: "dungeon", frame: 86 }} scale={4} />
       </div>
       <div className="dialogue-body">
         <p className="dialogue-name">
           Brann, smeden
-          {current && sanityConfigured !== false && <span className="dialogue-task">Luke {current.quest.door}</span>}
+          {current && sanityConfigured !== false && (
+            <>
+              {" "}
+              <span className="dialogue-task">Luke {current.quest.door}</span>
+            </>
+          )}
           {pages.length > 1 && (
-            <span className="dialogue-page">
-              {page + 1}/{pages.length}
-            </span>
+            <>
+              {" "}
+              <span className="dialogue-page">
+                {page + 1}/{pages.length}
+              </span>
+            </>
           )}
         </p>
         <div className="dialogue-speech" aria-live="polite">
@@ -86,10 +95,19 @@ export default function ForgeDialogue(props: Props) {
           <Details {...props} studioRef={studioRef} />
         ) : (
           <div className="dialogue-actions">
-            <button ref={continueRef} type="button" className="btn btn--amber" onClick={() => setPage((p) => p + 1)}>
+            <button
+              ref={continueRef}
+              type="button"
+              className="btn btn--amber"
+              onClick={() => setPage((p) => p + 1)}
+            >
               Fortsett <kbd>E</kbd>
             </button>
-            <button type="button" className="btn btn--quiet" onClick={props.onClose}>
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={props.onClose}
+            >
               Gå <kbd>Esc</kbd>
             </button>
           </div>
@@ -99,30 +117,69 @@ export default function ForgeDialogue(props: Props) {
   );
 }
 
-function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityConfigured: boolean | null): ReactNode[] {
+function buildPages(
+  board: QuestBoard,
+  forged: GameItemView | undefined,
+  sanityConfigured: boolean | null,
+): ReactNode[] {
   if (sanityConfigured === false) {
     return [
       <>
-        Spillet er ikke koblet til et Sanity-prosjekt ennå, så du får bare øvingsutstyr. Kjør <code>npm run setup</code>{" "}
-        i repoet, og kom tilbake.
+        Spillet er ikke koblet til et Sanity-prosjekt ennå, så du får bare
+        øvingsutstyr. Kjør <code>npm run setup</code> i repoet, og kom tilbake.
       </>,
     ];
   }
   const { current, previous } = board;
   const reaction = previous ? [<Reaction key="r" state={previous} />] : [];
   if (!current) {
-    return [...reaction, <>Det var alle lukene som er åpne nå. Kom tilbake når neste luke åpner.</>];
+    return [
+      ...reaction,
+      <>
+        Det var alle lukene som er åpne nå. Kom tilbake når neste luke åpner.
+      </>,
+    ];
+  }
+  const place = current.quest.villageSite
+    ? QUEST_SITES[current.quest.villageSite].label.toLowerCase()
+    : undefined;
+  const placePhrase =
+    current.quest.villageSite === "noticeboard"
+      ? "på oppslagstavla"
+      : place && current.quest.villageSite !== "forge"
+        ? `ved ${place}`
+        : undefined;
+  const introPages = current.quest.intro.map((text, index) => (
+    <>
+      {renderText(text)}
+      {index === current.quest.intro.length - 1 && placePhrase && (
+        <> Oppgaven ligger {placePhrase}.</>
+      )}
+    </>
+  ));
+  if (current.status === "active" && placePhrase) {
+    return [
+      ...reaction,
+      <>
+        {renderText(current.quest.intro[0])}
+      </>,
+      <>
+        {renderText(current.quest.intro[1] ?? "")}
+        {current.quest.intro[1] && " "}Oppgaven ligger {placePhrase}.
+      </>,
+    ];
   }
   if (current.status === "offered") {
-    return [...reaction, ...current.quest.intro.map((text) => <>{renderText(text)}</>)];
+    return [...reaction, ...introPages];
   }
   // Already handed over: a short reminder.
   if (current.quest.id === FIRST_QUEST) {
     return [
       forged ? (
         <>
-          <strong>{forged.name}</strong> er klart, og gjør {forged.power?.damage ?? 0} skade. Nå gjenstår bare
-          snømonsteret øst for brønnen.
+          <strong>{forged.name}</strong> er klart, og gjør{" "}
+          {forged.power?.damage ?? 0} skade. Nå gjenstår bare snømonsteret øst
+          for brønnen.
         </>
       ) : (
         <>{current.quest.intro[current.quest.intro.length - 1]}</>
@@ -131,7 +188,8 @@ function buildPages(board: QuestBoard, forged: GameItemView | undefined, sanityC
   }
   return [
     <>
-      Luke {current.quest.door}: {current.quest.title}. {renderText(current.quest.goal)}
+      Luke {current.quest.door}: {current.quest.title}.{" "}
+      {renderText(current.quest.goal)}
     </>,
   ];
 }
@@ -142,7 +200,9 @@ function Reaction({ state }: { state: QuestState }) {
     <>
       Bra, luke {state.quest.door} er ferdig! Det du lærte:
       <span className="dialogue-lesson">
-        <span className="dialogue-lesson-title">{renderText(state.quest.lesson.title)}</span>
+        <span className="dialogue-lesson-title">
+          {renderText(state.quest.lesson.title)}
+        </span>
         {renderText(state.quest.lesson.text)}
       </span>
     </>
@@ -160,64 +220,86 @@ function Details({
   checked,
   onCheck,
   onOpenLog,
+  onTravelToSite,
   onOpenCode,
-  onSkipQuest,
-  hintsShown,
-  onRevealHint,
   onClose,
   studioRef,
 }: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
-  const [confirmSkip, setConfirmSkip] = useState(false);
   const current = board.current;
   const onboarding = !current || current.quest.id === FIRST_QUEST;
   const firstForging = onboarding && !forged;
+  const remoteSite =
+    current?.status === "active" && current.quest.villageSite !== "forge"
+      ? current.quest.villageSite
+      : undefined;
   // Written in the game's code window, not in the Studio or the repo.
-  const inWindow = current?.quest.checkedBy === "window" && sanityConfigured !== false;
+  const inWindow =
+    current?.quest.checkedBy === "window" && sanityConfigured !== false;
 
   return (
     <>
       {firstForging && sanityConfigured !== false && (
         <ol className="dialogue-steps">
           <li>
-            Åpne Sanity Studio og lag et nytt <span className="term">Item</span>-dokument
+            Åpne Sanity Studio og lag et nytt <span className="term">Item</span>
+            -dokument
           </li>
           <li>
-            Velg <span className="term">Weapon</span>, gi det et navn og en sprite
+            Velg <span className="term">Weapon</span>, gi det et navn og en
+            sprite
           </li>
           <li>
-            Trykk <span className="term">Publish</span>, og se våpenet dukke opp i spillet
+            Trykk <span className="term">Publish</span>, og se våpenet dukke opp
+            i spillet
           </li>
         </ol>
       )}
 
       {fetchFailed && !refreshing && (
         <p className="dialogue-feedback" role="status">
-          Spillet når ikke Sanity-prosjektet ditt. Er <span className="term">dataset</span>-et privat, kan ikke spillet lese det. Kjør{" "}
-          <code>npm run setup</code> for å sjekke.
+          Spillet når ikke Sanity-prosjektet ditt. Er{" "}
+          <span className="term">dataset</span>-et privat, kan ikke spillet lese
+          det. Kjør <code>npm run setup</code> for å sjekke.
         </p>
       )}
 
-      {firstForging && checked && !refreshing && !fetchFailed && sanityConfigured !== false && (
-        <p className="dialogue-feedback" role="status">
-          Ingen våpen ennå. Bare publiserte våpen kommer med, ikke <span className="term">drafts</span>.
-        </p>
-      )}
+      {firstForging &&
+        checked &&
+        !refreshing &&
+        !fetchFailed &&
+        sanityConfigured !== false && (
+          <p className="dialogue-feedback" role="status">
+            Ingen våpen ennå. Bare publiserte våpen kommer med, ikke{" "}
+            <span className="term">drafts</span>.
+          </p>
+        )}
 
       {unclaimed && firstForging && (
         <p className="dialogue-hint">
-          Første gang i Studio? Åpne innloggingslenken som <code>npm run setup</code> skrev ut. Kjør den på nytt
-          for å se lenken. Studio husker deg etterpå.
+          Første gang i Studio? Åpne innloggingslenken som{" "}
+          <code>npm run setup</code> skrev ut. Kjør den på nytt for å se lenken.
+          Studio husker deg etterpå.
         </p>
       )}
 
-      {!onboarding && current && sanityConfigured !== false && (
-        <TaskNotes state={current} hintsShown={hintsShown} onRevealHint={onRevealHint} refreshing={refreshing} />
-      )}
-
       <div className="dialogue-actions">
-        {inWindow && current ? (
+        {remoteSite && current ? (
+          <button
+            ref={studioRef}
+            type="button"
+            className="btn btn--amber"
+            onClick={() => onTravelToSite(remoteSite)}
+          >
+            Gå til {QUEST_SITES[remoteSite].label.toLowerCase()}
+          </button>
+        ) : inWindow && current ? (
           <>
-            <button ref={studioRef} type="button" className="btn btn--amber" onClick={() => onOpenCode(current.quest.id)}>
+            <button
+              ref={studioRef}
+              type="button"
+              className="btn btn--amber"
+              onClick={() => onOpenCode(current.quest.id)}
+            >
               Åpne kodevinduet
             </button>
             <button type="button" className="btn" onClick={openStudio}>
@@ -227,109 +309,34 @@ function Details({
           </>
         ) : (
           <>
-            <button ref={studioRef} type="button" className="btn btn--amber" onClick={openStudio}>
+            <button
+              ref={studioRef}
+              type="button"
+              className="btn btn--amber"
+              onClick={openStudio}
+            >
               <IconQuill />
               Åpne Sanity Studio
             </button>
-            <button type="button" className="btn" onClick={onCheck} disabled={refreshing}>
+            <button
+              type="button"
+              className="btn"
+              onClick={onCheck}
+              disabled={refreshing}
+            >
               {refreshing ? "Sjekker…" : "Sjekk på nytt"}
             </button>
           </>
         )}
         {!onboarding && (
           <button type="button" className="btn" onClick={onOpenLog}>
-            Kalender <kbd>J</kbd>
+            Kalender og journal
           </button>
         )}
-        {current?.status === "active" &&
-          (confirmSkip ? (
-            <div className="dialogue-skip-confirm" role="group" aria-label="Bekreft å hoppe over luka">
-              <span>Du kan ta igjen luka fra kalenderen senere.</span>
-              <button
-                type="button"
-                className="btn btn--amber"
-                onClick={() => {
-                  onSkipQuest(current.quest.id);
-                  onClose();
-                }}
-              >
-                Gå videre
-              </button>
-              <button type="button" className="btn btn--quiet" onClick={() => setConfirmSkip(false)}>
-                Avbryt
-              </button>
-            </div>
-          ) : (
-            <button type="button" className="btn btn--quiet" onClick={() => setConfirmSkip(true)}>
-              Hopp over og gå videre
-            </button>
-          ))}
         <button type="button" className="btn btn--quiet" onClick={onClose}>
           Gå <kbd>Esc</kbd>
         </button>
       </div>
     </>
-  );
-}
-
-// Under Brann's words: where to work, how he'll check it, his latest verdict,
-// and hints the player can reveal one by one (shared with the quest log).
-function TaskNotes({
-  state,
-  hintsShown,
-  onRevealHint,
-  refreshing,
-}: {
-  state: QuestState;
-  hintsShown: number;
-  onRevealHint: (questId: string) => void;
-  refreshing: boolean;
-}) {
-  const { quest, result } = state;
-  const hints = quest.hints.slice(0, hintsShown);
-  return (
-    <div className="dialogue-notes">
-      <GoalPreview quest={quest} />
-      {quest.where && (
-        <p className="dialogue-note">
-          <span className="dialogue-note-label">Hvor du jobber</span> {renderText(quest.where)}
-        </p>
-      )}
-      {quest.checkedBy === "code" && (
-        <p className="dialogue-note">
-          <span className="dialogue-note-label">Slik sjekkes det</span> kjør <code>npm run quest</code> i terminalen,
-          og trykk «Sjekk på nytt».
-        </p>
-      )}
-      {quest.checkedBy === "window" && (
-        <p className="dialogue-note">
-          <span className="dialogue-note-label">Slik sjekkes det</span> kodevinduet prøver koden din mens du skriver.
-          Når den virker, slås det samme på i Studio.
-        </p>
-      )}
-      {result.message && !refreshing && !result.done && (
-        <p className="dialogue-feedback" role="status">
-          <span className="dialogue-note-label">Status</span> {renderText(result.message)}
-        </p>
-      )}
-      {hints.map((hint, i) => (
-        <p key={i} className="dialogue-note dialogue-hint-line">
-          <span className="dialogue-note-label">Hint {i + 1}</span> {renderText(hint.text)}
-          {hint.link && (
-            <>
-              {" "}
-              <a className="log-hint-link" href={hint.link.url} target="_blank" rel="noreferrer">
-                {hint.link.label}
-              </a>
-            </>
-          )}
-        </p>
-      ))}
-      {hintsShown < quest.hints.length && (
-        <button type="button" className="dialogue-more-hint" onClick={() => onRevealHint(quest.id)}>
-          {hintsShown === 0 ? "Trenger du et hint?" : "Et hint til"}
-        </button>
-      )}
-    </div>
   );
 }

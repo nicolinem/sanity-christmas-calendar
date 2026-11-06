@@ -26,7 +26,14 @@ const PATHS: Rect[] = [
 // Frost glade, east of the village, where the wraith drifts about.
 export const GLADE: Rect = { x: 37, y: 11, w: 7, h: 10 };
 const STONES: [number, number][] = [
-  [38, 13], [40, 12], [42, 14], [39, 17], [41, 19], [43, 17], [37, 15], [40, 15],
+  [38, 13],
+  [40, 12],
+  [42, 14],
+  [39, 17],
+  [41, 19],
+  [43, 17],
+  [37, 15],
+  [40, 15],
 ];
 
 export type Building = {
@@ -98,6 +105,32 @@ export const FORGE_FIRE = { x: 22 * 16 + 8, y: 6 * 16 + 9 };
 export const FURNACE = { x: 19 * 16 + 8, y: 6 * 16 + 8 };
 export const WRAITH_HOME = { x: 40 * 16 + 8, y: 16 * 16 };
 
+export const QUEST_SITES = {
+  forge: {
+    label: "Smia",
+    x: BLACKSMITH.x,
+    y: BLACKSMITH.y,
+    mapX: 24 * 16 + 8,
+    mapY: 7 * 16,
+  },
+  noticeboard: {
+    label: "Oppslagstavla",
+    x: 29 * 16 + 8,
+    y: 15 * 16 + 8,
+    mapX: 29 * 16 + 8,
+    mapY: 13 * 16 + 8,
+  },
+  westHouse: {
+    label: "Huset",
+    x: 10 * 16 + 8,
+    y: 10 * 16 + 8,
+    mapX: 10 * 16 + 8,
+    mapY: 9 * 16 + 8,
+  },
+} as const;
+
+export type QuestSiteId = keyof typeof QUEST_SITES;
+
 // --- derived grid -----------------------------------------------------------
 
 function inRect(x: number, y: number, r: Rect) {
@@ -146,7 +179,9 @@ function reserve(r: Rect, pad = 0) {
       if (y >= 0 && x >= 0 && y < MAP_H && x < MAP_W) occupied[y][x] = true;
 }
 PATHS.forEach((r) => reserve(r, 1));
-BUILDINGS.forEach((b) => reserve({ x: b.x, y: b.y, w: b.rows[0].length, h: b.rows.length + 1 }, 1));
+BUILDINGS.forEach((b) =>
+  reserve({ x: b.x, y: b.y, w: b.rows[0].length, h: b.rows.length + 1 }, 1),
+);
 PROPS.forEach((p) => reserve({ x: p.x, y: p.y, w: 1, h: 1 }, 1));
 reserve(GLADE, 0);
 reserve({ x: 23, y: 7, w: 3, h: 3 }); // forge yard
@@ -177,7 +212,14 @@ export const TREES: Tree[] = [];
       const p = edge < 2 ? 1 : edge < 3 ? 0.75 : edge < 5 ? 0.35 : 0.12;
       if (rand() > p) continue;
       const r = rand();
-      const frame = edge >= 3 && r < 0.1 ? 5 : edge >= 3 && r < 0.16 ? 17 : r < 0.62 ? 28 : 4;
+      const frame =
+        edge >= 3 && r < 0.1
+          ? 5
+          : edge >= 3 && r < 0.16
+            ? 17
+            : r < 0.62
+              ? 28
+              : 4;
       TREES.push({
         frame,
         x: x * 16 + 8 + Math.round((rand() - 0.5) * 6),

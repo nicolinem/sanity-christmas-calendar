@@ -1,5 +1,6 @@
 import type { GameItemView } from "../items";
 import type { Element } from "../magic";
+import type { QuestSiteId } from "../village";
 
 // Facts the player has earned. Stored per Sanity project in the browser
 // (progress.ts) and never taken back: deleting a sword doesn't undo a quest.
@@ -49,6 +50,7 @@ export type Quest = {
   intro: string[]; // what Brann says when he hands it over, one short page each
   goal: string; // one line for the tracker: what, not how
   where?: string; // where the work happens: a file or a place, not the answer
+  villageSite?: QuestSiteId; // where the player finds this task in Frostholm
   // "Slik blir det": a Før / Etter picture of the goal, with a short caption
   // under each. The pictures are React, so they live in a registry keyed by
   // quest id (src/components/hud/goalPreviews.tsx); only the captions are here.

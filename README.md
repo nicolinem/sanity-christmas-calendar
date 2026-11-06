@@ -56,7 +56,8 @@ claim deadline.
 ## Playing
 
 **WASD / arrows** (or click) to walk, **E** to talk, **Space** to attack,
-**1–8** to equip, **J** for the calendar.
+**1–8** to equip, **J** for the map. The calendar and journal have their own
+button, and tasks can be opened from Brann without walking to their map location.
 
 - **Brann** the blacksmith hands out one door at a time. His dialogue says *where to work* and,
   if you ask, gives hints one by one, with links to the exact docs.

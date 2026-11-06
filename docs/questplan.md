@@ -185,8 +185,12 @@ Kan bytte inn en oppgave som ikke fungerer, eller bli ekstra bonus.
 
 - **Kalenderen** viser tre ukentlige kapitler, ikke 24 daglige luker. Nye
   kapitler åpner på dato; lukene i valgt løype tas i rekkefølge.
-- **Questloggen** (tast J) viser løype, kapittel, neste luke, poeng og status.
-  Senere luker er låst fram til den aktive luka er fullført eller hoppet over.
+- **Brann er veiviser.** Han deler ut luka og peker til stedet i bygda. Stedet
+  er valgfritt; mål, hint og kodevindu er tilgjengelig fra Brann og journalen.
+- **J åpner kartet.** Journalen viser luker og lærdommer via egen knapp. Kartet
+  viser hvor åpne, fullførte og låste luker ligger; «Gå til» bruker den
+  eksisterende klikk-for-å-gå-bevegelsen. Senere luker er låst fram til den
+  aktive er fullført eller hoppet over.
 - **Mandag:** et kort med ukas oppgaver, én gang.
 - **Luke ferdig:** tydelig tilbakemelding, lærdom og poeng, deretter neste luke.
 - **Gi opp:** vis fasit/veiledning, merk luka som hoppet over, og åpne neste.
