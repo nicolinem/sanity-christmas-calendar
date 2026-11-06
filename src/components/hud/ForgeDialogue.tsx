@@ -21,6 +21,7 @@ type Props = {
   onCheck: () => void;
   onOpenLog: () => void;
   onOpenCode: (questId: string) => void;
+  onSkipQuest: (questId: string) => void;
   hintsShown: number; // hints revealed so far for the current quest
   onRevealHint: (questId: string) => void;
   onClose: () => void;
@@ -160,11 +161,13 @@ function Details({
   onCheck,
   onOpenLog,
   onOpenCode,
+  onSkipQuest,
   hintsShown,
   onRevealHint,
   onClose,
   studioRef,
 }: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
+  const [confirmSkip, setConfirmSkip] = useState(false);
   const current = board.current;
   const onboarding = !current || current.quest.id === FIRST_QUEST;
   const firstForging = onboarding && !forged;
@@ -238,6 +241,29 @@ function Details({
             Kalender <kbd>J</kbd>
           </button>
         )}
+        {current?.status === "active" &&
+          (confirmSkip ? (
+            <div className="dialogue-skip-confirm" role="group" aria-label="Bekreft å hoppe over luka">
+              <span>Du kan ta igjen luka fra kalenderen senere.</span>
+              <button
+                type="button"
+                className="btn btn--amber"
+                onClick={() => {
+                  onSkipQuest(current.quest.id);
+                  onClose();
+                }}
+              >
+                Gå videre
+              </button>
+              <button type="button" className="btn btn--quiet" onClick={() => setConfirmSkip(false)}>
+                Avbryt
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="btn btn--quiet" onClick={() => setConfirmSkip(true)}>
+              Hopp over og gå videre
+            </button>
+          ))}
         <button type="button" className="btn btn--quiet" onClick={onClose}>
           Gå <kbd>Esc</kbd>
         </button>

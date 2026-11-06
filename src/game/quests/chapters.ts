@@ -30,7 +30,7 @@ const theBrokenForge: Quest = {
   door: 1,
   title: "Lag og publiser et våpen",
   intro: [
-    "Hei! Jeg er Brann, smeden. Hver dag i desember åpner en ny luke med en liten Sanity-oppgave, og det du publiserer i Sanity Studio, dukker opp her i spillet.",
+    "Hei! Jeg er Brann, smeden. Hver uke åpner et nytt kapittel med Sanity-oppgaver. Det du lager i Studio, dukker opp her i spillet.",
     "Luke 1: lag et våpen i Studio, gi det et navn og en sprite, og trykk *Publish*. Test det så på snømonsteret øst for brønnen.",
   ],
   goal: "Lag et våpen i Sanity Studio, trykk *Publish*, og test det på snømonsteret.",

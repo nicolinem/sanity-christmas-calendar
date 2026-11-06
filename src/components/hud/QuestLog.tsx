@@ -15,6 +15,8 @@ type Props = {
   hintsShown: Record<string, number>;
   onRevealHint: (questId: string) => void;
   onOpenCode: (questId: string) => void;
+  onSkipQuest: (questId: string) => void;
+  onResumeQuest: (questId: string) => void;
   onClose: () => void;
   onReset: () => void;
 };
@@ -24,7 +26,17 @@ type Tab = "quests" | "book";
 // The calendar: every door by week, what's done, what's next, and the layered
 // hints. Lessons collects what each finished door taught. Weeks that aren't
 // built yet only show their topics, as a taste of what's coming.
-export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, onOpenCode, onClose, onReset }: Props) {
+export default function QuestLog({
+  board,
+  forgeLevel,
+  hintsShown,
+  onRevealHint,
+  onOpenCode,
+  onSkipQuest,
+  onResumeQuest,
+  onClose,
+  onReset,
+}: Props) {
   const [tab, setTab] = useState<Tab>("quests");
   const [selectedId, setSelectedId] = useState(board.current?.quest.id ?? board.states[0]?.quest.id);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -97,6 +109,7 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
                             <span className="tracker-box">{s.status === "done" && <IconCheck size={12} />}</span>
                             <span>
                               Luke {s.quest.door}: {s.status === "offered" ? "snakk med Brann" : s.quest.title}
+                              {s.status === "skipped" && <span className="log-skipped">Hoppet over</span>}
                               {s.quest.bonus && <span className="log-bonus"> ☆ Bonus · valgfri</span>}
                             </span>
                           </button>
@@ -121,6 +134,8 @@ export default function QuestLog({ board, forgeLevel, hintsShown, onRevealHint, 
                 shown={hintsShown[selected.quest.id] ?? 0}
                 onMoreHint={() => onRevealHint(selected.quest.id)}
                 onOpenCode={() => onOpenCode(selected.quest.id)}
+                onSkip={() => onSkipQuest(selected.quest.id)}
+                onResume={() => onResumeQuest(selected.quest.id)}
               />
             )}
           </div>
@@ -173,13 +188,18 @@ function QuestDetail({
   shown,
   onMoreHint,
   onOpenCode,
+  onSkip,
+  onResume,
 }: {
   state: QuestState;
   shown: number;
   onMoreHint: () => void;
   onOpenCode: () => void;
+  onSkip: () => void;
+  onResume: () => void;
 }) {
   const { quest, status, result } = state;
+  const [confirmSkip, setConfirmSkip] = useState(false);
 
   if (status === "locked" || status === "offered") {
     return (
@@ -206,6 +226,7 @@ function QuestDetail({
         Luke {quest.door}: {quest.title}
         {quest.bonus && <span className="log-bonus">☆ Bonus · valgfri</span>}
         {status === "done" && <span className="log-done">Ferdig</span>}
+        {status === "skipped" && <span className="log-skipped">Hoppet over</span>}
       </h3>
       <p className="log-intro">«{renderText(quest.intro[quest.intro.length - 1])}»</p>
       <p className="log-goal">{renderText(quest.goal)}</p>
@@ -240,13 +261,13 @@ function QuestDetail({
         )}
         {quest.reward && " Belønning: våpnene dine blir sterkere."}
       </p>
-      {quest.checkedBy === "window" && (
+      {quest.checkedBy === "window" && status !== "skipped" && (
         <button type="button" className="btn btn--amber log-code" onClick={onOpenCode}>
           {status === "done" ? "Se koden igjen" : "Åpne kodevinduet"}
         </button>
       )}
 
-      {quest.hints.length > 0 && status !== "done" && (
+      {quest.hints.length > 0 && status !== "done" && status !== "skipped" && (
         <div className="log-hints">
           {quest.hints.slice(0, shown).map((hint, i) => (
             <p key={i} className="log-hint">
@@ -280,6 +301,31 @@ function QuestDetail({
             Les mer: {quest.learn.label}
           </a>
         )
+      )}
+      {status === "active" && (
+        confirmSkip ? (
+          <div className="log-skipped-actions" role="group" aria-label="Bekreft å hoppe over luka">
+            <p className="log-locked">Du kan ta igjen luka senere.</p>
+            <button type="button" className="btn btn--amber" onClick={onSkip}>
+              Gå videre
+            </button>
+            <button type="button" className="btn btn--quiet" onClick={() => setConfirmSkip(false)}>
+              Avbryt
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="btn btn--quiet log-skip" onClick={() => setConfirmSkip(true)}>
+            Hopp over og gå videre
+          </button>
+        )
+      )}
+      {status === "skipped" && (
+        <div className="log-skipped-actions">
+          <p className="log-locked">Du kan ta igjen denne luka når du vil.</p>
+          <button type="button" className="btn btn--amber" onClick={onResume}>
+            Ta igjen luka
+          </button>
+        </div>
       )}
     </article>
   );

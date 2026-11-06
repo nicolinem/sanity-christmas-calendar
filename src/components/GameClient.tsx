@@ -86,7 +86,18 @@ export default function GameClient() {
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
-  const { progress, forgeLevel, metBrann, reset, revealHint, solveTask, markIntroSeen, jumpTo } = useProgress();
+  const {
+    progress,
+    forgeLevel,
+    metBrann,
+    reset,
+    revealHint,
+    solveTask,
+    skipQuest,
+    resumeQuest,
+    markIntroSeen,
+    jumpTo,
+  } = useProgress();
   const dev = useDevMode();
   const studio = useStudioPane();
   const studioFocused = useStudioFocused() && studio.open;
@@ -349,6 +360,7 @@ export default function GameClient() {
                 onCheck={checkForge}
                 onOpenLog={openLog}
                 onOpenCode={openCode}
+                onSkipQuest={skipQuest}
                 hintsShown={currentId ? (progress.hints[currentId] ?? 0) : 0}
                 onRevealHint={revealHint}
                 onClose={() => setTalking(false)}
@@ -410,6 +422,8 @@ export default function GameClient() {
             hintsShown={progress.hints}
             onRevealHint={revealHint}
             onOpenCode={openCode}
+            onSkipQuest={skipQuest}
+            onResumeQuest={resumeQuest}
             onClose={() => setLogOpen(false)}
             onReset={reset}
           />

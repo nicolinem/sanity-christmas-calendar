@@ -37,6 +37,23 @@ export function useProgress() {
 
   const reset = useCallback(() => resetProgress(PROJECT), []);
 
+  const skipQuest = useCallback((questId: string) => {
+    updateProgress(PROJECT, (p) =>
+      p.completed[questId] || p.skipped[questId]
+        ? p
+        : { ...p, skipped: { ...p.skipped, [questId]: new Date().toISOString() } },
+    );
+  }, []);
+
+  const resumeQuest = useCallback((questId: string) => {
+    updateProgress(PROJECT, (p) => {
+      if (!p.skipped[questId]) return p;
+      const skipped = { ...p.skipped };
+      delete skipped[questId];
+      return { ...p, skipped };
+    });
+  }, []);
+
   const markIntroSeen = useCallback(() => {
     updateProgress(PROJECT, (p) => (p.introSeen ? p : { ...p, introSeen: true }));
   }, []);
@@ -76,11 +93,12 @@ export function useProgress() {
       metBlacksmith: true,
       wraithDefeated: before.length > 0 || p.wraithDefeated,
       completed: Object.fromEntries(before.map((id) => [id, now])),
+      skipped: {},
       briefed: Object.fromEntries([...before, ...(briefed ? [questId] : [])].map((id) => [id, true as const])),
     }));
   }, []);
 
-  return { progress, forgeLevel, metBrann, reset, revealHint, solveTask, markIntroSeen, jumpTo };
+  return { progress, forgeLevel, metBrann, reset, revealHint, solveTask, skipQuest, resumeQuest, markIntroSeen, jumpTo };
 }
 
 type BoardInput = {

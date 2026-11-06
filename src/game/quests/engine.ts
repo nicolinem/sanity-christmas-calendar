@@ -1,16 +1,15 @@
 import { clampForgeLevel } from "../rules";
-import type { Chapter, Progress, Quest, QuestContext, QuestState } from "./types";
+import type { Chapter, Progress, QuestContext, QuestState } from "./types";
 
-// Quests unlock one after another. On top of that, each door waits for its
-// date: door N opens N - 1 days after NEXT_PUBLIC_CALENDAR_START (1 December).
-// Without that variable the calendar is ignored (handy while building).
+// Quests unlock one after another. Each chapter opens weekly from
+// NEXT_PUBLIC_CALENDAR_START (30 November). Without it, dates are ignored.
 const CALENDAR_START = process.env.NEXT_PUBLIC_CALENDAR_START;
 
-export function doorOpensAt(quest: Quest): Date | undefined {
+export function chapterOpensAt(chapter: Chapter): Date | undefined {
   if (!CALENDAR_START) return undefined;
   const start = new Date(`${CALENDAR_START}T00:00:00`);
   if (Number.isNaN(start.getTime())) return undefined;
-  return new Date(start.getTime() + (quest.door - 1) * 864e5);
+  return new Date(start.getTime() + (chapter.number - 1) * 7 * 864e5);
 }
 
 export type QuestBoard = {
@@ -32,25 +31,27 @@ export function evaluateQuests(
   devUnlock = false,
 ): QuestBoard {
   const states: QuestState[] = [];
-  let previousDone = true;
+  let previousResolved = true;
 
   for (const chapter of chapters) {
     for (const quest of chapter.quests) {
-      const opensAt = doorOpensAt(quest);
+      const opensAt = chapterOpensAt(chapter);
       const dateOpen = devUnlock || !opensAt || opensAt <= now;
       const result = quest.check(ctx);
       const done = Boolean(ctx.progress.completed[quest.id]);
-      const unlocked = devUnlock || (previousDone && dateOpen);
+      const skipped = Boolean(ctx.progress.skipped[quest.id]);
+      const unlocked = devUnlock || (previousResolved && dateOpen);
       const briefed = Boolean(ctx.progress.briefed[quest.id]);
       states.push({
         quest,
         chapter,
-        status: done ? "done" : !unlocked ? "locked" : briefed ? "active" : "offered",
+        status: done ? "done" : skipped ? "skipped" : !unlocked ? "locked" : briefed ? "active" : "offered",
         result,
-        opensAt: !done && previousDone && !dateOpen ? opensAt : undefined,
+        opensAt: !done && !skipped && previousResolved && !dateOpen ? opensAt : undefined,
       });
-      // A bonus is optional: it never holds back what comes after it.
-      if (!quest.bonus) previousDone = done;
+      // Skipping advances the story but does not count as completion. Bonuses
+      // remain optional and never hold back the next quest.
+      if (!quest.bonus) previousResolved = done || skipped;
     }
   }
 
