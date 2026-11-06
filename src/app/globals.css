@@ -717,6 +717,9 @@ kbd {
 .log-quest.is-done {
   color: var(--frost-dim);
 }
+.log-quest.is-skipped {
+  color: var(--glacier);
+}
 .log-quest.is-done .tracker-box {
   box-shadow: inset 0 0 0 2px var(--amber);
 }
@@ -746,6 +749,24 @@ kbd {
   font-size: 12px;
   font-weight: 500;
   color: var(--amber);
+}
+.log-skipped {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--glacier);
+}
+.log-skip {
+  margin-top: 12px;
+}
+.log-skipped-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.log-skipped-actions .log-locked {
+  margin: 0 auto 0 0;
 }
 .log-intro {
   margin: 8px 0 0;
@@ -1155,6 +1176,15 @@ kbd {
   flex-wrap: wrap;
   gap: 6px 10px;
   margin-top: 12px;
+}
+.dialogue-skip-confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  width: 100%;
+  padding-top: 6px;
+  color: var(--frost);
 }
 .dialogue .btn:not(.btn--amber):not(.btn--quiet) {
   --face: #5a3830;

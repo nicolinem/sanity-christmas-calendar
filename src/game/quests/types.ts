@@ -7,6 +7,7 @@ export type Progress = {
   metBlacksmith: boolean;
   wraithDefeated: boolean;
   completed: Record<string, string>; // quest id → ISO time it was completed
+  skipped: Record<string, string>; // quest id → ISO time it was skipped
   briefed: Record<string, true>; // quests Brann has already explained
   hints: Record<string, number>; // how many hints the player has revealed per quest
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
@@ -43,7 +44,7 @@ export type Hint = { text: string; link?: { label: string; url: string } };
 
 export type Quest = {
   id: string;
-  door: number; // which calendar door (luke) this is; door N opens on day N
+  door: number; // display order for this door in the calendar
   title: string;
   intro: string[]; // what Brann says when he hands it over, one short page each
   goal: string; // one line for the tracker: what, not how
@@ -75,7 +76,7 @@ export type Chapter = {
 
 // offered: unlocked, but Brann hasn't handed it over yet. Its details stay
 // hidden and it can't be completed until he has.
-export type QuestStatus = "done" | "active" | "offered" | "locked";
+export type QuestStatus = "done" | "active" | "offered" | "skipped" | "locked";
 
 export type QuestState = {
   quest: Quest;

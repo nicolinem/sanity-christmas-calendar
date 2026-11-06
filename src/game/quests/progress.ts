@@ -8,6 +8,7 @@ export const EMPTY_PROGRESS: Progress = {
   metBlacksmith: false,
   wraithDefeated: false,
   completed: {},
+  skipped: {},
   briefed: {},
   hints: {},
   struck: {},
@@ -36,7 +37,15 @@ export function readProgress(project: string): Progress {
   let value = EMPTY_PROGRESS;
   try {
     const raw = window.localStorage.getItem(storageKey(project));
-    if (raw) value = { ...EMPTY_PROGRESS, ...JSON.parse(raw) };
+    if (raw) {
+      const saved = JSON.parse(raw) as Partial<Progress> | null;
+      const skipped = saved?.skipped;
+      value = {
+        ...EMPTY_PROGRESS,
+        ...saved,
+        skipped: skipped && typeof skipped === "object" && !Array.isArray(skipped) ? skipped : {},
+      };
+    }
   } catch {
     // Private mode or blocked storage: play on, progress just won't stick.
   }
