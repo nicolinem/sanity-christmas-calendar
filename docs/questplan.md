@@ -7,10 +7,11 @@ gjennomført med ansatte som har lyst. Tekniske beslutninger står i
 [gjennomforing.md](gjennomforing.md). Skissene ligger i Claude Design
 («Sanity-julekalenderen: skisser»).
 
-Oppdatert 2026-11-06: kalenderen har ikke 24 daglige luker. Hovedløypa går i
-rekkefølge; deltakeren kan be om fasit og gå videre uten å fullføre, og kan
-komme tilbake til den luka senere. Det finnes to parallelle løyper: teknisk og
-ikke-teknisk. Poeng er med; felles fremgang vises i deltakeroversikten, ikke
+Oppdatert 2026-11-09: kalenderen har ikke 24 daglige luker. Hovedløypa går i
+rekkefølge; deltakeren må få godkjent sjekken før neste luke åpnes. Hint og
+fasit hjelper deltakeren videre i den aktive luka, men erstatter ikke
+fullføring. Det finnes to parallelle løyper: teknisk og ikke-teknisk. Poeng er
+med; felles fremgang vises i deltakeroversikten, ikke
 ved at bygda gradvis lyser opp.
 
 ---
@@ -27,8 +28,9 @@ automatisk; terminalbasert sjekk er reserve for oppgaver der det er nødvendig.
   sin.
 - **Mandag:** ukas oppgaver åpner. Et kort i spillet viser dem, og vi poster i
   kanalen.
-- **I løpet av uka:** målbildet er tre korte kjerneoppgaver og valgfri bonus
-  per løype. Ingen frist; kapitlene åpnes ukentlig og står åpne ut desember.
+- **I løpet av uka:** hver løype får så mange kjerneoppgaver som læringsmålene
+  trenger. Tidsmålet er omtrent én time per løype (startverdi); bonus er
+  valgfri. Ingen frist; kapitlene åpnes ukentlig og står åpne ut desember.
 - **Fredag:** løsningene kommer i spillet og i kanalen.
 - **Poeng og nivå viser egen innsats.** Ingen toppliste i første versjon.
 - **Felles oversikt:** se deltakernes figurer, nivå/fremgang og utvalgte ting
@@ -38,22 +40,24 @@ automatisk; terminalbasert sjekk er reserve for oppgaver der det er nødvendig.
   og grunnleggende Sanity-konsepter. Oppgavene og belønningene i løypene
   utformes separat, men bidrar til samme felles opplevelse.
 
-Tre kjerneoppgaver per løype er ca. 1 time (startverdi). Vi justerer når
-testerne har tatt tiden på uke 1. Hvordan desember kjøres i praksis, står i
+Omtrent én time per løype er en startverdi; antall oppgaver er ikke låst og
+kan være ulikt mellom løypene. Vi justerer omfanget når testerne har tatt
+tiden på uke 1. Hvordan desember kjøres i praksis, står i
 [gjennomforing.md](gjennomforing.md).
 
 ## Hva en god oppgave er
 
 1. **Ett nytt Sanity-tema.** Ikke to.
 2. **Synlig resultat** i spillet eller i Studio.
-3. **Automatisk sjekk.** Innhold sjekkes i spillet; kode sjekkes ved lagring
-   der det er robust. `npm run quest` er reserve, ikke den forventede
-   deltakerflyten.
+3. **Automatisk sjekk.** Innhold sjekkes i spillet. I kodevinduet sjekkes koden
+   automatisk etter en kort skrivepause, uten at deltakeren lagrer en fil.
+   For kode i repoet er sjekk ved fillagring planlagt der det er robust;
+   disse oppgavene bruker foreløpig `npm run quest`.
 4. **Høyst 25 minutter** for en som ikke har sett den. Over 35 blir den bonus.
 5. **Virker på gratisplanen** i Sanity.
 6. **Bygger bare på det deltakeren har sett før** i tidligere luker. Lukene
-   åpnes i rekkefølge. Deltakeren kan be om fasit, gå videre og senere gå
-   tilbake til en hoppet over luke.
+   åpnes i rekkefølge, og neste luke åpnes først når sjekken for den aktive
+   luka er bestått. Hint og fasit er tilgjengelig uten å omgå sjekken.
 7. **Gjenbruker det spillet allerede har.** Hver uke får én ny ting i spillet
    (for eksempel monstre), og flere oppgaver bygger på den.
 
@@ -62,23 +66,63 @@ testerne har tatt tiden på uke 1. Hvordan desember kjøres i praksis, står i
 Hver løype vurderes for seg; den ikke-tekniske løypa skal ikke være en
 forenklet eller poengmessig mindreverdig utgave av den tekniske.
 
-1. **En trapp:** lett, middels og utfordrende oppgave, med valgfri bonus.
-2. **Rundt én time** for kjerneoppgavene i hver løype. Oppgaver over 25 minutter
-   for en førstegangsdeltaker forenkles eller flyttes til bonus.
-3. **Synlig resultat:** minst to kjerneoppgaver gir noe deltakeren kan se i
-   Studio, spillet eller deltakeroversikten.
+1. **En trapp:** gå fra enklere til mer utfordrende læring, med valgfri bonus;
+   antall luker følger innholdet, ikke en fast kvote.
+2. **Rundt én time** for kjerneoppgavene i hver løype (startverdi). Oppgaver
+   over 25 minutter for en førstegangsdeltaker forenkles eller flyttes til bonus.
+3. **Synlig resultat:** hver kjerneoppgave gir noe deltakeren kan se i Studio,
+   spillet eller deltakeroversikten; ikke legg til luker bare for å nå et
+   bestemt antall.
 4. **Variasjon:** teknisk løype har høyst én oppgave som krever en ny React-
    komponent. Ikke-teknisk løype bruker ikke krav om egen kode.
 5. **Bonus går dypere** uten å være nødvendig for neste luke eller finalen.
 
 Over alle tre ukene bør teknisk løype dekke Studio, skjema, React og GROQ,
 mens ikke-teknisk løype dekker publisering, strukturering og bruk av innhold.
-Læringsmål og konkrete oppgaver for begge løyper mangler fortsatt. Uke 1s
-tidligere pitch er historisk og må revideres:
+Uke 1-forslaget under er ikke vedtatt; uke 2–3 og læringsmålene på tvers av
+ukene må fortsatt revideres. Uke 1s tidligere pitch er historisk:
 https://claude.ai/artifact/CgjW2uFneNYbhMvFJ4UBaF
 
 For å vurdere en oppgave før den bygges: skillen `luke-design`
 (`.claude/skills/luke-design`) og [spillvurdering.md](spillvurdering.md).
+
+### Sanity er bygdas verksted — vedtatt retning 2026-11-10
+
+Sanity skal løse konkrete behov i bygda, ikke bare være et sted å få en sjekk
+godkjent. Flyten er: behov fra Brann → arbeid i Studio eller kode → bruk
+forbedringen i eget Studio → se resultatet i Studio eller spillet.
+
+Kodevinduet er arbeidsbenken for å forbedre Studio. Kodeoppgaver avsluttes med
+å bruke forbedringen i deltakerens eget Studio, som del av samme luke, ikke
+automatisk som en ekstra oppgave. Innholdsoppgaver bruker publisert innhold
+som spillet faktisk leser. Sanity beskriver innholdet; spillet avgjør fortsatt
+skade og andre spillregler.
+
+**Uke 1 følger våpenlista til Brann:**
+
+| Arbeid                             | Avslutning i Studio og spillet                                       |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| Publiser et våpen                  | Finn våpenet i spillet og prøv det                                   |
+| Ikon og preview                    | Finn igjen ditt eget våpen i den forbedrede Studio-lista             |
+| Validation                         | Prøv å publisere et ugyldig våpen, rett feilen og publiser           |
+| Custom input                       | Bruk sprite-velgeren på et våpen, publiser og se endringen i spillet |
+| Document view, hvis bonusen velges | Åpne visningen på ditt eget våpen i Studio                           |
+
+Dette er krav til oppgaveutformingen, ikke en påstand om at hele flyten er
+implementert. Kodetesten bekrefter kodekravene; den beviser ikke alene at
+deltakeren har brukt forbedringen i Studio. Hver luke må beskrive hva som
+sjekkes automatisk, og hva deltakeren blir bedt om å prøve.
+
+**Frivillig videre spilling:** Deltakeren kan lage og endre mer innhold i
+Studio og bruke det i spillet. Ingen mengdekrav som «publiser ti våpen» for å
+komme videre, og ingen ekstra poeng bare for gjentatt publisering. Flere
+monstre og andre innholdstyper forutsetter at støtte for dem faktisk bygges.
+
+**Test før godkjenning:** En ny deltaker skal kunne forklare hva hen hjalp
+Brann med, og hva Sanity gjorde mulig. Hvis svaret bare er «jeg bestod
+sjekken», forbedrer vi koblingen til Studio før vi legger til nye belønninger
+eller spillmekanikker. Test også halvferdig innhold, sletting og gjentatt
+publisering uten utilsiktet fremgang.
 
 ## Oppgavene
 
@@ -86,20 +130,111 @@ For å vurdere en oppgave før den bygges: skillen `luke-design`
 
 ### Uke 1: Studio (åpner mandag 30. november)
 
-|     | Sanity-tema          | Hva deltakeren gjør                             | Sjekk            |
-| --- | -------------------- | ----------------------------------------------- | ---------------- |
-| ★   | Documents og Publish | Lager og publiserer et våpen, ser det i spillet | Spillet          |
-| ★   | `icon` og `preview`  | Viser ikon og sprite i dokumentlista            | Når filen lagres |
-| ★   | Validation           | Påkrevd sprite for våpen, unike navn            | Når filen lagres |
-| ★   | Custom input         | Velger som viser pikselkunsten                  | Når filen lagres |
-| ☆   | Document view        | Egen fane som viser våpenet slik spillet gjør   | Når filen lagres |
+Konkrete Brann-tekster, Studio-avslutninger, lærdommer, hint og sjekkvilkår for
+begge løyper står i [uke1-luker.md](uke1-luker.md). Dette er det nye
+oppgaveutkastet; tabellen under beskriver fortsatt dagens sjekkmetoder.
 
-Besluttet 2026-11-06: custom input er kjerneoppgave i den tekniske løypa.
-Tabellen er fortsatt et utkast: den viser fire mulige kjerneoppgaver mot
-målbildet på tre. Før implementering må vi velge tre, eller slå sammen to
-uten å blande læringsmål. Uke 1 i den ikke-tekniske løypa får egne, likeverdige
-oppgaver om innhold og grunnleggende Sanity-bruk; de er ikke spesifisert ennå.
-Document action («Smi»-knappen) flyttes til uke 3.
+Sjekk-kolonnen viser dagens løsning. Oppgavesettet er fortsatt et forslag;
+automatisk sjekk av repo-filer ved lagring er en planlagt forbedring.
+
+|     | Sanity-tema          | Hva deltakeren gjør                             | Sjekk                                             |
+| --- | -------------------- | ----------------------------------------------- | ------------------------------------------------- |
+| ★   | Documents og Publish | Lager og publiserer et våpen, ser det i spillet | Spillet                                           |
+| ★   | `icon` og `preview`  | Viser ikon og sprite i dokumentlista            | Automatisk mens du skriver i kodevinduet          |
+| ★   | Validation           | Påkrevd sprite for våpen, unike navn            | Automatisk mens du skriver i kodevinduet          |
+| ★   | Custom input         | Velger som viser pikselkunsten                  | Repo: `npm run quest`; ved fillagring er planlagt |
+| ☆   | Document view        | Egen fane som viser våpenet slik spillet gjør   | Repo: `npm run quest`; ved fillagring er planlagt |
+
+**Kodevinduet i dag:** Første sjekk kjører når vinduet åpnes; deretter sjekkes
+koden omtrent 300 ms etter siste endring (implementert forsinkelse). Utkastet
+lagres i nettleseren, ikke i en fil i repoet. Ingen lagreknapp er nødvendig.
+Bestått sjekk fullfører bare luka når den er aktiv; tidligere luker må fortsatt
+være fullført.
+
+### Produktkontrakt uke 1 — forslag, ikke vedtatt
+
+**Felles oppstart:** Alle lager og publiserer ett våpen, og prøver det i spillet.
+Dette er en kort introduksjon til Studio, ikke en poenggivende kjerneoppgave.
+Da kan de to løypene ha egne læringsmål uten å hoppe over det
+som trengs for å spille.
+
+**Teknisk løype — foreløpig oppgavesett (antallet er ikke låst):**
+
+1. `icon` og `preview`: gjør våpen gjenkjennelige i dokumentlista, og finn
+  igjen ditt eget våpen i den ekte Studio-lista.
+2. `validation`: krev sprite på våpen og hindre like navn; prøv feiltilfellene
+  i Studio før du retter og publiserer.
+3. `custom input`: velg sprite fra pikselbilder. Dette er allerede besluttet
+  som kjerneoppgave; bruk velgeren og se den publiserte endringen i spillet.
+
+Kodetestene beviser ikke alene at Studio-avslutningene er utført. Utkastet i
+[uke1-luker.md](uke1-luker.md) skiller mellom kode bestått, egenbekreftet
+Studio-prøve og resultat som kan leses fra publisert innhold. Egenbekreftelse
+etter bestått kodetest for ikon/preview og validation er vedtatt 2026-11-11,
+men må bygges før det kan loves i spillet. Øvrige nye fullføringsvilkår må
+godkjennes for den enkelte leveransen.
+
+`Document view` er foreløpig bonus. Felles oppstart dekker det grunnleggende
+uten å være en egen poengoppgave. Oppgaver kan legges til, tas bort eller
+flyttes etter testing; `custom input` er fortsatt kjerneoppgave. Document
+action («Smi»-knappen) ligger i uke 3.
+
+**Ikke-teknisk løype — foreløpige oppgaveideer (antallet trenger ikke være
+det samme som i den tekniske løypa):**
+
+Etter felles oppstart videreutvikles det samme våpenet; ingen ny samling
+eller bestemt mengde dokumenter er nødvendig.
+
+1. **Gi våpenet en beskrivelse:** bruk `Description` i Studio, publiser og
+  se teksten i informasjonen om våpenet i spillet. Tema: et innholdsfelt
+  brukes utenfor Studio.
+2. **Oppdater samme dokument:** prøv en annen sprite som utkast, sammenlign
+  med spillet og publiser. Tema: samme document beholder ID-en når innholdet
+  oppdateres; utkast endrer ikke den publiserte versjonen.
+
+Oppgavene bruker bare Studio-skjemaet og spillet, ikke kode eller terminal.
+Spillet viser allerede beskrivelser og sprites fra publisert innhold.
+Sjekkene for disse nye lukene må bygges: lagre en referanse ved oppgavestart
+og sammenlign relevante felt på samme publiserte dokument. Vi kan ikke
+automatisk bedømme om teksten er «god», eller bevise at deltakeren så på
+utkastfasen. Vi må teste læringsutbytte og tidsbruk, og kan legge til, ta bort
+eller flytte luker uten å kreve like mange i begge løyper.
+
+**Poengforslag:** poeng belønner fullførte kjerneoppgaver; hint eller fasit gir
+ikke poeng i seg selv, og bonus gir ikke poeng. Siden antall oppgaver kan
+variere, må poengfordelingen utformes slik at en løype ikke gir mer framgang bare
+fordi den har flere luker. Poeng låser ikke opp innhold. Nivågrenser er
+startverdier som testes etter uke 1.
+
+**Kalenderforslag:** uke 1 åpner mandag 30. november 2026, deretter mandag 7. og 14. desember. Åpne kapitler blir stående tilgjengelige ut desember, og
+senere deltakere kan ta dem igjen.
+
+**Deltakeroversikt — personvernforslag:** tydelig, frivillig opt-in separat
+fra spilling, med avmelding/skjuling som fjerner profilen fra oversikten.
+Vis bare valgt visningsnavn, figur, poeng/fremgang og uttrykkelig valgte
+publiserte resultater. Ikke vis prosjekt-ID, token, privat innhold eller
+sist-sett-posisjon. Deltakeren eier fortsatt sitt Sanity-prosjekt og innhold.
+Eier og behandlingsansvarlig for oversiktslista må navngis og godkjennes før
+innsamling; lista slettes etter kalenderen på en dato som avklares på forhånd.
+Ingen token i klienten. Må godkjennes av ansvarlig for personvern før det
+bygges.
+
+Avklaringer per leveranse; åpne poeng- og personvernvalg blokkerer ikke den
+vedtatte Studio-bekreftelsen:
+
+- [ ] Felles oppstart og oppgavesettet i hver løype; antall luker fastsettes
+      etter læringsmål og testet tidsbruk, og kan være ulikt mellom løypene.
+- [x] Ikon/preview og validation krever bestått kodetest og «Jeg har prøvd
+  dette i Studio» før neste luke åpnes (2026-11-11). Se [uke1-luker.md](uke1-luker.md).
+- [ ] Poengfordeling som er rettferdig mellom løypene, bonus uten poeng og
+      nivågrenser som startverdier.
+- [ ] Åpningsdatoene 30. november, 7. desember og 14. desember 2026.
+- [ ] Opt-in og avmelding for oversikten, hvilke felter som vises, hvem som er
+      eier/behandlingsansvarlig, og når data slettes.
+
+Document action («Smi»-knappen) flyttes til uke 3. De åpne punktene over er
+fortsatt forslag til produktkontrakt; de behandles ikke som vedtatt før de er
+godkjent for den aktuelle leveransen.
 
 ### Uke 2 og 3: utkast; må avklares før bygging
 
@@ -124,13 +259,13 @@ Monstrene følger en fast kontrakt, og spillet avgjør HP og skade: `name`,
 
 ### Uke 3: Utover skjemaet (åpner mandag 14. desember)
 
-|     | Sanity-tema               | Hva deltakeren gjør                                    | Sjekk                       |
-| --- | ------------------------- | ------------------------------------------------------ | --------------------------- |
-| ★   | Document action           | Egen «Smi»-knapp som setter et tidspunkt og publiserer | Spillet                     |
-| ★   | Portable Text             | Tekst med egne marks som vises i spillet               | Når filen lagres og innhold |
-| ★   | Functions                 | Fyller et felt automatisk ved publisering (30–45 min)  | Spillet                     |
-| ★   | Offentlig dataset og GROQ | Henter en kollegas julekuler fra deres prosjekt        | Spillet                     |
-| ☆   | Custom input              | Lager tegnebrettet for julekuler selv                  | Når filen lagres            |
+|     | Sanity-tema               | Hva deltakeren gjør                                    | Sjekk                                                  |
+| --- | ------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| ★   | Document action           | Egen «Smi»-knapp som setter et tidspunkt og publiserer | Spillet                                                |
+| ★   | Portable Text             | Tekst med egne marks som vises i spillet               | Planlagt: ved fillagring i repoet og publisert innhold |
+| ★   | Functions                 | Fyller et felt automatisk ved publisering (30–45 min)  | Spillet                                                |
+| ★   | Offentlig dataset og GROQ | Henter en kollegas julekuler fra deres prosjekt        | Spillet                                                |
+| ☆   | Custom input              | Lager tegnebrettet for julekuler selv                  | Planlagt: ved fillagring i repoet                      |
 
 Functions krever claimet prosjekt og `npx sanity login`. Den siste
 ★-oppgaven bruker det samme som gjør at deltakerne ser hverandre (se under).
@@ -150,8 +285,8 @@ Før uke 2 og 3 avgjøres, svarer vi på:
    `reference`», ikke «Kjenne til references»).
 2. **Hvilke Sanity-temaer dekker målene?** Hvert tema vurderes etter
    reglene i «Hva en god oppgave er».
-3. **To eller tre alternativer for uke 2 og 3,** hver med tre oppgaver og
-   bonus, hva det koster å bygge, og hva man lærer.
+3. **To eller tre alternativer for uke 2 og 3,** med passende oppgavesett,
+   valgfri bonus, byggekostnad og læringsutbytte. Antall luker kan variere.
 
 Prosjektansvarlig velger. Pitchen skjer senest fredag 6. november, så uke 2
 og 3 kan bygges i uke 46 og 47.
@@ -184,18 +319,19 @@ Kan bytte inn en oppgave som ikke fungerer, eller bli ekstra bonus.
 ## Grensesnittet
 
 - **Kalenderen** viser tre ukentlige kapitler, ikke 24 daglige luker. Nye
-  kapitler åpner på dato; lukene i valgt løype tas i rekkefølge.
+  kapitler åpner på dato; lukene i valgt løype tas i rekkefølge, og neste luke
+  åpnes først når den aktive er fullført.
 - **Brann er veiviser.** Han deler ut luka og peker til stedet i bygda. Stedet
   er valgfritt; mål, hint og kodevindu er tilgjengelig fra Brann og journalen.
 - **J åpner kartet.** Journalen viser luker og lærdommer via egen knapp. Kartet
   viser hvor åpne, fullførte og låste luker ligger; «Gå til» bruker den
   eksisterende klikk-for-å-gå-bevegelsen. Senere luker er låst fram til den
-  aktive er fullført eller hoppet over.
+  aktive er fullført.
 - **Mandag:** et kort med ukas oppgaver, én gang.
 - **Luke ferdig:** tydelig tilbakemelding, lærdom og poeng, deretter neste luke.
-- **Gi opp:** vis fasit/veiledning, merk luka som hoppet over, og åpne neste.
-  Den hoppede luka kan åpnes fra loggen senere; ved fullføring får deltakeren
-  den ordinære belønningen.
+- **Står fast:** vis flere hint og fasit når den er sluppet. Deltakeren kan
+  lukke spillet og komme tilbake senere, men neste luke åpnes først når den
+  aktive luka er fullført.
 - **Fasit:** tilgjengelig fra luka når den er sluppet. Fasit er veiledning, ikke
   en skjult belønning som må låses opp ved å tape poeng.
 - **Fellesoversikt:** kort per deltaker med valgt figur, nivå/fremgang og
@@ -361,12 +497,12 @@ løsning som egen commit tagget `solution/<id>`, testet av én person på høyst
 
 ### Plan fram til start
 
-| Uke               | Pensum                                                                                                 | Spill og gjennomføring                                                                                                            | Figur og det felles                                                    | Test                                                        |
-| ----------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 45 (3.–6. nov.)   | Lås læringsmål, rekkefølge, poeng og innhold for begge løyper; velg tre kjerneoppgaver i teknisk uke 1 | Lås progresjon og flyten for fasit, hopp over og ta igjen                                                                         | Bestem hva som vises på deltakerkort og hvem som eier fellesdata       |                                                             |
-| 46 (9.–13. nov.)  | Skisser oppgaver for begge løyper i uke 1–3; test om omfang og læringsmål er realistiske               | Bygg progresjonsgrunnlaget først: løypevalg, ukentlige åpninger, luker i rekkefølge, hopp over/ta igjen og poeng                  | Bestem hvilke karakterer som gir oppgaver; avgjør frivillig deling     | Oppsettprøve på Mac, Windows og Codespaces                  |
-| 47 (16.–20. nov.) | Ferdigstill tekst, hint, sjekk og fasit for begge løyper                                               | Ferdigstill uke 1 som en gjennomgående spillbar del, deretter kapittel 2–3; automatisk sjekk der mulig og CLI-reserve dokumentert | Bygg enkel deltakeroversikt bare hvis samtykke og datakilde er avklart | 2–3 testere fra hver målgruppe prøver uke 1 fra fersk klone |
-| 48 (23.–27. nov.) | Frys omfang; klargjør kanalposter og løsningsveiledning                                                | Rett releaseblokkere; ikke legg til unødvendige mekanikker                                                                        | Slipp bare testet deltakeroversikt; utsett spøkelser/sanntid           | Begge løyper gjennomspilles; oppsettøkt og releasekandidat  |
+| Uke               | Pensum                                                                                          | Spill og gjennomføring                                                                                                            | Figur og det felles                                                    | Test                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 45 (3.–6. nov.)   | Lås læringsmål, rekkefølge og oppgavesett for begge løyper; antall luker følger mål og tidsbruk | Lås progresjon og flyten for hint/fasit og fullføring                                                                             | Bestem hva som vises på deltakerkort og hvem som eier fellesdata       |                                                             |
+| 46 (9.–13. nov.)  | Skisser oppgaver for begge løyper i uke 1–3; test om omfang og læringsmål er realistiske        | Bygg progresjonsgrunnlaget først: løypevalg, ukentlige åpninger, luker i rekkefølge og poeng                                      | Bestem hvilke karakterer som gir oppgaver; avgjør frivillig deling     | Oppsettprøve på Mac, Windows og Codespaces                  |
+| 47 (16.–20. nov.) | Ferdigstill tekst, hint, sjekk og fasit for begge løyper                                        | Ferdigstill uke 1 som en gjennomgående spillbar del, deretter kapittel 2–3; automatisk sjekk der mulig og CLI-reserve dokumentert | Bygg enkel deltakeroversikt bare hvis samtykke og datakilde er avklart | 2–3 testere fra hver målgruppe prøver uke 1 fra fersk klone |
+| 48 (23.–27. nov.) | Frys omfang; klargjør kanalposter og løsningsveiledning                                         | Rett releaseblokkere; ikke legg til unødvendige mekanikker                                                                        | Slipp bare testet deltakeroversikt; utsett spøkelser/sanntid           | Begge løyper gjennomspilles; oppsettøkt og releasekandidat  |
 
 **Hvis tiden ikke strekker til, kuttes i denne rekkefølgen:** spøkelser og
 sanntid, ekstra bonusoppgaver, avansert fellesoversikt og ekstra spillmekanikk.
@@ -374,7 +510,7 @@ Begge løypene må fortsatt ha en gjennomførbar vei gjennom alle kapitlene; hvi
 det ikke er realistisk, må releaseomfang eller invitasjon besluttes på nytt.
 
 **Minimum som er godt nok:** begge løypene har en testet, sammenhengende
-oppgaverekke gjennom kapitlene, med poeng/status, fasit/skip/ta-igjen,
+oppgaverekke gjennom kapitlene, med poeng/status, hint og fasit,
 fungerende oppsett og en finale som virker alene. Fellesoversikten kan være
 en enkel deltakerliste med opt-in profilkort.
 
@@ -383,7 +519,7 @@ en enkel deltakerliste med opt-in profilkort.
 | Risiko                                  | Hva vi gjør                                                                                        |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Deltakere stopper på oppsettet          | Oppsettøkt, `npm run doctor`, Codespaces                                                           |
-| Folk faller av fordi det er på egen tid | To løyper, ingen frist, kapitler åpne ut desember, fasit og mulighet til å ta igjen                |
+| Folk faller av fordi det er på egen tid | To løyper, ingen frist, kapitler åpne ut desember, hint/fasit og lagret framgang                   |
 | Prosjektet slettes etter 72 timer       | Claim i oppsettøkta                                                                                |
 | Oppgavene tar lengre tid enn planlagt   | Testere tar tiden; over 35 min blir bonus                                                          |
 | Vi rekker ikke begge løypene godt nok   | Kutt bonus og sanntid; endre releaseomfang eller invitasjon framfor å late som begge spor er klare |
@@ -395,18 +531,18 @@ en enkel deltakerliste med opt-in profilkort.
 ## Beslutninger vi trenger
 
 - [x] Tre uker, åpner mandag (2026-11-02)
-- [x] Tre oppgaver og bonus per uke, i stedet for fire (2026-11-03)
+- [x] Antall kjerneoppgaver er fleksibelt per uke og løype; omfang styres av læringsmål og testet tidsbruk (2026-11-10)
 - [x] Frivillig og på egen tid. Ingen frist, ingen faste møter utenom oppsettøkta (2026-11-03)
 - [x] Lista per uke som oversikt (2026-11-02)
 - [ ] Poeng og nivå: poeng for reell fullføring, verdier og nivågrenser testes før de låses
 - [ ] Kan deltakeren bytte løype etter start, og hvordan vises framgang i den andre løypa?
 - [x] Alle ukene i koden fra start, datoen åpner dem (2026-11-03)
-- [x] Lukeprogresjon er sekvensiell; fasit/gi opp åpner neste luke, hoppet over luke kan tas senere (2026-11-06)
+- [x] Lukeprogresjon er sekvensiell; neste luke åpnes først etter fullføring. Hint og fasit omgår ikke sjekken (2026-11-09)
 - [x] Uke 1 teknisk løype: custom input er kjerneoppgave (2026-11-06)
 - [ ] Ikke-teknisk løype: læringsmål og oppgaver for alle tre ukene
 - [ ] Uke 2 og 3: alternativer pitches for prosjektansvarlig senest 6. november
 - [ ] Fellesoversikt: hva som deles, samtykke, lagring, eier og moderering
-- [ ] Poeng: belønning for fullføring og håndtering av fasit/hoppet over
+- [ ] Poeng: belønning for fullføring; hint og fasit endrer ikke poeng
 - [ ] Kanal: antakelig Viva Engage, avklares
 - [ ] Skal kolleger lage oppgaver? Hvem spør vi?
 - [ ] Hvor ligger deltakerlista, og hvem eier den?

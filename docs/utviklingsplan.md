@@ -13,12 +13,12 @@ Forslaget til quester, kalender og gjennomføring står i [questplan.md](questpl
 6. **Hver fase kan sendes for seg.** Etter hver fase: `tsc`, lint, build og en sjekk i nettleseren på 1280×720, 1440×900, 1920×1080 og mobilbredde.
 7. **Ingen dominerte valg.** Et felt i Studio skal bare finnes hvis valget betyr noe. Finnes det ett svar som alltid er best, er det ikke et valg.
 8. **To løyper, én felles historie.** Teknisk og ikke-teknisk løype har egne oppgaver som gir synlig verdi og går mot samme finale. Den ikke-tekniske løypa krever ikke at deltakeren skriver kode.
-9. **Sekvensiell, men ikke låst progresjon.** Lukene tas i rekkefølge. «Gi opp og gå videre» viser fasit når tilgjengelig og lar deltakeren komme tilbake; en sjekk som ikke kan bekrefte en løsning, kan ikke blokkere spillet.
+9. **Sekvensiell progresjon.** Neste luke åpnes først når sjekken for den aktive luka er bestått. Hint og fasit hjelper deltakeren, men omgår ikke fullføringskravet. Hvis automatisk sjekk ikke er mulig, må oppgaven ha en tydelig alternativ godkjenning.
 10. **Poeng for fullføring, ikke konkurranse.** Poeng og nivå vises i egen progresjon og, etter opt-in, deltakeroversikten. Ingen toppliste i første versjon; verdier/nivågrenser fastsettes etter testing. `?dev`-overstyring skal aldri publiseres som deltakerresultat.
 
 ## Beslutninger så langt
 
-- **Produktretning (2026-11-06):** tre ukentlige kapitler, ikke 24 daglige luker. Valgt løype går gjennom lukene i rekkefølge; deltakeren kan be om fasit, hoppe over og senere fullføre en luke. Det finnes en teknisk og en ikke-teknisk løype. Poeng er med. Felles fremgang vises i deltakeroversikt med figurer og utvalgte resultater; ingen krav om at bygda endrer lys/dekor for hver oppgave.
+- **Produktretning (2026-11-09):** tre ukentlige kapitler, ikke 24 daglige luker. Valgt løype går gjennom lukene i rekkefølge; neste luke åpnes først når den aktive er fullført. Hint og fasit er hjelp, ikke en snarvei forbi sjekken. Det finnes en teknisk og en ikke-teknisk løype. Poeng er med. Felles fremgang vises i deltakeroversikt med figurer og utvalgte resultater; ingen krav om at bygda endrer lys/dekor for hver oppgave.
 - **Uke 1 (2026-11-06):** custom input er kjerneoppgave i teknisk løype. Ikke-teknisk løype trenger et eget oppgavesett; det er ikke bare samme kodeoppgave med flere hint.
 
 Avsnittene om gamle questnavn, smienivåbelønninger, luke-for-luke-implementasjon
@@ -216,12 +216,110 @@ Hallen i Frostholm (leser alle registrerte prosjekter på serveren) og Frostkjem
 
 Dette er rekkefølgen på eksisterende tekniske arbeid før release, med avhengigheter. Oppgavene under fase 4–7 er eldre ideer og er ikke automatisk del av release-scope.
 
-1. **Produktkontrakt:** lås læringsmål og lukeinnhold for begge løypene, poengregel, skip/fasit/ta-igjen-flyt og databeslutning for deltakeroversikten. Avklar dette før nye mekanikker bygges.
-2. **Progresjonsfundament:** støtt valg av løype, ukentlig kapittelåpning, lineær lukeprogresjon, statusene låst/aktiv/fullført/hoppet over og gjenopptakelse etter reload. Poeng må knyttes til reell fullføring og kan ikke være nødvendig for å låse opp innhold.
+1. **Produktkontrakt:** lås læringsmål og lukeinnhold for begge løypene, poengregel, hint-/fasitflyt og databeslutning for deltakeroversikten. Utkast for uke 1 og åpne produktvalg står i [questplan.md](questplan.md), men må godkjennes før nye mekanikker bygges.
+2. **Progresjonsfundament:** støtt valg av løype, ukentlig kapittelåpning, lineær lukeprogresjon, statusene låst/aktiv/fullført og gjenopptakelse etter reload. Neste luke krever fullføring. Poeng må knyttes til reell fullføring og kan ikke være nødvendig for å låse opp innhold.
 3. **Teknisk løype uke 1:** ta custom input inn som kjerneoppgave. Kodesjekker kjøres automatisk der det er robust; behold CLI-sjekk som eksplisitt reserve for oppgaver der automatikk ikke er praktisk.
 4. **Ikke-teknisk løype uke 1:** bygg oppgaver rundt innhold og grunnleggende Sanity-bruk, uten å kreve kode. Gjenbruk ukas historie og spillverden, men ikke samme ferdighetskrav.
 5. **Felles deltakeroversikt:** bygg først etter at offentliggjorte felt, samtykke, avmelding/skjuling og eier av deltakerlista er bestemt. Kun nødvendige publiserte data; ingen token i klienten og ingen sist-sett-posisjon i første release.
 6. **Uke 2–3 og finale:** utvid begge løypene. Felleskapitler og karakterer kan gjenbrukes, men oppgaver og belønninger må utformes og testes for hver målgruppe. Finalen må virke uten deltakeroversikt.
-7. **Releasekontroll:** tester for framgang, poeng, skip/revisit og løypeavhengighet; ferskkloneprøve for begge målgruppene; lint, typecheck, Sanity-validering, build og nettleserprøve. Oppdater README, gjennomspillingsguide og arrangørguide først når de samsvarer med det som faktisk er implementert.
+7. **Releasekontroll:** tester for framgang, poeng, fullføringskrav, reload og løypeavhengighet; ferskkloneprøve for begge målgruppene; lint, typecheck, Sanity-validering, build og nettleserprøve. Oppdater README, gjennomspillingsguide og arrangørguide først når de samsvarer med det som faktisk er implementert.
 
 **Scope-varsel:** To fullverdige løyper dobler ikke nødvendigvis spillmekanikken, men gir reelt mer oppgave- og testarbeid. Dersom tidsplanen blir for stram, kutt bonusoppgaver, spøkelser og sanntid først; ikke slipp en løype som bare er en utestet idé.
+
+**Sjekkflyt (2026-11-10):** Kodevinduet sjekker allerede automatisk ved åpning
+og etter en kort skrivepause; utkast lagres i nettleseren, ikke i repo-filer.
+Ikon/preview og validation bruker denne flyten. Custom input og document view
+løses foreløpig i repoet og sjekkes med `npm run quest`. Automatisk sjekk ved
+fillagring gjelder repooppgaver og er fortsatt planlagt, ikke en del av det
+som allerede er levert i kodevinduet.
+
+### Neste utviklingssteg: progresjonsgrunnlag (2026-11-10)
+
+**Mål:** Oppgaver kan legges til eller tas bort uten at motoren antar et fast
+antall. Teknisk og ikke-teknisk løype får egne rekker, med eventuell felles
+oppstart. Neste kjerneoppgave krever fortsatt fullføring av den forrige.
+
+Bygg og kontroller én liten leveranse om gangen:
+
+| Leveranse                      | Arbeid                                                                                                                                                                  | Ferdig når                                                                                                                                                    |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A. Løypebevisst datagrunnlag   | Agent for modell/motor: løypetype, filtrering av oppgaver og totalsum ut fra valgt løype. Eksisterende kodeoppgaver tilhører teknisk løype; oppstarten kan være felles. | Ulike oppgaveantall virker uten kopiert motorlogikk. Ukentlig åpning og frivillig bonus beholdes. Ingen ikke-tekniske oppgaver eller poengverdier diktes opp. |
+| B. Regresjonstester            | Agent for tester: automatiserte tester av motor og lagring med små, syntetiske oppgavesett.                                                                             | Tester dekker ulike løypelengder, sekvenskrav, bonus, datoåpning, endret oppgavesett og gammel lagret framgang. Kan kjøres med én npm-kommando.               |
+| C. Koble på eksisterende spill | Hovedagent: bruk samme filtrerte oppgavesett for brett, smienivå og utviklerhopp; bevar gamle fullføringer.                                                             | Teknisk løype virker som før. Ingen teller eller utviklerhandling bruker en annen løype enn brettet. Typecheck og build passerer.                             |
+| D. Synlig løypevalg            | Egen senere UI-leveranse etter at ikke-teknisk uke 1 er godkjent og spillbar. Lagre valget per Sanity-prosjekt.                                                         | Ny deltaker kan velge en faktisk spillbar løype og fortsette etter reload. Policy for løypebytte er avklart.                                                  |
+| E. Uke 1 ende-til-ende         | Implementer og test godkjent innhold i begge løyper, deretter poengfordeling.                                                                                           | Begge målgrupper har en sammenhengende vei og testet tidsbruk; poeng belønner ikke bare løypa med flest luker.                                                |
+
+**Arbeidsdeling nå:** Modellagenten eier bare quest-typer, motor, lagring og
+merking av eksisterende oppgaver. Testagenten eier testfiler og testkommando.
+Hovedagenten eier hook-integrasjon, dokumentasjon og samlet kontroll. Agentene
+skal lese eksisterende lokale endringer og bevare dem; ingen commit eller push.
+
+**Avgrensning:** Start med A–C. Ikke vis et valg som sender deltakeren til en
+tom løype. Løypevalg-UI, løypebytte, nye oppgaver, nye poengregler og
+deltakeroversikt inngår ikke i denne første leveransen.
+
+**Testkrav:** Bestått sjekk uten at luka er gitt, skal ikke gi fullføring.
+Bonus skal ikke sperre neste kjerneoppgave. Fullføringer lagres med stabile
+oppgave-ID-er, ikke plassnummer: fjernede oppgaver teller ikke, og nye oppgaver
+er ikke automatisk bestått. Endring av allerede publiserte forutsetninger må
+vurderes før innhold endres mens folk spiller.
+
+#### Status etter kontroll 2026-11-10
+
+- [x] **A:** `QuestTrack`, lagret løype per prosjekt og filtrering med
+      `chaptersForTrack`. Gamle lagringer blir teknisk løype; tidligere fullføringer
+      beholdes og gamle hopp-over-markeringer gir ikke adgang til neste luke.
+- [x] **B:** `npm test` kjører 24 tester for motor, lagring og hook-integrasjon.
+      Testene dekker blant annet ulike oppgaveantall, bonus, datoåpning, stabile
+      ID-er og at gjentatte effekter ikke gir dobbel fullføring eller belønning.
+- [x] **C:** Brett, smienivå, nivåvarsler og utviklerhopp følger samme løype.
+      Utviklerhopp ignorerer ukjente oppgaver og oppgaver i den andre løypa, og
+      bevarer lagrede fakta utenfor valgt oppgavesett.
+
+**Verifisert:** TypeScript, målrettet ESLint for quest-filer og hook,
+`npm run build` og `git diff --check` passerer. Produksjonsbygget er også
+prøvd i Chromium: oppstart og bevegelse, fullføring via React-effekten,
+låst etterfølger selv om sjekken består, gammel lagring, løypeavhengige
+tellere og reload. `?dev=quests` viser ikke utviklerpanelet i produksjon.
+
+**Begrensning:** Nettleserprøven brukte simulerte API-svar og lagrede
+testfakta, ikke innhold skrevet i et ekte Sanity-prosjekt. Kalenderdato var
+ikke konfigurert i nettleserbygget; datoåpning ble testet i motor-testene.
+Dette godkjenner progresjonsgrunnlaget, ikke hele uke 1 eller release.
+
+**Videre uke-1-arbeid:** Det konkrete utkastet med tekst, Studio-avslutning,
+hint og sjekkvilkår står i [uke1-luker.md](uke1-luker.md) (2026-11-11).
+Egenbekreftelse for ikon/preview og validation er godkjent som første
+leveranse under. Referansesjekker for publiserte endringer og de øvrige
+oppgavene avklares per leveranse. Oppgaveagentene kan få én godkjent luke hver
+med tekst, sjekk og tester som ansvar. Avklar løypebytte før D bygges; løypevalg
+skal først vises når begge oppgavesettene er spillbare. Poengfordeling og
+full gjennomspilling mot ekte Sanity-prosjekter hører til E.
+
+### Utviklingsstart og utsatte verktøy (2026-11-11)
+
+**Klar første leveranse:** Ikon/preview og validation krever bestått kodetest
+og egenbekreftelsen «Jeg har prøvd dette i Studio» før neste luke åpnes.
+Fullføringsvilkåret er godkjent. Bygg lagring, sjekk og tilgjengelig handling
+i eksisterende oppgaveflyt, med tester for låste luker, reload, gjentatt
+bekreftelse og bevaring av gamle fullføringer. Ikke endre poeng eller innfør
+nye innholdssjekker i samme leveranse.
+
+Deretter ferdigstilles kalenderoppgavene trinnvis på dagens kart. Åpne valg
+avklares ved behov: løypebytte før løypevelger, poeng før poengfordeling og
+personvern før deltakeroversikt. Uke 2–3 trenger fortsatt valgt pensum; planen
+er ikke en påstand om at hele releaseinnholdet er ferdig bestemt.
+
+**Frivillig kampdel, senere:** Ønsket retning er fiender som slår tilbake,
+spillerhelse og opptjente oppskrifter/materialer som brukes til utstyr i
+Studio. Start eventuelt med én sammenhengende spillrunde før flere fiender
+og rustning. Sanity beskriver utstyret, spillet bestemmer stats og kontrollerer
+opptjente ressurser. Dette er ikke et nytt krav for kalenderprogresjon;
+detaljer og balanse avklares før bygging.
+
+**Verdenseditor, til slutt:** Lag først oppgavene med enkle plasseringer.
+Editoren og endelig utforming av verdenen kan komme etterpå; ikke bygg
+editor nå. Bevar stabile oppgave-ID-er og koblingen fra luke til sted.
+Koordinater hører til kartdata, ikke sjekkene. Grafikk, kollisjon og
+interaksjon må kunne flyttes samlet når editoren bygges. Den skal bruke samme
+kartdata som spillet, ikke introdusere en konkurrerende kopi av verdenen.

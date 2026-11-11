@@ -95,6 +95,7 @@ const theBrokenForge: Quest = {
 
 const brannsLedger: Quest = {
   id: "branns-ledger",
+  track: "technical",
   door: 2,
   title: "Ikon og preview i lista",
   villageSite: "noticeboard",
@@ -143,6 +144,7 @@ const brannsLedger: Quest = {
 
 const theGuildsLaw: Quest = {
   id: "the-guilds-law",
+  track: "technical",
   door: 3,
   title: "Validation: regler for våpen",
   villageSite: "westHouse",
@@ -194,6 +196,7 @@ const theGuildsLaw: Quest = {
 
 const theDrawingBoard: Quest = {
   id: "the-drawing-board",
+  track: "technical",
   door: 4,
   title: "Custom input: velg sprite med bilder",
   intro: [
@@ -244,6 +247,7 @@ const theDrawingBoard: Quest = {
 
 const theProvingRoom: Quest = {
   id: "the-proving-room",
+  track: "technical",
   door: 5,
   title: "Document view: se våpenet i Studio",
   intro: [
@@ -300,6 +304,7 @@ const theProvingRoom: Quest = {
 // Belongs to week 3 (listed in its teaser), so it's not in any chapter yet.
 export const theForgeButton: Quest = {
   id: "the-forge-button",
+  track: "technical",
   door: 6,
   title: "Document action: egen Smi-knapp",
   intro: [

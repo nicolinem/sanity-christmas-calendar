@@ -774,10 +774,6 @@ kbd {
   background: var(--night-3);
   box-shadow: 0 0 0 var(--px) var(--night-2);
 }
-.village-map-pin.is-skipped .village-map-pin-icon {
-  color: var(--night-2);
-  background: var(--glacier);
-}
 .village-map-pin:hover .village-map-pin-icon,
 .village-map-pin.is-selected .village-map-pin-icon {
   outline: var(--px) solid var(--snow);
@@ -798,7 +794,7 @@ kbd {
   font-size: 14px;
 }
 .village-map-caption::after {
-  content: "! Aktiv  |  ✓ Ferdig  |  ↩ Hoppet over  |  · Låst";
+  content: "! Aktiv  |  ✓ Ferdig  |  · Låst";
   display: block;
   margin-top: 4px;
   color: var(--frost-dim);
@@ -827,9 +823,6 @@ kbd {
 }
 .village-map-status.is-done {
   color: var(--glacier);
-}
-.village-map-status.is-skipped {
-  color: var(--frost-dim);
 }
 .log-list {
   overflow-y: auto;
@@ -874,9 +867,6 @@ kbd {
 .log-quest.is-done {
   color: var(--frost-dim);
 }
-.log-quest.is-skipped {
-  color: var(--glacier);
-}
 .log-quest.is-done .tracker-box {
   box-shadow: inset 0 0 0 2px var(--amber);
 }
@@ -906,24 +896,6 @@ kbd {
   font-size: 12px;
   font-weight: 500;
   color: var(--amber);
-}
-.log-skipped {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--glacier);
-}
-.log-skip {
-  margin-top: 12px;
-}
-.log-skipped-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-.log-skipped-actions .log-locked {
-  margin: 0 auto 0 0;
 }
 .log-intro {
   margin: 8px 0 0;

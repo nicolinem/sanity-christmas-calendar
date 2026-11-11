@@ -1,8 +1,9 @@
 # Bygg uke 1 ferdig
 
-Plan fra 4. november 2026. Uke 1, «Tilpass Studio», er bestemt: oppvarming,
-tre oppgaver og to bonuser. Her står hva som må bygges, og hvilke byggeklosser
-vi lager så de neste ukene kan gjenbruke dem.
+Plan fra 4. november 2026. Dette er et tidligere utkast med oppvarming,
+oppgaver og bonuser. Antallet er ikke vedtatt; gjeldende rammer står i
+[questplan.md](questplan.md), og uke 1 skal testes før oppgavesettet låses.
+Her står byggeklossene som de neste ukene kan gjenbruke.
 
 ## Prinsipp
 
@@ -11,14 +12,14 @@ i selve koden i repoet. Bonusene skrives i repoet fra start.
 
 ## Oppgavene
 
-| Luke | Oppgave | Hvor | Sjekkes av | Status |
-|---|---|---|---|---|
-| 1 | Oppvarming: lag og publiser et våpen | Studio | Spillet | Virker. Mangler meldingen «Du har et utkast som ikke er publisert» |
-| 2 | Ikon og preview | Kodevinduet | Vinduet | Virker (prototype) |
-| 3 | Regler for våpen (*validation*) | Kodevinduet | Vinduet | Flyttes fra repoet til vinduet |
-| 4 ☆ | Velg sprite med bilder (*custom input*) | Repoet | `npm run quest` | Finnes. Må prøves mot løsningen |
-| 5 ☆ | Se våpenet i Studio (*document view*) | Repoet | `npm run quest` | Finnes. Må prøves mot løsningen |
-| 6 | Smi-knapp (*document action*) | | | Flyttes til uke 3 |
+| Luke | Oppgave                                 | Hvor        | Sjekkes av      | Status                                                             |
+| ---- | --------------------------------------- | ----------- | --------------- | ------------------------------------------------------------------ |
+| 1    | Oppvarming: lag og publiser et våpen    | Studio      | Spillet         | Virker. Mangler meldingen «Du har et utkast som ikke er publisert» |
+| 2    | Ikon og preview                         | Kodevinduet | Vinduet         | Virker (prototype)                                                 |
+| 3    | Regler for våpen (_validation_)         | Kodevinduet | Vinduet         | Flyttes fra repoet til vinduet                                     |
+| 4 ☆  | Velg sprite med bilder (_custom input_) | Repoet      | `npm run quest` | Finnes. Må prøves mot løsningen                                    |
+| 5 ☆  | Se våpenet i Studio (_document view_)   | Repoet      | `npm run quest` | Finnes. Må prøves mot løsningen                                    |
+| 6    | Smi-knapp (_document action_)           |             |                 | Flyttes til uke 3                                                  |
 
 ## Byggeklossene
 
@@ -28,10 +29,10 @@ i selve koden i repoet. Bonusene skrives i repoet fra start.
    om den enkelte oppgaven.
 2. **Bryteren i Studio.** Vår versjon av koden ligger i repoet og slås på når
    oppgaven er løst i vinduet (`src/sanity/lib/solved.tsx`). Det virker for
-   React (`useSolved`) og for vanlige funksjoner som *validation* (`isSolved`).
+   React (`useSolved`) og for vanlige funksjoner som _validation_ (`isSolved`).
 3. **Gå videre i koden.** Etter at en oppgave er løst, viser vinduet fila og
    `QUEST`-kommentaren i repoet, og et forslag til hva man kan gjøre videre der.
-4. **Falsk klient.** Oppgaver som trenger *dataset*-et, får en
+4. **Falsk klient.** Oppgaver som trenger _dataset_-et, får en
    `context.getClient()` i vinduet som svarer fra eksempeldokumentene.
 5. **Bonus på oppgavekortet.** En `bonus`-markering på oppgaven, så lista viser
    den som valgfri (☆).

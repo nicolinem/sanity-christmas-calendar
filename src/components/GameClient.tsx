@@ -68,7 +68,9 @@ function useNarrow() {
 function useDevMode() {
   return useSyncExternalStore(
     () => () => {},
-    () => new URLSearchParams(window.location.search).has("dev"),
+    () =>
+      process.env.NODE_ENV !== "production" &&
+      new URLSearchParams(window.location.search).has("dev"),
     () => false,
   );
 }
@@ -101,7 +103,9 @@ export default function GameClient() {
   const [logInitialTab, setLogInitialTab] = useState<"quests" | "map" | "book">(
     "quests",
   );
-  const [logInitialQuestId, setLogInitialQuestId] = useState<string | undefined>();
+  const [logInitialQuestId, setLogInitialQuestId] = useState<
+    string | undefined
+  >();
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
@@ -112,8 +116,6 @@ export default function GameClient() {
     reset,
     revealHint,
     solveTask,
-    skipQuest,
-    resumeQuest,
     markIntroSeen,
     jumpTo,
   } = useProgress();
@@ -242,10 +244,6 @@ export default function GameClient() {
       ? board.states.find(
           (state) =>
             state.quest.villageSite === zone && state.status === "active",
-        ) ??
-        board.states.find(
-          (state) =>
-            state.quest.villageSite === zone && state.status === "skipped",
         )
       : undefined;
 
@@ -322,34 +320,19 @@ export default function GameClient() {
       forgeLit: Boolean(forged),
       forgeLevel,
       brannMarker: current?.status === "offered",
-      noticeboardMarker:
-        board.states.find(
-          (state) =>
-            state.quest.villageSite === "noticeboard" &&
-            state.status === "active",
-        )
-          ? "!"
-          : board.states.some(
-                (state) =>
-                  state.quest.villageSite === "noticeboard" &&
-                  state.status === "skipped",
-              )
-            ? "↩"
-            : null,
-      westHouseMarker:
-        board.states.find(
-          (state) =>
-            state.quest.villageSite === "westHouse" &&
-            state.status === "active",
-        )
-          ? "!"
-          : board.states.some(
-                (state) =>
-                  state.quest.villageSite === "westHouse" &&
-                  state.status === "skipped",
-              )
-            ? "↩"
-            : null,
+      noticeboardMarker: board.states.find(
+        (state) =>
+          state.quest.villageSite === "noticeboard" &&
+          state.status === "active",
+      )
+        ? "!"
+        : null,
+      westHouseMarker: board.states.find(
+        (state) =>
+          state.quest.villageSite === "westHouse" && state.status === "active",
+      )
+        ? "!"
+        : null,
       wraithDefeated: combat.defeated,
       frozen: dialogueOpen || logOpen || codeOpen || showOpening,
     });
@@ -504,7 +487,7 @@ export default function GameClient() {
                   className="prompt"
                   onClick={() => siteQuest && openQuestLog(siteQuest.quest.id)}
                 >
-                  <kbd>E</kbd> {siteQuest?.status === "skipped" ? "Ta igjen luka" : "Åpne luka her"}
+                  <kbd>E</kbd> Åpne luka her
                 </button>
               )}
             {!hasMoved &&
@@ -565,8 +548,6 @@ export default function GameClient() {
             hintsShown={progress.hints}
             onRevealHint={revealHint}
             onOpenCode={openCode}
-            onSkipQuest={skipQuest}
-            onResumeQuest={resumeQuest}
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}

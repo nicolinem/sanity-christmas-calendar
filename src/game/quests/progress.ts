@@ -5,10 +5,10 @@ import type { Progress } from "./types";
 // Shaped for React's useSyncExternalStore: stable snapshots and a subscribe.
 
 export const EMPTY_PROGRESS: Progress = {
+  track: "technical",
   metBlacksmith: false,
   wraithDefeated: false,
   completed: {},
-  skipped: {},
   briefed: {},
   hints: {},
   struck: {},
@@ -17,10 +17,12 @@ export const EMPTY_PROGRESS: Progress = {
 };
 
 // One record per Sanity project, so a fresh project is a fresh start.
-export const PROGRESS_PROJECT = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo";
+export const PROGRESS_PROJECT =
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo";
 
 // Exported for the Studio, which reads `solved` from the same record.
-export const storageKey = (project: string) => `winter-quest:progress:${project}`;
+export const storageKey = (project: string) =>
+  `winter-quest:progress:${project}`;
 
 let cache: { project: string; value: Progress } | null = null;
 const listeners = new Set<() => void>();
@@ -38,13 +40,16 @@ export function readProgress(project: string): Progress {
   try {
     const raw = window.localStorage.getItem(storageKey(project));
     if (raw) {
-      const saved = JSON.parse(raw) as Partial<Progress> | null;
-      const skipped = saved?.skipped;
-      value = {
-        ...EMPTY_PROGRESS,
-        ...saved,
-        skipped: skipped && typeof skipped === "object" && !Array.isArray(skipped) ? skipped : {},
-      };
+      const saved = JSON.parse(raw) as
+        (Partial<Progress> & { skipped?: unknown }) | null;
+      if (saved && typeof saved === "object") {
+        delete saved.skipped;
+        value = {
+          ...EMPTY_PROGRESS,
+          ...saved,
+          track: saved.track === "nonTechnical" ? "nonTechnical" : "technical",
+        };
+      }
     }
   } catch {
     // Private mode or blocked storage: play on, progress just won't stick.
@@ -53,7 +58,10 @@ export function readProgress(project: string): Progress {
   return value;
 }
 
-export function updateProgress(project: string, change: (p: Progress) => Progress) {
+export function updateProgress(
+  project: string,
+  change: (p: Progress) => Progress,
+) {
   const before = readProgress(project);
   const next = change(before);
   if (next === before) return;

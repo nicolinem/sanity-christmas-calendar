@@ -7,7 +7,8 @@ Utkast 2026-11-03.
 
 **Rammene:** 5–15 deltakere, både tekniske og ikke-tekniske. Frivillig og på
 egen tid. Deltakeren velger én av to løyper; begge følger samme ukentlige
-historie, men har egne oppgaver. Omfang og tidsbruk for hver løype må testes.
+historie, men har egne oppgaver. Antall oppgaver kan variere mellom løypene;
+omfang og tidsbruk for hver løype må testes.
 
 ---
 
@@ -30,12 +31,12 @@ Fordi det er på egen tid, er det verste som kan skje ikke at noen står fast
 - **Kalenderen har tre ukentlige kapitler, ikke 24 daglige luker.** Kapitler
   åpnes på dato. Progresjonen i valgt løype går gjennom lukene i rekkefølge.
   Alle kapitlene kan ligge i koden fra start; `git pull` trengs for feilrettinger.
-- **Deltakeren kan hoppe over en luke uten å bli låst.** «Jeg står fast» gir
-  flere hint, fasit når den er tilgjengelig og valg om å gå videre. Luka står
-  som hoppet over og kan løses senere; da registreres fullføring og poeng.
+- **Neste luke krever fullføring av den aktive.** «Jeg står fast» gir flere
+  hint og fasit når den er tilgjengelig, men viser ikke neste luke før sjekken
+  er bestått. Deltakeren kan lukke spillet og fortsette senere.
 - **Poeng belønner fullføring, ikke fart eller få hint.** Ingen toppliste i
-  første versjon. Å hoppe over gir ikke fullføringspoeng, men låser ikke
-  deltakeren ute fra resten av løypa.
+  første versjon. Hint og fasit endrer ikke poengene; poeng gis når sjekken er
+  bestått.
 - **Ingen frist.** Alt står åpent ut desember. Den som hopper over en uke,
   kan ta den igjen.
 - **Spillet virker alene.** Det felles (andres kuler, spøkelser) er pynt. Hvis
@@ -83,14 +84,14 @@ sjekkliste alene.
 
 ### I løpet av uka
 
-| Hva skjer                              | Hva kan gå galt                                  | Hva vi gjør                                                                                              |
-| -------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| Åpner ei luke                          | Vet ikke hva som skjer eller hvor man skal jobbe | Ukas karakter sier mål og arbeidssted; neste luke åpnes etter fullføring eller «gå videre»               |
-| Skriver kode                           | Halvferdig kode gir rød feil overalt             | Sjekken sier «Koden kjører ikke ennå», ikke «feil»                                                       |
-| Ødelegger skjemaet                     | Studio viser bare en feilmelding                 | Studio-feilen gjelder bare Studio; spillet virker videre (må testes). Hint om hvordan man leser feilen   |
-| Vil starte oppgaven på nytt            | Vet ikke hvilke filer som er endret              | Én kommando setter filene for én oppgave tilbake til start                                               |
-| Sjekken sier nei, men løsningen virker | Frustrasjon, tror man har gjort feil             | Presis feilmelding, prøv igjen eller hopp over. Testerne prøver minst to ulike løsninger per kodeoppgave |
-| Publiserer innhold                     | Glemmer `Publish`, ser ingenting i spillet       | Spillet ser drafts og sier «Du har et utkast som ikke er publisert»                                      |
+| Hva skjer                              | Hva kan gå galt                                  | Hva vi gjør                                                                                            |
+| -------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Åpner ei luke                          | Vet ikke hva som skjer eller hvor man skal jobbe | Ukas karakter sier mål og arbeidssted; neste luke åpnes etter at sjekken er bestått                    |
+| Skriver kode                           | Halvferdig kode gir rød feil overalt             | Sjekken sier «Koden kjører ikke ennå», ikke «feil»                                                     |
+| Ødelegger skjemaet                     | Studio viser bare en feilmelding                 | Studio-feilen gjelder bare Studio; spillet virker videre (må testes). Hint om hvordan man leser feilen |
+| Vil starte oppgaven på nytt            | Vet ikke hvilke filer som er endret              | Én kommando setter filene for én oppgave tilbake til start                                             |
+| Sjekken sier nei, men løsningen virker | Frustrasjon, tror man har gjort feil             | Presis feilmelding, hint, fasit når den slippes, og hjelp i kanalen. Testerne prøver ulike løsninger   |
+| Publiserer innhold                     | Glemmer `Publish`, ser ingenting i spillet       | Spillet ser drafts og sier «Du har et utkast som ikke er publisert»                                    |
 
 ### Står fast
 
@@ -100,8 +101,8 @@ En trapp. Hvert trinn er der før deltakeren trenger det:
 2. Hint 1, 2 og 3, med lenker til dokumentasjonen.
 3. Meldingen fra sjekken, som sier hva som mangler.
 4. Spør i kanalen. Vi svarer innen en arbeidsdag (startverdi).
-5. Hopp over og gå videre; den hoppede luka blir liggende i loggen for senere.
-6. Se fasit når den slippes, og gå tilbake for å fullføre om ønskelig.
+5. Se fasit når den slippes, prøv løsningen og kjør sjekken igjen.
+6. Hvis du må stoppe, lukk spillet; den aktive luka venter når du kommer tilbake.
 
 ### Fredag
 
@@ -115,8 +116,8 @@ En trapp. Hvert trinn er der før deltakeren trenger det:
 
 Oppsettet kan gjøres alene med sjekklista. Kapitler åpner på dato, men en som
 starter sent kan ta igjen tidligere kapitler. Inne i valgt løype går lukene i
-rekkefølge. Å hoppe over en luke åpner neste; loggen viser hva som er
-fullført, hoppet over og fortsatt mulig å ta igjen.
+rekkefølge. Neste luke åpnes bare når sjekken for den aktive luka er bestått;
+framgangen lagres dersom deltakeren må komme tilbake senere.
 
 ### Uka før jul og julaften
 
@@ -125,8 +126,16 @@ for den som åpner spillet alene på julaften.
 
 ## Sjekken
 
-- **Kjører når filen lagres.** `npm run dev` starter sjekken sammen med
-  spillet. «Sjekk på nytt» og `npm run quest` finnes fortsatt.
+- **Kodevinduet: automatisk mens du skriver.** Sjekken kjører når vinduet
+  åpnes og etter en kort skrivepause ved endringer. Ingen fil må lagres;
+  utkastet lagres i nettleseren. Dette er implementert for ikon/preview og
+  validation.
+- **Kode i repoet: manuell sjekk foreløpig.** Deltakeren lagrer filene og
+  kjører `npm run quest`. Automatisk sjekk ved fillagring er planlagt der det
+  er robust, men startes ikke av `npm run dev` i dag. CLI-sjekken beholdes
+  som reserve når automatisk sjekk bygges.
+- **Innhold: spillet leser publiserte endringer.** En draft er ikke nok til å
+  bestå en oppgave som krever publisert innhold.
 - **Sjekker hva koden gjør, ikke hvordan den er skrevet.** Alle løsninger som
   virker, skal bestå.
 - **Sier hva som mangler**, aldri bare «feil». Teksten testes på en som ikke
@@ -174,17 +183,17 @@ bonus.
 
 ## Det som må bygges
 
-| Hva                                                             | Hvorfor                                                                                                                            |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Åpning per uke i stedet for per dag                             | Motoren åpner i dag luke N etter N–1 dager                                                                                         |
-| Sjekk når filen lagres                                          | Spillet svarer uten at man trenger terminalen                                                                                      |
-| «Gi opp og gå videre» med fasit og mulighet til å ta igjen luka | En sjekk som tar feil eller en vanskelig oppgave stopper ingen                                                                     |
-| Tilbakestill én oppgave                                         | Trygt å prøve og feile                                                                                                             |
-| `npm run doctor` og `npm run update`                            | Oppsett og feilretting uten hjelp                                                                                                  |
-| Innlogging i Studio uten felle                                  | En kommando som åpner innloggingslenken, og et panel som viser den i stedet for innlogging som ikke virker                         |
-| Spillet ser upubliserte drafts                                  | Den vanligste feilen i uke 1 får en tydelig melding                                                                                |
-| Ferdigskrevne poster til kanalen                                | Mandag og fredag går av seg selv                                                                                                   |
-| Løsningene skrives om                                           | `solution/<id>` bruker fortsatt gamle navn («Laugets lov», «Prøvestua») og meldinger som «Et annet blad har allerede dette navnet» |
+| Hva                                                         | Hvorfor                                                                                                                            |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Åpning per uke i stedet for per dag                         | Motoren åpner i dag luke N etter N–1 dager                                                                                         |
+| Automatisk sjekk ved fillagring for repooppgaver (planlagt) | Repooppgaver kan svare uten terminalkommando; kodevinduet sjekker allerede automatisk mens deltakeren skriver                      |
+| Hint og fasit uten å omgå fullføringssjekken                | En vanskelig oppgave får støtte, mens neste luke fortsatt krever at målet er nådd                                                  |
+| Tilbakestill én oppgave                                     | Trygt å prøve og feile                                                                                                             |
+| `npm run doctor` og `npm run update`                        | Oppsett og feilretting uten hjelp                                                                                                  |
+| Innlogging i Studio uten felle                              | En kommando som åpner innloggingslenken, og et panel som viser den i stedet for innlogging som ikke virker                         |
+| Spillet ser upubliserte drafts                              | Den vanligste feilen i uke 1 får en tydelig melding                                                                                |
+| Ferdigskrevne poster til kanalen                            | Mandag og fredag går av seg selv                                                                                                   |
+| Løsningene skrives om                                       | `solution/<id>` bruker fortsatt gamle navn («Laugets lov», «Prøvestua») og meldinger som «Et annet blad har allerede dette navnet» |
 
 Når de bygges, står i planen i [questplan.md](questplan.md).
 
@@ -194,14 +203,14 @@ Dette er produktrekkefølgen. Tekniske detaljer beholdes i
 [utviklingsplan.md](utviklingsplan.md); ikke start senere steg før
 avhengighetene her er avklart.
 
-| Steg                      | Resultat                                                                                    | Ferdig når / avhengighet                                                                                                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0. Lås produktet          | Læringsmål og oppgavesett for begge løyper; poengregel; deltakeroversikt, synlighet og eier | Hver luke har mål, læring, sjekk, belønning og løype. Fasit, hopp over og ta igjen er avtalt. Custom input er kjerneoppgave i teknisk uke 1.                               |
-| 1. Progresjon             | Løypevalg, tre ukentlige kapitler og sekvensielle luker                                     | Fullfør, hopp over, gå videre, last inn på nytt og kom tilbake fungerer; poeng og status er forståelige. Ingen deling er nødvendig.                                        |
-| 2. Uke 1 ende-til-ende    | Begge løypene kan spilles fra fersk klone                                                   | Testere fra begge målgruppene får synlig resultat og kan ta igjen en hoppet over luke. Kodeoppgaver sjekkes automatisk der det er mulig; CLI-sjekk er dokumentert reserve. |
-| 3. Fellesoversikt         | Deltakerkort med valgt figur, nivå/fremgang og utvalgte resultater                          | Opt-in, avmelding/skjuling og feilhåndtering er testet. Privat data og sanntidsposisjon vises ikke.                                                                        |
-| 4. Kapittel 2–3 og finale | Begge løyper og individuell avslutning er komplette                                         | Ukentlige tester og releasekontroll passerer. Finalen fungerer alene selv om fellesoversikten er tom eller utilgjengelig.                                                  |
-| 5. Releaseprøve           | Oppsett, support, kommunikasjon og fasitflyt er øvd                                         | Ny deltaker kan starte uten muntlig hjelp; arrangøren kan publisere oppdatering og løsninger med reserveperson.                                                            |
+| Steg                      | Resultat                                                                                    | Ferdig når / avhengighet                                                                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0. Lås produktet          | Læringsmål og oppgavesett for begge løyper; poengregel; deltakeroversikt, synlighet og eier | Hver luke har mål, læring, sjekk, belønning og løype. Antall luker kan variere. Hint/fasit og kravet om bestått sjekk er avtalt. Custom input er kjerneoppgave i teknisk uke 1.  |
+| 1. Progresjon             | Løypevalg, tre ukentlige kapitler og sekvensielle luker                                     | Fullfør, lagre framgang og fortsett etter reload fungerer; poeng og status er forståelige. Ingen deling er nødvendig.                                                            |
+| 2. Uke 1 ende-til-ende    | Begge løypene kan spilles fra fersk klone                                                   | Testere fra begge målgruppene får synlig resultat og må fullføre aktiv luke før neste åpnes. Kodeoppgaver sjekkes automatisk der det er mulig; CLI-sjekk er dokumentert reserve. |
+| 3. Fellesoversikt         | Deltakerkort med valgt figur, nivå/fremgang og utvalgte resultater                          | Opt-in, avmelding/skjuling og feilhåndtering er testet. Privat data og sanntidsposisjon vises ikke.                                                                              |
+| 4. Kapittel 2–3 og finale | Begge løyper og individuell avslutning er komplette                                         | Ukentlige tester og releasekontroll passerer. Finalen fungerer alene selv om fellesoversikten er tom eller utilgjengelig.                                                        |
+| 5. Releaseprøve           | Oppsett, support, kommunikasjon og fasitflyt er øvd                                         | Ny deltaker kan starte uten muntlig hjelp; arrangøren kan publisere oppdatering og løsninger med reserveperson.                                                                  |
 
 Planen fra uke 45–48 må flyttes hvis steg 0 ikke er låst. To reelle løyper
 øker oppgavearbeidet. Kutt først bonusinnhold og spøkelser/sanntid; ikke kutt
@@ -210,6 +219,6 @@ Planen fra uke 45–48 må flyttes hvis steg 0 ikke er låst. To reelle løyper
 ## Å bestemme
 
 - [ ] Læringsmål og oppgaver for begge løyper, uke 2–3.
-- [ ] Poengverdier og nivågrenser; fasit-/hopp over-/ta igjen-regler.
+- [ ] Poengverdier og nivågrenser; hint-/fasitregler og kravet om bestått sjekk.
 - [ ] Deltakeroversikt: datakilde, samtykke, eier og moderering.
 - [ ] Kanal: antakelig Viva Engage.

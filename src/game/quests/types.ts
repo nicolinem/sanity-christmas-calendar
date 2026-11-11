@@ -2,13 +2,15 @@ import type { GameItemView } from "../items";
 import type { Element } from "../magic";
 import type { QuestSiteId } from "../village";
 
+export type QuestTrack = "technical" | "nonTechnical";
+
 // Facts the player has earned. Stored per Sanity project in the browser
 // (progress.ts) and never taken back: deleting a sword doesn't undo a quest.
 export type Progress = {
+  track: QuestTrack;
   metBlacksmith: boolean;
   wraithDefeated: boolean;
   completed: Record<string, string>; // quest id → ISO time it was completed
-  skipped: Record<string, string>; // quest id → ISO time it was skipped
   briefed: Record<string, true>; // quests Brann has already explained
   hints: Record<string, number>; // how many hints the player has revealed per quest
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
@@ -45,6 +47,7 @@ export type Hint = { text: string; link?: { label: string; url: string } };
 
 export type Quest = {
   id: string;
+  track?: QuestTrack; // omitted for quests shared by both tracks
   door: number; // display order for this door in the calendar
   title: string;
   intro: string[]; // what Brann says when he hands it over, one short page each
@@ -78,7 +81,7 @@ export type Chapter = {
 
 // offered: unlocked, but Brann hasn't handed it over yet. Its details stay
 // hidden and it can't be completed until he has.
-export type QuestStatus = "done" | "active" | "offered" | "skipped" | "locked";
+export type QuestStatus = "done" | "active" | "offered" | "locked";
 
 export type QuestState = {
   quest: Quest;

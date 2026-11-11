@@ -9,7 +9,6 @@ const SITE_IDS: QuestSiteId[] = ["forge", "noticeboard", "westHouse"];
 const STATUS_LABEL: Record<QuestStatus, string> = {
   active: "Aktiv",
   offered: "Snakk med Brann",
-  skipped: "Hoppet over",
   done: "Ferdig",
   locked: "Låst",
 };
@@ -19,14 +18,12 @@ export default function VillageMap({
   selectedId,
   onSelect,
   onTravel,
-  onResume,
   onOpenQuest,
 }: {
   board: QuestBoard;
   selectedId?: string;
   onSelect: (questId: string) => void;
   onTravel: (siteId: QuestSiteId) => void;
-  onResume: (questId: string) => void;
   onOpenQuest: (questId: string) => void;
 }) {
   const current = board.current;
@@ -133,7 +130,6 @@ export default function VillageMap({
           const state =
             states.find((item) => item.status === "active") ??
             states.find((item) => item.status === "offered") ??
-            states.find((item) => item.status === "skipped") ??
             states.find((item) => item.status === "locked") ??
             states.at(-1);
           if (!state) return null;
@@ -156,9 +152,7 @@ export default function VillageMap({
                   ? "✓"
                   : state.status === "locked"
                     ? "·"
-                    : state.status === "skipped"
-                      ? "↩"
-                      : "!"}
+                    : "!"}
               </span>
               <span className="village-map-pin-label">
                 {site.label} · Luke {state.quest.door}
@@ -208,15 +202,6 @@ export default function VillageMap({
                 </span>
               </h3>
               <p>{renderText(selected.quest.goal)}</p>
-              {selected.status === "skipped" && (
-                <button
-                  type="button"
-                  className="btn btn--amber"
-                  onClick={() => onResume(selected.quest.id)}
-                >
-                  Ta igjen luka
-                </button>
-              )}
               <button
                 type="button"
                 className="btn btn--quiet"

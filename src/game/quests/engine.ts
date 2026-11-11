@@ -1,5 +1,24 @@
 import { clampForgeLevel } from "../rules";
-import type { Chapter, Progress, QuestContext, QuestState } from "./types";
+import type {
+  Chapter,
+  Progress,
+  QuestContext,
+  QuestState,
+  QuestTrack,
+} from "./types";
+
+// Select once and pass the same chapters to evaluation and forge rewards.
+export function chaptersForTrack(
+  chapters: Chapter[],
+  track: QuestTrack,
+): Chapter[] {
+  return chapters.map((chapter) => ({
+    ...chapter,
+    quests: chapter.quests.filter(
+      (quest) => !quest.track || quest.track === track,
+    ),
+  }));
+}
 
 // Quests unlock one after another. Each chapter opens weekly from
 // NEXT_PUBLIC_CALENDAR_START (30 November). Without it, dates are ignored.
@@ -39,28 +58,38 @@ export function evaluateQuests(
       const dateOpen = devUnlock || !opensAt || opensAt <= now;
       const result = quest.check(ctx);
       const done = Boolean(ctx.progress.completed[quest.id]);
-      const skipped = Boolean(ctx.progress.skipped[quest.id]);
       const unlocked = devUnlock || (previousResolved && dateOpen);
       const briefed = Boolean(ctx.progress.briefed[quest.id]);
       states.push({
         quest,
         chapter,
-        status: done ? "done" : skipped ? "skipped" : !unlocked ? "locked" : briefed ? "active" : "offered",
+        status: done
+          ? "done"
+          : !unlocked
+            ? "locked"
+            : briefed
+              ? "active"
+              : "offered",
         result,
-        opensAt: !done && !skipped && previousResolved && !dateOpen ? opensAt : undefined,
+        opensAt: !done && previousResolved && !dateOpen ? opensAt : undefined,
       });
-      // Skipping advances the story but does not count as completion. Bonuses
-      // remain optional and never hold back the next quest.
-      if (!quest.bonus) previousResolved = done || skipped;
+      // Bonus quests remain optional and never hold back the next core quest.
+      if (!quest.bonus) previousResolved = done;
     }
   }
 
-  const index = states.findIndex((s) => s.status === "active" || s.status === "offered");
+  const index = states.findIndex(
+    (s) => s.status === "active" || s.status === "offered",
+  );
   return {
     states,
     current: index >= 0 ? states[index] : null,
-    previous: index > 0 && states[index - 1].status === "done" ? states[index - 1] : null,
-    completedCount: states.filter((s) => s.status === "done" && !s.quest.bonus).length,
+    previous:
+      index > 0 && states[index - 1].status === "done"
+        ? states[index - 1]
+        : null,
+    completedCount: states.filter((s) => s.status === "done" && !s.quest.bonus)
+      .length,
     total: states.filter((s) => !s.quest.bonus).length,
   };
 }
@@ -70,6 +99,7 @@ export function forgeLevelFor(chapters: Chapter[], progress: Progress): number {
   let level = 1;
   for (const chapter of chapters)
     for (const quest of chapter.quests)
-      if (progress.completed[quest.id] && quest.reward) level += quest.reward.forgeLevel;
+      if (progress.completed[quest.id] && quest.reward)
+        level += quest.reward.forgeLevel;
   return clampForgeLevel(level);
 }

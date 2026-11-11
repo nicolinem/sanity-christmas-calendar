@@ -5,7 +5,11 @@ import { bridge } from "@/game/bridge";
 import type { GameItemView } from "@/game/items";
 import { forgedPower } from "@/game/rules";
 import { CHAPTERS } from "@/game/quests/chapters";
-import { evaluateQuests, forgeLevelFor } from "@/game/quests/engine";
+import {
+  chaptersForTrack,
+  evaluateQuests,
+  forgeLevelFor,
+} from "@/game/quests/engine";
 import {
   EMPTY_PROGRESS,
   PROGRESS_PROJECT as PROJECT,
@@ -24,50 +28,61 @@ const noSubscribe = () => () => {};
 // quest board because item power depends on the forge level, and the board
 // depends on the items.
 export function useProgress() {
-  const progress = useSyncExternalStore(subscribeProgress, () => readProgress(PROJECT), () => EMPTY_PROGRESS);
-  const forgeLevel = forgeLevelFor(CHAPTERS, progress);
+  const progress = useSyncExternalStore(
+    subscribeProgress,
+    () => readProgress(PROJECT),
+    () => EMPTY_PROGRESS,
+  );
+  const chapters = useMemo(
+    () => chaptersForTrack(CHAPTERS, progress.track),
+    [progress.track],
+  );
+  const forgeLevel = forgeLevelFor(chapters, progress);
 
   const metBrann = useCallback((questId?: string) => {
     updateProgress(PROJECT, (p) =>
       p.metBlacksmith && (!questId || p.briefed[questId])
         ? p
-        : { ...p, metBlacksmith: true, briefed: questId ? { ...p.briefed, [questId]: true } : p.briefed },
+        : {
+            ...p,
+            metBlacksmith: true,
+            briefed: questId ? { ...p.briefed, [questId]: true } : p.briefed,
+          },
     );
   }, []);
 
   const reset = useCallback(() => resetProgress(PROJECT), []);
 
-  const skipQuest = useCallback((questId: string) => {
-    updateProgress(PROJECT, (p) =>
-      p.completed[questId] || p.skipped[questId]
-        ? p
-        : { ...p, skipped: { ...p.skipped, [questId]: new Date().toISOString() } },
-    );
-  }, []);
-
-  const resumeQuest = useCallback((questId: string) => {
-    updateProgress(PROJECT, (p) => {
-      if (!p.skipped[questId]) return p;
-      const skipped = { ...p.skipped };
-      delete skipped[questId];
-      return { ...p, skipped };
-    });
-  }, []);
-
   const markIntroSeen = useCallback(() => {
-    updateProgress(PROJECT, (p) => (p.introSeen ? p : { ...p, introSeen: true }));
+    updateProgress(PROJECT, (p) =>
+      p.introSeen ? p : { ...p, introSeen: true },
+    );
   }, []);
 
   const revealHint = useCallback((questId: string) => {
-    updateProgress(PROJECT, (p) => ({ ...p, hints: { ...p.hints, [questId]: (p.hints[questId] ?? 0) + 1 } }));
+    updateProgress(PROJECT, (p) => ({
+      ...p,
+      hints: { ...p.hints, [questId]: (p.hints[questId] ?? 0) + 1 },
+    }));
   }, []);
 
   // The code window passed every example. Like quests, never taken back.
-  const solveTask = useCallback((questId: string, how: Omit<SolvedTask, "at">) => {
-    updateProgress(PROJECT, (p) =>
-      p.solved[questId] ? p : { ...p, solved: { ...p.solved, [questId]: { ...how, at: new Date().toISOString() } } },
-    );
-  }, []);
+  const solveTask = useCallback(
+    (questId: string, how: Omit<SolvedTask, "at">) => {
+      updateProgress(PROJECT, (p) =>
+        p.solved[questId]
+          ? p
+          : {
+              ...p,
+              solved: {
+                ...p.solved,
+                [questId]: { ...how, at: new Date().toISOString() },
+              },
+            },
+      );
+    },
+    [],
+  );
 
   // Remember every element the player has struck the wraith with (quests and,
   // later, the rune book read this).
@@ -75,7 +90,10 @@ export function useProgress() {
     () =>
       bridge.on("hit", ({ element }) => {
         if (element && !readProgress(PROJECT).struck[element])
-          updateProgress(PROJECT, (p) => ({ ...p, struck: { ...p.struck, [element]: true } }));
+          updateProgress(PROJECT, (p) => ({
+            ...p,
+            struck: { ...p.struck, [element]: true },
+          }));
       }),
     [],
   );
@@ -83,22 +101,47 @@ export function useProgress() {
   // Dev panel: pretend every quest before `questId` is done (and the wraith
   // beaten), so any quest can be tested without playing up to it.
   const jumpTo = useCallback((questId: string, briefed: boolean) => {
-    const order = CHAPTERS.flatMap((c) => c.quests.map((q) => q.id));
-    // "__end" means: everything is done.
-    const before = questId === "__end" ? order : order.slice(0, Math.max(0, order.indexOf(questId)));
-    const now = new Date().toISOString();
-    updateProgress(PROJECT, (p) => ({
-      ...p,
-      introSeen: true,
-      metBlacksmith: true,
-      wraithDefeated: before.length > 0 || p.wraithDefeated,
-      completed: Object.fromEntries(before.map((id) => [id, now])),
-      skipped: {},
-      briefed: Object.fromEntries([...before, ...(briefed ? [questId] : [])].map((id) => [id, true as const])),
-    }));
+    updateProgress(PROJECT, (p) => {
+      const order = chaptersForTrack(CHAPTERS, p.track).flatMap((c) =>
+        c.quests.map((q) => q.id),
+      );
+      if (questId !== "__end" && !order.includes(questId)) return p;
+      // "__end" means: everything in the selected track is done.
+      const before =
+        questId === "__end" ? order : order.slice(0, order.indexOf(questId));
+      const now = new Date().toISOString();
+      const completed = { ...p.completed };
+      const briefings = { ...p.briefed };
+      for (const id of order) {
+        delete completed[id];
+        delete briefings[id];
+      }
+      for (const id of before) {
+        completed[id] = now;
+        briefings[id] = true;
+      }
+      if (briefed && questId !== "__end") briefings[questId] = true;
+      return {
+        ...p,
+        introSeen: true,
+        metBlacksmith: true,
+        wraithDefeated: before.length > 0 || p.wraithDefeated,
+        completed,
+        briefed: briefings,
+      };
+    });
   }, []);
 
-  return { progress, forgeLevel, metBrann, reset, revealHint, solveTask, skipQuest, resumeQuest, markIntroSeen, jumpTo };
+  return {
+    progress,
+    forgeLevel,
+    metBrann,
+    reset,
+    revealHint,
+    solveTask,
+    markIntroSeen,
+    jumpTo,
+  };
 }
 
 type BoardInput = {
@@ -122,17 +165,34 @@ export function useQuestBoard({
 }: BoardInput) {
   const devUnlock = useSyncExternalStore(
     noSubscribe,
-    () => new URLSearchParams(window.location.search).get("dev") === "quests",
+    () =>
+      process.env.NODE_ENV !== "production" &&
+      new URLSearchParams(window.location.search).get("dev") === "quests",
     () => false,
   );
 
-  const board = useMemo(
-    () => {
-      const ctx: QuestContext = { items, progress, codeChecks, sanityConfigured, unpublishedDrafts };
-      return evaluateQuests(CHAPTERS, ctx, new Date(), devUnlock);
-    },
-    [items, progress, codeChecks, sanityConfigured, unpublishedDrafts, devUnlock],
+  const chapters = useMemo(
+    () => chaptersForTrack(CHAPTERS, progress.track),
+    [progress.track],
   );
+  const board = useMemo(() => {
+    const ctx: QuestContext = {
+      items,
+      progress,
+      codeChecks,
+      sanityConfigured,
+      unpublishedDrafts,
+    };
+    return evaluateQuests(chapters, ctx, new Date(), devUnlock);
+  }, [
+    chapters,
+    items,
+    progress,
+    codeChecks,
+    sanityConfigured,
+    unpublishedDrafts,
+    devUnlock,
+  ]);
 
   // The first win over the wraith counts forever, even after a rematch reset.
   useEffect(() => {
@@ -145,11 +205,12 @@ export function useQuestBoard({
     // (React strict mode) doesn't celebrate the same quest twice.
     const saved = readProgress(PROJECT);
     const finished = board.states.filter(
-      (s) => s.status === "active" && s.result.done && !saved.completed[s.quest.id],
+      (s) =>
+        s.status === "active" && s.result.done && !saved.completed[s.quest.id],
     );
     if (finished.length === 0) return;
 
-    const before = forgeLevelFor(CHAPTERS, saved);
+    const before = forgeLevelFor(chapters, saved);
     const now = new Date().toISOString();
     updateProgress(PROJECT, (p) => {
       const completed = { ...p.completed };
@@ -157,11 +218,19 @@ export function useQuestBoard({
       return { ...p, completed };
     });
     for (const s of finished) {
-      pushToast({ title: `Luke ${s.quest.door} ferdig`, body: s.quest.title, tone: "quest" });
-      pushToast({ title: `Lærdom: ${plainText(s.quest.lesson.title)}`, body: "Står under Lærdommer i kalenderen.", tone: "lesson" });
+      pushToast({
+        title: `Luke ${s.quest.door} ferdig`,
+        body: s.quest.title,
+        tone: "quest",
+      });
+      pushToast({
+        title: `Lærdom: ${plainText(s.quest.lesson.title)}`,
+        body: "Står under Lærdommer i kalenderen.",
+        tone: "lesson",
+      });
     }
 
-    const after = forgeLevelFor(CHAPTERS, readProgress(PROJECT));
+    const after = forgeLevelFor(chapters, readProgress(PROJECT));
     if (after > before) {
       pushToast({
         title: `Nivå ${after}: våpnene blir sterkere`,
@@ -170,7 +239,7 @@ export function useQuestBoard({
       });
       bridge.emit("forgeLevelUp", after);
     }
-  }, [board]);
+  }, [board, chapters]);
 
   return board;
 }

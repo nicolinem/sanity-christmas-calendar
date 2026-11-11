@@ -160,9 +160,7 @@ function buildPages(
   if (current.status === "active" && placePhrase) {
     return [
       ...reaction,
-      <>
-        {renderText(current.quest.intro[0])}
-      </>,
+      <>{renderText(current.quest.intro[0])}</>,
       <>
         {renderText(current.quest.intro[1] ?? "")}
         {current.quest.intro[1] && " "}Oppgaven ligger {placePhrase}.
