@@ -14,7 +14,18 @@ export const EMPTY_PROGRESS: Progress = {
   struck: {},
   introSeen: false,
   solved: {},
+  studioConfirmed: {},
 };
+
+// Older saves have no studioConfirmed; anything that isn't a record of strings is dropped.
+function readStudioConfirmed(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  return Object.fromEntries(
+    Object.entries(raw).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
+}
 
 // One record per Sanity project, so a fresh project is a fresh start.
 export const PROGRESS_PROJECT =
@@ -48,6 +59,7 @@ export function readProgress(project: string): Progress {
           ...EMPTY_PROGRESS,
           ...saved,
           track: saved.track === "nonTechnical" ? "nonTechnical" : "technical",
+          studioConfirmed: readStudioConfirmed(saved.studioConfirmed),
         };
       }
     }

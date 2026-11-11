@@ -1,6 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { KNOWN_SPRITE_IDS } from "../../game/sprites";
-import { SAME_NAME_QUERY, sameNameParams } from "../lib/guild";
+import { isNameTaken } from "../lib/guild";
 import { isSolved, ItemIcon, ItemMedia } from "../lib/solved";
 
 // Everything the knight can carry. Players create these in the Studio and
@@ -23,16 +23,17 @@ export const item = defineType({
       name: "name",
       title: "Name",
       type: "string",
-      // QUEST: Luke 3. Vår versjon av koden fra kodevinduet: ingen to gjenstander
-      // kan hete det samme. Den spør dataset-et med den ekte klienten, og er
-      // først på når Luke 3 er løst i spillet. Gå videre: en regel på description.
+      // QUEST: Luke 3. Studio stopper like navn ved vanlig redigering. Dette er
+      // ikke en databasebegrensning; API-mutasjoner valideres ikke av Studio-regler.
+      // Først på når Luke 3 er løst i spillet. Gå videre: en regel på description.
       validation: (rule) => [
         rule.required(),
         rule.custom(async (name, context) => {
-          if (!isSolved("the-guilds-law") || !name) return true;
-          const client = context.getClient({ apiVersion: "2024-01-01" });
-          const others = await client.fetch(SAME_NAME_QUERY, sameNameParams(name, context.document?._id ?? ""));
-          return others === 0 ? true : `Another item is already called "${name}"`;
+          const { document, getClient } = context;
+          if (!isSolved("the-guilds-law") || !name || !document) return true;
+          const client = getClient({ apiVersion: "2026-09-03" });
+          const taken = await isNameTaken(client, name, document._id);
+          return taken ? `Another item is already called "${name}"` : true;
         }),
       ],
     }),

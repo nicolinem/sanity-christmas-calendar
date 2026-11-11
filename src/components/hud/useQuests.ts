@@ -194,6 +194,43 @@ export function useQuestBoard({
     devUnlock,
   ]);
 
+  // The player confirms, in their own Studio, that a solved quest works there.
+  // Checked again against the latest saved progress, so stale renders can't
+  // confirm a quest that isn't active.
+  const confirmStudioPractice = useCallback(
+    (questId: string) => {
+      updateProgress(PROJECT, (p) => {
+        const state = evaluateQuests(
+          chaptersForTrack(CHAPTERS, p.track),
+          {
+            items,
+            progress: p,
+            codeChecks,
+            sanityConfigured,
+            unpublishedDrafts,
+          },
+          new Date(),
+          devUnlock,
+        ).states.find((s) => s.quest.id === questId);
+        if (
+          !state?.quest.studioPractice ||
+          state.status !== "active" ||
+          !p.solved[questId] ||
+          p.studioConfirmed[questId]
+        )
+          return p;
+        return {
+          ...p,
+          studioConfirmed: {
+            ...p.studioConfirmed,
+            [questId]: new Date().toISOString(),
+          },
+        };
+      });
+    },
+    [items, codeChecks, sanityConfigured, unpublishedDrafts, devUnlock],
+  );
+
   // The first win over the wraith counts forever, even after a rematch reset.
   useEffect(() => {
     if (wraithDefeatedNow && !progress.wraithDefeated)
@@ -241,5 +278,5 @@ export function useQuestBoard({
     }
   }, [board, chapters]);
 
-  return board;
+  return { ...board, confirmStudioPractice };
 }

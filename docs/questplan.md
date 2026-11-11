@@ -161,17 +161,17 @@ som trengs for å spille.
 **Teknisk løype — foreløpig oppgavesett (antallet er ikke låst):**
 
 1. `icon` og `preview`: gjør våpen gjenkjennelige i dokumentlista, og finn
-  igjen ditt eget våpen i den ekte Studio-lista.
+   igjen ditt eget våpen i den ekte Studio-lista.
 2. `validation`: krev sprite på våpen og hindre like navn; prøv feiltilfellene
-  i Studio før du retter og publiserer.
+   i Studio før du retter og publiserer.
 3. `custom input`: velg sprite fra pikselbilder. Dette er allerede besluttet
-  som kjerneoppgave; bruk velgeren og se den publiserte endringen i spillet.
+   som kjerneoppgave; bruk velgeren og se den publiserte endringen i spillet.
 
 Kodetestene beviser ikke alene at Studio-avslutningene er utført. Utkastet i
 [uke1-luker.md](uke1-luker.md) skiller mellom kode bestått, egenbekreftet
 Studio-prøve og resultat som kan leses fra publisert innhold. Egenbekreftelse
 etter bestått kodetest for ikon/preview og validation er vedtatt 2026-11-11,
-men må bygges før det kan loves i spillet. Øvrige nye fullføringsvilkår må
+og er nå implementert. Øvrige nye fullføringsvilkår må
 godkjennes for den enkelte leveransen.
 
 `Document view` er foreløpig bonus. Felles oppstart dekker det grunnleggende
@@ -186,11 +186,11 @@ Etter felles oppstart videreutvikles det samme våpenet; ingen ny samling
 eller bestemt mengde dokumenter er nødvendig.
 
 1. **Gi våpenet en beskrivelse:** bruk `Description` i Studio, publiser og
-  se teksten i informasjonen om våpenet i spillet. Tema: et innholdsfelt
-  brukes utenfor Studio.
+   se teksten i informasjonen om våpenet i spillet. Tema: et innholdsfelt
+   brukes utenfor Studio.
 2. **Oppdater samme dokument:** prøv en annen sprite som utkast, sammenlign
-  med spillet og publiser. Tema: samme document beholder ID-en når innholdet
-  oppdateres; utkast endrer ikke den publiserte versjonen.
+   med spillet og publiser. Tema: samme document beholder ID-en når innholdet
+   oppdateres; utkast endrer ikke den publiserte versjonen.
 
 Oppgavene bruker bare Studio-skjemaet og spillet, ikke kode eller terminal.
 Spillet viser allerede beskrivelser og sprites fra publisert innhold.
@@ -225,7 +225,7 @@ vedtatte Studio-bekreftelsen:
 - [ ] Felles oppstart og oppgavesettet i hver løype; antall luker fastsettes
       etter læringsmål og testet tidsbruk, og kan være ulikt mellom løypene.
 - [x] Ikon/preview og validation krever bestått kodetest og «Jeg har prøvd
-  dette i Studio» før neste luke åpnes (2026-11-11). Se [uke1-luker.md](uke1-luker.md).
+      dette i Studio» før neste luke åpnes (2026-11-11). Se [uke1-luker.md](uke1-luker.md).
 - [ ] Poengfordeling som er rettferdig mellom løypene, bonus uten poeng og
       nivågrenser som startverdier.
 - [ ] Åpningsdatoene 30. november, 7. desember og 14. desember 2026.

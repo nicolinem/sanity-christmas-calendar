@@ -294,6 +294,11 @@ export default function GameClient() {
     setLogOpen(false);
     setCodeQuestId(questId);
   }, []);
+  const openSiteQuest = useCallback(() => {
+    if (!siteQuest) return;
+    if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
+    else openQuestLog(siteQuest.quest.id);
+  }, [siteQuest, openCode, openQuestLog]);
   const codeState = board.states.find(
     (s) => s.quest.id === codeQuestId && s.status !== "locked",
   );
@@ -388,7 +393,8 @@ export default function GameClient() {
         siteQuest &&
         (zone === "noticeboard" || zone === "westHouse")
       ) {
-        openQuestLog(siteQuest.quest.id);
+        e.preventDefault();
+        openSiteQuest();
         return;
       }
       if (e.key === " " && zone === "wraith" && !onControl) {
@@ -413,7 +419,7 @@ export default function GameClient() {
     showOpening,
     openDialogue,
     openMap,
-    openQuestLog,
+    openSiteQuest,
     combat,
     items,
     slots,
@@ -468,9 +474,10 @@ export default function GameClient() {
                 refreshing={loading}
                 checked={checkedForge}
                 onCheck={checkForge}
-                onOpenLog={openLog}
                 onTravelToSite={travelToSite}
                 onOpenCode={openCode}
+                solvedTasks={progress.solved}
+                onConfirmStudioPractice={board.confirmStudioPractice}
                 onClose={() => setTalking(false)}
               />
             )}
@@ -485,9 +492,10 @@ export default function GameClient() {
                 <button
                   type="button"
                   className="prompt"
-                  onClick={() => siteQuest && openQuestLog(siteQuest.quest.id)}
+                  onClick={openSiteQuest}
                 >
-                  <kbd>E</kbd> Åpne luka her
+                  <kbd>E</kbd>{" "}
+                  {siteQuest.quest.checkedBy === "window" ? "Åpne kodevinduet" : "Åpne luka her"}
                 </button>
               )}
             {!hasMoved &&
@@ -548,6 +556,8 @@ export default function GameClient() {
             hintsShown={progress.hints}
             onRevealHint={revealHint}
             onOpenCode={openCode}
+            solvedTasks={progress.solved}
+            onConfirmStudioPractice={board.confirmStudioPractice}
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}
@@ -560,6 +570,7 @@ export default function GameClient() {
             state={codeState}
             solved={Boolean(progress.solved[codeState.quest.id])}
             onSolved={onSolved}
+            onConfirmStudioPractice={() => board.confirmStudioPractice(codeState.quest.id)}
             hintsShown={progress.hints[codeState.quest.id] ?? 0}
             onRevealHint={() => revealHint(codeState.quest.id)}
             onClose={() => setCodeQuestId(null)}

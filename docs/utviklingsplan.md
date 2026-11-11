@@ -298,12 +298,25 @@ full gjennomspilling mot ekte Sanity-prosjekter hører til E.
 
 ### Utviklingsstart og utsatte verktøy (2026-11-11)
 
-**Klar første leveranse:** Ikon/preview og validation krever bestått kodetest
+**Implementert første leveranse:** Ikon/preview og validation krever bestått kodetest
 og egenbekreftelsen «Jeg har prøvd dette i Studio» før neste luke åpnes.
-Fullføringsvilkåret er godkjent. Bygg lagring, sjekk og tilgjengelig handling
-i eksisterende oppgaveflyt, med tester for låste luker, reload, gjentatt
-bekreftelse og bevaring av gamle fullføringer. Ikke endre poeng eller innfør
-nye innholdssjekker i samme leveranse.
+Bekreftelsen lagres per prosjekt. Samme handling finnes i kodevinduet,
+kalenderen og samtalen med Brann; Studio-åpning lukker oppgaveoverlegget, men
+fullfører ikke luka. Låste, ikke-beståtte og allerede bekreftede luker kan ikke
+bekreftes på nytt. Gamle fullføringer beholdes uten oppdiktede bekreftelser.
+Poeng, bonusstatus og andre innholdssjekker er ikke endret.
+
+**Arbeidsdeling:** To små Haiku-agenter fikk adskilt ansvar for progresjon og
+regresjonstester. Hovedagenten integrerte UI; en tredje Haiku-agent gjorde
+uavhengig kontroll. Ingen subagenter har fått eierskap til samme fil.
+
+**Kontroll:** 47 automatiske tester, TypeScript, målrettet lint og
+produksjonsbygg passerer. Chromium-prøven dekker deaktivert bekreftelse før
+kodebestått, låst neste luke, tastaturbekreftelse, reload og gammel lagring.
+Kalenderen er sett ved 1280×720, 1440×900, 1920×1080 og 390×844; en horisontal
+mobilklipping ble rettet. Prøven bruker simulerte API-svar, forhåndslagrede
+kodefakta og en erstattet Studio-side. Ekte Studio-innskriving/publisering og
+testing med en ny deltaker gjenstår; dette er ikke releasegodkjenning.
 
 Deretter ferdigstilles kalenderoppgavene trinnvis på dagens kart. Åpne valg
 avklares ved behov: løypebytte før løypevelger, poeng før poengfordeling og
@@ -323,3 +336,105 @@ editor nå. Bevar stabile oppgave-ID-er og koblingen fra luke til sted.
 Koordinater hører til kartdata, ikke sjekkene. Grafikk, kollisjon og
 interaksjon må kunne flyttes samlet når editoren bygges. Den skal bruke samme
 kartdata som spillet, ikke introdusere en konkurrerende kopi av verdenen.
+
+### Rettelser etter gjennomspilling (2026-11-11)
+
+**Gjort:**
+
+- Ikonvalg er del av samme luke som preview, ikke en ny oppgave. Valgt
+  dokumenttypeikon vises separat fra våpenbildene, med et galleri over ikonene
+  kodevinduet støtter. Ikon, sprite-felt, spritevisning og navn sjekkes hver for
+  seg; riktig sprite får godkjent selv om navnet mangler.
+- Feil fra `prepare()` vises rett under editoren. Mobilvisningen har én
+  rullbar kolonne, slik at previewen ikke dekker feilmeldingen. `SpriteImage`
+  har tydeligere forklaring og større eksempler; «bare lese»-merket er fjernet.
+- Videre eksperimentering i egen editor ligger i en lukket, tydelig valgfri
+  seksjon. Det er ikke et nytt fullføringskrav.
+- Studio-bekreftelse gir en synlig, animert «Gratulerer!»-markering over
+  kodevinduet, uten å åpne kalenderen. Redusert bevegelse respekteres.
+- Brann viser færre og mer relevante knapper. Luke 3 forklarer behovet for
+  validering gjennom en feilbestilling fra huset vest for brønnen; ingen ny
+  spillmekanikk er innført. Enter aktiverer fokusert knapp fremfor å overstyre
+  den med et sideskift.
+- Ved oppslagstavla åpner E kodevinduet direkte, uten omveien om kalenderen
+  og uten å skrive en E inn i koden.
+
+**Kontroll:** 59 automatiske tester, TypeScript, målrettet lint og
+produksjonsbygg passerer. `GameClient` har fortsatt to eksisterende
+`react-hooks/set-state-in-effect`-funn; sammenligning med `HEAD` bekrefter
+ingen nye lintfunn i denne fila. Chrome-prøven dekker separat delresultat, ikon og
+galleri, referansen, `prepare()`-feil, valgfri fortsettelse, gratulasjon og
+redusert bevegelse. Feilen er synlig og ikke overlappet ved 1280×720,
+1440×900, 1920×1080 og 390×844. Direkte åpning ved oppslagstavla og Branns
+historie/knapper i luke 2–3 er også prøvd. Utvalgte skjermbilder er visuelt
+kontrollert. API-svar og fremgang var testdata; ekte Studio-arbeid og en ny
+deltakers gjennomspilling gjenstår.
+
+**Senere, ikke prioritert nå:**
+
+- Klassisk spillguide med bilder av kontroller, figurer og handlinger.
+- Visuelle måleksempler i Branns samtaler og eventuelle samtaleportretter.
+- Samlet skjermbildeoversikt til designgjennomgang og pitch: intro,
+  samtalesider, låst/aktiv/fullført luke, kodevindu med start/delresultat/feil,
+  Studio-prøve og fullføringsmarkering. Denne leveransen har bare midlertidige
+  kontrollbilder, ikke en ferdig katalog over alle scenarioene.
+
+### Navnevalidering etter gjennomspilling (2026-11-11)
+
+**Problem:** Sprite-delen opplevdes morsom, mens navnedelen krevde et brått
+sprang til klient, asynkron kode og duplikatsøk. En sprite-krasj ble dessuten
+gjentatt under navnesjekkene, så deltakeren ikke kunne se hvilken del som feilet.
+
+**Justert:** Samme luke, men tydelig rekkefølge: regel på `sprite` først,
+deretter egen regel på `name`. Tre hint forklarer returverdier, dokumentets
+`context` og navnesøkets `async`/`await`. Hjelpefanen forklarer argumentene til
+`sameNameParams` og at søket gir et antall, med eksempler på opptatt navn,
+ledig navn og lagring av eget dokument. Ingen full løsning er lagt i starteren.
+
+Sprite og navn får uavhengige delresultater. Nytt navn og lagring av eget
+dokument har hver sin sjekk. En krasj vises under editoren og bare ved de
+relevante delkravene; `valueOfField`-feilen peker mot `context.document`.
+Våpen med sprite må også godtas, og dokumentnivå-validering støttes fortsatt.
+Ingen krasj eller andre blokkerende feil kan gi fullføring. Kodebestått
+krever fortsatt egenbekreftelsen fra Studio før neste luke åpnes.
+
+| Spørsmål | Vurdering |
+| --- | --- |
+| Tydelig | Bedre adskilte trinn og konkrete hjelpeeksempler; må prøves av deltakeren igjen. |
+| Verdt det | Reglene hindrer Branns feilbestilling og prøves i Studio. |
+| Svarer | Hver del får egen status etter skrivepausen, også når den andre krasjer. |
+| Belønnende | Sprite-resultatet beholdes mens navnedelen løses; eksisterende fullføringsmarkering beholdes. |
+| Passer | Ingen ny luke eller mekanikk; navnedelens faktiske vanskelighetsgrad må fortsatt vurderes. |
+
+**Kontroll:** 14 nye regresjonstester, 73 totalt, samt TypeScript, målrettet
+lint og produksjonsbygg passerer. Chrome-prøve med testdata dekker halvferdig
+kode, nye hint, hjelpefanen ved fire skjermstørrelser, isolerte feil og at
+Studio-steget fortsatt kreves. Ingen ekte Studio-publisering er utført.
+Neste vurdering er om en ny gjennomspilling faktisk gir mindre behov for
+ekstern hjelp; navnedelen er ikke erklært enkel bare fordi testene passerer.
+
+**Lesbarhet etter ny tilbakemelding:** Hintene hadde blitt for tette.
+Kodevinduet og kalenderen bruker nå samme hintvisning: egen overskrift,
+korte avsnitt, dokumentasjonslenke på egen linje og mer luft. Navnehintet har
+tre nummererte steg fremfor ett langt avsnitt. De detaljerte hjelpeeksemplene
+ligger fortsatt i hjelpefanen; ingen fasit er lagt i starteren. 75 tester,
+TypeScript, målrettet lint og bygg passerer. Hintene er prøvd ved fire
+skjermstørrelser og kontrollert visuelt på desktop og mobil.
+
+**Mindre detaljarbeid, etter gjennomspilling:** Kalenderoppgaver skal være
+små og morsomme også uten AI eller kodefullføring. Klient og API-versjon er
+ikke ferdigfylt. GROQ, søkeparametre og draft-/release-håndtering ligger bak
+den ferdige `isNameTaken(...)`-hjelperen. Selve validation-reglene på navn og
+sprite er igjen åpne oppgaver. En generell lenke til Validation-dokumentasjonen er synlig
+fra starten; tre strukturerte hint fører videre fra dokumentasjonens
+`Enforce a unique field value`-mønster, via hjelpefanen, til sjekken mot
+`context.document`. `rule.unique()` gjelder array-verdier, ikke andre documents.
+Startkoden kjører, men består ikke sjekken før begge reglene er fullført.
+Eksisterende lagrede utkast erstattes ikke automatisk.
+
+**Kontroll av startkoden:** 80 tester, TypeScript, målrettet lint og bygg
+passerer. Nye tester kjører den faktiske malen gjennom kodevinduets
+kodekjører: tom start, navnevalidering alene, sprite-validering alene og begge
+reglene sammen. Den tidligere Chrome-prøven av kodevindu og Studio-bekreftelse
+er ikke gjentatt etter denne startkodeendringen. Testdata er simulert, ikke
+ekte Studio-publisering.

@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { CHAPTERS } from "@/game/quests/chapters";
 import type { QuestBoard } from "@/game/quests/engine";
-import type { QuestState } from "@/game/quests/types";
+import type { Progress, QuestState } from "@/game/quests/types";
 import type { QuestSiteId } from "@/game/village";
 import { forgedPower } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
 import { renderText } from "./richText";
 import VillageMap from "./VillageMap";
+import StudioPractice from "./StudioPractice";
+import QuestHint from "./QuestHint";
 
 type Props = {
   board: QuestBoard;
@@ -17,6 +19,8 @@ type Props = {
   initialQuestId?: string;
   forgeLevel: number;
   hintsShown: Record<string, number>;
+  solvedTasks: Progress["solved"];
+  onConfirmStudioPractice: (questId: string) => void;
   onRevealHint: (questId: string) => void;
   onOpenCode: (questId: string) => void;
   onTravelToSite: (siteId: QuestSiteId) => void;
@@ -35,6 +39,8 @@ export default function QuestLog({
   initialQuestId,
   forgeLevel,
   hintsShown,
+  solvedTasks,
+  onConfirmStudioPractice,
   onRevealHint,
   onOpenCode,
   onTravelToSite,
@@ -167,6 +173,11 @@ export default function QuestLog({
                 shown={hintsShown[selected.quest.id] ?? 0}
                 onMoreHint={() => onRevealHint(selected.quest.id)}
                 onOpenCode={() => onOpenCode(selected.quest.id)}
+                codePassed={Boolean(solvedTasks[selected.quest.id])}
+                onConfirmStudioPractice={() =>
+                  onConfirmStudioPractice(selected.quest.id)
+                }
+                onClose={onClose}
               />
             )}
           </div>
@@ -243,11 +254,17 @@ function QuestDetail({
   shown,
   onMoreHint,
   onOpenCode,
+  codePassed,
+  onConfirmStudioPractice,
+  onClose,
 }: {
   state: QuestState;
   shown: number;
   onMoreHint: () => void;
   onOpenCode: () => void;
+  codePassed: boolean;
+  onConfirmStudioPractice: () => void;
+  onClose: () => void;
 }) {
   const { quest, status, result } = state;
 
@@ -289,7 +306,7 @@ function QuestDetail({
         </p>
       )}
 
-      {result.objectives && (
+      {status !== "done" && result.objectives && (
         <ul className="tracker-list">
           {result.objectives.map((o) => (
             <li key={o.label} className={o.done ? "is-done" : undefined}>
@@ -327,26 +344,16 @@ function QuestDetail({
           {status === "done" ? "Se koden igjen" : "Åpne kodevinduet"}
         </button>
       )}
+      <StudioPractice
+        state={state}
+        codePassed={codePassed}
+        onConfirm={onConfirmStudioPractice}
+        onLeave={onClose}
+      />
       {quest.hints.length > 0 && status !== "done" && (
         <div className="log-hints">
           {quest.hints.slice(0, shown).map((hint, i) => (
-            <p key={i} className="log-hint">
-              <span className="log-hint-n">Hint {i + 1}</span>{" "}
-              {renderText(hint.text)}
-              {hint.link && (
-                <>
-                  {" "}
-                  <a
-                    className="log-hint-link"
-                    href={hint.link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {hint.link.label}
-                  </a>
-                </>
-              )}
-            </p>
+            <QuestHint key={i} hint={hint} number={i + 1} />
           ))}
           {shown < quest.hints.length && (
             <button

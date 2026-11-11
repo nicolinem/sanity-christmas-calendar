@@ -14,6 +14,7 @@ export type Requirement = { label: string; done: boolean; message?: string };
 export type Verdict<Data = unknown> = {
   requirements: Requirement[];
   done: boolean;
+  error?: string; // a task callback failed; show it beside the player's code
   solvedAs?: Omit<SolvedTask, "at">; // what the Studio needs to switch on our version
   data?: Data;
 };

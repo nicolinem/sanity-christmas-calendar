@@ -2,14 +2,15 @@
 
 Oppgaveutkast 2026-11-11. Retningen «Sanity er bygdas verksted» er vedtatt i
 [questplan.md](questplan.md#sanity-er-bygdas-verksted--vedtatt-retning-2026-11-10).
-Tekstene, sjekkvilkårene og gjennomføringen under er forslag til godkjenning,
-ikke ferdig implementerte luker. Dette erstatter de løse uke-1-ideene, ikke
+Øvrige nye luker, tekster og innholdssjekker under er fortsatt forslag til
+godkjenning. Den avgrensede Studio-bekreftelsen under er implementert.
+Dette erstatter de løse uke-1-ideene, ikke
 avtalene om poeng, datoer, løypebytte eller personvern.
 
-**Avklart 2026-11-11:** For ikon/preview og validation kreves bestått kodetest
+**Implementert 2026-11-11:** For ikon/preview og validation kreves bestått kodetest
 og egenbekreftelsen «Jeg har prøvd dette i Studio» før neste luke åpnes.
-Denne avgrensede fullføringsflyten er klar for utvikling. Eksisterende
-fullføringer skal beholdes; resten av uke-1-innholdet gjennomføres trinnvis og
+Bekreftelsen lagres per Sanity-prosjekt i nettleseren. Eksisterende
+fullføringer beholdes; resten av uke-1-innholdet gjennomføres trinnvis og
 må fortsatt prøves mot ekte Studio og testere.
 
 ## Sammenhengen
@@ -40,8 +41,8 @@ ikke deltakerens vilkårlige kode som overføres til Studio. Validation bruker
 en falsk klient i kodevinduet, men vår Studio-versjon bruker det ekte datasettet.
 Spillet registrerer i dag automatisk fullføring når en aktiv luke består.
 
-**Vedtatt endring, ikke implementert:** Skill «Koden er bestått» fra avslutningen i Studio før
-neste luke åpnes. For handlinger som ikke kan observeres fra publisert innhold
+**Implementert for ikon/preview og validation:** «Koden er bestått» er skilt
+fra avslutningen i Studio før neste luke åpnes. For handlinger som ikke kan observeres fra publisert innhold
 (å finne et våpen i lista eller se en valideringsfeil), kreves en tydelig
 egenbekreftelse: «Jeg har prøvd dette i Studio». Dette er ikke automatisk bevis
 og må presenteres som det. Ingen sporing av klikk eller privat innhold.
@@ -93,7 +94,7 @@ og dokumentets egen sprite. Se listen endre seg mens du skriver.
 Sammenlign med eksemplene: dette er ditt innhold i den forbedrede lista.
 
 **Automatisk i dag:** Ikon, valg av sprite-felt og riktig navn/bilde på
-eksempeldokumentene. **Vedtatt fullføring, må bygges:** Koden består og deltakeren
+eksempeldokumentene. **Implementert fullføring:** Koden består og deltakeren
 bekrefter Studio-prøven; det siste er egenbekreftelse, ikke målt bruk.
 
 **Hintstige:** `icon` og `preview` styrer lista → hent `sprite` i `select` →
@@ -112,23 +113,30 @@ bruk `SpriteImage` i `prepare().media` uten å miste navnet.
 
 **Gjør i kodevinduet:** Stopp våpen uten sprite og navn som allerede er tatt.
 Et materiale uten sprite og et dokument som lagres på nytt med sitt eget navn
-skal fortsatt være lov. Bruk den oppgitte spørringen; å skrive GROQ er ikke
-et ekstra læringsmål i denne luka.
+skal fortsatt være lov. Startfila lar deltakeren skrive begge
+*validation*-reglene, men har importen av `isNameTaken(...)` klar. Hjelpefanen
+`guild.ts` viser funksjonen, spørringen og parameterhjelperen. De håndterer
+GROQ, versjons-ID-er og draft-/release-versjoner; oppgaven er å bruke dem i en
+regel og returnere en feilmelding for et navn som er tatt. Sanity-dokumentasjonen
+har delen «Enforce a unique field value» med det samme mønsteret.
 
 **Bruk i Studio:** Lag et midlertidig våpenutkast uten sprite og prøv et
 eksisterende navn. Se at `Publish` blokkeres. Rett feltene, gi det et unikt
 navn og publiser. Et feilaktig utkast skal ikke bli synlig i spillet.
 
 **Automatisk i dag:** Feil og lovlige tilfeller prøves med eksempler og falsk
-klient; bare warning er ikke nok. **Vedtatt fullføring, må bygges:** Kodetest og
+klient; bare warning er ikke nok. **Implementert fullføring:** Kodetest og
 egenbekreftet Studio-prøve. Vi kan ikke utlede en avvist publisering fra det
 offentlige datasettet. Organisatøren må teste vår aktiverte Studio-regel mot
 et ekte prosjekt før release, inkludert upåvirket ny lagring av samme document.
+Unikhetsregelen håndheves i Studio, ikke som en databasebegrensning; API-
+mutasjoner omgår Studio-validering.
 
-**Hintstige:** `rule.custom()` kan avvise → `context.document` forteller om
-det er et våpen → `getClient()` og oppgitt spørring finner andre dokumenter,
-men må utelate dokumentet selv.
-[Validation](https://www.sanity.io/docs/studio/validation).
+**Hintstige:** Start med [Sanity-dokumentasjonen om Validation](https://www.sanity.io/docs/studio/validation)
+og finn «Enforce a unique field value» → se hjelpefanen `guild.ts` for
+`isNameTaken(...)`, `SAME_NAME_QUERY` og `sameNameParams(...)` → nekt bare
+våpen uten sprite; materialer og våpen med sprite skal passere. `rule.custom()`
+kan lese `kind` gjennom `context.document`, men er ikke eneste mulige løsning.
 
 **Lærdom:** Validation gjør det mulig å hindre feil før andre systemer leser
 innholdet. **Resultat:** Synlig feilmelding i Studio, deretter et lovlig
@@ -273,13 +281,13 @@ får egne stabile ID-er, ikke de tekniske lukenes ID-er eller plassnummer.
 
 ## Vurdering før bygging
 
-| Spørsmål | Vurdering av utkastet |
-| --- | --- |
-| Tydelig | ~ Brann sier behov og sted; tekstene må fortsatt prøves av en ny deltaker. |
-| Verdt det | ✓ Alle lukene bruker faktisk innhold eller forbedrer Studio-verktøyet. |
-| Svarer | ~ Innhold vises allerede i spillet; referansesjekker og Studio-avslutninger må bygges. |
+| Spørsmål   | Vurdering av utkastet                                                                           |
+| ---------- | ----------------------------------------------------------------------------------------------- |
+| Tydelig    | ~ Brann sier behov og sted; tekstene må fortsatt prøves av en ny deltaker.                      |
+| Verdt det  | ✓ Alle lukene bruker faktisk innhold eller forbedrer Studio-verktøyet.                          |
+| Svarer     | ~ Innhold vises allerede i spillet; referansesjekker og Studio-avslutninger må bygges.          |
 | Belønnende | ~ Resultat i Studio/spillet pluss fullføringsvarsel er planlagt; helheten er ikke gjennomspilt. |
-| Passer | ✓ Samme våpenliste og kjente verktøy, uten nye spillbegreper eller mengdekrav. |
+| Passer     | ✓ Samme våpenliste og kjente verktøy, uten nye spillbegreper eller mengdekrav.                  |
 
 **Tidsramme:** Rundt én time per løype/uke og høyst 25 minutter per luke er
 startverdier fra planen, ikke målinger av disse oppgavene. Ta tiden med

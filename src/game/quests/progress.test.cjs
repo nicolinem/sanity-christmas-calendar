@@ -189,3 +189,52 @@ test("malformed or null persisted data falls back to fresh progress", () => {
     assert.equal(progress.readProgress(raw), progress.EMPTY_PROGRESS);
   }
 });
+
+test("Studio confirmations default to an empty map and survive reloads per project", () => {
+  assert.deepEqual(progress.EMPTY_PROGRESS.studioConfirmed, {});
+  assert.deepEqual(progress.readProgress("studio-fresh").studioConfirmed, {});
+  progress.updateProgress("studio-a", (value) => ({
+    ...value,
+    studioConfirmed: { "branns-ledger": COMPLETED_AT },
+  }));
+  const saved = JSON.parse(records.get(progress.storageKey("studio-a")));
+  assert.deepEqual(saved.studioConfirmed, { "branns-ledger": COMPLETED_AT });
+
+  progress = loadProgress();
+  assert.deepEqual(progress.readProgress("studio-a").studioConfirmed, {
+    "branns-ledger": COMPLETED_AT,
+  });
+  assert.deepEqual(progress.readProgress("studio-b").studioConfirmed, {});
+});
+
+test("legacy saves get no fabricated Studio confirmation, keeping earned completion and code", () => {
+  records.set(
+    progress.storageKey("legacy-studio"),
+    JSON.stringify({
+      completed: { "branns-ledger": COMPLETED_AT },
+      solved: { "branns-ledger": { at: COMPLETED_AT } },
+    }),
+  );
+  const restored = progress.readProgress("legacy-studio");
+  assert.deepEqual(restored.studioConfirmed, {});
+  assert.equal(restored.completed["branns-ledger"], COMPLETED_AT);
+  assert.deepEqual(restored.solved, {
+    "branns-ledger": { at: COMPLETED_AT },
+  });
+});
+
+test("an invalid studioConfirmed field falls back to an empty map without losing other progress", () => {
+  ["done", 42, true, null, ["branns-ledger"]].forEach((raw, index) => {
+    const project = `studio-invalid-${index}`;
+    records.set(
+      progress.storageKey(project),
+      JSON.stringify({
+        completed: { "the-broken-forge": COMPLETED_AT },
+        studioConfirmed: raw,
+      }),
+    );
+    const restored = progress.readProgress(project);
+    assert.deepEqual(restored.studioConfirmed, {}, JSON.stringify(raw));
+    assert.equal(restored.completed["the-broken-forge"], COMPLETED_AT);
+  });
+});

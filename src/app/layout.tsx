@@ -1,16 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Jersey_10, Pixelify_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Jersey_10, Pixelify_Sans } from "next/font/google";
 import "./globals.css";
 
-// Jersey 10 for the crest, Pixelify Sans for everything the player reads.
+// Keep the pixel faces for game identity; use readable sans and mono for UI and code.
 const display = Jersey_10({
   variable: "--font-display",
   weight: "400",
   subsets: ["latin"],
 });
 
-const ui = Pixelify_Sans({
+const ui = Geist({
   variable: "--font-ui",
+  subsets: ["latin"],
+});
+
+const code = Geist_Mono({
+  variable: "--font-code",
+  subsets: ["latin"],
+});
+
+const pixel = Pixelify_Sans({
+  variable: "--font-pixel",
   subsets: ["latin"],
 });
 
@@ -25,7 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="nb" className={`${display.variable} ${ui.variable}`}>
+    <html lang="nb" className={`${display.variable} ${ui.variable} ${code.variable} ${pixel.variable}`}>
       <body>{children}</body>
     </html>
   );

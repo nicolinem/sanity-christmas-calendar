@@ -370,3 +370,85 @@ test("real chapters share startup while all existing code/window tasks stay tech
     }
   }
 });
+
+// Studio practice: the check needs the code pass (solved) and the player's own
+// confirmation in Studio (studioConfirmed). Neither completes the quest alone.
+const STUDIO_STEPS = [
+  { id: "branns-ledger", before: ["the-broken-forge"], next: "the-guilds-law" },
+  {
+    id: "the-guilds-law",
+    before: ["the-broken-forge", "branns-ledger"],
+    next: "the-drawing-board",
+  },
+];
+const STUDIO_STATES = [
+  ["nothing", false, false, false],
+  ["code only", true, false, false],
+  ["confirmation only", false, true, false],
+  ["code and confirmation", true, true, true],
+];
+
+function studioBoard(step, { solved = false, confirmed = false, done = false } = {}) {
+  const ids = done ? [...step.before, step.id] : step.before;
+  return evaluateQuests(
+    chaptersForTrack(CHAPTERS, "technical"),
+    context({
+      track: "technical",
+      completed: Object.fromEntries(ids.map((id) => [id, COMPLETED_AT])),
+      briefed: { [step.id]: true },
+      solved: solved ? { [step.id]: { at: COMPLETED_AT } } : {},
+      studioConfirmed: confirmed ? { [step.id]: COMPLETED_AT } : {},
+    }),
+    NOW,
+  );
+}
+
+const stateOf = (board, id) =>
+  board.states.find(({ quest }) => quest.id === id);
+
+test("only the two Studio quests name a Studio step, and both are technical", () => {
+  const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];
+  const named = all.filter(({ studioPractice }) => studioPractice !== undefined);
+  assert.deepEqual(
+    named.map(({ id }) => id).sort(),
+    STUDIO_STEPS.map(({ id }) => id).sort(),
+  );
+  for (const quest of named) {
+    assert.equal(typeof quest.studioPractice, "string", quest.id);
+    assert.notEqual(quest.studioPractice.trim(), "", quest.id);
+    assert.equal(quest.track, "technical", quest.id);
+  }
+});
+
+for (const step of STUDIO_STEPS) {
+  test(`${step.id}: Studio check needs both the code pass and the Studio confirmation`, () => {
+    for (const [name, solved, confirmed, passes] of STUDIO_STATES) {
+      const board = studioBoard(step, { solved, confirmed });
+      const state = stateOf(board, step.id);
+      assert.equal(state.result.done, passes, name);
+      assert.deepEqual(
+        Object.fromEntries(
+          state.result.objectives.map(({ label, done }) => [label, done]),
+        ),
+        {
+          "Koden er bestått": solved,
+          "Studio-prøven er bekreftet": confirmed,
+        },
+        name,
+      );
+      // Passing the check is not completion: the hook records it on the next render.
+      assert.equal(state.status, "active", name);
+      assert.equal(board.completedCount, step.before.length, name);
+      assert.equal(stateOf(board, step.next).status, "locked", name);
+    }
+  });
+
+  test(`${step.id}: a recorded completion stays done without code or confirmation`, () => {
+    const board = studioBoard(step, { done: true });
+    const state = stateOf(board, step.id);
+    assert.equal(state.status, "done");
+    assert.equal(state.result.done, false);
+    assert.equal(board.completedCount, step.before.length + 1);
+    assert.equal(stateOf(board, step.next).status, "offered");
+  });
+}

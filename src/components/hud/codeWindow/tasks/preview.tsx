@@ -45,9 +45,9 @@ const PREVIEW_REFERENCES: Reference[] = [
     about:
       "Gi den en `spriteId`, så slår den opp riktig rute i et bildeark fra spillet og tegner den. Kjenner den ikke id-en, tegner den en reserve ut fra `kind`.",
     examples: [
-      { code: '<SpriteImage spriteId="axe" />', shows: <SpriteImage spriteId="axe" /> },
-      { code: '<SpriteImage spriteId="sword" />', shows: <SpriteImage spriteId="sword" /> },
-      { code: '<SpriteImage spriteId="ukjent" kind="weapon" />', shows: <SpriteImage spriteId="ukjent" kind="weapon" /> },
+      { code: '<SpriteImage spriteId="axe" />', shows: <SpriteImage spriteId="axe" scale={3} /> },
+      { code: '<SpriteImage spriteId="sword" />', shows: <SpriteImage spriteId="sword" scale={3} /> },
+      { code: '<SpriteImage spriteId="ukjent" kind="weapon" />', shows: <SpriteImage spriteId="ukjent" kind="weapon" scale={3} /> },
     ],
   },
 ];
@@ -75,10 +75,14 @@ const EXAMPLES = [
 
 type Row = { key: string; title: ReactNode; subtitle: ReactNode; media: ReactNode; icon: ElementType | null; error?: string };
 
-// What this task keeps in `Verdict.data`: the list the Studio would draw.
-type PreviewData = { rows: Row[] };
+// What this task keeps in `Verdict.data`: the list the Studio would draw, and
+// the icon the player chose (only one the window knows).
+type PreviewData = { rows: Row[]; icon?: TaskIconName };
 
-const text = (v: unknown): ReactNode => (typeof v === "string" || typeof v === "number" ? v : null);
+const text = (v: unknown): ReactNode =>
+  typeof v === "string" || (typeof v === "number" && Number.isFinite(v))
+    ? v
+    : null;
 
 function iconName(icon: unknown): TaskIconName | undefined {
   return (Object.keys(TASK_ICONS) as TaskIconName[]).find((name) => TASK_ICONS[name] === icon);
@@ -102,33 +106,29 @@ function judgePreview(exports: Record<string, unknown>): Verdict<PreviewData> {
   const prepare = typeof item.preview?.prepare === "function" ? (item.preview.prepare as (s: object) => unknown) : null;
 
   // Build the list the way the Studio would: select picks raw values, prepare
-  // (if any) turns them into what's shown.
-  let shown = 0;
+  // (if any) turns them into what's shown. Each check counts its own rows, so a
+  // right sprite with a wrong name still passes the sprite check.
   let crashed: string | undefined;
+  let namesOk = 0;
+  let spritesOk = 0;
   const rows: Row[] = EXAMPLES.map((doc) => {
     const selection = Object.fromEntries(
       Object.entries(select).map(([key, path]) => [key, typeof path === "string" ? doc[path as keyof typeof doc] : undefined]),
     );
     const Icon = icon ? TASK_ICONS[icon] : null;
-    if (!prepare) return { key: doc.name, title: text(selection.title), subtitle: text(selection.subtitle), media: null, icon: Icon };
-    try {
-      const out = (prepare(selection) ?? {}) as { title?: unknown; subtitle?: unknown; media?: unknown };
-      const media = out.media;
-      const right =
-        !doc.sprite ||
-        (isValidElement(media) && media.type === SpriteImage && (media.props as { spriteId?: unknown }).spriteId === doc.sprite);
-      if (doc.sprite && right && text(out.title) === doc.name) shown++;
-      return {
-        key: doc.name,
-        title: text(out.title),
-        subtitle: text(out.subtitle),
-        media: isValidElement(media) ? media : null,
-        icon: Icon,
-      };
-    } catch (err) {
-      crashed ??= err instanceof Error ? err.message : String(err);
-      return { key: doc.name, title: doc.name, subtitle: null, media: null, icon: Icon, error: "krasjet" };
+    let out: { title?: unknown; subtitle?: unknown; media?: unknown } = selection;
+    if (prepare) {
+      try {
+        out = (prepare(selection) ?? {}) as typeof out;
+      } catch (err) {
+        crashed ??= err instanceof Error ? err.message : String(err);
+        return { key: doc.name, title: doc.name, subtitle: null, media: null, icon: Icon, error: "krasjet" };
+      }
     }
+    const media = isValidElement(out.media) ? out.media : null;
+    if (text(out.title) === doc.name) namesOk++;
+    if (doc.sprite && media && media.type === SpriteImage && (media.props as { spriteId?: unknown }).spriteId === doc.sprite) spritesOk++;
+    return { key: doc.name, title: text(out.title), subtitle: text(out.subtitle), media, icon: Icon };
   });
   const withSprite = EXAMPLES.filter((d) => d.sprite).length;
 
@@ -137,8 +137,8 @@ function judgePreview(exports: Record<string, unknown>): Verdict<PreviewData> {
       label: "Et `icon` fra `@sanity/icons`",
       done: Boolean(icon),
       message: item.icon
-        ? `Kodevinduet kjenner disse ikonene: ${KNOWN_ICONS}.`
-        : "`item` har ikke noe `icon` ennå.",
+        ? `Ikonet er ikke ett av disse: ${KNOWN_ICONS}.`
+        : "`item` har ikke noe `icon` ennå. Velg ett i galleriet under lista.",
     },
     {
       label: "`preview.select` henter `sprite`",
@@ -146,18 +146,25 @@ function judgePreview(exports: Record<string, unknown>): Verdict<PreviewData> {
       message: "`preview.select` henter ikke *field*-et `sprite`.",
     },
     {
-      label: "`prepare()` viser spriten",
-      done: Boolean(prepare) && !crashed && shown === withSprite,
+      label: "`prepare()` viser riktig sprite",
+      done: Boolean(prepare) && !crashed && spritesOk === withSprite,
       message: !prepare
         ? "*Preview*-en har ingen `prepare()`, så ingenting gjør sprite-id-en om til et bilde."
         : crashed
-          ? `\`prepare()\` krasjet: ${crashed}`
-          : `${shown} av ${withSprite} våpen viser riktig sprite og navn. \`media\` skal være en \`<SpriteImage spriteId={…} />\`.`,
+          ? "`prepare()` krasjet, så ingen sprite vises."
+          : `${spritesOk} av ${withSprite} våpen viser riktig sprite. \`media\` skal være en \`<SpriteImage spriteId={…} />\`.`,
+    },
+    {
+      label: "Navnet fra `name` vises",
+      done: !crashed && namesOk === EXAMPLES.length,
+      message: `${namesOk} av ${EXAMPLES.length} gjenstander viser riktig navn. \`title\` skal være \`name\`.`,
     },
   ];
 
-  const done = requirements.every((r) => r.done);
-  return { requirements, done, data: { rows }, solvedAs: done ? { icon } : undefined };
+  // A crash is never a pass, even if the rows that did render look right.
+  const error = crashed ? `prepare() krasjet: ${crashed}` : undefined;
+  const done = requirements.every((r) => r.done) && !error;
+  return { requirements, done, error, data: { rows, icon }, solvedAs: done ? { icon } : undefined };
 }
 
 // The code the Studio switches on, shown once the task is solved, so the
@@ -171,28 +178,63 @@ const PREVIEW_OURS = `preview: {
   }),
 },`;
 
-// The document list as the Studio would draw it from the player's preview.
+// The document list as the Studio would draw it from the player's preview. The
+// chosen schema icon sits in a header of its own, so the sprite on each row
+// doesn't hide it.
 function StudioList({ verdict }: { verdict: Verdict | null }) {
-  const rows = (verdict?.data as PreviewData | undefined)?.rows ?? [];
+  const data = verdict?.data as PreviewData | undefined;
+  const rows = data?.rows ?? [];
+  const chosen = data?.icon;
+  const Chosen: ElementType | undefined = chosen ? TASK_ICONS[chosen] : undefined;
   const Fallback = TASK_ICONS.Document;
   return (
-    <ul className="cw-studio" aria-label="Dokumentlista i Studio">
-      {rows.length === 0 && <li className="cw-studio-empty">Ingen gjenstander å vise ennå.</li>}
-      {rows.map((row) => {
-        const Icon: ElementType = row.icon ?? Fallback;
-        return (
-          <li key={row.key} className="cw-studio-row">
-            <span className="cw-studio-media" aria-hidden>
-              <Safe fallback={<Icon />}>{row.media ?? <Icon />}</Safe>
-            </span>
-            <span className="cw-studio-text">
-              <span className="cw-studio-title">{row.title ?? <em>Uten tittel</em>}</span>
-              <span className="cw-studio-sub">{row.error ? "prepare() krasjet" : row.subtitle}</span>
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="cw-schema-preview">
+      <div className="cw-schema-header">
+        <span className="cw-schema-type">Dokumenttype: Item</span>
+        {chosen && Chosen ? (
+          <span className="cw-schema-chosen">
+            <Chosen className="cw-schema-icon" aria-hidden />
+            <code>{`${chosen}Icon`}</code>
+          </span>
+        ) : (
+          <span className="cw-schema-chosen cw-schema-none">Ingen ikon valgt</span>
+        )}
+      </div>
+      <ul className="cw-studio" aria-label="Dokumentlista i Studio">
+        {rows.length === 0 && <li className="cw-studio-empty">Ingen gjenstander å vise ennå.</li>}
+        {rows.map((row) => {
+          const Icon: ElementType = row.icon ?? Fallback;
+          return (
+            <li key={row.key} className="cw-studio-row">
+              <span className="cw-studio-media" aria-hidden>
+                <Safe fallback={<Icon />}>{row.media ?? <Icon />}</Safe>
+              </span>
+              <span className="cw-studio-text">
+                <span className="cw-studio-title">{row.title ?? <em>Uten tittel</em>}</span>
+                <span className="cw-studio-sub">{row.error ? "prepare() krasjet" : row.subtitle}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <details className="cw-icon-gallery">
+        <summary>Ikoner du kan velge mellom</summary>
+        <p>
+          Velg ett av disse i <code>icon</code> i denne oppgaven. Ingen ikon er valgt for deg.
+        </p>
+        <ul>
+          {(Object.keys(TASK_ICONS) as TaskIconName[]).map((name) => {
+            const Icon: ElementType = TASK_ICONS[name];
+            return (
+              <li key={name}>
+                <Icon aria-hidden />
+                <code>{`${name}Icon`}</code>
+              </li>
+            );
+          })}
+        </ul>
+      </details>
+    </div>
   );
 }
 
@@ -224,6 +266,6 @@ export const previewTask: WindowTask = {
   extend: {
     file: "src/sanity/schemaTypes/item.tsx",
     marker: "QUEST: Luke 2",
-    idea: "Bytt ut `ItemMedia` med din egen kode: vis noe annet enn spriten, for eksempel et merke for våpen uten sprite.",
+    idea: "Prøv for eksempel å gi våpen uten sprite et eget merke i lista. Du kan endre visningen uten å endre dokumentene.",
   },
 };

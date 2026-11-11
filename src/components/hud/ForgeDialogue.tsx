@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { GameItemView } from "@/game/items";
-import type { QuestState } from "@/game/quests/types";
+import type { Progress, QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
 import { QUEST_SITES, type QuestSiteId } from "@/game/village";
 import SpriteIcon from "./SpriteIcon";
 import { IconQuill } from "./icons";
 import { renderText } from "./richText";
 import { openStudio } from "./studioPane";
+import StudioPractice from "./StudioPractice";
 
 type Props = {
   board: QuestBoard;
@@ -19,9 +20,10 @@ type Props = {
   refreshing: boolean;
   checked: boolean; // the player has asked the forge at least once
   onCheck: () => void;
-  onOpenLog: () => void;
   onTravelToSite: (siteId: QuestSiteId) => void;
   onOpenCode: (questId: string) => void;
+  solvedTasks: Progress["solved"];
+  onConfirmStudioPractice: (questId: string) => void;
   onClose: () => void;
 };
 
@@ -37,9 +39,10 @@ export default function ForgeDialogue(props: Props) {
   const last = page >= pages.length - 1;
   const continueRef = useRef<HTMLButtonElement>(null);
   const studioRef = useRef<HTMLButtonElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    (last ? studioRef.current : continueRef.current)?.focus({
+    (last ? studioRef.current ?? bodyRef.current?.querySelector<HTMLButtonElement>("button") : continueRef.current)?.focus({
       preventScroll: true,
     });
   }, [last, page]);
@@ -50,6 +53,7 @@ export default function ForgeDialogue(props: Props) {
     if (last) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "e" && e.key !== "E" && e.key !== "Enter") return;
+      if (e.key === "Enter" && (e.target as HTMLElement)?.closest?.("button, a")) return;
       e.preventDefault();
       e.stopImmediatePropagation();
       setPage((p) => p + 1);
@@ -69,7 +73,7 @@ export default function ForgeDialogue(props: Props) {
       <div className="dialogue-portrait frame frame--inset">
         <SpriteIcon sprite={{ sheet: "dungeon", frame: 86 }} scale={4} />
       </div>
-      <div className="dialogue-body">
+      <div ref={bodyRef} className="dialogue-body">
         <p className="dialogue-name">
           Brann, smeden
           {current && sanityConfigured !== false && (
@@ -217,9 +221,10 @@ function Details({
   refreshing,
   checked,
   onCheck,
-  onOpenLog,
   onTravelToSite,
   onOpenCode,
+  solvedTasks,
+  onConfirmStudioPractice,
   onClose,
   studioRef,
 }: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
@@ -233,6 +238,7 @@ function Details({
   // Written in the game's code window, not in the Studio or the repo.
   const inWindow =
     current?.quest.checkedBy === "window" && sanityConfigured !== false;
+  const studioReady = Boolean(current && inWindow && solvedTasks[current.quest.id]);
 
   return (
     <>
@@ -280,8 +286,17 @@ function Details({
         </p>
       )}
 
+      {current && studioReady && (
+        <StudioPractice
+          state={current}
+          codePassed={Boolean(solvedTasks[current.quest.id])}
+          onConfirm={() => onConfirmStudioPractice(current.quest.id)}
+          onLeave={onClose}
+        />
+      )}
+
       <div className="dialogue-actions">
-        {remoteSite && current ? (
+        {studioReady ? null : remoteSite && current ? (
           <button
             ref={studioRef}
             type="button"
@@ -291,7 +306,6 @@ function Details({
             Gå til {QUEST_SITES[remoteSite].label.toLowerCase()}
           </button>
         ) : inWindow && current ? (
-          <>
             <button
               ref={studioRef}
               type="button"
@@ -300,11 +314,6 @@ function Details({
             >
               Åpne kodevinduet
             </button>
-            <button type="button" className="btn" onClick={openStudio}>
-              <IconQuill />
-              Sanity Studio
-            </button>
-          </>
         ) : (
           <>
             <button
@@ -325,11 +334,6 @@ function Details({
               {refreshing ? "Sjekker…" : "Sjekk på nytt"}
             </button>
           </>
-        )}
-        {!onboarding && (
-          <button type="button" className="btn" onClick={onOpenLog}>
-            Kalender og journal
-          </button>
         )}
         <button type="button" className="btn btn--quiet" onClick={onClose}>
           Gå <kbd>Esc</kbd>

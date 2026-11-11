@@ -1,16 +1,22 @@
+import { getPublishedId, type SanityClient } from "sanity";
+
 // Helpers for door 3 (validation).
 //
 // They take care of the fiddly parts (the GROQ, and how drafts are stored), so
-// the quest is about the Sanity part: which rule goes where, what it gets in
-// its context, and what it returns.
+// the quest can focus on the validation rule and its result.
 
-// Counts *other* items with the same name. Run it with the params from
-// sameNameParams().
-export const SAME_NAME_QUERY = `count(*[_type == "item" && name == $name && !(_id in [$id, $draftId])])`;
+// Finds another item with the same name. Exclude every version of this document.
+export const SAME_NAME_QUERY = `defined(*[
+  _type == "item" &&
+  name == $name &&
+  !sanity::versionOf($published)
+][0]._id)`;
 
-// While you edit, a document exists as a draft ("drafts.<id>") next to its
-// published version. Neither of those should count as a twin of itself.
+// Drafts and release versions share the same published ID.
 export function sameNameParams(name: string, documentId: string) {
-  const id = documentId.replace(/^drafts\./, "");
-  return { name, id, draftId: `drafts.${id}` };
+  return { name, published: getPublishedId(documentId) };
+}
+
+export async function isNameTaken(client: SanityClient, name: string, documentId: string): Promise<boolean> {
+  return client.fetch<boolean>(SAME_NAME_QUERY, sameNameParams(name, documentId));
 }

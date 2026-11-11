@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import guildSource from "@/sanity/lib/guild?raw";
-import { SAME_NAME_QUERY, sameNameParams } from "@/sanity/lib/guild";
+import { isNameTaken, SAME_NAME_QUERY, sameNameParams } from "@/sanity/lib/guild";
 import { createFakeGetClient } from "../fakeClient";
 import { messagesOf, recordRules, type Level } from "../recordRules";
 import { renderText } from "../../richText";
@@ -14,11 +14,9 @@ import type { Reference, Requirement, Verdict, WindowTask } from "./types";
 // (src/sanity/schemaTypes/item.tsx, gated by isSolved("the-guilds-law")).
 
 const VALIDATION_STARTER = `import { defineField, defineType } from "sanity"
-import { SAME_NAME_QUERY, sameNameParams } from "../lib/guild"
+import { isNameTaken } from "../lib/guild"
 
-// I dag lar Studio deg publisere hva som helst. Skriv to regler:
-//  - et våpen (kind "weapon") må ha en sprite. Andre gjenstander trenger ingen.
-//  - ingen to gjenstander kan hete det samme.
+// Legg til validation: krev navn, stopp navn som allerede er brukt, og våpen uten sprite.
 export const item = defineType({
   name: "item",
   title: "Item",
@@ -33,7 +31,7 @@ export const item = defineType({
 
 const VALIDATION_MODULES: Modules = {
   sanity: { defineType: <T,>(x: T) => x, defineField: <T,>(x: T) => x },
-  "../lib/guild": { SAME_NAME_QUERY, sameNameParams },
+  "../lib/guild": { isNameTaken, SAME_NAME_QUERY, sameNameParams },
 };
 
 const validationImportHelp: ImportHelp = (name) =>
@@ -45,12 +43,13 @@ const VALIDATION_REFERENCES: Reference[] = [
     path: "src/sanity/lib/guild.ts",
     source: guildSource,
     about:
-      "Den ferdige *GROQ*-en for å finne gjenstander med samme navn, og hjelperen som lager parametrene til den. Begge er allerede importert øverst i koden din. Gi dem til `client.fetch(…)`.",
+      "Hjelperne er ferdige, men validation-regelen skriver du selv. `isNameTaken(client, name, documentId)` gir `true` hvis en annen gjenstand bruker navnet. Den bruker `getPublishedId()` og `sanity::versionOf()` for å overse dokumentet selv, utkast og release-versjoner.",
     examples: [
-      { code: "SAME_NAME_QUERY", shows: "Teller andre gjenstander med samme navn. " },
+      { code: 'isNameTaken(client, "Frostbit", "drafts.ny")', shows: "Nytt dokument med navnet Frostbit: `true`, navnet er opptatt. " },
+      { code: 'isNameTaken(client, "Rimøks", "drafts.ny")', shows: "Nytt dokument med navnet Rimøks: `false`, navnet er ledig. " },
       {
-        code: 'sameNameParams("Frostbit", "drafts.abc")',
-        shows: `Gir ${JSON.stringify(sameNameParams("Frostbit", "drafts.abc"))}: `,
+        code: 'isNameTaken(client, "Frostbit", "drafts.frostbit")',
+        shows: "Frostbit lagres på nytt: `false`. Hjelperen utelater dokumentet selv og utkastet dets. ",
       },
     ],
   },
@@ -72,8 +71,8 @@ const getClient = createFakeGetClient(
   [
     {
       query: SAME_NAME_QUERY,
-      // The same count the real query makes: same name, but not this document or its draft.
-      answer: (params) => DATASET.filter((d) => d.name === params.name && ![params.id, params.draftId].includes(d._id)).length,
+      // The same answer the real query makes, ignoring every version of this document.
+      answer: (params) => DATASET.some((d) => d.name === params.name && d._id !== params.published),
     },
   ],
   ["`SAME_NAME_QUERY`"],
@@ -85,9 +84,11 @@ const CASES = {
   weaponNoSprite: { label: "Nytt våpen uten sprite", show: true, doc: { _id: "drafts.ny-1", name: "Nyhugger", kind: "weapon" } },
   materialNoSprite: { label: "Nytt materiale uten sprite", show: true, doc: { _id: "drafts.ny-2", name: "Kvartsstøv", kind: "material" } },
   takenName: { label: "Nytt våpen med et navn som er tatt", show: true, doc: { _id: "drafts.ny-3", name: "Frostbit", kind: "weapon", sprite: "sword" } },
+  missingName: { label: "Nytt våpen uten navn", show: true, doc: { _id: "drafts.ny-8", name: "", kind: "weapon", sprite: "axe" } },
   takenName2: { label: "Et annet navn som er tatt", show: false, doc: { _id: "drafts.ny-4", name: "Istapp", kind: "weapon", sprite: "dagger" } },
   freshName: { label: "Nytt våpen med nytt navn", show: false, doc: { _id: "drafts.ny-5", name: "Rimøks", kind: "weapon", sprite: "axe" } },
   resave: { label: "Frostbit lagres på nytt", show: false, doc: { _id: "drafts.frostbit", name: "Frostbit", kind: "weapon", sprite: "sword" } },
+  resavePublished: { label: "Publisert Frostbit lagres på nytt", show: false, doc: { _id: "frostbit", name: "Frostbit", kind: "weapon", sprite: "sword" } },
 } satisfies Record<string, { label: string; show: boolean; doc: Doc }>;
 
 type CaseId = keyof typeof CASES;
@@ -129,7 +130,10 @@ async function validate(fields: FieldDef[], itemValidation: unknown, doc: Doc): 
         const result = await withTimeout(Promise.resolve(rule.fn(value, context)));
         for (const text of messagesOf(result, rule.message)) messages.push({ text, level: rule.level });
       } catch (err) {
-        const text = err instanceof Error ? err.message : String(err);
+        const detail = err instanceof Error ? err.message : String(err);
+        const text = /primitive|valueOfField/i.test(detail)
+          ? `${detail}. Hvis du bruker rule.valueOfField(...) i en if: les context.document?.kind inne i custom((verdi, context) => …) i stedet.`
+          : detail;
         crash ??= `Regelen på \`${path[0] ?? "item"}\` krasjet: ${text}`;
         messages.push({ text: `Regelen krasjet: ${text}`, level: "error", crashed: true });
       }
@@ -181,51 +185,74 @@ async function judgeValidation(exports: Record<string, unknown>): Promise<Verdic
   ) as Record<CaseId, Outcome>;
 
   const crash = ids.map((id) => outcomes[id].crash).find(Boolean);
+  // A crash or error on sprite must not stand in for a name rule (or vice
+  // versa). Document-level validation still participates in both checks.
+  const messagesFor = (id: CaseId, field: string) => outcomes[id].fields
+    .filter((view) => view.name === field || view.name === "")
+    .flatMap((view) => view.messages);
+  const crashFor = (id: CaseId, field: string) => messagesFor(id, field).find((m) => m.crashed)?.text;
   // "Refused" means Publish would be grey: an error, not a warning, and not a crash.
-  const refused = (id: CaseId) => !outcomes[id].crash && outcomes[id].errors > 0;
-  const allowed = (id: CaseId) => !outcomes[id].crash && outcomes[id].errors === 0;
-  const onlyWarned = (id: CaseId) => outcomes[id].errors === 0 && outcomes[id].warnings > 0;
+  const refused = (id: CaseId, field: string) => !crashFor(id, field) && messagesFor(id, field).some((m) => m.level === "error");
+  const allowed = (id: CaseId, field: string) => !messagesFor(id, field).some((m) => m.level === "error");
+  const onlyWarned = (id: CaseId, field: string) => allowed(id, field) && messagesFor(id, field).some((m) => m.level === "warning");
   const warnNote = "Regelen gir bare en `warning`, og en `warning` stopper ikke *Publish*.";
 
-  const noSprite = refused("weaponNoSprite");
-  const taken = refused("takenName") && refused("takenName2");
+  const noSprite = refused("weaponNoSprite", "sprite");
+  const missingName = refused("missingName", "name");
+  const taken = refused("takenName", "name") && refused("takenName2", "name");
   const requirements: Requirement[] = [
     {
       label: "Et våpen uten `sprite` nektes",
       done: noSprite,
-      message: crash ?? (onlyWarned("weaponNoSprite") ? warnNote : "Studio lar deg fortsatt publisere et våpen uten sprite."),
+      message: crashFor("weaponNoSprite", "sprite") ?? (onlyWarned("weaponNoSprite", "sprite") ? warnNote : "Legg `validation` på `sprite`: et våpen uten sprite skal få en feilmelding."),
     },
     {
-      label: "Et materiale uten `sprite` er greit",
-      done: noSprite && allowed("materialNoSprite"),
+      label: "Materialer uten `sprite` og våpen med `sprite` er greit",
+      done: noSprite && allowed("materialNoSprite", "sprite") && allowed("freshName", "sprite") && allowed("resave", "sprite"),
       message: !noSprite
         ? "Sjekkes når et våpen uten sprite nektes."
-        : (crash ?? "Et materiale uten sprite nektes også. Det er bare våpen som må ha en."),
+        : (crashFor("materialNoSprite", "sprite") ?? crashFor("freshName", "sprite") ?? crashFor("resave", "sprite") ??
+          (!allowed("materialNoSprite", "sprite")
+            ? "Et materiale uten sprite nektes også. Det er bare våpen som må ha en."
+            : "Et våpen som har sprite nektes også. Bare våpen uten sprite skal nektes av denne regelen.")),
+    },
+    {
+      label: "Et våpen uten navn nektes",
+      done: missingName,
+      message: crashFor("missingName", "name") ?? "Krev `name` med `rule.required()`, så kan ikke et tomt navn publiseres.",
     },
     {
       label: "Et navn som er tatt nektes",
       done: taken,
       message:
-        crash ??
-        (onlyWarned("takenName") || onlyWarned("takenName2")
+        crashFor("takenName", "name") ?? crashFor("takenName2", "name") ??
+        (onlyWarned("takenName", "name") || onlyWarned("takenName2", "name")
           ? warnNote
-          : `Studio lar deg fortsatt publisere en gjenstand som heter «${refused("takenName") ? CASES.takenName2.doc.name : CASES.takenName.doc.name}», og det navnet er allerede tatt.`),
-    },
-    {
-      label: "Et nytt navn er greit, også for et våpen som lagres på nytt",
-      done: taken && allowed("freshName") && allowed("resave"),
-      message: !taken
-        ? "Sjekkes når navn som er tatt nektes."
-        : (crash ??
-          (allowed("freshName")
-            ? "Å lagre «Frostbit» på nytt nektes: Studio ser det som en tvilling av seg selv. Se i `guild.ts`."
-            : "Et helt nytt navn nektes også.")),
+          : `Navnet «${refused("takenName", "name") ? CASES.takenName2.doc.name : CASES.takenName.doc.name}» er allerede tatt. Fullfør regelen på \`name\`: bruk verdien fra første parameter i \`custom((verdi, context) => ...)\` når du kaller \`isNameTaken(...)\`, og gi en feilmelding når svaret er \`true\`.`),
     },
   ];
 
-  const done = requirements.every((r) => r.done);
+  const requirementsDone = requirements.every((r) => r.done);
+  const positiveNameCase = (["freshName", "resave", "resavePublished"] as CaseId[]).find((id) =>
+    messagesFor(id, "name").some((message) => message.level === "error"),
+  );
+  const isExpectedError = (id: CaseId, field: string) =>
+    (id === "weaponNoSprite" && (field === "sprite" || field === "")) ||
+    (id === "missingName" && (field === "name" || field === "")) ||
+    ((id === "takenName" || id === "takenName2") && (field === "name" || field === ""));
+  const unexpected = ids.find((id) =>
+    outcomes[id].fields.some((view) =>
+      view.messages.some((message) => message.level === "error") && !isExpectedError(id, view.name),
+    ),
+  );
+  const error = crash ?? (requirementsDone && positiveNameCase
+    ? `«${CASES[positiveNameCase].label}» skal kunne publiseres. Sjekk at regelen godtar ledige navn og at dokumentet ikke finner seg selv.`
+    : requirementsDone && unexpected
+      ? `Eksempelet «${CASES[unexpected].label}» nektes fortsatt. Se feilmeldingen i skjemaet; dette dokumentet skal kunne publiseres.`
+      : undefined);
+  const done = requirementsDone && !error;
   const forms = ids.filter((id) => CASES[id].show).map((id) => outcomes[id]);
-  return { requirements, done, data: { forms }, solvedAs: done ? {} : undefined };
+  return { requirements, done, error, data: { forms }, solvedAs: done ? {} : undefined };
 }
 
 // The code the Studio switches on, shown once the task is solved, so the
@@ -234,11 +261,11 @@ const VALIDATION_OURS = `// på name:
 validation: (rule) => [
   rule.required(),
   rule.custom(async (name, context) => {
-    if (!name) return true
-    const client = context.getClient({ apiVersion: "2024-01-01" })
-    const id = context.document?._id ?? ""
-    const others = await client.fetch(SAME_NAME_QUERY, sameNameParams(name, id))
-    return others === 0 ? true : \`Another item is already called "\${name}"\`
+    const { document, getClient } = context
+    if (!name || !document) return true
+    const client = getClient({ apiVersion: "2026-09-03" })
+    const taken = await isNameTaken(client, name, document._id)
+    return taken ? \`Another item is already called "\${name}"\` : true
   }),
 ],
 

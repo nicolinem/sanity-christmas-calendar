@@ -36,6 +36,7 @@ export default function Toasts() {
     <div className="toasts" role="status" aria-live="polite">
       {list.map((t) => (
         <div key={t.id} className={`toast frame frame--slate toast--${t.tone ?? "quest"}`}>
+          {t.tone === "quest" && <p className="toast-congrats">Gratulerer!</p>}
           <p className="toast-title">{t.title}</p>
           {t.body && <p className="toast-body">{t.body}</p>}
         </div>

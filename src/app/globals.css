@@ -45,7 +45,7 @@ body {
   background: var(--night);
   color: var(--snow);
   font-family: var(--font-body);
-  -webkit-font-smoothing: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
@@ -318,6 +318,7 @@ kbd {
   white-space: nowrap;
 }
 .crest-place {
+  font-family: var(--font-pixel), var(--font-body);
   font-size: 15px;
   font-weight: 500;
   color: var(--amber);
@@ -396,6 +397,18 @@ kbd {
   line-height: 1.35;
   color: var(--frost);
 }
+.studio-practice {
+  display: grid;
+  gap: 8px;
+  margin-block: 16px;
+}
+.studio-practice p {
+  margin: 0;
+}
+.studio-practice .dialogue-actions {
+  margin-top: 0;
+}
+
 .tracker-note--ok {
   color: var(--amber);
 }
@@ -450,12 +463,42 @@ kbd {
   gap: calc(var(--px) * 4);
   pointer-events: none;
 }
+.hud > .toasts {
+  z-index: 30;
+  pointer-events: none;
+}
 .toast {
   min-width: 240px;
   max-width: min(420px, calc(100cqw - var(--gutter) * 2));
   padding: 8px 16px 10px;
   text-align: center;
   animation: toast-in 0.35s steps(4) both;
+}
+.toast--quest {
+  --edge: #654624;
+  --hi: var(--amber);
+  --bg: #2e2932;
+  padding: 18px 24px 20px;
+  animation: quest-complete-in 0.55s steps(5) both;
+}
+.toast-congrats {
+  margin: 0 0 6px;
+  font: 36px/1.1 var(--font-display), var(--font-body);
+  color: var(--amber);
+}
+@keyframes quest-complete-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.9);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .toast--forge {
   --edge: #5a2a1a;
@@ -656,6 +699,7 @@ kbd {
   position: absolute;
   inset: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   padding: var(--gutter);
   background: rgb(27 31 51 / 0.55);
@@ -664,12 +708,14 @@ kbd {
 .log {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   width: min(820px, 100%);
   max-height: min(640px, 100%);
   padding: 16px 18px 12px;
 }
 .log-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 14px;
 }
@@ -930,15 +976,46 @@ kbd {
 }
 .log-hints {
   display: grid;
-  gap: 6px;
-  margin-top: 12px;
+  gap: 24px;
+  margin-top: 20px;
   justify-items: start;
 }
 .log-hint {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
   margin: 0;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.65;
   color: var(--frost);
+}
+.log-hint-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+}
+.log-hint-heading strong {
+  font-weight: inherit;
+}
+.log-hint p {
+  margin: 0;
+}
+.log-hint code {
+  overflow-wrap: anywhere;
+}
+.log-hint-steps {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding-inline-start: 24px;
+  list-style: decimal;
+}
+.log-hint-steps > li {
+  padding-inline-start: 4px;
+}
+.log-hint-steps > li::marker {
+  color: var(--glacier);
 }
 /* Links are underlined so they don't blend in with amber `code`. */
 .log-hint-link,
@@ -949,7 +1026,8 @@ kbd {
   text-underline-offset: 3px;
 }
 .log-hint-link {
-  white-space: nowrap;
+  justify-self: start;
+  white-space: normal;
 }
 .log-hint-link:hover,
 .log-learn:hover {
@@ -957,7 +1035,6 @@ kbd {
 }
 .log-hint-n {
   color: var(--glacier);
-  margin-right: 6px;
 }
 .log-learn {
   display: inline-block;
@@ -1708,7 +1785,7 @@ kbd {
   box-shadow: inset 0 0 0 1px
     color-mix(in srgb, var(--frost-dim) 35%, transparent);
   color: var(--amber);
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-family: var(--font-code), ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 0.86em;
   font-weight: 500;
   overflow-wrap: anywhere;
@@ -1753,73 +1830,129 @@ kbd {
 }
 
 /* --- Code window ------------------------------------------------------------ */
-/* Small code tasks are written here. Left: the editor. Right: the Studio list  */
-/* the player's code would draw, and the check.                                */
+/* Small code tasks: editor on the left; result, checks, and hints on the right. */
 .cw {
   display: flex;
   flex-direction: column;
-  width: min(1080px, 100%);
+  width: min(1420px, 100%);
   /* A fixed height, so the window doesn't jump while you type. Hidden
      overflow keeps a long file from growing the centring grid around it. */
-  height: min(720px, 100%);
+  height: min(860px, 100%);
   overflow: hidden;
-  padding: 16px 18px 14px;
+  padding: 14px 16px 12px;
+}
+.cw-backdrop {
+  padding-block: 4px;
+}
+.cw .log-head {
+  align-items: center;
+  gap: 10px 14px;
+}
+.cw .log-title {
+  font-size: 30px;
+}
+.cw .log-meta {
+  flex: 1 1 260px;
+}
+.cw-door {
+  font-family: var(--font-pixel), var(--font-body);
+  color: var(--amber);
+}
+.cw-intro {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 10px;
 }
 .cw-goal {
-  margin: 8px 0 0;
-  font-size: 14px;
+  max-width: 90ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--snow);
+}
+.cw-doc-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 201, 111, 0.7);
+  border-radius: 5px;
+  background: rgba(255, 201, 111, 0.13);
+  color: var(--amber);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cw-doc-link:hover {
+  color: #ffd98a;
+  background: rgba(255, 201, 111, 0.14);
+}
+.cw-doc-link:focus-visible {
+  outline: 2px solid var(--glacier);
+  outline-offset: 2px;
 }
 .cw-body {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  /* Both columns get the window's height; the side scrolls when it's long. */
+  grid-template-columns: minmax(0, 1.8fr) minmax(300px, 0.95fr);
+  /* Editor on the left; result/checks or hints on the right. */
   grid-template-rows: minmax(0, 1fr);
   flex: 1;
-  gap: 18px;
+  gap: 16px;
   min-height: 0;
   margin-top: 12px;
 }
 .cw-code {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-height: 0;
 }
 .cw-file {
   margin: 0;
   font-size: 12px;
+  line-height: 1.5;
   color: var(--frost-dim);
 }
 /* The player's file, then the files it imports (read only). */
 .cw-tabs {
   display: flex;
   gap: 2px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  border-bottom: 1px solid color-mix(in srgb, var(--frost-dim) 28%, transparent);
 }
 .cw-tab {
-  padding: 5px 10px;
+  flex: none;
+  padding: 8px 10px;
   border: 0;
   font: inherit;
-  font-size: 12px;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 13px;
+  font-family: var(--font-code), ui-monospace, "SF Mono", Menlo, monospace;
   color: var(--frost-dim);
-  background: var(--night-2);
+  background: transparent;
   cursor: pointer;
+  white-space: nowrap;
+  box-shadow: inset 0 -1px 0 transparent;
 }
 .cw-tab[aria-selected="true"] {
   color: var(--amber);
-  box-shadow: inset 0 calc(-1 * var(--px)) 0 var(--amber);
+  box-shadow: inset 0 -1px 0 var(--amber);
 }
-.cw-tab-tag {
-  margin-left: 4px;
-  font-family: inherit;
-  opacity: 0.7;
+.cw-tab:hover {
+  color: var(--snow);
 }
 .cw-ref {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.cw-ref-title {
+  margin: 4px 0;
+  font-size: 17px;
+  color: var(--snow);
 }
 .cw-ref-examples {
   display: flex;
@@ -1833,30 +1966,38 @@ kbd {
 }
 .cw-ref-examples li {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 8px 0;
 }
 .cw-editor[hidden] {
   display: none;
 }
 .cw-editor {
   flex: 1;
-  min-height: 320px;
+  min-height: 180px;
   overflow: hidden;
   box-shadow: 0 0 0 var(--px) var(--night-2);
   -webkit-font-smoothing: auto;
+  background: var(--night-2);
 }
 .cw-editor .cm-editor {
   height: 100%;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 .cw-editor .cm-scroller {
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-family: var(--font-code), ui-monospace, "SF Mono", Menlo, monospace;
 }
 /* Always there, one line or two: whether the code runs, or why not. */
 .cw-status {
   margin: 0;
-  min-height: 3.2em;
+  flex-shrink: 0;
+  min-height: 2.8em;
+  max-height: 6em;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
   padding: 6px 10px;
   font-size: 13px;
   line-height: 1.45;
@@ -1869,24 +2010,81 @@ kbd {
 }
 /* The last result that ran, kept while the code doesn't. */
 .cw-stale {
-  opacity: 0.5;
+  opacity: 0.78;
 }
 .cw-stale-note {
+  flex: none;
   margin-left: 8px;
+  font-size: 12px;
   color: var(--frost-dim);
 }
 .cw-side {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 6px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--night-3) transparent;
+}
+@container game (min-width: 1200px) {
+  .cw-side {
+    height: calc(100% + 64px);
+    transform: translateY(-64px);
+  }
+}
+.cw-panel-scroll {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+.cw-side::-webkit-scrollbar {
+  width: 8px;
+}
+.cw-side::-webkit-scrollbar-thumb {
+  border: 2px solid var(--night-2);
+  border-radius: 8px;
+  background: var(--night-3);
+}
+.cw-result-check {
+  display: grid;
+  gap: 10px;
+}
+.cw-panel {
+  flex: none;
+  min-width: 0;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--frost-dim) 24%, transparent);
+  border-radius: 4px;
+  background: var(--night-2);
+}
+.cw-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 8px;
 }
 .cw-label {
-  margin: 4px 0 0;
-  font-size: 12px;
+  margin: 0;
+  font-family: var(--font-pixel), var(--font-body);
+  font-size: 14px;
+  line-height: 1.25;
   color: var(--amber);
+}
+.cw-preview-content {
+  min-width: 0;
+}
+.cw-progress {
+  flex: none;
+  color: var(--frost);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 /* A small stand-in for the Studio's document list, in the Studio's own colours. */
 .cw-studio {
@@ -1895,11 +2093,7 @@ kbd {
   list-style: none;
   background: #ffffff;
   color: #1f2430;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: auto;
   box-shadow: 0 0 0 var(--px) var(--night-2);
 }
@@ -1943,6 +2137,73 @@ kbd {
   padding: 10px;
   font-size: 13px;
   color: #6b7385;
+}
+/* The schema header above the Studio list: document type and the chosen icon. */
+.cw-schema-preview {
+  display: grid;
+  gap: 8px;
+}
+.cw-schema-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+}
+.cw-schema-type {
+  color: var(--amber);
+  font-weight: 600;
+}
+.cw-schema-chosen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--amber);
+}
+.cw-schema-chosen code {
+  font-size: 12px;
+}
+.cw-schema-icon {
+  width: 22px;
+  height: 22px;
+}
+.cw-schema-none {
+  font-style: italic;
+  opacity: 0.8;
+}
+.cw-icon-gallery {
+  font-size: 12.5px;
+}
+.cw-icon-gallery summary {
+  cursor: pointer;
+  color: var(--amber);
+}
+.cw-icon-gallery ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cw-icon-gallery li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.cw-icon-gallery li svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.cw-icon-gallery code {
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* Example documents as small Studio forms: field errors in red, Publish grey when there are any. */
 .cw-forms {
@@ -2007,8 +2268,9 @@ kbd {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 6px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.45;
 }
 .cw-reqs li {
   display: grid;
@@ -2025,7 +2287,7 @@ kbd {
 .cw-req-msg {
   display: block;
   margin-top: 2px;
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--frost);
 }
 .cw-wait {
@@ -2035,15 +2297,72 @@ kbd {
 }
 .cw-hints {
   display: grid;
-  gap: 6px;
+  gap: 24px;
   justify-items: start;
-  margin-top: 4px;
+  margin-top: 20px;
+}
+.cw-hint-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+}
+.cw-hint-head {
+  margin-bottom: 0;
+}
+.cw-hint-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.cw-hint-arrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--night-3);
+  color: var(--snow);
+  background: transparent;
+  font: 22px/1 var(--font-body);
+  cursor: pointer;
+}
+.cw-hint-arrow:hover:not(:disabled) {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.cw-hint-arrow:disabled {
+  color: var(--frost-dim);
+  cursor: default;
+  opacity: 0.55;
+}
+.cw-hint-count {
+  min-width: 3.5em;
+  color: var(--frost);
+  font-family: var(--font-code), ui-monospace, monospace;
+  font-size: 12px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.cw-hint-content {
+  min-width: 0;
+}
+.cw-hint-panel .log-hint {
+  gap: 8px;
+}
+.cw-hint-panel .log-hint-steps {
+  gap: 8px;
+}
+.cw-reveal-hint {
+  align-self: flex-start;
+  min-height: 36px;
+  margin-top: 2px;
 }
 .cw-solved {
   display: grid;
   gap: 8px;
   justify-items: start;
-  margin-top: 6px;
+  margin-top: 0;
   padding: 10px 12px;
   background: color-mix(in srgb, var(--evergreen) 45%, var(--night-2));
   font-size: 14px;
@@ -2060,7 +2379,7 @@ kbd {
   margin: 6px 0 0;
   padding: 8px 10px;
   overflow-x: auto;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-family: var(--font-code), ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 12px;
   line-height: 1.5;
   color: var(--snow);
@@ -2090,14 +2409,44 @@ kbd {
 .log-code {
   margin-top: 10px;
 }
-@container game (max-width: 720px) {
+@container game (max-width: 860px) {
   .cw-body {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: none;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
   }
+  .cw-code,
+  .cw-side {
+    flex-shrink: 0;
+    min-height: auto;
+  }
+  .cw-side {
+    overflow: visible;
+    padding-right: 0;
+  }
+  .cw-panel-scroll {
+    flex: none;
+  }
   .cw-editor {
-    min-height: 260px;
+    flex: none;
+    height: clamp(280px, 38vh, 360px);
+    min-height: 280px;
+  }
+}
+@container game (max-width: 720px) {
+  .cw {
+    padding: 12px;
+  }
+  .cw-editor {
+    height: clamp(220px, 38vh, 320px);
+    min-height: 220px;
+  }
+  .cw-hint-arrow {
+    width: 44px;
+    height: 44px;
+  }
+  .cw-reveal-hint {
+    min-height: 44px;
   }
 }
 

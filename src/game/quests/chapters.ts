@@ -38,6 +38,26 @@ function fromCode(id: string) {
   };
 }
 
+// Quests solved in the code window also need the player to try them in Studio
+// and confirm it themselves (studioConfirmed).
+function fromWindowAndStudio(id: string) {
+  return ({ progress }: QuestContext): CheckResult => {
+    const solved = Boolean(progress.solved[id]);
+    const confirmed = Boolean(progress.studioConfirmed[id]);
+    return {
+      done: solved && confirmed,
+      objectives: [
+        { label: "Koden er bestått", done: solved },
+        { label: "Studio-prøven er bekreftet", done: confirmed },
+      ],
+      message:
+        solved && !confirmed
+          ? "Koden er bestått. Gjør Studio-prøven og bekreft den her."
+          : undefined,
+    };
+  };
+}
+
 const theBrokenForge: Quest = {
   id: "the-broken-forge",
   door: 1,
@@ -101,20 +121,20 @@ const brannsLedger: Quest = {
   villageSite: "noticeboard",
   intro: [
     "I går skulle jeg finne den nye øksa i Studio, men lista viser bare navn. Jeg åpnet tre sverd før jeg endelig fant den.",
-    "Kan du hjelpe meg å gjøre våpnene lettere å kjenne igjen, så jeg slipper å lete neste gang?",
+    "Jeg har hengt våpenlista på oppslagstavla. Velg et ikon for Item, og vis navn og bilde for hvert våpen, så jeg slipper å lete neste gang.",
   ],
-  goal: "Gjør gjenstander lette å kjenne igjen i Studio: et `icon` på *schema type*-en og en *preview* med spriten.",
-  where: "I kodevinduet i spillet. Åpne luka fra Brann eller kalenderen.",
+  goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*. Prøv det i Studio.",
+  where: "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
   hints: [
     {
-      text: "En *schema type* kan ha et `icon`, og det lista viser styres av `preview`.",
+      text: "En *schema type* kan ha et `icon`. Det er ett merke for hele dokumenttypen, ikke for hvert våpen. Det lista viser for hvert våpen, styres av `preview`.",
       link: {
         label: "Document type properties",
         url: `${DOCS}/document-type#fadba8b5-f0d1-4f90-a181-e14aca95598e`,
       },
     },
     {
-      text: 'Sanity sitt eget ikonsett følger med Studio. Hvert ikon har sin egen sti: `import { BoltIcon } from "@sanity/icons/Bolt"`.',
+      text: 'Du velger selv hvilket ikon som passer for *Item*. Sanity sitt eget ikonsett følger med Studio, og hvert ikon har sin egen sti: `import { BoltIcon } from "@sanity/icons/Bolt"`.',
       link: { label: "Sanity Icons", url: "https://icons.sanity.build" },
     },
     {
@@ -137,9 +157,9 @@ const brannsLedger: Quest = {
     text: "`preview.select` henter rå verdier fra dokumentet, og `prepare()` gjør dem om til det lista viser, også en React-komponent som `media`.",
   },
   checkedBy: "window",
-  check: ({ progress }) => ({
-    done: Boolean(progress.solved["branns-ledger"]),
-  }),
+  studioPractice:
+    "I Studio: finn ikonet du valgte for dokumenttypen *Item*. Åpne dokumentlista, og finn våpenet ditt ved hjelp av navn og sprite.",
+  check: fromWindowAndStudio("branns-ledger"),
 };
 
 const theGuildsLaw: Quest = {
@@ -149,49 +169,56 @@ const theGuildsLaw: Quest = {
   title: "Validation: regler for våpen",
   villageSite: "westHouse",
   intro: [
-    "To regler: alle våpen må ha en sprite, og ingen to gjenstander kan hete det samme. Få Studio til å nekte begge deler.",
+    "De i huset vest for brønnen bestilte ei øks, men to våpen hadde samme navn. Et av dem manglet også bilde. Jeg klarte ikke å finne ut hvilket de mente.",
+    "Vi må stoppe slike feil før de kommer på lista. Kan du få Studio til å nekte våpen uten sprite og navn som allerede er i bruk?",
   ],
-  goal: "Legg til *validation* så Studio nekter våpen uten sprite, og navn som allerede er tatt.",
-  where: "I kodevinduet i spillet. Åpne luka fra Brann eller kalenderen.",
+  goal: "Start med den enklere *validation*-regelen på `sprite`: Studio skal nekte våpen uten sprite. Deretter krev et navn og nekt navn som allerede er brukt. Prøv reglene i Studio og bekreft selv.",
+  where: "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
   hints: [
     {
-      text: "En *validation rule* kan gjøre akkurat det du vil med `rule.custom(...)`.",
-      link: {
-        label: "Custom validation",
-        url: `${DOCS}/validation#k091e10f957aa`,
-      },
-    },
-    {
-      text: "En *rule* kan se på resten av dokumentet: `context` har `document`. Bare våpen trenger sprite.",
+      title: "Bare våpen trenger sprite",
+      text: "Et våpen uten sprite skal stoppes. Materialer uten sprite og våpen med sprite skal fortsatt være lov. Bruk `context.document` for å sjekke typen. Du velger selv hvordan regelen skrives.",
+      steps: [
+        "Nekt bare når `kind` er `weapon` og `sprite` mangler.",
+        "La materialer uten sprite passere.",
+        "La våpen med sprite passere.",
+      ],
       link: {
         label: "Validating against other fields",
         url: `${DOCS}/validation#k1d8eb8fbb695`,
       },
     },
     {
-      text: "Duplikater krever *dataset*-et: `context` gir deg `getClient`, og den vil ha en `apiVersion`. Ferdig *GROQ* for å finne duplikater er allerede importert: `SAME_NAME_QUERY` og `sameNameParams()`. I fanen `guild.ts` ser du hva de gjør.",
+      title: "Sjekk unike navn",
+      text: "På Validation-siden: bla til `Enforce a unique field value`. Les eksemplet der og sammenlign det med hjelperne i `guild.ts`.",
       link: {
-        label: "Asynchronous validation using the client",
-        url: `${DOCS}/validation#k71fb43753fd9`,
+        label: "Enforce a unique field value",
+        url: `${DOCS}/validation`,
       },
     },
     {
-      text: "Står du fast på duplikatene? Dokumentasjonen har en oppskrift på akkurat dette.",
+      title: "Bruk de ferdige hjelperne",
+      text: "`guild.ts` viser `isNameTaken(...)`, `SAME_NAME_QUERY` og `sameNameParams(...)`. De tar seg av søket og at dokumentet ikke finner seg selv.",
+      steps: [
+        "Hent klienten fra `context.getClient(...)`.",
+        "Vent på `isNameTaken(client, name, document._id)`.",
+        "Godta et ledig navn; returner en tekst for et navn som er tatt.",
+      ],
       link: {
         label: "Enforce a unique field value",
-        url: `${DOCS}/validation#u1a4f7c93e21`,
+        url: `${DOCS}/validation`,
       },
     },
   ],
-  learn: { label: "Validation", url: `${DOCS}/validation` },
+  learn: { label: "Validation", url: "https://www.sanity.io/docs/studio/validation" },
   lesson: {
     title: "*Validation* med `context`",
-    text: "`rule.custom()` får både verdien og en `context`: hele dokumentet, og en klient som kan spørre *dataset*-et. En *rule* som feiler som `error`, stopper *Publish*; en `warning` gjør det ikke.",
+    text: "Validation-regler stopper *Publish* i Studio, men er ingen databasebegrensning: API-mutasjoner sjekkes ikke. `rule.custom()` får verdien og en `context` med hele dokumentet. En `error` stopper *Publish*; en `warning` gjør det ikke.",
   },
   checkedBy: "window",
-  check: ({ progress }) => ({
-    done: Boolean(progress.solved["the-guilds-law"]),
-  }),
+  studioPractice:
+    "I Studio: lag et nytt *Item* av typen *Weapon* uten sprite, og trykk *Publish*. Studio skal nekte. Prøv også å publisere et våpen uten navn, og et våpen med samme navn som et eksisterende. Studio skal nekte begge. Slett utkastene etterpå.",
+  check: fromWindowAndStudio("the-guilds-law"),
 };
 
 const theDrawingBoard: Quest = {
