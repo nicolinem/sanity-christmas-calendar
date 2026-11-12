@@ -8,6 +8,7 @@
 // CSS in the HUD, so an item looks identical in the knight's hand and in a slot.
 
 export type SpriteCategory = "weapon" | "material" | "potion" | "creature";
+export type ItemKind = Exclude<SpriteCategory, "creature">;
 export type SpriteSheet = "dungeon" | "town";
 
 export type SpriteDef = {
@@ -17,7 +18,10 @@ export type SpriteDef = {
 
 export const TILE = 16;
 
-export const SHEETS: Record<SpriteSheet, { url: string; cols: number; rows: number }> = {
+export const SHEETS: Record<
+  SpriteSheet,
+  { url: string; cols: number; rows: number }
+> = {
   dungeon: { url: "/assets/kenney/tiny-dungeon.png", cols: 12, rows: 11 },
   // Tiny Town with snow palette-swapped in (scripts/winterize-tiles.py).
   town: { url: "/assets/winter-town.png", cols: 12, rows: 11 },
@@ -63,6 +67,60 @@ const SPRITE_REGISTRY: Record<string, SpriteDef> = {
   ghost: d(121),
 };
 
+// Item roles are data, not inferred from the art. The picker uses this same
+// allowlist, and the game can reject incompatible Sanity data independently
+// of Studio validation. Tools such as a pickaxe are non-weapons here.
+export const WEAPON_SPRITE_IDS = [
+  "wooden-sword",
+  "sword",
+  "dagger",
+  "longsword",
+  "greatsword",
+  "axe",
+  "hand-axe",
+  "hammer",
+  "spear",
+  "staff-amethyst",
+  "staff-frost",
+  "bow",
+] as const;
+
+const CREATURE_SPRITE_IDS = [
+  "dragon",
+  "snowman",
+  "wolf",
+  "rat",
+  "bat",
+  "spider",
+  "slime",
+  "ghost",
+] as const;
+
+const weaponSpriteIds = new Set<string>(WEAPON_SPRITE_IDS);
+const creatureSpriteIds = new Set<string>(CREATURE_SPRITE_IDS);
+export const OTHER_ITEM_SPRITE_IDS = Object.keys(SPRITE_REGISTRY).filter(
+  (id) => !weaponSpriteIds.has(id) && !creatureSpriteIds.has(id),
+);
+
+export const ITEM_SPRITE_IDS_BY_KIND: Record<ItemKind, readonly string[]> = {
+  weapon: WEAPON_SPRITE_IDS,
+  material: OTHER_ITEM_SPRITE_IDS,
+  potion: OTHER_ITEM_SPRITE_IDS,
+};
+
+export function spriteIdsForItemKind(kind: unknown): readonly string[] {
+  if (typeof kind !== "string" || !Object.hasOwn(ITEM_SPRITE_IDS_BY_KIND, kind))
+    return [];
+  return ITEM_SPRITE_IDS_BY_KIND[kind as ItemKind];
+}
+
+export function isSpriteAllowedForKind(
+  spriteId: string | null | undefined,
+  kind: unknown,
+): boolean {
+  return !spriteId || spriteIdsForItemKind(kind).includes(spriteId);
+}
+
 const CATEGORY_FALLBACK: Record<SpriteCategory, SpriteDef> = {
   weapon: d(103),
   material: d(89),
@@ -84,6 +142,17 @@ export function resolveSprite(
     return CATEGORY_FALLBACK[kind as SpriteCategory];
   }
   return DEFAULT_SPRITE;
+}
+
+// Known but incompatible art falls back to the item's kind. Unknown IDs retain
+// the existing per-kind fallback behavior.
+export function resolveItemSprite(
+  spriteId: string | null | undefined,
+  kind: string | null | undefined,
+): SpriteDef {
+  if (hasKnownSprite(spriteId) && !isSpriteAllowedForKind(spriteId, kind))
+    return resolveSprite(undefined, kind);
+  return resolveSprite(spriteId, kind);
 }
 
 // True when the game has a dedicated sprite for this id (used to hint the player

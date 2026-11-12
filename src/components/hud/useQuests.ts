@@ -20,7 +20,6 @@ import {
 } from "@/game/quests/progress";
 import type { CodeCheck, QuestContext, SolvedTask } from "@/game/quests/types";
 import { plainText } from "./richText";
-import { pushToast } from "./Toasts";
 
 const noSubscribe = () => () => {};
 
@@ -147,6 +146,7 @@ export function useProgress() {
 type BoardInput = {
   items: GameItemView[];
   codeChecks: Record<string, CodeCheck>;
+  codeQuestId?: string | null;
   sanityConfigured: boolean | null;
   unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
   wraithDefeatedNow: boolean;
@@ -154,10 +154,11 @@ type BoardInput = {
 };
 
 // Evaluates every quest against the current game state and makes completions
-// stick: once a check passes for an unlocked quest it's recorded for good.
+// stick. A passed code task waits until its window is closed before completion.
 export function useQuestBoard({
   items,
   codeChecks,
+  codeQuestId,
   sanityConfigured,
   unpublishedDrafts,
   wraithDefeatedNow,
@@ -194,43 +195,6 @@ export function useQuestBoard({
     devUnlock,
   ]);
 
-  // The player confirms, in their own Studio, that a solved quest works there.
-  // Checked again against the latest saved progress, so stale renders can't
-  // confirm a quest that isn't active.
-  const confirmStudioPractice = useCallback(
-    (questId: string) => {
-      updateProgress(PROJECT, (p) => {
-        const state = evaluateQuests(
-          chaptersForTrack(CHAPTERS, p.track),
-          {
-            items,
-            progress: p,
-            codeChecks,
-            sanityConfigured,
-            unpublishedDrafts,
-          },
-          new Date(),
-          devUnlock,
-        ).states.find((s) => s.quest.id === questId);
-        if (
-          !state?.quest.studioPractice ||
-          state.status !== "active" ||
-          !p.solved[questId] ||
-          p.studioConfirmed[questId]
-        )
-          return p;
-        return {
-          ...p,
-          studioConfirmed: {
-            ...p.studioConfirmed,
-            [questId]: new Date().toISOString(),
-          },
-        };
-      });
-    },
-    [items, codeChecks, sanityConfigured, unpublishedDrafts, devUnlock],
-  );
-
   // The first win over the wraith counts forever, even after a rematch reset.
   useEffect(() => {
     if (wraithDefeatedNow && !progress.wraithDefeated)
@@ -243,7 +207,10 @@ export function useQuestBoard({
     const saved = readProgress(PROJECT);
     const finished = board.states.filter(
       (s) =>
-        s.status === "active" && s.result.done && !saved.completed[s.quest.id],
+        s.status === "active" &&
+        s.result.done &&
+        !saved.completed[s.quest.id] &&
+        s.quest.id !== codeQuestId,
     );
     if (finished.length === 0) return;
 
@@ -254,28 +221,50 @@ export function useQuestBoard({
       for (const s of finished) completed[s.quest.id] = now;
       return { ...p, completed };
     });
-    for (const s of finished) {
+    const updated = readProgress(PROJECT);
+    const after = forgeLevelFor(chapters, updated);
+    const next = evaluateQuests(
+      chapters,
+      {
+        items,
+        progress: updated,
+        codeChecks,
+        sanityConfigured,
+        unpublishedDrafts,
+      },
+      new Date(),
+      devUnlock,
+    ).current;
+    for (const [index, s] of finished.entries()) {
       bridge.emit("questCelebration", {
         door: s.quest.door,
         title: s.quest.title,
-      });
-      pushToast({
-        title: `Lærdom: ${plainText(s.quest.lesson.title)}`,
-        body: "Står under Lærdommer i kalenderen.",
-        tone: "lesson",
+        lesson: plainText(s.quest.lesson.title),
+        objectives: s.result.objectives?.filter((o) => o.done).map((o) => o.label),
+        nextDoor:
+          index === finished.length - 1 && next && next.status !== "locked"
+            ? next.quest.door
+            : undefined,
+        level:
+          index === finished.length - 1 && after > before
+            ? { number: after, damage: forgedPower(after).damage }
+            : undefined,
       });
     }
 
-    const after = forgeLevelFor(chapters, readProgress(PROJECT));
     if (after > before) {
-      pushToast({
-        title: `Nivå ${after}: våpnene blir sterkere`,
-        body: `Alle våpnene dine gjør nå ${forgedPower(after).damage} skade.`,
-        tone: "forge",
-      });
       bridge.emit("forgeLevelUp", after);
     }
-  }, [board, chapters]);
+  }, [
+    board,
+    codeQuestId,
+    chapters,
+    items,
+    codeChecks,
+    sanityConfigured,
+    unpublishedDrafts,
+    devUnlock,
+  ]);
 
-  return { ...board, confirmStudioPractice };
+  return board;
 }

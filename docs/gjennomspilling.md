@@ -39,7 +39,7 @@ uansett rekkefølge og dato.
 - [ ] Lag et `Item`-dokument (Name, Kind = Weapon, Sprite), trykk **Publish**.
 - [ ] **Sanntid:** uten refresh stiger våpenet opp av smia, flyr til ridderen,
       og «Nytt våpen» vises. Våpenet ligger i inventarlinja.
-- [ ] En draft (uten Publish) dukker *ikke* opp i spillet.
+- [ ] En draft (uten Publish) dukker _ikke_ opp i spillet.
 - [ ] Snømonsteret øst for brønnen: mellomrom angriper, HP-pipsene går ned,
       «… er beseiret!».
 - [ ] Toasts: «Luke 1 ferdig», «Lærdom: Draft og published», «Nivå 2: våpnene
@@ -68,10 +68,17 @@ uansett rekkefølge og dato.
 
 ## Luke 4: Custom input
 
-- [ ] Sprite-feltet viser et rutenett med pikselkunsten. Klikk velger, klikk
-      igjen fjerner.
-- [ ] Valget vises i spillet med en gang (sanntid).
-- [ ] `npm run quest` gir ✓.
+- [ ] Kodevinduet viser våpen-sprites i forhåndsvisningen. Velg type i Studio
+      først; våpen får bare våpenbilder, materialer får de andre item-bildene.
+- [ ] Velg en sprite og fjern valget. Begge handlingene må bestå kontrollen.
+- [ ] Etter bestått åpnes Studio med den innebygde input-en. Tastaturfokus,
+      markering, typefiltrering, valg og fjerning virker.
+- [ ] Bytt type på et dokument med valgt sprite. Et uforenlig gammelt valg får
+      en tydelig melding og stopper publisering til en gyldig sprite velges.
+- [ ] Velg en annen sprite på det publiserte våpenet, trykk _Publish_, og se
+      samme endring i spillet. Utkast vises ikke før publisering.
+- [ ] Bekreft Studio-prøven i spillet. Kodevinduets utkast skrives ikke til
+      repoet; det aktiverer vår versjon av komponenten.
 
 ## Luke 5: Document view
 

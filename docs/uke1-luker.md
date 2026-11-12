@@ -142,37 +142,51 @@ kan lese `kind` gjennom `context.document`, men er ikke eneste mulige løsning.
 innholdet. **Resultat:** Synlig feilmelding i Studio, deretter et lovlig
 publisert våpen i spillet.
 
-### Custom input: Velg bilde og bruk det
+### Custom input: Bygg en visuell spritevelger
 
 **Eksisterende ID:** `the-drawing-board`. **Tema:** Egen input component.
-Vedtatt som kjerneoppgave; ligger fortsatt som bonus i dagens spillkode.
+Kjerneoppgave i den tekniske løypa.
 
-> **Brann:** Jeg husker ikke hvilken sprite som er hvilken. Lag en velger
-> med bilder, og bruk den til å gi våpenet ditt et annet utseende.
+> **Brann:** Jeg husker ikke hvilken sprite som er hvilken. Bygg ikonknapper
+> med Sanity UI, uten synlige ID-er.
 
-**Gjør i repoet:** Fyll ut `SpritePicker.tsx` og koble den til `sprite`-feltet.
-Gjenbruk `SpriteImage`, `KNOWN_SPRITE_IDS` og Sanitys `set`/`unset`.
-Ingen nye stats eller skadefelt.
+**Gjør i kodevinduet:** Startfila leser typen og gir deg sprite-ID-ene som
+passer, og importerer `SpriteImage`. Deltakeren bygger selv én Sanity UI
+`Button` per ID og viser spriten enten i `icon`-propen eller som barn i knappen.
+Vår ferdige Studio-versjon bruker `icon` for midtstilling. `aria-label` og
+`aria-pressed` finnes i vår ferdige Studio-kode, men er ikke krav i kodevinduet.
+Bruk `mode` for å vise valgt verdi; ikke bruk blå `tone="primary"`.
+Klikket sender `props.onChange(set(id))`; Fjern sender
+`props.onChange(unset())`.
 
-**Bruk i Studio:** Velg et annet bilde på ditt publiserte våpen, publiser og
-se samme våpen med den nye spriten i spillet. Utkastet skal ikke endre det
-publiserte utseendet før `Publish`.
+**Viktig:** Kodevinduet lagrer utkastet i nettleseren, ikke i en fil i repoet.
+Når testen består, slår spillet på vår ferdige versjon av
+`src/sanity/studio/SpritePicker.tsx` i Studio. Koden deltakeren skrev, blir
+ikke installert eller skrevet til prosjektet.
 
-**Automatisk i dag:** `npm run quest` sjekker at en input-komponent er koblet
-på feltet. Den beviser ikke at bildene vises, tastaturet virker eller klikk
-sender riktig patch. **Foreslått fullføring:** Bestått kodesjekk og endret,
-kjent `spriteId` på det samme publiserte dokumentet. Referansen må lagres ved
-start, før redigeringen; denne innholdssjekken finnes ikke ennå.
+**Bruk i Studio:** Velg et annet våpenbilde på ditt publiserte våpen, publiser
+og se samme våpen med den nye spriten i spillet. Prøv også et `Material`-
+dokument for å se den andre sprite-gruppa. Et gammelt valg som ikke passer til
+ny type skal varsles og stoppe `Publish` til det endres eller fjernes.
 
-**Hintstige:** Startkomponenten viser standardfeltet → tegn bilder med
-`SpriteImage` → et valg sender `onChange(set(id))`, og feltet kobles på med
-`components.input`.
-[Input components](https://www.sanity.io/docs/studio/form-components-reference).
+**Automatisk:** Kodevinduet prøver at våpen bare viser våpensprites,
+materialer og potions viser andre itemsprites, og at ingen sprites vises før
+type er valgt. Det tester også markering, riktig `set(id)` og `unset()`.
+Egenbekreftelsen etterpå betyr at deltakeren selv har prøvd
+velgeren i Studio; den er ikke automatisk bevis på en publisert endring.
+Organisatøren må fortsatt prøve valg, tastatur og publisering i et ekte
+Sanity-prosjekt før release.
 
-**Lærdom:** En egen input gjør det enklere å redigere vanlige felt; dataformatet
-er fortsatt samme sprite-ID. **Resultat:** Bildevelgeren brukes i Studio, og
-spillet viser den publiserte endringen. Komponenten må prøves med tastatur
-og både valg og fjerning av verdi, ikke bare bestå en koblingssjekk.
+**Hintstige:** Startfila har typefilteret; gå gjennom `spriteIds` med `.map()`
+→ bygg hvert kort med Sanity UI → sammenlign ID-en med `props.value` → send
+`set(id)` eller `unset()` gjennom `props.onChange`, og prøv begge typene i
+Studio. Se [Visual string selector field input](https://www.sanity.io/docs/developer-guides/create-a-rich-string-selector-field-input).
+For ekstra lesing: [egne Studio-komponenter](https://www.sanity.io/docs/studio/intro-to-custom-studio-components)
+og [Sanity UI Button](https://www.sanity.io/ui/docs/primitive/button).
+
+**Lærdom:** En visuell string selector gjør faste verdier lettere å kjenne
+igjen, mens Sanity UI holder valgene hjemme i Studio. **Resultat:** Den
+publiserte spriten vises på våpenet i spillet.
 
 ### Valgfri bonus: Document view
 

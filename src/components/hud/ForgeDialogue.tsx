@@ -2,14 +2,13 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { GameItemView } from "@/game/items";
-import type { Progress, QuestState } from "@/game/quests/types";
+import type { QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
 import { QUEST_SITES, type QuestSiteId } from "@/game/village";
 import SpriteIcon from "./SpriteIcon";
 import { IconQuill } from "./icons";
 import { renderText } from "./richText";
 import { openStudio } from "./studioPane";
-import StudioPractice from "./StudioPractice";
 
 type Props = {
   board: QuestBoard;
@@ -22,8 +21,6 @@ type Props = {
   onCheck: () => void;
   onTravelToSite: (siteId: QuestSiteId) => void;
   onOpenCode: (questId: string) => void;
-  solvedTasks: Progress["solved"];
-  onConfirmStudioPractice: (questId: string) => void;
   onClose: () => void;
 };
 
@@ -142,12 +139,14 @@ function buildPages(
     ];
   }
   const { current, previous } = board;
-  const reaction = previous ? [<Reaction key="r" state={previous} />] : [];
+  const reaction = previous && current?.status === "offered"
+    ? [<Reaction key="r" state={previous} />]
+    : [];
   if (!current) {
     return [
       ...reaction,
       <>
-        Det var alle lukene som er åpne nå. Kom tilbake når neste luke åpner.
+        Det var alle lukene som er åpne nå. Se det du har gjort i journalen (J), og kom tilbake når neste luke åpner.
       </>,
     ];
   }
@@ -168,16 +167,6 @@ function buildPages(
       )}
     </>
   ));
-  if (current.status === "active" && placePhrase) {
-    return [
-      ...reaction,
-      <>{renderText(current.quest.intro[0])}</>,
-      <>
-        {renderText(current.quest.intro[1] ?? "")}
-        {current.quest.intro[1] && " "}Oppgaven ligger {placePhrase}.
-      </>,
-    ];
-  }
   if (current.status === "offered") {
     return [...reaction, ...introPages];
   }
@@ -197,8 +186,10 @@ function buildPages(
   }
   return [
     <>
-      Luke {current.quest.door}: {current.quest.title}.{" "}
-      {renderText(current.quest.goal)}
+      Vi er ikke ferdige med luke {current.quest.door} ennå.{" "}
+      {renderText(current.quest.goal)}{" "}
+      {placePhrase && <>Oppgaven ligger {placePhrase}. </>}
+      Se hva som gjenstår i journalen (J).
     </>,
   ];
 }
@@ -207,7 +198,7 @@ function buildPages(
 function Reaction({ state }: { state: QuestState }) {
   return (
     <>
-      Bra, luke {state.quest.door} er ferdig! Det du lærte:
+      Bra jobbet! Luke {state.quest.door} er krysset ut i journalen. Det du lærte:
       <span className="dialogue-lesson">
         <span className="dialogue-lesson-title">
           {renderText(state.quest.lesson.title)}
@@ -230,14 +221,11 @@ function Details({
   onCheck,
   onTravelToSite,
   onOpenCode,
-  solvedTasks,
-  onConfirmStudioPractice,
   onClose,
   studioRef,
 }: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
   const current = board.current;
-  const onboarding = !current || current.quest.id === FIRST_QUEST;
-  const firstForging = onboarding && !forged;
+  const firstForging = current?.quest.id === FIRST_QUEST && !forged;
   const remoteSite =
     current?.status === "active" && current.quest.villageSite !== "forge"
       ? current.quest.villageSite
@@ -245,9 +233,6 @@ function Details({
   // Written in the game's code window, not in the Studio or the repo.
   const inWindow =
     current?.quest.checkedBy === "window" && sanityConfigured !== false;
-  const studioReady = Boolean(
-    current && inWindow && solvedTasks[current.quest.id],
-  );
 
   return (
     <>
@@ -295,17 +280,8 @@ function Details({
         </p>
       )}
 
-      {current && studioReady && (
-        <StudioPractice
-          state={current}
-          codePassed={Boolean(solvedTasks[current.quest.id])}
-          onConfirm={() => onConfirmStudioPractice(current.quest.id)}
-          onLeave={onClose}
-        />
-      )}
-
       <div className="dialogue-actions">
-        {studioReady ? null : remoteSite && current ? (
+        {remoteSite && current ? (
           <button
             ref={studioRef}
             type="button"
@@ -323,7 +299,7 @@ function Details({
           >
             Åpne kodevinduet
           </button>
-        ) : (
+        ) : current ? (
           <>
             <button
               ref={studioRef}
@@ -343,7 +319,7 @@ function Details({
               {refreshing ? "Sjekker…" : "Sjekk på nytt"}
             </button>
           </>
-        )}
+        ) : null}
         <button type="button" className="btn btn--quiet" onClick={onClose}>
           Gå <kbd>Esc</kbd>
         </button>

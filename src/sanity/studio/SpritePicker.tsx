@@ -1,23 +1,67 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- importene er klare til du bruker dem */
-import { set, unset, type StringInputProps } from "sanity";
+import { Button, Grid, Stack, Text } from "@sanity/ui";
+import { set, unset, useFormValue, type StringInputProps } from "sanity";
 import SpriteImage from "../../components/SpriteImage";
-import { KNOWN_SPRITE_IDS } from "../../game/sprites";
+import { spriteIdsForItemKind } from "../../game/sprites";
 
 // Relative imports på denne fila, ikke "@/": Sanity CLI bygger Studio uten den
 // snarveien.
 
-// QUEST: Luke 4. Dette er startfila til velgeren din. Den er ikke koblet til
-// `sprite` ennå: det gjør du selv i src/sanity/schemaTypes/item.tsx
-// (`components: { input: SpritePicker }` på feltet).
-//
-// Akkurat nå tegner den bare standardfeltet, så Studio virker som før.
+// QUEST: Luke 4. Kodevinduet sjekker valgene; når luka er fullført bruker
+// Studio denne løsningen. Deltakerens kodeutkast blir ikke skrevet til repoet.
 export function SpritePicker(props: StringInputProps) {
-  // QUEST: Luke 4. Bytt ut linja under med et rutenett av sprites.
-  //   - Gå gjennom KNOWN_SPRITE_IDS og lag en <button type="button"> per id,
-  //     med <SpriteImage spriteId={id} kind="weapon" /> inni.
-  //   - Klikker man en knapp: `props.onChange(set(id))`.
-  //   - Vil man fjerne valget: `props.onChange(unset())`.
-  //   - Marker den som er valgt (`props.value`) så man ser hvilken det er.
-  // Importene `set`, `unset`, `SpriteImage` og `KNOWN_SPRITE_IDS` er klare til bruk.
-  return props.renderDefault(props);
+  const kind = useFormValue(["kind"]);
+  const spriteIds = spriteIdsForItemKind(kind);
+
+  return (
+    <Stack
+      className="sprite-picker"
+      gap={3}
+      role="group"
+      aria-label="Velg sprite"
+    >
+      {spriteIds.length === 0 && (
+        <Text className="sprite-picker__message" size={1} role="status">
+          {typeof kind === "string"
+            ? "Ingen spritevalg finnes for denne typen."
+            : "Velg type først for å se passende sprites."}
+        </Text>
+      )}
+      {props.value && !spriteIds.includes(props.value) && (
+        <Text className="sprite-picker__message" size={1} role="alert">
+          Den valgte spriten passer ikke til denne typen. Velg en ny eller fjern
+          valget.
+        </Text>
+      )}
+      <Grid className="sprite-picker__grid" gridTemplateColumns={4} gap={2}>
+        {spriteIds.map((id) => {
+          const selected = props.value === id;
+          return (
+            <Button
+              key={id}
+              type="button"
+              width="fill"
+              justify="center"
+              padding={3}
+              icon={<SpriteImage spriteId={id} />}
+              aria-label={`Velg ${id}`}
+              aria-pressed={selected}
+              mode={selected ? "default" : "ghost"}
+              tone="default"
+              onClick={() => props.onChange(set(id))}
+            />
+          );
+        })}
+      </Grid>
+      <Button
+        mode="ghost"
+        type="button"
+        className="sprite-picker__clear"
+        aria-label="Fjern valgt sprite"
+        disabled={!props.value}
+        onClick={() => props.onChange(unset())}
+      >
+        Fjern valgt sprite
+      </Button>
+    </Stack>
+  );
 }

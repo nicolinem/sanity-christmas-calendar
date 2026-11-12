@@ -20,7 +20,6 @@ type Props = {
   forgeLevel: number;
   hintsShown: Record<string, number>;
   solvedTasks: Progress["solved"];
-  onConfirmStudioPractice: (questId: string) => void;
   onRevealHint: (questId: string) => void;
   onOpenCode: (questId: string) => void;
   onTravelToSite: (siteId: QuestSiteId) => void;
@@ -40,7 +39,6 @@ export default function QuestLog({
   forgeLevel,
   hintsShown,
   solvedTasks,
-  onConfirmStudioPractice,
   onRevealHint,
   onOpenCode,
   onTravelToSite,
@@ -136,7 +134,7 @@ export default function QuestLog({
                             onClick={() => setSelectedId(s.quest.id)}
                             aria-current={s === selected ? "true" : undefined}
                           >
-                            <span className="tracker-box">
+                            <span className="tracker-box" aria-hidden="true">
                               {s.status === "done" && <IconCheck size={12} />}
                             </span>
                             <span>
@@ -144,6 +142,7 @@ export default function QuestLog({
                               {s.status === "offered"
                                 ? "snakk med Brann"
                                 : s.quest.title}
+                              {s.status === "done" && " · Ferdig"}
                               {s.quest.bonus && (
                                 <span className="log-bonus">
                                   {" "}
@@ -174,9 +173,6 @@ export default function QuestLog({
                 onMoreHint={() => onRevealHint(selected.quest.id)}
                 onOpenCode={() => onOpenCode(selected.quest.id)}
                 codePassed={Boolean(solvedTasks[selected.quest.id])}
-                onConfirmStudioPractice={() =>
-                  onConfirmStudioPractice(selected.quest.id)
-                }
                 onClose={onClose}
               />
             )}
@@ -240,7 +236,7 @@ export default function QuestLog({
             onBlur={() => setConfirmReset(false)}
           >
             {confirmReset
-              ? "Klikk igjen for å slette fremgangen din"
+              ? "Klikk igjen for å nullstille fremgang og kodesvar"
               : "Nullstill fremgang"}
           </button>
         </footer>
@@ -255,7 +251,6 @@ function QuestDetail({
   onMoreHint,
   onOpenCode,
   codePassed,
-  onConfirmStudioPractice,
   onClose,
 }: {
   state: QuestState;
@@ -263,7 +258,6 @@ function QuestDetail({
   onMoreHint: () => void;
   onOpenCode: () => void;
   codePassed: boolean;
-  onConfirmStudioPractice: () => void;
   onClose: () => void;
 }) {
   const { quest, status, result } = state;
@@ -306,12 +300,12 @@ function QuestDetail({
         </p>
       )}
 
-      {status !== "done" && result.objectives && (
+      {result.objectives && (
         <ul className="tracker-list">
           {result.objectives.map((o) => (
-            <li key={o.label} className={o.done ? "is-done" : undefined}>
+            <li key={o.label} className={status === "done" || o.done ? "is-done" : undefined}>
               <span className="tracker-box">
-                {o.done && <IconCheck size={12} />}
+                {(status === "done" || o.done) && <IconCheck size={12} />}
               </span>
               {o.label}
             </li>
@@ -347,7 +341,6 @@ function QuestDetail({
       <StudioPractice
         state={state}
         codePassed={codePassed}
-        onConfirm={onConfirmStudioPractice}
         onLeave={onClose}
       />
       {quest.hints.length > 0 && status !== "done" && (

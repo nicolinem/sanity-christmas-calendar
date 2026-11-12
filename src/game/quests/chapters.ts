@@ -38,22 +38,13 @@ function fromCode(id: string) {
   };
 }
 
-// Quests solved in the code window also need the player to try them in Studio
-// and confirm it themselves (studioConfirmed).
-function fromWindowAndStudio(id: string) {
+// The code window judges these tasks; trying the result in Studio is optional.
+function fromWindow(id: string) {
   return ({ progress }: QuestContext): CheckResult => {
     const solved = Boolean(progress.solved[id]);
-    const confirmed = Boolean(progress.studioConfirmed[id]);
     return {
-      done: solved && confirmed,
-      objectives: [
-        { label: "Koden er bestått", done: solved },
-        { label: "Studio-prøven er bekreftet", done: confirmed },
-      ],
-      message:
-        solved && !confirmed
-          ? "Koden er bestått. Gjør Studio-prøven og bekreft den her."
-          : undefined,
+      done: solved,
+      objectives: [{ label: "Koden er bestått", done: solved }],
     };
   };
 }
@@ -123,9 +114,9 @@ const brannsLedger: Quest = {
     "I går skulle jeg finne den nye øksa i Studio, men lista viser bare navn. Jeg åpnet tre sverd før jeg endelig fant den.",
     "Jeg har hengt våpenlista på oppslagstavla. Velg et ikon for Item, og vis navn og bilde for hvert våpen, så jeg slipper å lete neste gang.",
   ],
-  goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*. Prøv det i Studio.",
+  goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*.",
   where:
-    "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
+    "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
   hints: [
     {
       text: "En *schema type* kan ha et `icon`. Det er ett merke for hele dokumenttypen, ikke for hvert våpen. Det lista viser for hvert våpen, styres av `preview`.",
@@ -159,8 +150,8 @@ const brannsLedger: Quest = {
   },
   checkedBy: "window",
   studioPractice:
-    "I Studio: finn ikonet du valgte for dokumenttypen *Item*. Åpne dokumentlista, og finn våpenet ditt ved hjelp av navn og sprite.",
-  check: fromWindowAndStudio("branns-ledger"),
+    "Vil du se det i Studio? Finn ikonet du valgte for *Item*. Åpne dokumentlista, og finn våpenet ditt ved hjelp av navn og sprite.",
+  check: fromWindow("branns-ledger"),
 };
 
 const theGuildsLaw: Quest = {
@@ -173,9 +164,9 @@ const theGuildsLaw: Quest = {
     "De i huset vest for brønnen bestilte ei øks, men to våpen hadde samme navn. Et av dem manglet også bilde. Jeg klarte ikke å finne ut hvilket de mente.",
     "Vi må stoppe slike feil før de kommer på lista. Kan du få Studio til å nekte våpen uten sprite og navn som allerede er i bruk?",
   ],
-  goal: "Start med den enklere *validation*-regelen på `sprite`: Studio skal nekte våpen uten sprite. Deretter krev et navn og nekt navn som allerede er brukt. Prøv reglene i Studio og bekreft selv.",
+  goal: "Få Studio til å nekte våpen uten sprite og gjenstander uten navn eller med navn som allerede er brukt.",
   where:
-    "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
+    "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
   hints: [
     {
       title: "Bare våpen trenger sprite",
@@ -222,59 +213,75 @@ const theGuildsLaw: Quest = {
   },
   checkedBy: "window",
   studioPractice:
-    "I Studio: lag et nytt *Item* av typen *Weapon* uten sprite, og trykk *Publish*. Studio skal nekte. Prøv også å publisere et våpen uten navn, og et våpen med samme navn som et eksisterende. Studio skal nekte begge. Slett utkastene etterpå.",
-  check: fromWindowAndStudio("the-guilds-law"),
+    "Vil du teste i Studio? Lag et *Weapon* uten sprite og prøv *Publish*. Prøv også uten navn og med et navn som allerede finnes. Studio skal nekte alle tre. Slett utkastene etterpå.",
+  check: fromWindow("the-guilds-law"),
 };
 
 const theDrawingBoard: Quest = {
   id: "the-drawing-board",
   track: "technical",
   door: 4,
-  title: "Custom input: velg sprite med bilder",
+  title: "Custom input: bygg en visuell spritevelger",
   intro: [
-    "Å velge sprite fra en liste med navn er tungvint. Lag en velger som viser selve pikselkunsten.",
-    "Dette er en bonus, og den er annerledes: du løser den ikke i kodevinduet, men i selve koden, i din egen editor. En *custom input component* er en React-komponent i Studio, og den trenger mer enn én fil.",
+    "Takk for reglene! Men når jeg velger bilde til et våpen, ser jeg bare en liste med sprite-ID-er. Jeg aner ikke hvilken som er hvilken.",
+    "Kan du gi meg bildeknapper i stedet? Startfila finner allerede bildene som passer. Du viser dem, markerer valget og lar meg fjerne det igjen. Åpne kodevinduet når du er klar.",
   ],
-  goal: "Lag en *custom input component* for `sprite` som viser pikselkunsten i stedet for en liste med navn.",
+  goal: "Bygg én bildeknapp for hver tillatte sprite. Vis bare ikonet, marker valget, og la det kunne fjernes.",
   goalPreview: {
-    before: "I dag velger du sprite fra en liste med navn.",
-    after: "Etterpå ser du bildene og klikker på den du vil ha.",
+    before: "I dag vises sprite-ID-ene som tekst.",
+    after: "Etterpå velger du fra ikonknapper med tydelig valgt tilstand.",
   },
-  where:
-    "I editoren din: startfila `src/sanity/studio/SpritePicker.tsx`, og `src/sanity/schemaTypes/item.tsx` (kommentaren `QUEST: Luke 4`).",
+  where: "I kodevinduet i spillet. Du kan prøve resultatet i Studio etterpå.",
   hints: [
     {
-      text: "Åpne `src/sanity/studio/SpritePicker.tsx`. Den er klar, men viser bare standardfeltet.",
+      text: 'Type-feltet står over sprite-feltet. `useFormValue(["kind"])` leser typen som er valgt i dokumentet; `spriteIdsForItemKind(kind)` gir bare sprite-id-ene som passer. Nysgjerrig på egne Studio-komponenter? Les gjerne videre, men du trenger det ikke for å løse oppgaven.',
+      link: {
+        label: "Egne komponenter i Sanity Studio (ekstra lesing)",
+        url: `${DOCS}/intro-to-custom-studio-components`,
+      },
     },
     {
-      text: 'Lag en `<button type="button">` per id i `KNOWN_SPRITE_IDS`, med en `SpriteImage` inni.',
+      title: "Vis spritebildet",
+      text: "`SpriteImage` er allerede importert. Bytt ID-teksten i `spriteIds.map` med en Sanity UI `Button` per ID, og vis `<SpriteImage spriteId={id} />` i knappen. Du kan bruke `icon`-propen eller legge bildet inni knappen.",
+      steps: [
+        "Bruk `key={id}` på knappen; ikke vis ID-en som tekst.",
+        "I vår ferdige Studio-kode brukes `icon`-propen for å midtstille, men begge måter godtas i kodevinduet.",
+        "Du trenger ikke legge til `aria-label` eller `aria-pressed` i kodevinduet.",
+      ],
+      link: {
+        label: "Sanity UI Button",
+        url: "https://www.sanity.io/ui/docs/primitive/button",
+      },
     },
     {
-      text: "Klikket endrer verdien med `props.onChange(set(id))`. `unset()` fjerner den.",
+      title: "Vis valget og oppdater feltet",
+      text: 'Sammenlign `props.value` med `id`. Bruk `mode="default"` for valgt og `mode="ghost"` for de andre; unngå `tone="primary"` (blått). Klikket skal sende `props.onChange(set(id))`.',
       link: {
         label: "Form components API reference",
         url: `${DOCS}/form-components-reference`,
       },
     },
     {
-      text: "Koble den på: i `item.tsx` kan et *field* bytte ut *input component*-en sin med `components: { input: ... }`.",
+      title: "Fjern valget",
+      text: "Fjern-knappen skal sende `unset()` til `props.onChange(...)`. Vil du se resultatet i Studio, kan du prøve begge knappene der etterpå.",
       link: {
-        label: "Form components",
-        url: `${DOCS}/form-components#f5793c951d53`,
+        label: "Form components API reference",
+        url: `${DOCS}/form-components-reference`,
       },
     },
   ],
   learn: {
-    label: "Custom input components",
-    url: `${LEARN}/studio-excellence/custom-form-components`,
+    label: "Visual string selector field input",
+    url: `${DOCS}/developer-guides/create-a-rich-string-selector-field-input`,
   },
   lesson: {
-    title: "*Custom input components*",
-    text: "Et *field* kan bytte ut *input component*-en sin med `components.input`. Komponenten får verdien, og endrer den med `onChange(set(...))` eller `unset()`.",
+    title: "*Visual string selector*",
+    text: "Sanity UI sine `Grid` og `Button` lager valgene. `mode` viser gjeldende verdi med nøytral `tone`; `set(...)` og `unset()` lager patcher som `props.onChange(...)` sender til dokumentet.",
   },
-  checkedBy: "code",
-  bonus: true,
-  check: fromCode("the-drawing-board"),
+  checkedBy: "window",
+  studioPractice:
+    "Vil du prøve det i Studio? Åpne våpenet fra første luke, bytt sprite og trykk *Publish*. Se endringen i spillet. Test gjerne også valgene for *Material* og knappen som fjerner valget.",
+  check: fromWindow("the-drawing-board"),
 };
 
 const theProvingRoom: Quest = {

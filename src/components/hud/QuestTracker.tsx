@@ -70,7 +70,7 @@ export default function QuestTracker({
             <>
               {hasVillageDestination && place && (
                 <p className="tracker-note">
-                  Valgfritt sted: {place}. Kart med J.
+                  Valgfritt sted: {place}. Se Kart i journalen (J).
                 </p>
               )}
               <p className="tracker-goal">{renderText(current.quest.goal)}</p>

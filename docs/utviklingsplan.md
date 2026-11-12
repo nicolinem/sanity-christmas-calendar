@@ -218,7 +218,7 @@ Dette er rekkefølgen på eksisterende tekniske arbeid før release, med avhengi
 
 1. **Produktkontrakt:** lås læringsmål og lukeinnhold for begge løypene, poengregel, hint-/fasitflyt og databeslutning for deltakeroversikten. Utkast for uke 1 og åpne produktvalg står i [questplan.md](questplan.md), men må godkjennes før nye mekanikker bygges.
 2. **Progresjonsfundament:** støtt valg av løype, ukentlig kapittelåpning, lineær lukeprogresjon, statusene låst/aktiv/fullført og gjenopptakelse etter reload. Neste luke krever fullføring. Poeng må knyttes til reell fullføring og kan ikke være nødvendig for å låse opp innhold.
-3. **Teknisk løype uke 1:** ta custom input inn som kjerneoppgave. Kodesjekker kjøres automatisk der det er robust; behold CLI-sjekk som eksplisitt reserve for oppgaver der automatikk ikke er praktisk.
+3. **Teknisk løype uke 1:** custom input er en kjerneoppgave. Kodevinduet sjekker valgene; deltakeren prøver deretter den innebygde komponenten i Studio.
 4. **Ikke-teknisk løype uke 1:** bygg oppgaver rundt innhold og grunnleggende Sanity-bruk, uten å kreve kode. Gjenbruk ukas historie og spillverden, men ikke samme ferdighetskrav.
 5. **Felles deltakeroversikt:** bygg først etter at offentliggjorte felt, samtykke, avmelding/skjuling og eier av deltakerlista er bestemt. Kun nødvendige publiserte data; ingen token i klienten og ingen sist-sett-posisjon i første release.
 6. **Uke 2–3 og finale:** utvid begge løypene. Felleskapitler og karakterer kan gjenbrukes, men oppgaver og belønninger må utformes og testes for hver målgruppe. Finalen må virke uten deltakeroversikt.
@@ -226,12 +226,13 @@ Dette er rekkefølgen på eksisterende tekniske arbeid før release, med avhengi
 
 **Scope-varsel:** To fullverdige løyper dobler ikke nødvendigvis spillmekanikken, men gir reelt mer oppgave- og testarbeid. Dersom tidsplanen blir for stram, kutt bonusoppgaver, spøkelser og sanntid først; ikke slipp en løype som bare er en utestet idé.
 
-**Sjekkflyt (2026-11-10):** Kodevinduet sjekker allerede automatisk ved åpning
-og etter en kort skrivepause; utkast lagres i nettleseren, ikke i repo-filer.
-Ikon/preview og validation bruker denne flyten. Custom input og document view
-løses foreløpig i repoet og sjekkes med `npm run quest`. Automatisk sjekk ved
-fillagring gjelder repooppgaver og er fortsatt planlagt, ikke en del av det
-som allerede er levert i kodevinduet.
+**Sjekkflyt (2026-11-12):** Kodevinduet sjekker automatisk ved åpning og etter
+en kort skrivepause; utkast lagres i nettleseren, ikke i repo-filer.
+Ikon/preview, validation og custom input bruker denne flyten. Etter bestått
+aktiverer Studio vår versjon av custom input; deltakerens kodeutkast blir ikke
+skrevet til prosjektet. Document view løses fortsatt i repoet og sjekkes med
+`npm run quest`. Automatisk sjekk ved fillagring av repooppgaver er fortsatt
+planlagt.
 
 ### Neste utviklingssteg: progresjonsgrunnlag (2026-11-10)
 

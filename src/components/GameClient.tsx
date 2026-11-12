@@ -121,7 +121,6 @@ export default function GameClient() {
       bridge.on("questCelebration", (celebration) => {
         setTalking(false);
         setLogOpen(false);
-        setCodeQuestId(null);
         setCelebrations((queue) => [...queue, celebration]);
       }),
     [],
@@ -249,6 +248,7 @@ export default function GameClient() {
   const board = useQuestBoard({
     items,
     codeChecks: checks,
+    codeQuestId,
     sanityConfigured: configured,
     unpublishedDrafts,
     wraithDefeatedNow: combat.defeated,
@@ -286,13 +286,6 @@ export default function GameClient() {
     setLogOpen(true);
   }, []);
 
-  const openMap = useCallback(() => {
-    setTalking(false);
-    setLogInitialTab("map");
-    setLogInitialQuestId(undefined);
-    setLogOpen(true);
-  }, []);
-
   const openQuestLog = useCallback((questId: string) => {
     setTalking(false);
     setLogInitialTab("quests");
@@ -317,7 +310,7 @@ export default function GameClient() {
     else openQuestLog(siteQuest.quest.id);
   }, [siteQuest, openCode, openQuestLog]);
   const codeState = board.states.find(
-    (s) => s.quest.id === codeQuestId && s.status !== "locked",
+    (s) => s.quest.id === codeQuestId,
   );
   const codeOpen = Boolean(codeState);
   const onSolved = useCallback(
@@ -388,7 +381,7 @@ export default function GameClient() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || showOpening) return;
-      if (celebrations.length > 0) return;
+      if (celebrations.length > 0 && !codeOpen) return;
       if ((e.target as HTMLElement)?.closest?.(".dev")) return;
       // Typing in the code window: every key is code, except Escape.
       if (codeOpen) {
@@ -404,7 +397,7 @@ export default function GameClient() {
         return;
       }
       if (e.key === "j" || e.key === "J") {
-        openMap();
+        openLog();
         return;
       }
       if (e.key === "Escape" && dialogueOpen) {
@@ -446,7 +439,7 @@ export default function GameClient() {
     showOpening,
     celebrations.length,
     openDialogue,
-    openMap,
+    openLog,
     openSiteQuest,
     combat,
     items,
@@ -504,8 +497,6 @@ export default function GameClient() {
                 onCheck={checkForge}
                 onTravelToSite={travelToSite}
                 onOpenCode={openCode}
-                solvedTasks={progress.solved}
-                onConfirmStudioPractice={board.confirmStudioPractice}
                 onClose={() => setTalking(false)}
               />
             )}
@@ -572,7 +563,7 @@ export default function GameClient() {
               <kbd>1</kbd>–<kbd>{slots}</kbd> utstyr
             </span>
             <span>
-              <kbd>J</kbd> kart
+              <kbd>J</kbd> journal
             </span>
           </p>
         </div>
@@ -587,7 +578,6 @@ export default function GameClient() {
             onRevealHint={revealHint}
             onOpenCode={openCode}
             solvedTasks={progress.solved}
-            onConfirmStudioPractice={board.confirmStudioPractice}
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}
@@ -600,9 +590,6 @@ export default function GameClient() {
             state={codeState}
             solved={Boolean(progress.solved[codeState.quest.id])}
             onSolved={onSolved}
-            onConfirmStudioPractice={() =>
-              board.confirmStudioPractice(codeState.quest.id)
-            }
             hintsShown={progress.hints[codeState.quest.id] ?? 0}
             onRevealHint={() => revealHint(codeState.quest.id)}
             onClose={() => setCodeQuestId(null)}
@@ -636,11 +623,15 @@ export default function GameClient() {
         )}
       </div>
 
-      {celebration && (
+      {celebration && codeQuestId === null && !studio.open && (
         <QuestCelebration
-          door={celebration.door}
-          title={celebration.title}
+          key={`${celebration.door}:${celebration.title}`}
+          {...celebration}
           onClose={dismissCelebration}
+          onOpenLog={() => {
+            dismissCelebration();
+            openLog();
+          }}
         />
       )}
 

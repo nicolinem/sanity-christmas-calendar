@@ -23,7 +23,14 @@ export type WorldState = {
   frozen: boolean; // a dialogue is open: the knight stands still
 };
 
-export type QuestCelebration = { door: number; title: string };
+export type QuestCelebration = {
+  door: number;
+  title: string;
+  lesson: string;
+  objectives?: string[];
+  nextDoor?: number;
+  level?: { number: number; damage: number };
+};
 
 type EventMap = {
   zone: Zone;

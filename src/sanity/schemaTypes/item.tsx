@@ -1,7 +1,7 @@
 import { defineField, defineType } from "sanity";
-import { KNOWN_SPRITE_IDS } from "../../game/sprites";
+import { isSpriteAllowedForKind, KNOWN_SPRITE_IDS } from "../../game/sprites";
 import { isNameTaken } from "../lib/guild";
-import { isSolved, ItemIcon, ItemMedia } from "../lib/solved";
+import { isSolved, ItemIcon, ItemMedia, ItemSpriteInput } from "../lib/solved";
 
 // Everything the knight can carry. Players create these in the Studio and
 // they flow straight into the game: no code change needed.
@@ -60,19 +60,28 @@ export const item = defineType({
       name: "sprite",
       title: "Sprite",
       type: "string",
+      components: { input: ItemSpriteInput },
       description:
         "How it looks in the game. Unknown sprites fall back to a default.",
       options: { list: KNOWN_SPRITE_IDS },
       // QUEST: Luke 3. Vår versjon av koden fra kodevinduet: bare våpen må ha en
       // sprite. Er først på når Luke 3 er løst i spillet.
       validation: (rule) =>
-        rule.custom((sprite, context) =>
-          isSolved("the-guilds-law") &&
-          context.document?.kind === "weapon" &&
-          !sprite
-            ? "A weapon needs a sprite"
-            : true,
-        ),
+        rule.custom((sprite, context) => {
+          if (
+            isSolved("the-guilds-law") &&
+            context.document?.kind === "weapon" &&
+            !sprite
+          )
+            return "A weapon needs a sprite";
+          if (
+            isSolved("the-drawing-board") &&
+            sprite &&
+            !isSpriteAllowedForKind(sprite, context.document?.kind)
+          )
+            return "This sprite does not match the item type";
+          return true;
+        }),
     }),
     defineField({
       name: "description",

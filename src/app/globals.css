@@ -290,6 +290,9 @@ kbd {
   align-items: center;
   gap: calc(var(--px) * 4);
 }
+.hud-bc:has(.dialogue) {
+  width: min(720px, calc(100cqw - var(--gutter) * 2));
+}
 .hud-bl {
   bottom: var(--gutter);
   left: var(--gutter);
@@ -497,7 +500,7 @@ kbd {
   }
 }
 
-/* Quest completion: the doors open over the game instead of a small toast. */
+/* Quest completion first, then the next door opens as a separate beat. */
 .quest-celebration-backdrop {
   position: absolute;
   inset: 0;
@@ -619,6 +622,9 @@ kbd {
   opacity: 0;
   animation: quest-celebration-reveal 500ms 380ms ease-out both;
 }
+.quest-celebration-copy--done {
+  animation-delay: 0ms;
+}
 .quest-celebration-kicker {
   margin: 0 0 10px;
   font:
@@ -643,10 +649,55 @@ kbd {
   font-weight: 700;
   color: var(--snow);
 }
+.quest-celebration-guide-portrait {
+  display: grid;
+  place-items: center;
+  width: 82px;
+  height: 82px;
+  margin: 18px auto 0;
+  background: var(--wood-deep);
+  box-shadow: inset 0 0 0 3px var(--wood), 0 0 0 2px var(--amber);
+}
+.quest-celebration-guide {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+.quest-celebration-checklist {
+  display: grid;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px auto 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  color: var(--parchment);
+}
+.quest-celebration-checklist li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.quest-celebration-checklist svg {
+  flex: none;
+  color: var(--amber);
+}
 .quest-celebration-note {
   margin: 8px 0 24px;
   font-size: 15px;
   color: var(--frost);
+}
+.quest-celebration-reward {
+  margin: -12px 0 24px;
+  color: var(--amber);
+  font-weight: 700;
+}
+.quest-celebration-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px;
 }
 .quest-celebration-dismiss {
   margin: 12px 0 0;
@@ -1444,7 +1495,7 @@ kbd {
   /* Room for the hotbar below and the crest above; scroll if hints pile up. */
   max-height: calc(100dvh - var(--gutter) * 2 - 130px);
   overflow-y: auto;
-  padding: 16px 18px 14px;
+  padding: 20px 22px 18px;
   color: var(--parchment);
 }
 .dialogue-portrait {
@@ -1452,8 +1503,8 @@ kbd {
   align-self: flex-start;
   display: grid;
   place-items: center;
-  width: 80px;
-  height: 80px;
+  width: 92px;
+  height: 92px;
   --bg: #4a2e2a;
 }
 .dialogue-body {
@@ -1474,10 +1525,10 @@ kbd {
   background: var(--amber);
 }
 .dialogue-speech {
-  margin: 4px 0 0;
-  font-size: 16px;
-  line-height: 1.4;
-  max-width: 60ch;
+  margin: 8px 0 0;
+  font-size: 18px;
+  line-height: 1.5;
+  max-width: 62ch;
 }
 .dialogue-speech strong {
   color: var(--amber);
@@ -1616,7 +1667,7 @@ kbd {
     --s: 3;
   }
   .dialogue-speech {
-    font-size: 15px;
+    font-size: 17px;
   }
   .studio-link {
     font-size: 12px;
@@ -1999,6 +2050,7 @@ kbd {
 .cw {
   display: flex;
   flex-direction: column;
+  position: relative;
   width: min(1420px, 100%);
   /* A fixed height, so the window doesn't jump while you type. Hidden
      overflow keeps a long file from growing the centring grid around it. */
@@ -2302,6 +2354,84 @@ kbd {
   padding: 10px;
   font-size: 13px;
   color: #6b7385;
+}
+.cw-sprite-preview .sprite-picker {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+.sprite-picker__message {
+  margin: 0;
+  color: #7a3d12;
+  font-size: 13px;
+}
+.cw-sprite-preview .sprite-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: min(100%, 480px);
+}
+.cw-sprite-preview .sprite-picker__grid > button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 48px;
+  min-height: 64px;
+  padding: 6px;
+  border: 1px solid #c8ced8;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.cw-sprite-preview .sprite-picker__grid > button[data-mode="default"] {
+  border-color: var(--amber, #d9952f);
+  box-shadow: inset 0 0 0 2px var(--amber, #d9952f);
+}
+.cw-sprite-preview .sprite-picker__grid > button:focus-visible,
+.cw-sprite-preview .sprite-picker__clear:focus-visible {
+  outline: 3px solid var(--glacier, #5f9ec4);
+  outline-offset: 2px;
+}
+.cw-sprite-preview .sprite-picker__clear {
+  padding: 6px 10px;
+  border: 1px solid #c8ced8;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.cw-sprite-preview .sprite-picker__clear:disabled {
+  cursor: not-allowed;
+  color: #536079;
+  opacity: 0.8;
+}
+.cw-sprite-preview {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  width: 100%;
+}
+.cw-sprite-preview > .sprite-picker {
+  width: min(100%, 480px);
+}
+.cw-sprite-kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--frost-dim);
+  font-size: 12px;
+}
+.cw-sprite-kind select {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--frost-dim) 35%, transparent);
+  border-radius: 4px;
+  color: var(--snow);
+  background: var(--night-2);
+}
+.cw-sprite-current {
+  margin: 0;
+  color: var(--frost);
+  font-size: 12px;
 }
 /* The schema header above the Studio list: document type and the chosen icon. */
 .cw-schema-preview {

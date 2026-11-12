@@ -105,7 +105,7 @@ skade og andre spillregler.
 | Publiser et våpen                  | Finn våpenet i spillet og prøv det                                   |
 | Ikon og preview                    | Finn igjen ditt eget våpen i den forbedrede Studio-lista             |
 | Validation                         | Prøv å publisere et ugyldig våpen, rett feilen og publiser           |
-| Custom input                       | Bruk sprite-velgeren på et våpen, publiser og se endringen i spillet |
+| Custom input                       | Bygg visuelle spritekort med Sanity UI; publiser og se dem i spillet |
 | Document view, hvis bonusen velges | Åpne visningen på ditt eget våpen i Studio                           |
 
 Dette er krav til oppgaveutformingen, ikke en påstand om at hele flyten er
@@ -142,7 +142,7 @@ automatisk sjekk av repo-filer ved lagring er en planlagt forbedring.
 | ★   | Documents og Publish | Lager og publiserer et våpen, ser det i spillet | Spillet                                           |
 | ★   | `icon` og `preview`  | Viser ikon og sprite i dokumentlista            | Automatisk mens du skriver i kodevinduet          |
 | ★   | Validation           | Påkrevd sprite for våpen, unike navn            | Automatisk mens du skriver i kodevinduet          |
-| ★   | Custom input         | Velger som viser pikselkunsten                  | Repo: `npm run quest`; ved fillagring er planlagt |
+| ★   | Custom input         | Visuell string selector med bildeknapper        | Kodevindu, deretter egenbekreftet Studio-prøve    |
 | ☆   | Document view        | Egen fane som viser våpenet slik spillet gjør   | Repo: `npm run quest`; ved fillagring er planlagt |
 
 **Kodevinduet i dag:** Første sjekk kjører når vinduet åpnes; deretter sjekkes
@@ -164,15 +164,17 @@ som trengs for å spille.
    igjen ditt eget våpen i den ekte Studio-lista.
 2. `validation`: krev sprite på våpen og hindre like navn; prøv feiltilfellene
    i Studio før du retter og publiserer.
-3. `custom input`: velg sprite fra pikselbilder. Dette er allerede besluttet
-   som kjerneoppgave; bruk velgeren og se den publiserte endringen i spillet.
+3. `custom input`: bygg en visuell string selector med spritekort. Dette er
+   kjerneoppgaven; kodevinduet sjekker kortene og patchene, og deltakeren
+   prøver valget i Studio. Den publiserte endringen skal vises i spillet.
 
 Kodetestene beviser ikke alene at Studio-avslutningene er utført. Utkastet i
 [uke1-luker.md](uke1-luker.md) skiller mellom kode bestått, egenbekreftet
 Studio-prøve og resultat som kan leses fra publisert innhold. Egenbekreftelse
 etter bestått kodetest for ikon/preview og validation er vedtatt 2026-11-11,
-og er nå implementert. Øvrige nye fullføringsvilkår må
-godkjennes for den enkelte leveransen.
+og er nå implementert. Samme fullføringsflyt er lagt til custom input
+(2026-11-12). Utkastene i kodevinduet aktiverer vår versjon i Studio, men
+skriver ikke deltakerens kode til prosjektet.
 
 `Document view` er foreløpig bonus. Felles oppstart dekker det grunnleggende
 uten å være en egen poengoppgave. Oppgaver kan legges til, tas bort eller

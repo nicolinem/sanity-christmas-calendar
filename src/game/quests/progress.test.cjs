@@ -23,6 +23,11 @@ beforeEach(() => {
       localStorage: {
         getItem: (key) => records.get(key) ?? null,
         setItem: (key, value) => records.set(key, value),
+        removeItem: (key) => records.delete(key),
+        key: (index) => [...records.keys()][index] ?? null,
+        get length() {
+          return records.size;
+        },
       },
     },
   });
@@ -157,6 +162,20 @@ test("unavailable storage does not prevent in-memory progress or notifications",
   assert.equal(notifications, 1);
 });
 
+test("resetting progress also removes saved code answers but keeps unrelated storage", () => {
+  records.set(progress.storageKey("reset"), JSON.stringify({ introSeen: true }));
+  records.set("winter-quest:code:branns-ledger", "learner code");
+  records.set("winter-quest:code:the-guilds-law", "another answer");
+  records.set("other-app:preference", "keep me");
+
+  progress.resetProgress("reset");
+
+  assert.equal(progress.readProgress("reset").introSeen, false);
+  assert.equal(records.has("winter-quest:code:branns-ledger"), false);
+  assert.equal(records.has("winter-quest:code:the-guilds-law"), false);
+  assert.equal(records.get("other-app:preference"), "keep me");
+});
+
 test("a failed storage write keeps the updated cached progress", () => {
   window.localStorage.setItem = () => {
     throw new Error("Quota exceeded");
@@ -190,51 +209,19 @@ test("malformed or null persisted data falls back to fresh progress", () => {
   }
 });
 
-test("Studio confirmations default to an empty map and survive reloads per project", () => {
-  assert.deepEqual(progress.EMPTY_PROGRESS.studioConfirmed, {});
-  assert.deepEqual(progress.readProgress("studio-fresh").studioConfirmed, {});
-  progress.updateProgress("studio-a", (value) => ({
-    ...value,
-    studioConfirmed: { "branns-ledger": COMPLETED_AT },
-  }));
-  const saved = JSON.parse(records.get(progress.storageKey("studio-a")));
-  assert.deepEqual(saved.studioConfirmed, { "branns-ledger": COMPLETED_AT });
-
-  progress = loadProgress();
-  assert.deepEqual(progress.readProgress("studio-a").studioConfirmed, {
-    "branns-ledger": COMPLETED_AT,
-  });
-  assert.deepEqual(progress.readProgress("studio-b").studioConfirmed, {});
-});
-
-test("legacy saves get no fabricated Studio confirmation, keeping earned completion and code", () => {
+test("legacy Studio confirmations are discarded without losing completed quests or solved code", () => {
   records.set(
     progress.storageKey("legacy-studio"),
     JSON.stringify({
       completed: { "branns-ledger": COMPLETED_AT },
       solved: { "branns-ledger": { at: COMPLETED_AT } },
+      studioConfirmed: { "branns-ledger": COMPLETED_AT },
     }),
   );
   const restored = progress.readProgress("legacy-studio");
-  assert.deepEqual(restored.studioConfirmed, {});
+  assert.equal(Object.hasOwn(restored, "studioConfirmed"), false);
   assert.equal(restored.completed["branns-ledger"], COMPLETED_AT);
   assert.deepEqual(restored.solved, {
     "branns-ledger": { at: COMPLETED_AT },
-  });
-});
-
-test("an invalid studioConfirmed field falls back to an empty map without losing other progress", () => {
-  ["done", 42, true, null, ["branns-ledger"]].forEach((raw, index) => {
-    const project = `studio-invalid-${index}`;
-    records.set(
-      progress.storageKey(project),
-      JSON.stringify({
-        completed: { "the-broken-forge": COMPLETED_AT },
-        studioConfirmed: raw,
-      }),
-    );
-    const restored = progress.readProgress(project);
-    assert.deepEqual(restored.studioConfirmed, {}, JSON.stringify(raw));
-    assert.equal(restored.completed["the-broken-forge"], COMPLETED_AT);
   });
 });

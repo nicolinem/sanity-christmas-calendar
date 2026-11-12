@@ -24,11 +24,10 @@ const { EMPTY_PROGRESS } = require("./progress.ts");
 const rules = require("../rules.ts");
 const { CHAPTERS: REAL_CHAPTERS } = require("./chapters.ts");
 const AT = "2026-01-01T00:00:00.000Z";
-const CONFIRMED_AT = "2026-11-20T09:00:00.000Z";
 const STUDIO = "branns-ledger";
 const STUDIO_NEXT = "the-guilds-law";
 
-// A second engine with a calendar start, for date-gated Studio checks.
+// A second engine with a calendar start, for date-gated quests.
 function loadEngineWithCalendar(calendarStart) {
   const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
   process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart;
@@ -40,7 +39,6 @@ function loadEngineWithCalendar(calendarStart) {
     else process.env.NEXT_PUBLIC_CALENDAR_START = previous;
   }
 }
-const FUTURE_ENGINE = loadEngineWithCalendar("2999-01-01");
 
 function quest(id, door, options = {}) {
   return {
@@ -156,12 +154,9 @@ function harness(
         progress: progress.progress,
         ...input,
       });
-      // Accepts both a bare board and `{ board, confirmStudioPractice }`.
-      const board = "board" in result ? result.board : result;
       return {
         ...progress,
-        board,
-        confirmStudioPractice: result.confirmStudioPractice,
+        board: result,
         effects: [...effects],
       };
     },
@@ -302,21 +297,29 @@ for (const [track, selected, foreign, total, level] of [
       assert.equal(h.saved.completed["shared-tail"], undefined);
       assert.equal(h.saved.completed["tech-later"], undefined);
       const task = CHAPTERS[0].quests.find((q) => q.id === id);
-      assert.deepEqual(h.toasts.slice(-2), [
-        {
-          title: `Lærdom: Lesson ${id}`,
-          body: "Står under Lærdommer i kalenderen.",
-          tone: "lesson",
-        },
-        {
-          title: `Nivå ${expectedLevel}: våpnene blir sterkere`,
-          body: `Alle våpnene dine gjør nå ${damage} skade.`,
-          tone: "forge",
-        },
-      ]);
+      assert.deepEqual(
+        h.toasts,
+        [],
+        "reward is shown in the celebration, not behind it",
+      );
       assert.equal(h.events.at(-2)[0], "questCelebration");
       assert.equal(h.events.at(-2)[1].door, task.door);
       assert.equal(h.events.at(-2)[1].title, task.title);
+      assert.equal(h.events.at(-2)[1].lesson, `Lesson ${id}`);
+      assert.equal(
+        h.events.at(-2)[1].nextDoor,
+        id === "shared"
+          ? track === "technical"
+            ? 2
+            : 3
+          : track === "technical"
+            ? 4
+            : 5,
+      );
+      assert.deepEqual(
+        { ...h.events.at(-2)[1].level },
+        { number: expectedLevel, damage },
+      );
       assert.deepEqual(h.events.at(-1), ["forgeLevelUp", expectedLevel]);
       const saved = h.saved;
       const toastCount = h.toasts.length;
@@ -332,13 +335,12 @@ for (const [track, selected, foreign, total, level] of [
       assert.equal(h.render({ codeChecks }).forgeLevel, expectedLevel);
     }
     assert.equal(h.render({ codeChecks }).board.completedCount, 2);
-    assert.equal(h.toasts.length, 4);
+    assert.equal(h.toasts.length, 0);
     assert.equal(h.events.length, 4);
   });
 }
 
-// Studio practice runs against the real chapters: the-broken-forge is done,
-// branns-ledger is handed over and its code is solved, but not yet confirmed.
+// Code-window quests run against the real chapters.
 const stateOf = (board, id) =>
   board.states.find(({ quest }) => quest.id === id);
 
@@ -355,137 +357,57 @@ function studioHarness(initial = {}, options = {}) {
   );
 }
 
-test("studio practice: code alone never completes; confirmation completes once on the next render", () => {
-  const h = studioHarness();
+test("solving code completes the quest and offers the next without a Studio visit", () => {
+  const h = studioHarness({ solved: {} });
   let view = h.render();
   view.effects.forEach((effect) => effect());
   assert.equal(view.board.current.quest.id, STUDIO);
   assert.equal(view.board.current.status, "active");
   assert.equal(view.board.current.result.done, false);
   assert.equal(h.saved.completed[STUDIO], undefined);
-  assert.deepEqual(h.toasts, []);
 
-  view.confirmStudioPractice(STUDIO);
-  assert.equal(
-    h.saved.completed[STUDIO],
-    undefined,
-    "the callback never completes",
-  );
-  assert.ok(Number.isFinite(Date.parse(h.saved.studioConfirmed[STUDIO])));
-  assert.deepEqual(h.toasts, []);
-
-  view = h.render();
+  h.saved = { ...h.saved, solved: { [STUDIO]: { at: AT } } };
+  view = h.render({ codeQuestId: STUDIO });
   assert.equal(view.board.current.result.done, true);
+  view.effects.forEach((effect) => effect());
+  assert.equal(h.saved.completed[STUDIO], undefined);
+  assert.deepEqual(h.events, [], "no celebration while the code window is open");
+
+  view = h.render({ codeQuestId: null });
   view.effects.forEach((effect) => effect());
   const completed = h.saved.completed;
   assert.ok(Number.isFinite(Date.parse(completed[STUDIO])));
-  assert.deepEqual(
-    h.toasts.map(({ tone }) => tone),
-    ["lesson"],
-  );
+  assert.deepEqual(h.toasts, []);
   assert.equal(h.events.at(-1)[0], "questCelebration");
   assert.equal(h.events.at(-1)[1].door, 2);
   assert.equal(h.events.at(-1)[1].title, "Ikon og preview i lista");
+  assert.deepEqual(Array.from(h.events.at(-1)[1].objectives), ["Koden er bestått"]);
+  assert.equal(h.events.at(-1)[1].nextDoor, 3);
+  assert.equal(h.events.at(-1)[1].lesson, "*Previews*");
 
   view = h.render();
   view.effects.forEach((effect) => effect());
   assert.equal(h.saved.completed, completed, "completion is not written twice");
-  assert.equal(h.toasts.length, 1);
+  assert.equal(h.toasts.length, 0);
   assert.equal(stateOf(view.board, STUDIO).status, "done");
   assert.equal(stateOf(view.board, STUDIO_NEXT).status, "offered");
 });
 
-test("the-guilds-law follows the same confirmation rule once branns-ledger is completed", () => {
-  const h = studioHarness({
-    completed: { "the-broken-forge": AT, [STUDIO]: AT },
-    briefed: { [STUDIO_NEXT]: true },
-    solved: { [STUDIO_NEXT]: { at: AT } },
-  });
-  h.render().confirmStudioPractice(STUDIO_NEXT);
-  assert.ok(Number.isFinite(Date.parse(h.saved.studioConfirmed[STUDIO_NEXT])));
-  assert.equal(h.saved.completed[STUDIO_NEXT], undefined);
-});
-
-const REJECTED = [
-  ["unsolved code", { solved: {} }, STUDIO],
-  ["not yet handed over", { briefed: {} }, STUDIO],
-  ["locked behind an unfinished quest", { completed: {} }, STUDIO],
-  [
-    "already completed",
-    { completed: { "the-broken-forge": AT, [STUDIO]: AT } },
-    STUDIO,
-  ],
-  [
-    "repeated confirmation",
-    { studioConfirmed: { [STUDIO]: CONFIRMED_AT } },
-    STUDIO,
-  ],
-  ["the other track's quest", { track: "nonTechnical" }, STUDIO],
-  ["unknown quest", {}, "no-such-quest"],
-  [
-    "a quest without Studio practice",
+test("finishing before the next week's calendar date does not announce a new door", () => {
+  const start = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+  const h = harness(
     {
-      completed: {},
-      briefed: { "the-broken-forge": true },
-      solved: { "the-broken-forge": { at: AT } },
+      track: "technical",
+      completed: { shared: AT, tech: AT },
+      briefed: { "tech-later": true },
     },
-    "the-broken-forge",
-  ],
-];
-
-for (const [name, patch, questId] of REJECTED) {
-  test(`studio practice callback rejects ${name}`, () => {
-    const h = studioHarness(patch);
-    const { confirmStudioPractice } = h.render();
-    const before = h.saved;
-    confirmStudioPractice(questId);
-    assert.equal(h.saved, before);
-    assert.deepEqual(h.toasts, []);
-  });
-}
-
-test("studio practice callback rejects a chapter that has not opened yet", () => {
-  const locked = studioHarness(
-    { completed: {} },
-    { engineModule: FUTURE_ENGINE },
+    { engineModule: loadEngineWithCalendar(start) },
   );
-  const { board, confirmStudioPractice } = locked.render();
-  assert.equal(stateOf(board, STUDIO).status, "locked");
-  const before = locked.saved;
-  confirmStudioPractice(STUDIO);
-  assert.equal(locked.saved, before);
-
-  const open = studioHarness();
-  open.render().confirmStudioPractice(STUDIO);
-  assert.ok(
-    open.saved.studioConfirmed[STUDIO],
-    "same state is accepted when open",
-  );
+  const view = h.render({ codeChecks: { "tech-later": { done: true } } });
+  assert.equal(view.board.current.quest.id, "tech-later");
+  view.effects.forEach((effect) => effect());
+  assert.equal(h.events.at(-1)[0], "questCelebration");
+  assert.equal(h.events.at(-1)[1].nextDoor, undefined);
+  assert.equal(h.render().board.current, null);
 });
 
-test("a stale studio practice callback re-checks the latest saved progress", () => {
-  const h = studioHarness();
-  const { confirmStudioPractice: stale } = h.render();
-  h.saved = { ...h.saved, solved: {} };
-  stale(STUDIO);
-  assert.deepEqual(h.saved.studioConfirmed, {});
-
-  h.saved = { ...h.saved, solved: { [STUDIO]: { at: AT } } };
-  stale(STUDIO);
-  assert.ok(Number.isFinite(Date.parse(h.saved.studioConfirmed[STUDIO])));
-});
-
-for (const change of [
-  { track: "nonTechnical" },
-  { completed: { "the-broken-forge": AT, [STUDIO]: AT } },
-  { studioConfirmed: { [STUDIO]: CONFIRMED_AT } },
-]) {
-  test(`a stale studio practice callback is rejected after ${Object.keys(change)[0]} changes`, () => {
-    const h = studioHarness();
-    const { confirmStudioPractice: stale } = h.render();
-    h.saved = { ...h.saved, ...change };
-    const before = h.saved;
-    stale(STUDIO);
-    assert.equal(h.saved, before);
-  });
-}
