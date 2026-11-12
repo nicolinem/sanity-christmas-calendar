@@ -17,7 +17,7 @@ import {
   toGameItem,
   type GameItemView,
 } from "@/game/items";
-import { bridge, type Zone } from "@/game/bridge";
+import { bridge, type QuestCelebration as QuestCelebrationData, type Zone } from "@/game/bridge";
 import type { QuestSiteId } from "@/game/village";
 import { findForgedWeapon } from "@/game/quests/chapters";
 import type { CodeCheck } from "@/game/quests/types";
@@ -25,6 +25,7 @@ import Hotbar from "./hud/Hotbar";
 import QuestTracker from "./hud/QuestTracker";
 import QuestLog from "./hud/QuestLog";
 import Toasts, { pushToast } from "./hud/Toasts";
+import QuestCelebration from "./hud/QuestCelebration";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { useLiveRefresh } from "./hud/useLive";
@@ -100,6 +101,8 @@ export default function GameClient() {
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const [celebrations, setCelebrations] = useState<QuestCelebrationData[]>([]);
+  const celebration = celebrations[0];
   const [logInitialTab, setLogInitialTab] = useState<"quests" | "map" | "book">(
     "quests",
   );
@@ -109,6 +112,15 @@ export default function GameClient() {
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
+  useEffect(
+    () => bridge.on("questCelebration", (celebration) => {
+      setTalking(false);
+      setLogOpen(false);
+      setCodeQuestId(null);
+      setCelebrations((queue) => [...queue, celebration]);
+    }),
+    [],
+  );
   const {
     progress,
     forgeLevel,
@@ -225,7 +237,7 @@ export default function GameClient() {
         done,
         message: done
           ? undefined
-          : "Utviklerpanelet later som sjekken ikke er bestått.",
+          : "Utviklerpanelet later som kriteriene ikke er oppfylt.",
       };
     return merged;
   }, [codeChecks, devChecks]);
@@ -339,7 +351,7 @@ export default function GameClient() {
         ? "!"
         : null,
       wraithDefeated: combat.defeated,
-      frozen: dialogueOpen || logOpen || codeOpen || showOpening,
+      frozen: dialogueOpen || logOpen || codeOpen || showOpening || Boolean(celebration),
     });
   }, [
     equipped,
@@ -353,14 +365,20 @@ export default function GameClient() {
     logOpen,
     codeOpen,
     showOpening,
+    celebration,
   ]);
 
   const slots = narrow ? 5 : 8;
+  const dismissCelebration = useCallback(
+    () => setCelebrations((queue) => queue.slice(1)),
+    [],
+  );
 
   // Action keys. Movement keys belong to Phaser; these belong to the HUD.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || showOpening) return;
+      if (celebrations.length > 0) return;
       if ((e.target as HTMLElement)?.closest?.(".dev")) return;
       // Typing in the code window: every key is code, except Escape.
       if (codeOpen) {
@@ -384,8 +402,7 @@ export default function GameClient() {
         return;
       }
       if ((e.key === "e" || e.key === "E") && zone === "forge") {
-        if (dialogueOpen) setTalking(false);
-        else openDialogue();
+        if (!dialogueOpen) openDialogue();
         return;
       }
       if (
@@ -417,6 +434,7 @@ export default function GameClient() {
     logOpen,
     codeOpen,
     showOpening,
+    celebrations.length,
     openDialogue,
     openMap,
     openSiteQuest,
@@ -603,6 +621,14 @@ export default function GameClient() {
           />
         )}
       </div>
+
+      {celebration && (
+        <QuestCelebration
+          door={celebration.door}
+          title={celebration.title}
+          onClose={dismissCelebration}
+        />
+      )}
 
       {studio.loaded && <StudioPane width={studio.width} open={studio.open} />}
     </div>

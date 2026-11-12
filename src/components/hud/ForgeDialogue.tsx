@@ -47,12 +47,11 @@ export default function ForgeDialogue(props: Props) {
     });
   }, [last, page]);
 
-  // E or Enter turns the page. Capture phase, so GameClient's "E closes the
-  // dialogue" only applies on the last page.
+  // Enter turns the page. Capture phase keeps it from also triggering the game key handler.
   useEffect(() => {
     if (last) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "e" && e.key !== "E" && e.key !== "Enter") return;
+      if (e.key !== "Enter") return;
       if (e.key === "Enter" && (e.target as HTMLElement)?.closest?.("button, a")) return;
       e.preventDefault();
       e.stopImmediatePropagation();
@@ -105,7 +104,7 @@ export default function ForgeDialogue(props: Props) {
               className="btn btn--amber"
               onClick={() => setPage((p) => p + 1)}
             >
-              Fortsett <kbd>E</kbd>
+              Fortsett <kbd>Enter</kbd>
             </button>
             <button
               type="button"

@@ -31,7 +31,7 @@ async function evaluate(task: WindowTask, source: string): Promise<Result> {
   try {
     return { error: null, verdict: await task.judge(loaded.exports) };
   } catch (err) {
-    return { error: { message: `Sjekken krasjet: ${err instanceof Error ? err.message : String(err)}` }, verdict: null };
+    return { error: { message: `Kunne ikke vurdere kriteriene: ${err instanceof Error ? err.message : String(err)}` }, verdict: null };
   }
 }
 
@@ -208,7 +208,7 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
               ) : verdict?.done ? (
                 "Kodeeksemplene er bestått. Neste steg er å prøve i Studio."
               ) : (
-                "Koden kjører. Se hvilke deler du har fått til i sjekken."
+                "Koden kjører. Se hvilke kriterier som er oppfylt."
               )}
             </p>
           </div>
@@ -226,11 +226,11 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                   </div>
                 </section>
 
-                <section className="cw-panel cw-check" aria-label="Sjekken">
+                <section className="cw-panel cw-check" aria-label="Kriterier">
                   <header className="cw-panel-head">
-                    <p className="cw-label">Sjekken</p>
+                    <p className="cw-label">Kriterier</p>
                     <span className="cw-progress" aria-live="polite">
-                      {verdict ? `${passedRequirements} / ${verdict.requirements.length} bestått` : "Ikke testet"}
+                      {verdict ? `${passedRequirements} / ${verdict.requirements.length} oppfylt` : "Ikke vurdert"}
                     </span>
                   </header>
                   {verdict ? (
@@ -246,7 +246,7 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                       ))}
                     </ul>
                   ) : (
-                    <p className="cw-wait">Sjekken venter til koden kjører.</p>
+                    <p className="cw-wait">Kjør koden for å se hvilke kriterier som er oppfylt.</p>
                   )}
                 </section>
               </div>

@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 // Short banners for moments worth celebrating: a finished quest, a hotter
 // forge. A tiny module-level store so anything can push without prop drilling.
 
-export type Toast = { id: number; title: string; body?: string; tone?: "quest" | "forge" | "lesson" };
+export type Toast = { id: number; title: string; body?: string; tone: "forge" | "lesson" };
 
 let toasts: Toast[] = [];
 let nextId = 1;
@@ -35,8 +35,7 @@ export default function Toasts() {
   return (
     <div className="toasts" role="status" aria-live="polite">
       {list.map((t) => (
-        <div key={t.id} className={`toast frame frame--slate toast--${t.tone ?? "quest"}`}>
-          {t.tone === "quest" && <p className="toast-congrats">Gratulerer!</p>}
+        <div key={t.id} className={`toast frame frame--slate toast--${t.tone}`}>
           <p className="toast-title">{t.title}</p>
           {t.body && <p className="toast-body">{t.body}</p>}
         </div>

@@ -23,8 +23,8 @@ export default function StudioPractice({
       <p>{renderText(state.quest.studioPractice)}</p>
       <p id={noteId} className="tracker-note">
         {codePassed
-          ? "Bekreft når du har prøvd det. Dette er din egen bekreftelse, ikke en automatisk sjekk av Studio."
-          : "Bestå kodesjekken først. Deretter kan du prøve og bekrefte i Studio."}
+          ? "Bekreft når du har prøvd det. Dette er din egen bekreftelse; spillet vurderer ikke Studio automatisk."
+          : "Oppfyll kriteriene i kodevinduet først. Deretter kan du prøve og bekrefte i Studio."}
       </p>
       <div className="dialogue-actions">
         <button

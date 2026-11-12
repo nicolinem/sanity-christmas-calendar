@@ -210,7 +210,7 @@ async function judgeValidation(exports: Record<string, unknown>): Promise<Verdic
       label: "Materialer uten `sprite` og våpen med `sprite` er greit",
       done: noSprite && allowed("materialNoSprite", "sprite") && allowed("freshName", "sprite") && allowed("resave", "sprite"),
       message: !noSprite
-        ? "Sjekkes når et våpen uten sprite nektes."
+        ? "Vurderes når et våpen uten sprite nektes."
         : (crashFor("materialNoSprite", "sprite") ?? crashFor("freshName", "sprite") ?? crashFor("resave", "sprite") ??
           (!allowed("materialNoSprite", "sprite")
             ? "Et materiale uten sprite nektes også. Det er bare våpen som må ha en."

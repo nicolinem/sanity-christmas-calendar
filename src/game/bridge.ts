@@ -23,6 +23,8 @@ export type WorldState = {
   frozen: boolean; // a dialogue is open: the knight stands still
 };
 
+export type QuestCelebration = { door: number; title: string };
+
 type EventMap = {
   zone: Zone;
   world: WorldState;
@@ -34,6 +36,7 @@ type EventMap = {
   };
   whiff: void;
   forgeLevelUp: number;
+  questCelebration: QuestCelebration;
   itemForged: SpriteDef; // a new blade was published: it rises from the forge
   forgeFlare: void; // a blade was stamped by the Forge button
   moved: void; // the knight took its first steps (scene → HUD)

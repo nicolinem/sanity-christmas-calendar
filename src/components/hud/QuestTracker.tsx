@@ -94,7 +94,7 @@ export default function QuestTracker({
                 <p className="tracker-note">
                   {renderText(
                     current.result.message ??
-                      "Sjekkes fra koden din: kjør `npm run quest` når du er klar.",
+                      "Kriteriene avgjøres av koden din: kjør `npm run quest` når du er klar.",
                   )}
                 </p>
               )}

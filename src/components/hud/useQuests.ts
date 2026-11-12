@@ -255,10 +255,9 @@ export function useQuestBoard({
       return { ...p, completed };
     });
     for (const s of finished) {
-      pushToast({
-        title: `Luke ${s.quest.door} ferdig`,
-        body: s.quest.title,
-        tone: "quest",
+      bridge.emit("questCelebration", {
+        door: s.quest.door,
+        title: s.quest.title,
       });
       pushToast({
         title: `Lærdom: ${plainText(s.quest.lesson.title)}`,

@@ -299,8 +299,7 @@ for (const [track, selected, foreign, total, level] of [
       assert.equal(h.saved.completed["shared-tail"], undefined);
       assert.equal(h.saved.completed["tech-later"], undefined);
       const task = CHAPTERS[0].quests.find((q) => q.id === id);
-      assert.deepEqual(h.toasts.slice(-3), [
-        { title: `Luke ${task.door} ferdig`, body: id, tone: "quest" },
+      assert.deepEqual(h.toasts.slice(-2), [
         {
           title: `Lærdom: Lesson ${id}`,
           body: "Står under Lærdommer i kalenderen.",
@@ -312,6 +311,9 @@ for (const [track, selected, foreign, total, level] of [
           tone: "forge",
         },
       ]);
+      assert.equal(h.events.at(-2)[0], "questCelebration");
+      assert.equal(h.events.at(-2)[1].door, task.door);
+      assert.equal(h.events.at(-2)[1].title, task.title);
       assert.deepEqual(h.events.at(-1), ["forgeLevelUp", expectedLevel]);
       const saved = h.saved;
       const toastCount = h.toasts.length;
@@ -327,8 +329,8 @@ for (const [track, selected, foreign, total, level] of [
       assert.equal(h.render({ codeChecks }).forgeLevel, expectedLevel);
     }
     assert.equal(h.render({ codeChecks }).board.completedCount, 2);
-    assert.equal(h.toasts.length, 6);
-    assert.equal(h.events.length, 2);
+    assert.equal(h.toasts.length, 4);
+    assert.equal(h.events.length, 4);
   });
 }
 
@@ -370,15 +372,15 @@ test("studio practice: code alone never completes; confirmation completes once o
   view.effects.forEach((effect) => effect());
   const completed = h.saved.completed;
   assert.ok(Number.isFinite(Date.parse(completed[STUDIO])));
-  assert.deepEqual(
-    h.toasts.map(({ tone }) => tone),
-    ["quest", "lesson"],
-  );
+  assert.deepEqual(h.toasts.map(({ tone }) => tone), ["lesson"]);
+  assert.equal(h.events.at(-1)[0], "questCelebration");
+  assert.equal(h.events.at(-1)[1].door, 2);
+  assert.equal(h.events.at(-1)[1].title, "Ikon og preview i lista");
 
   view = h.render();
   view.effects.forEach((effect) => effect());
   assert.equal(h.saved.completed, completed, "completion is not written twice");
-  assert.equal(h.toasts.length, 2);
+  assert.equal(h.toasts.length, 1);
   assert.equal(stateOf(view.board, STUDIO).status, "done");
   assert.equal(stateOf(view.board, STUDIO_NEXT).status, "offered");
 });
