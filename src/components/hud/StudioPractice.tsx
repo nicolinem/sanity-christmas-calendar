@@ -19,7 +19,9 @@ export default function StudioPractice({
 
   return (
     <div className="studio-practice">
-      <p><strong>Prøv det i Studio</strong></p>
+      <p>
+        <strong>Prøv det i Studio</strong>
+      </p>
       <p>{renderText(state.quest.studioPractice)}</p>
       <p id={noteId} className="tracker-note">
         {codePassed

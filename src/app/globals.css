@@ -520,9 +520,15 @@ kbd {
   padding: clamp(24px, 6vw, 72px);
   text-align: center;
   background:
-    radial-gradient(ellipse at 50% 40%, rgb(255 201 111 / 0.18), transparent 58%),
+    radial-gradient(
+      ellipse at 50% 40%,
+      rgb(255 201 111 / 0.18),
+      transparent 58%
+    ),
     linear-gradient(145deg, #2c2d45, #171a2c 72%);
-  box-shadow: 0 0 0 5px var(--night-2), 0 24px 80px rgb(0 0 0 / 0.65);
+  box-shadow:
+    0 0 0 5px var(--night-2),
+    0 24px 80px rgb(0 0 0 / 0.65);
 }
 .quest-celebration::after {
   position: absolute;
@@ -538,14 +544,25 @@ kbd {
   overflow: hidden;
   perspective: 1100px;
   background:
-    radial-gradient(ellipse at center, rgb(255 201 111 / 0.24), transparent 48%),
+    radial-gradient(
+      ellipse at center,
+      rgb(255 201 111 / 0.24),
+      transparent 48%
+    ),
     #111526;
-  box-shadow: inset 0 0 0 4px var(--wood-dark), inset 0 0 0 8px var(--wood);
+  box-shadow:
+    inset 0 0 0 4px var(--wood-dark),
+    inset 0 0 0 8px var(--wood);
 }
 .quest-celebration-light {
   position: absolute;
   inset: 8% 25%;
-  background: radial-gradient(ellipse, rgb(255 214 135 / 0.62), rgb(229 148 67 / 0.2) 45%, transparent 72%);
+  background: radial-gradient(
+    ellipse,
+    rgb(255 214 135 / 0.62),
+    rgb(229 148 67 / 0.2) 45%,
+    transparent 72%
+  );
   filter: blur(10px);
 }
 .quest-celebration-door {
@@ -556,9 +573,16 @@ kbd {
   width: 50%;
   border: 7px ridge #8b5a2c;
   background:
-    repeating-linear-gradient(90deg, transparent 0 31px, rgb(22 13 13 / 0.38) 32px 35px, transparent 36px 64px),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 31px,
+      rgb(22 13 13 / 0.38) 32px 35px,
+      transparent 36px 64px
+    ),
     linear-gradient(90deg, #36211c, #593921 48%, #40251d);
-  box-shadow: inset 0 0 0 5px rgb(26 16 15 / 0.72), inset 0 0 0 9px rgb(192 133 65 / 0.48);
+  box-shadow:
+    inset 0 0 0 5px rgb(26 16 15 / 0.72),
+    inset 0 0 0 9px rgb(192 133 65 / 0.48);
   transform-style: preserve-3d;
 }
 .quest-celebration-door::after {
@@ -597,15 +621,21 @@ kbd {
 }
 .quest-celebration-kicker {
   margin: 0 0 10px;
-  font: 16px/1.2 var(--font-pixel), var(--font-body);
+  font:
+    16px/1.2 var(--font-pixel),
+    var(--font-body);
   color: var(--glacier);
   text-shadow: 0 2px 0 var(--night);
 }
 .quest-celebration h2 {
   margin: 0;
-  font: 400 clamp(54px, 9vw, 88px)/1 var(--font-display), var(--font-body);
+  font:
+    400 clamp(54px, 9vw, 88px)/1 var(--font-display),
+    var(--font-body);
   color: var(--amber);
-  text-shadow: 0 4px 0 var(--night), 0 0 24px rgb(255 201 111 / 0.34);
+  text-shadow:
+    0 4px 0 var(--night),
+    0 0 24px rgb(255 201 111 / 0.34);
 }
 .quest-celebration-title {
   margin: 14px 0 0;
@@ -624,19 +654,38 @@ kbd {
   color: var(--frost-dim);
 }
 @keyframes quest-door-open-left {
-  to { transform: translateX(-104%) rotateY(18deg); }
+  to {
+    transform: translateX(-104%) rotateY(18deg);
+  }
 }
 @keyframes quest-door-open-right {
-  to { transform: translateX(104%) rotateY(-18deg); }
+  to {
+    transform: translateX(104%) rotateY(-18deg);
+  }
 }
 @keyframes quest-celebration-reveal {
-  from { opacity: 0; transform: translateY(12px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .quest-celebration-door--left { transform: translateX(-104%); animation: none; }
-  .quest-celebration-door--right { transform: translateX(104%); animation: none; }
-  .quest-celebration-copy { opacity: 1; animation: none; }
+  .quest-celebration-door--left {
+    transform: translateX(-104%);
+    animation: none;
+  }
+  .quest-celebration-door--right {
+    transform: translateX(104%);
+    animation: none;
+  }
+  .quest-celebration-copy {
+    opacity: 1;
+    animation: none;
+  }
 }
 
 /* --- Studio link (discreet: it's the tool behind the game) ----------------- */

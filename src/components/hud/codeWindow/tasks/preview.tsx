@@ -1,4 +1,9 @@
-import { Component, isValidElement, type ElementType, type ReactNode } from "react";
+import {
+  Component,
+  isValidElement,
+  type ElementType,
+  type ReactNode,
+} from "react";
 import SpriteImage from "@/components/SpriteImage";
 import spriteImageSource from "@/components/SpriteImage?raw";
 import { TASK_ICONS, type TaskIconName } from "@/sanity/lib/taskIcons";
@@ -32,7 +37,10 @@ const PREVIEW_MODULES: Modules = {
   sanity: { defineType: <T,>(x: T) => x, defineField: <T,>(x: T) => x },
   "../../components/SpriteImage": { default: SpriteImage },
   ...Object.fromEntries(
-    Object.entries(TASK_ICONS).map(([name, Icon]) => [`@sanity/icons/${name}`, { [`${name}Icon`]: Icon, default: Icon }]),
+    Object.entries(TASK_ICONS).map(([name, Icon]) => [
+      `@sanity/icons/${name}`,
+      { [`${name}Icon`]: Icon, default: Icon },
+    ]),
   ),
 };
 
@@ -45,9 +53,18 @@ const PREVIEW_REFERENCES: Reference[] = [
     about:
       "Gi den en `spriteId`, så slår den opp riktig rute i et bildeark fra spillet og tegner den. Kjenner den ikke id-en, tegner den en reserve ut fra `kind`.",
     examples: [
-      { code: '<SpriteImage spriteId="axe" />', shows: <SpriteImage spriteId="axe" scale={3} /> },
-      { code: '<SpriteImage spriteId="sword" />', shows: <SpriteImage spriteId="sword" scale={3} /> },
-      { code: '<SpriteImage spriteId="ukjent" kind="weapon" />', shows: <SpriteImage spriteId="ukjent" kind="weapon" scale={3} /> },
+      {
+        code: '<SpriteImage spriteId="axe" />',
+        shows: <SpriteImage spriteId="axe" scale={3} />,
+      },
+      {
+        code: '<SpriteImage spriteId="sword" />',
+        shows: <SpriteImage spriteId="sword" scale={3} />,
+      },
+      {
+        code: '<SpriteImage spriteId="ukjent" kind="weapon" />',
+        shows: <SpriteImage spriteId="ukjent" kind="weapon" scale={3} />,
+      },
     ],
   },
 ];
@@ -73,7 +90,14 @@ const EXAMPLES = [
   { name: "Jernmalm", kind: "material", sprite: undefined },
 ] as const;
 
-type Row = { key: string; title: ReactNode; subtitle: ReactNode; media: ReactNode; icon: ElementType | null; error?: string };
+type Row = {
+  key: string;
+  title: ReactNode;
+  subtitle: ReactNode;
+  media: ReactNode;
+  icon: ElementType | null;
+  error?: string;
+};
 
 // What this task keeps in `Verdict.data`: the list the Studio would draw, and
 // the icon the player chose (only one the window knows).
@@ -85,25 +109,39 @@ const text = (v: unknown): ReactNode =>
     : null;
 
 function iconName(icon: unknown): TaskIconName | undefined {
-  return (Object.keys(TASK_ICONS) as TaskIconName[]).find((name) => TASK_ICONS[name] === icon);
+  return (Object.keys(TASK_ICONS) as TaskIconName[]).find(
+    (name) => TASK_ICONS[name] === icon,
+  );
 }
 
 function judgePreview(exports: Record<string, unknown>): Verdict<PreviewData> {
   const item = exports.item as
-    | { icon?: unknown; preview?: { select?: Record<string, unknown>; prepare?: unknown } }
+    | {
+        icon?: unknown;
+        preview?: { select?: Record<string, unknown>; prepare?: unknown };
+      }
     | undefined;
   if (!item || typeof item !== "object") {
     return {
       done: false,
       data: { rows: [] },
-      requirements: [{ label: "Fant `item`", done: false, message: "Behold `export const item = defineType({ … })`." }],
+      requirements: [
+        {
+          label: "Fant `item`",
+          done: false,
+          message: "Behold `export const item = defineType({ … })`.",
+        },
+      ],
     };
   }
 
   const icon = iconName(item.icon);
   const select = (item.preview?.select ?? {}) as Record<string, unknown>;
   const spriteKey = Object.keys(select).find((k) => select[k] === "sprite");
-  const prepare = typeof item.preview?.prepare === "function" ? (item.preview.prepare as (s: object) => unknown) : null;
+  const prepare =
+    typeof item.preview?.prepare === "function"
+      ? (item.preview.prepare as (s: object) => unknown)
+      : null;
 
   // Build the list the way the Studio would: select picks raw values, prepare
   // (if any) turns them into what's shown. Each check counts its own rows, so a
@@ -113,22 +151,45 @@ function judgePreview(exports: Record<string, unknown>): Verdict<PreviewData> {
   let spritesOk = 0;
   const rows: Row[] = EXAMPLES.map((doc) => {
     const selection = Object.fromEntries(
-      Object.entries(select).map(([key, path]) => [key, typeof path === "string" ? doc[path as keyof typeof doc] : undefined]),
+      Object.entries(select).map(([key, path]) => [
+        key,
+        typeof path === "string" ? doc[path as keyof typeof doc] : undefined,
+      ]),
     );
     const Icon = icon ? TASK_ICONS[icon] : null;
-    let out: { title?: unknown; subtitle?: unknown; media?: unknown } = selection;
+    let out: { title?: unknown; subtitle?: unknown; media?: unknown } =
+      selection;
     if (prepare) {
       try {
         out = (prepare(selection) ?? {}) as typeof out;
       } catch (err) {
         crashed ??= err instanceof Error ? err.message : String(err);
-        return { key: doc.name, title: doc.name, subtitle: null, media: null, icon: Icon, error: "krasjet" };
+        return {
+          key: doc.name,
+          title: doc.name,
+          subtitle: null,
+          media: null,
+          icon: Icon,
+          error: "krasjet",
+        };
       }
     }
     const media = isValidElement(out.media) ? out.media : null;
     if (text(out.title) === doc.name) namesOk++;
-    if (doc.sprite && media && media.type === SpriteImage && (media.props as { spriteId?: unknown }).spriteId === doc.sprite) spritesOk++;
-    return { key: doc.name, title: text(out.title), subtitle: text(out.subtitle), media, icon: Icon };
+    if (
+      doc.sprite &&
+      media &&
+      media.type === SpriteImage &&
+      (media.props as { spriteId?: unknown }).spriteId === doc.sprite
+    )
+      spritesOk++;
+    return {
+      key: doc.name,
+      title: text(out.title),
+      subtitle: text(out.subtitle),
+      media,
+      icon: Icon,
+    };
   });
   const withSprite = EXAMPLES.filter((d) => d.sprite).length;
 
@@ -164,7 +225,13 @@ function judgePreview(exports: Record<string, unknown>): Verdict<PreviewData> {
   // A crash is never a pass, even if the rows that did render look right.
   const error = crashed ? `prepare() krasjet: ${crashed}` : undefined;
   const done = requirements.every((r) => r.done) && !error;
-  return { requirements, done, error, data: { rows, icon }, solvedAs: done ? { icon } : undefined };
+  return {
+    requirements,
+    done,
+    error,
+    data: { rows, icon },
+    solvedAs: done ? { icon } : undefined,
+  };
 }
 
 // The code the Studio switches on, shown once the task is solved, so the
@@ -185,7 +252,9 @@ function StudioList({ verdict }: { verdict: Verdict | null }) {
   const data = verdict?.data as PreviewData | undefined;
   const rows = data?.rows ?? [];
   const chosen = data?.icon;
-  const Chosen: ElementType | undefined = chosen ? TASK_ICONS[chosen] : undefined;
+  const Chosen: ElementType | undefined = chosen
+    ? TASK_ICONS[chosen]
+    : undefined;
   const Fallback = TASK_ICONS.Document;
   return (
     <div className="cw-schema-preview">
@@ -197,11 +266,15 @@ function StudioList({ verdict }: { verdict: Verdict | null }) {
             <code>{`${chosen}Icon`}</code>
           </span>
         ) : (
-          <span className="cw-schema-chosen cw-schema-none">Ingen ikon valgt</span>
+          <span className="cw-schema-chosen cw-schema-none">
+            Ingen ikon valgt
+          </span>
         )}
       </div>
       <ul className="cw-studio" aria-label="Dokumentlista i Studio">
-        {rows.length === 0 && <li className="cw-studio-empty">Ingen gjenstander å vise ennå.</li>}
+        {rows.length === 0 && (
+          <li className="cw-studio-empty">Ingen gjenstander å vise ennå.</li>
+        )}
         {rows.map((row) => {
           const Icon: ElementType = row.icon ?? Fallback;
           return (
@@ -210,8 +283,12 @@ function StudioList({ verdict }: { verdict: Verdict | null }) {
                 <Safe fallback={<Icon />}>{row.media ?? <Icon />}</Safe>
               </span>
               <span className="cw-studio-text">
-                <span className="cw-studio-title">{row.title ?? <em>Uten tittel</em>}</span>
-                <span className="cw-studio-sub">{row.error ? "prepare() krasjet" : row.subtitle}</span>
+                <span className="cw-studio-title">
+                  {row.title ?? <em>Uten tittel</em>}
+                </span>
+                <span className="cw-studio-sub">
+                  {row.error ? "prepare() krasjet" : row.subtitle}
+                </span>
               </span>
             </li>
           );
@@ -220,7 +297,8 @@ function StudioList({ verdict }: { verdict: Verdict | null }) {
       <details className="cw-icon-gallery">
         <summary>Ikoner du kan velge mellom</summary>
         <p>
-          Velg ett av disse i <code>icon</code> i denne oppgaven. Ingen ikon er valgt for deg.
+          Velg ett av disse i <code>icon</code> i denne oppgaven. Ingen ikon er
+          valgt for deg.
         </p>
         <ul>
           {(Object.keys(TASK_ICONS) as TaskIconName[]).map((name) => {
@@ -239,13 +317,17 @@ function StudioList({ verdict }: { verdict: Verdict | null }) {
 }
 
 // The player's media is drawn live; if it throws, show the icon instead.
-class Safe extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+class Safe extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
   }
   componentDidUpdate(prev: { children: ReactNode }) {
-    if (prev.children !== this.props.children && this.state.failed) this.setState({ failed: false });
+    if (prev.children !== this.props.children && this.state.failed)
+      this.setState({ failed: false });
   }
   render() {
     return this.state.failed ? this.props.fallback : this.props.children;

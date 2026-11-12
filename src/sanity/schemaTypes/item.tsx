@@ -60,13 +60,18 @@ export const item = defineType({
       name: "sprite",
       title: "Sprite",
       type: "string",
-      description: "How it looks in the game. Unknown sprites fall back to a default.",
+      description:
+        "How it looks in the game. Unknown sprites fall back to a default.",
       options: { list: KNOWN_SPRITE_IDS },
       // QUEST: Luke 3. Vår versjon av koden fra kodevinduet: bare våpen må ha en
       // sprite. Er først på når Luke 3 er løst i spillet.
       validation: (rule) =>
         rule.custom((sprite, context) =>
-          isSolved("the-guilds-law") && context.document?.kind === "weapon" && !sprite ? "A weapon needs a sprite" : true,
+          isSolved("the-guilds-law") &&
+          context.document?.kind === "weapon" &&
+          !sprite
+            ? "A weapon needs a sprite"
+            : true,
         ),
     }),
     defineField({

@@ -17,6 +17,13 @@ export function sameNameParams(name: string, documentId: string) {
   return { name, published: getPublishedId(documentId) };
 }
 
-export async function isNameTaken(client: SanityClient, name: string, documentId: string): Promise<boolean> {
-  return client.fetch<boolean>(SAME_NAME_QUERY, sameNameParams(name, documentId));
+export async function isNameTaken(
+  client: SanityClient,
+  name: string,
+  documentId: string,
+): Promise<boolean> {
+  return client.fetch<boolean>(
+    SAME_NAME_QUERY,
+    sameNameParams(name, documentId),
+  );
 }

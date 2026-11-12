@@ -78,7 +78,10 @@ const source = transform(readFileSync(filename, "utf8"), {
 
 // Integration checks of real hook bodies + engine, not React lifecycle/browser
 // tests. Effects are collected and can be replayed against the same snapshot.
-function harness(initial = {}, { chapters = CHAPTERS, engineModule = engine } = {}) {
+function harness(
+  initial = {},
+  { chapters = CHAPTERS, engineModule = engine } = {},
+) {
   let saved = { ...EMPTY_PROGRESS, ...initial };
   let effects = [];
   const toasts = [];
@@ -363,7 +366,11 @@ test("studio practice: code alone never completes; confirmation completes once o
   assert.deepEqual(h.toasts, []);
 
   view.confirmStudioPractice(STUDIO);
-  assert.equal(h.saved.completed[STUDIO], undefined, "the callback never completes");
+  assert.equal(
+    h.saved.completed[STUDIO],
+    undefined,
+    "the callback never completes",
+  );
   assert.ok(Number.isFinite(Date.parse(h.saved.studioConfirmed[STUDIO])));
   assert.deepEqual(h.toasts, []);
 
@@ -372,7 +379,10 @@ test("studio practice: code alone never completes; confirmation completes once o
   view.effects.forEach((effect) => effect());
   const completed = h.saved.completed;
   assert.ok(Number.isFinite(Date.parse(completed[STUDIO])));
-  assert.deepEqual(h.toasts.map(({ tone }) => tone), ["lesson"]);
+  assert.deepEqual(
+    h.toasts.map(({ tone }) => tone),
+    ["lesson"],
+  );
   assert.equal(h.events.at(-1)[0], "questCelebration");
   assert.equal(h.events.at(-1)[1].door, 2);
   assert.equal(h.events.at(-1)[1].title, "Ikon og preview i lista");
@@ -435,7 +445,10 @@ for (const [name, patch, questId] of REJECTED) {
 }
 
 test("studio practice callback rejects a chapter that has not opened yet", () => {
-  const locked = studioHarness({ completed: {} }, { engineModule: FUTURE_ENGINE });
+  const locked = studioHarness(
+    { completed: {} },
+    { engineModule: FUTURE_ENGINE },
+  );
   const { board, confirmStudioPractice } = locked.render();
   assert.equal(stateOf(board, STUDIO).status, "locked");
   const before = locked.saved;
@@ -444,7 +457,10 @@ test("studio practice callback rejects a chapter that has not opened yet", () =>
 
   const open = studioHarness();
   open.render().confirmStudioPractice(STUDIO);
-  assert.ok(open.saved.studioConfirmed[STUDIO], "same state is accepted when open");
+  assert.ok(
+    open.saved.studioConfirmed[STUDIO],
+    "same state is accepted when open",
+  );
 });
 
 test("a stale studio practice callback re-checks the latest saved progress", () => {

@@ -12,7 +12,12 @@ import { openStudio } from "../studioPane";
 import StudioPractice from "../StudioPractice";
 import QuestHint from "../QuestHint";
 import { runModule } from "./runCode";
-import { WINDOW_TASKS, type Reference, type Verdict, type WindowTask } from "./tasks";
+import {
+  WINDOW_TASKS,
+  type Reference,
+  type Verdict,
+  type WindowTask,
+} from "./tasks";
 
 // The code window: small tasks with one right answer are written here instead
 // of in the repo. The code runs in the browser against examples, and once it
@@ -21,7 +26,10 @@ import { WINDOW_TASKS, type Reference, type Verdict, type WindowTask } from "./t
 
 // The latest run. When the code doesn't run, `verdict` is still the last one
 // that did, so the list and the check stay put instead of collapsing.
-type Result = { error: { message: string; line?: number } | null; verdict: Verdict | null };
+type Result = {
+  error: { message: string; line?: number } | null;
+  verdict: Verdict | null;
+};
 
 // `verdict` is null here when the code didn't run; the caller keeps the old one.
 // The judge may be async (a rule that asks the fake client), so this is too.
@@ -31,7 +39,12 @@ async function evaluate(task: WindowTask, source: string): Promise<Result> {
   try {
     return { error: null, verdict: await task.judge(loaded.exports) };
   } catch (err) {
-    return { error: { message: `Kunne ikke vurdere kriteriene: ${err instanceof Error ? err.message : String(err)}` }, verdict: null };
+    return {
+      error: {
+        message: `Kunne ikke vurdere kriteriene: ${err instanceof Error ? err.message : String(err)}`,
+      },
+      verdict: null,
+    };
   }
 }
 
@@ -63,7 +76,15 @@ function saveDraft(questId: string, source: string) {
   }
 }
 
-export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPractice, hintsShown, onRevealHint, onClose }: Props) {
+export default function CodeWindow({
+  state,
+  solved,
+  onSolved,
+  onConfirmStudioPractice,
+  hintsShown,
+  onRevealHint,
+  onClose,
+}: Props) {
   const { quest } = state;
   const task = WINDOW_TASKS[quest.id];
   const [source, setSource] = useState(() => loadDraft(quest.id, task.starter));
@@ -112,7 +133,10 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
       () => {
         saveDraft(quest.id, source);
         evaluate(task, source).then((next) => {
-          if (current) setResult((prev) => (next.error ? { error: next.error, verdict: prev.verdict } : next));
+          if (current)
+            setResult((prev) =>
+              next.error ? { error: next.error, verdict: prev.verdict } : next,
+            );
         });
       },
       firstCheck.current ? 0 : 300,
@@ -128,22 +152,33 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
   const taskError = error?.message ?? verdict?.error;
   const stale = Boolean(error && verdict);
   useEffect(() => {
-    if (!error && verdict?.done && !verdict.error && !solved && verdict.solvedAs) onSolved(verdict.solvedAs);
+    if (
+      !error &&
+      verdict?.done &&
+      !verdict.error &&
+      !solved &&
+      verdict.solvedAs
+    )
+      onSolved(verdict.solvedAs);
   }, [error, verdict, solved, onSolved]);
 
   const startOver = () => {
     const view = viewRef.current;
     if (!view) return;
     setTab(null);
-    view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: task.starter } });
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: task.starter },
+    });
     view.focus();
   };
 
   const hints = quest.hints.slice(0, hintsShown);
-  const activeHint = hintsShown > 0
-    ? Math.min(hintsShown - 1, Math.max(0, selectedHint ?? hintsShown - 1))
-    : 0;
-  const passedRequirements = verdict?.requirements.filter((requirement) => requirement.done).length ?? 0;
+  const activeHint =
+    hintsShown > 0
+      ? Math.min(hintsShown - 1, Math.max(0, selectedHint ?? hintsShown - 1))
+      : 0;
+  const passedRequirements =
+    verdict?.requirements.filter((requirement) => requirement.done).length ?? 0;
 
   return (
     <div className="log-backdrop cw-backdrop" onClick={onClose}>
@@ -169,7 +204,12 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
         <div className="cw-intro">
           <p className="cw-goal">{renderText(quest.goal)}</p>
           {quest.learn && (
-            <a className="cw-doc-link" href={quest.learn.url} target="_blank" rel="noreferrer">
+            <a
+              className="cw-doc-link"
+              href={quest.learn.url}
+              target="_blank"
+              rel="noreferrer"
+            >
               Sanity-dokumentasjon: {quest.learn.label} ↗
             </a>
           )}
@@ -178,7 +218,13 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
         <div className="cw-body">
           <div className="cw-code">
             <div className="cw-tabs" role="tablist" aria-label="Filer">
-              <button type="button" role="tab" aria-selected={tab === null} className="cw-tab" onClick={() => setTab(null)}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === null}
+                className="cw-tab"
+                onClick={() => setTab(null)}
+              >
                 {task.file}
               </button>
               {task.references.map((ref, i) => (
@@ -197,14 +243,27 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
             {reference ? (
               <ReferenceNote reference={reference} />
             ) : (
-              <p className="cw-file">Bare i spillet. Koden lagres ikke i noen fil.</p>
+              <p className="cw-file">
+                Bare i spillet. Koden lagres ikke i noen fil.
+              </p>
             )}
             {/* Hidden, not unmounted, so the player's text and cursor stay put. */}
-            <div ref={editorRef} className="cw-editor" hidden={reference !== null} />
-            {reference && <ReadOnlyCode key={reference.file} source={reference.source} />}
-            <p className={`cw-status${taskError ? " is-error" : ""}`} role={taskError ? "alert" : "status"}>
+            <div
+              ref={editorRef}
+              className="cw-editor"
+              hidden={reference !== null}
+            />
+            {reference && (
+              <ReadOnlyCode key={reference.file} source={reference.source} />
+            )}
+            <p
+              className={`cw-status${taskError ? " is-error" : ""}`}
+              role={taskError ? "alert" : "status"}
+            >
               {taskError ? (
-                <><strong>Feil i {task.file}:</strong>{" "}{renderText(taskError)}</>
+                <>
+                  <strong>Feil i {task.file}:</strong> {renderText(taskError)}
+                </>
               ) : verdict?.done ? (
                 "Kodeeksemplene er bestått. Neste steg er å prøve i Studio."
               ) : (
@@ -219,9 +278,15 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                 <section className="cw-panel cw-preview" aria-label="Resultat">
                   <header className="cw-panel-head">
                     <p className="cw-label">{task.resultTitle}</p>
-                    {stale && <span className="cw-stale-note">Fra sist koden kjørte</span>}
+                    {stale && (
+                      <span className="cw-stale-note">
+                        Fra sist koden kjørte
+                      </span>
+                    )}
                   </header>
-                  <div className={`cw-preview-content${stale ? " cw-stale" : ""}`}>
+                  <div
+                    className={`cw-preview-content${stale ? " cw-stale" : ""}`}
+                  >
                     <task.Result verdict={verdict} />
                   </div>
                 </section>
@@ -230,23 +295,39 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                   <header className="cw-panel-head">
                     <p className="cw-label">Kriterier</p>
                     <span className="cw-progress" aria-live="polite">
-                      {verdict ? `${passedRequirements} / ${verdict.requirements.length} oppfylt` : "Ikke vurdert"}
+                      {verdict
+                        ? `${passedRequirements} / ${verdict.requirements.length} oppfylt`
+                        : "Ikke vurdert"}
                     </span>
                   </header>
                   {verdict ? (
-                    <ul className={`cw-reqs${stale ? " cw-stale" : ""}`} aria-live="polite">
+                    <ul
+                      className={`cw-reqs${stale ? " cw-stale" : ""}`}
+                      aria-live="polite"
+                    >
                       {verdict.requirements.map((r) => (
-                        <li key={r.label} className={r.done ? "is-done" : undefined}>
-                          <span className="tracker-box">{r.done && <IconCheck size={12} />}</span>
+                        <li
+                          key={r.label}
+                          className={r.done ? "is-done" : undefined}
+                        >
+                          <span className="tracker-box">
+                            {r.done && <IconCheck size={12} />}
+                          </span>
                           <span>
                             {renderText(r.label)}
-                            {!r.done && r.message && <span className="cw-req-msg">{renderText(r.message)}</span>}
+                            {!r.done && r.message && (
+                              <span className="cw-req-msg">
+                                {renderText(r.message)}
+                              </span>
+                            )}
                           </span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="cw-wait">Kjør koden for å se hvilke kriterier som er oppfylt.</p>
+                    <p className="cw-wait">
+                      Kjør koden for å se hvilke kriterier som er oppfylt.
+                    </p>
                   )}
                 </section>
               </div>
@@ -256,7 +337,10 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                   <header className="cw-panel-head cw-hint-head">
                     <p className="cw-label">Hint</p>
                     {hintsShown > 0 && (
-                      <div className="cw-hint-controls" aria-label="Navigasjon for hint">
+                      <div
+                        className="cw-hint-controls"
+                        aria-label="Navigasjon for hint"
+                      >
                         <button
                           type="button"
                           className="cw-hint-arrow"
@@ -266,7 +350,11 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                         >
                           ‹
                         </button>
-                        <span className="cw-hint-count" aria-live="polite" aria-atomic="true">
+                        <span
+                          className="cw-hint-count"
+                          aria-live="polite"
+                          aria-atomic="true"
+                        >
                           {activeHint + 1} / {quest.hints.length}
                         </span>
                         <button
@@ -283,7 +371,11 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                   </header>
                   {hints.length > 0 && (
                     <div className="cw-hint-content">
-                      <QuestHint key={activeHint} hint={hints[activeHint]} number={activeHint + 1} />
+                      <QuestHint
+                        key={activeHint}
+                        hint={hints[activeHint]}
+                        number={activeHint + 1}
+                      />
                     </div>
                   )}
                   {hintsShown < quest.hints.length && (
@@ -302,9 +394,16 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
               )}
 
               {solved && (
-                <section className="cw-panel cw-solved" aria-label="Studio-prøve">
+                <section
+                  className="cw-panel cw-solved"
+                  aria-label="Studio-prøve"
+                >
                   <p role="status">
-                    <strong>{state.status === "done" ? "Luka er fullført!" : "Koden er bestått!"}</strong>{" "}
+                    <strong>
+                      {state.status === "done"
+                        ? "Luka er fullført!"
+                        : "Koden er bestått!"}
+                    </strong>{" "}
                     Studio bruker nå vår versjon av den samme koden.
                   </p>
                   <StudioPractice
@@ -317,7 +416,10 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                     <button
                       type="button"
                       className="btn"
-                      onClick={() => { openStudio(); onClose(); }}
+                      onClick={() => {
+                        openStudio();
+                        onClose();
+                      }}
                     >
                       Se det i Studio
                     </button>
@@ -327,11 +429,17 @@ export default function CodeWindow({ state, solved, onSolved, onConfirmStudioPra
                     <pre className="cw-ours">{task.ours}</pre>
                   </details>
                   <details className="cw-extend">
-                    <summary>Vil du prøve mer i din egen editor? (valgfritt)</summary>
-                    <p>Dette trengs ikke for å fullføre luka. Kodevinduet endrer ingen filer i repoet.</p>
+                    <summary>
+                      Vil du prøve mer i din egen editor? (valgfritt)
+                    </summary>
                     <p>
-                      Vil du eksperimentere videre, åpne <code>{task.extend.file}</code> i editoren din. Finn kommentaren{" "}
-                      <code>{task.extend.marker}</code>.
+                      Dette trengs ikke for å fullføre luka. Kodevinduet endrer
+                      ingen filer i repoet.
+                    </p>
+                    <p>
+                      Vil du eksperimentere videre, åpne{" "}
+                      <code>{task.extend.file}</code> i editoren din. Finn
+                      kommentaren <code>{task.extend.marker}</code>.
                     </p>
                     <p>{renderText(task.extend.idea)}</p>
                   </details>
@@ -350,10 +458,14 @@ function ReferenceNote({ reference }: { reference: Reference }) {
   return (
     <div className="cw-ref">
       <h3 className="cw-ref-title">
-        Dette gjør <code className="cw-filename">{reference.file.replace(/\.tsx?$/, "")}</code>
+        Dette gjør{" "}
+        <code className="cw-filename">
+          {reference.file.replace(/\.tsx?$/, "")}
+        </code>
       </h3>
       <p className="cw-file">
-        Ligger i <code>{reference.path}</code> i repoet ditt. {renderText(reference.about)}
+        Ligger i <code>{reference.path}</code> i repoet ditt.{" "}
+        {renderText(reference.about)}
       </p>
       <ul className="cw-ref-examples">
         {reference.examples.map((ex) => (

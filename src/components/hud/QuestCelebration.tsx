@@ -40,8 +40,15 @@ export default function QuestCelebration({ door, title, onClose }: Props) {
           <p className="quest-celebration-kicker">Luke {door} er åpnet</p>
           <h2 id="quest-celebration-heading">Gratulerer!</h2>
           <p className="quest-celebration-title">{title}</p>
-          <p className="quest-celebration-note">Du har åpnet en ny luke i Frostholm.</p>
-          <button ref={closeRef} type="button" className="btn btn--amber" onClick={onClose}>
+          <p className="quest-celebration-note">
+            Du har åpnet en ny luke i Frostholm.
+          </p>
+          <button
+            ref={closeRef}
+            type="button"
+            className="btn btn--amber"
+            onClick={onClose}
+          >
             Fortsett
           </button>
           <p className="quest-celebration-dismiss">Trykk Esc for å lukke</p>

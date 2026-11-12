@@ -42,9 +42,8 @@ for (const value of [NaN, Infinity, -Infinity, 0, 42, "Et våpen"]) {
     const verdict = previewTask.judge({
       item: { preview: { prepare: () => ({ title: value, subtitle: value }) } },
     });
-    const expected = typeof value === "number" && !Number.isFinite(value)
-      ? null
-      : value;
+    const expected =
+      typeof value === "number" && !Number.isFinite(value) ? null : value;
     for (const row of verdict.data.rows) {
       assert.equal(row.title, expected);
       assert.equal(row.subtitle, expected);
@@ -57,7 +56,9 @@ for (const value of [NaN, Infinity, -Infinity, 0, 42, "Et våpen"]) {
     let html;
     try {
       console.error = (...args) => errors.push(args);
-      html = renderToStaticMarkup(React.createElement(previewTask.Result, { verdict }));
+      html = renderToStaticMarkup(
+        React.createElement(previewTask.Result, { verdict }),
+      );
     } finally {
       console.error = previousError;
     }
@@ -96,10 +97,7 @@ test("chosen schema icon shows in its own header, not inside the rows", () => {
   );
   assert.equal(verdict.data.icon, "Bolt");
   assert.equal(html.match(/cw-schema-icon/g).length, 1);
-  assert.match(
-    html,
-    /<svg[^>]*class="cw-schema-icon"[^>]*data-icon="Bolt"/,
-  );
+  assert.match(html, /<svg[^>]*class="cw-schema-icon"[^>]*data-icon="Bolt"/);
   assert.match(html, /<code>BoltIcon<\/code>/);
   assert.match(html, /<details class="cw-icon-gallery">/);
   assert.match(html, /<code>StarIcon<\/code>/);
@@ -161,7 +159,10 @@ test("a throwing prepare sets verdict.error and never solves the task", () => {
     console.error = previousError;
   }
   assert.deepEqual(errors, []);
-  assert.match(verdict.error, /^prepare\(\) krasjet: .*SpriteImage is not defined$/);
+  assert.match(
+    verdict.error,
+    /^prepare\(\) krasjet: .*SpriteImage is not defined$/,
+  );
   assert.equal(verdict.done, false);
   assert.equal(verdict.solvedAs, undefined);
   assert.deepEqual(

@@ -398,13 +398,13 @@ Våpen med sprite må også godtas, og dokumentnivå-validering støttes fortsat
 Ingen krasj eller andre blokkerende feil kan gi fullføring. Kodebestått
 krever fortsatt egenbekreftelsen fra Studio før neste luke åpnes.
 
-| Spørsmål | Vurdering |
-| --- | --- |
-| Tydelig | Bedre adskilte trinn og konkrete hjelpeeksempler; må prøves av deltakeren igjen. |
-| Verdt det | Reglene hindrer Branns feilbestilling og prøves i Studio. |
-| Svarer | Hver del får egen status etter skrivepausen, også når den andre krasjer. |
+| Spørsmål   | Vurdering                                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| Tydelig    | Bedre adskilte trinn og konkrete hjelpeeksempler; må prøves av deltakeren igjen.              |
+| Verdt det  | Reglene hindrer Branns feilbestilling og prøves i Studio.                                     |
+| Svarer     | Hver del får egen status etter skrivepausen, også når den andre krasjer.                      |
 | Belønnende | Sprite-resultatet beholdes mens navnedelen løses; eksisterende fullføringsmarkering beholdes. |
-| Passer | Ingen ny luke eller mekanikk; navnedelens faktiske vanskelighetsgrad må fortsatt vurderes. |
+| Passer     | Ingen ny luke eller mekanikk; navnedelens faktiske vanskelighetsgrad må fortsatt vurderes.    |
 
 **Kontroll:** 14 nye regresjonstester, 73 totalt, samt TypeScript, målrettet
 lint og produksjonsbygg passerer. Chrome-prøve med testdata dekker halvferdig

@@ -124,7 +124,8 @@ const brannsLedger: Quest = {
     "Jeg har hengt våpenlista på oppslagstavla. Velg et ikon for Item, og vis navn og bilde for hvert våpen, så jeg slipper å lete neste gang.",
   ],
   goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*. Prøv det i Studio.",
-  where: "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
+  where:
+    "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
   hints: [
     {
       text: "En *schema type* kan ha et `icon`. Det er ett merke for hele dokumenttypen, ikke for hvert våpen. Det lista viser for hvert våpen, styres av `preview`.",
@@ -173,7 +174,8 @@ const theGuildsLaw: Quest = {
     "Vi må stoppe slike feil før de kommer på lista. Kan du få Studio til å nekte våpen uten sprite og navn som allerede er i bruk?",
   ],
   goal: "Start med den enklere *validation*-regelen på `sprite`: Studio skal nekte våpen uten sprite. Deretter krev et navn og nekt navn som allerede er brukt. Prøv reglene i Studio og bekreft selv.",
-  where: "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
+  where:
+    "I kodevinduet i spillet, og deretter i Studio. Åpne luka fra Brann eller kalenderen.",
   hints: [
     {
       title: "Bare våpen trenger sprite",
@@ -210,7 +212,10 @@ const theGuildsLaw: Quest = {
       },
     },
   ],
-  learn: { label: "Validation", url: "https://www.sanity.io/docs/studio/validation" },
+  learn: {
+    label: "Validation",
+    url: "https://www.sanity.io/docs/studio/validation",
+  },
   lesson: {
     title: "*Validation* med `context`",
     text: "Validation-regler stopper *Publish* i Studio, men er ingen databasebegrensning: API-mutasjoner sjekkes ikke. `rule.custom()` får verdien og en `context` med hele dokumentet. En `error` stopper *Publish*; en `warning` gjør det ikke.",

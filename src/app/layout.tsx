@@ -26,7 +26,8 @@ const pixel = Pixelify_Sans({
 
 export const metadata: Metadata = {
   title: "Sanity-julekalenderen",
-  description: "En julekalender med små Sanity-oppgaver og et lite pikselspill som viser resultatet.",
+  description:
+    "En julekalender med små Sanity-oppgaver og et lite pikselspill som viser resultatet.",
 };
 
 export const viewport: Viewport = {
@@ -35,7 +36,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="nb" className={`${display.variable} ${ui.variable} ${code.variable} ${pixel.variable}`}>
+    <html
+      lang="nb"
+      className={`${display.variable} ${ui.variable} ${code.variable} ${pixel.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

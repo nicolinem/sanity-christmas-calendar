@@ -5,7 +5,12 @@ import { useSyncExternalStore } from "react";
 // Short banners for moments worth celebrating: a finished quest, a hotter
 // forge. A tiny module-level store so anything can push without prop drilling.
 
-export type Toast = { id: number; title: string; body?: string; tone: "forge" | "lesson" };
+export type Toast = {
+  id: number;
+  title: string;
+  body?: string;
+  tone: "forge" | "lesson";
+};
 
 let toasts: Toast[] = [];
 let nextId = 1;
@@ -31,7 +36,11 @@ const subscribe = (l: () => void) => {
 const EMPTY: Toast[] = [];
 
 export default function Toasts() {
-  const list = useSyncExternalStore(subscribe, () => toasts, () => EMPTY);
+  const list = useSyncExternalStore(
+    subscribe,
+    () => toasts,
+    () => EMPTY,
+  );
   return (
     <div className="toasts" role="status" aria-live="polite">
       {list.map((t) => (

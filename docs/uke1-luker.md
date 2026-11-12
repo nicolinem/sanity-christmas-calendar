@@ -114,7 +114,7 @@ bruk `SpriteImage` i `prepare().media` uten å miste navnet.
 **Gjør i kodevinduet:** Stopp våpen uten sprite og navn som allerede er tatt.
 Et materiale uten sprite og et dokument som lagres på nytt med sitt eget navn
 skal fortsatt være lov. Startfila lar deltakeren skrive begge
-*validation*-reglene, men har importen av `isNameTaken(...)` klar. Hjelpefanen
+_validation_-reglene, men har importen av `isNameTaken(...)` klar. Hjelpefanen
 `guild.ts` viser funksjonen, spørringen og parameterhjelperen. De håndterer
 GROQ, versjons-ID-er og draft-/release-versjoner; oppgaven er å bruke dem i en
 regel og returnere en feilmelding for et navn som er tatt. Sanity-dokumentasjonen

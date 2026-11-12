@@ -42,7 +42,11 @@ export default function ForgeDialogue(props: Props) {
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    (last ? studioRef.current ?? bodyRef.current?.querySelector<HTMLButtonElement>("button") : continueRef.current)?.focus({
+    (last
+      ? (studioRef.current ??
+        bodyRef.current?.querySelector<HTMLButtonElement>("button"))
+      : continueRef.current
+    )?.focus({
       preventScroll: true,
     });
   }, [last, page]);
@@ -52,7 +56,11 @@ export default function ForgeDialogue(props: Props) {
     if (last) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Enter") return;
-      if (e.key === "Enter" && (e.target as HTMLElement)?.closest?.("button, a")) return;
+      if (
+        e.key === "Enter" &&
+        (e.target as HTMLElement)?.closest?.("button, a")
+      )
+        return;
       e.preventDefault();
       e.stopImmediatePropagation();
       setPage((p) => p + 1);
@@ -237,7 +245,9 @@ function Details({
   // Written in the game's code window, not in the Studio or the repo.
   const inWindow =
     current?.quest.checkedBy === "window" && sanityConfigured !== false;
-  const studioReady = Boolean(current && inWindow && solvedTasks[current.quest.id]);
+  const studioReady = Boolean(
+    current && inWindow && solvedTasks[current.quest.id],
+  );
 
   return (
     <>
@@ -305,14 +315,14 @@ function Details({
             Gå til {QUEST_SITES[remoteSite].label.toLowerCase()}
           </button>
         ) : inWindow && current ? (
-            <button
-              ref={studioRef}
-              type="button"
-              className="btn btn--amber"
-              onClick={() => onOpenCode(current.quest.id)}
-            >
-              Åpne kodevinduet
-            </button>
+          <button
+            ref={studioRef}
+            type="button"
+            className="btn btn--amber"
+            onClick={() => onOpenCode(current.quest.id)}
+          >
+            Åpne kodevinduet
+          </button>
         ) : (
           <>
             <button

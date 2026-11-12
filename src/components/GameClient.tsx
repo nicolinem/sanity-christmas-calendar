@@ -17,7 +17,11 @@ import {
   toGameItem,
   type GameItemView,
 } from "@/game/items";
-import { bridge, type QuestCelebration as QuestCelebrationData, type Zone } from "@/game/bridge";
+import {
+  bridge,
+  type QuestCelebration as QuestCelebrationData,
+  type Zone,
+} from "@/game/bridge";
 import type { QuestSiteId } from "@/game/village";
 import { findForgedWeapon } from "@/game/quests/chapters";
 import type { CodeCheck } from "@/game/quests/types";
@@ -113,12 +117,13 @@ export default function GameClient() {
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
   useEffect(
-    () => bridge.on("questCelebration", (celebration) => {
-      setTalking(false);
-      setLogOpen(false);
-      setCodeQuestId(null);
-      setCelebrations((queue) => [...queue, celebration]);
-    }),
+    () =>
+      bridge.on("questCelebration", (celebration) => {
+        setTalking(false);
+        setLogOpen(false);
+        setCodeQuestId(null);
+        setCelebrations((queue) => [...queue, celebration]);
+      }),
     [],
   );
   const {
@@ -351,7 +356,12 @@ export default function GameClient() {
         ? "!"
         : null,
       wraithDefeated: combat.defeated,
-      frozen: dialogueOpen || logOpen || codeOpen || showOpening || Boolean(celebration),
+      frozen:
+        dialogueOpen ||
+        logOpen ||
+        codeOpen ||
+        showOpening ||
+        Boolean(celebration),
     });
   }, [
     equipped,
@@ -513,7 +523,9 @@ export default function GameClient() {
                   onClick={openSiteQuest}
                 >
                   <kbd>E</kbd>{" "}
-                  {siteQuest.quest.checkedBy === "window" ? "Åpne kodevinduet" : "Åpne luka her"}
+                  {siteQuest.quest.checkedBy === "window"
+                    ? "Åpne kodevinduet"
+                    : "Åpne luka her"}
                 </button>
               )}
             {!hasMoved &&
@@ -588,7 +600,9 @@ export default function GameClient() {
             state={codeState}
             solved={Boolean(progress.solved[codeState.quest.id])}
             onSolved={onSolved}
-            onConfirmStudioPractice={() => board.confirmStudioPractice(codeState.quest.id)}
+            onConfirmStudioPractice={() =>
+              board.confirmStudioPractice(codeState.quest.id)
+            }
             hintsShown={progress.hints[codeState.quest.id] ?? 0}
             onRevealHint={() => revealHint(codeState.quest.id)}
             onClose={() => setCodeQuestId(null)}

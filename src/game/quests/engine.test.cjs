@@ -388,7 +388,10 @@ const STUDIO_STATES = [
   ["code and confirmation", true, true, true],
 ];
 
-function studioBoard(step, { solved = false, confirmed = false, done = false } = {}) {
+function studioBoard(
+  step,
+  { solved = false, confirmed = false, done = false } = {},
+) {
   const ids = done ? [...step.before, step.id] : step.before;
   return evaluateQuests(
     chaptersForTrack(CHAPTERS, "technical"),
@@ -408,7 +411,9 @@ const stateOf = (board, id) =>
 
 test("only the two Studio quests name a Studio step, and both are technical", () => {
   const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];
-  const named = all.filter(({ studioPractice }) => studioPractice !== undefined);
+  const named = all.filter(
+    ({ studioPractice }) => studioPractice !== undefined,
+  );
   assert.deepEqual(
     named.map(({ id }) => id).sort(),
     STUDIO_STEPS.map(({ id }) => id).sort(),
