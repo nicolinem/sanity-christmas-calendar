@@ -146,7 +146,7 @@ function buildPages(
   }
   const { current, previous } = board;
   const reaction =
-    previous && current?.status === "offered"
+    previous && current?.status === "offered" && !current.pickup
       ? [<Reaction key="r" state={previous} />]
       : [];
   if (!current) {
@@ -171,10 +171,23 @@ function buildPages(
     <>
       {renderText(text)}
       {index === current.quest.intro.length - 1 && placePhrase && (
-        <> Oppgaven ligger {placePhrase}.</>
+        <>
+          {" "}
+          Oppgaven ligger {placePhrase}. Gå dit og hent den, så kan du jobbe med
+          den hvor du vil.
+        </>
       )}
     </>
   ));
+  // Explained, but not picked up yet: a short reminder of where it waits.
+  if (current.pickup && placePhrase) {
+    return [
+      <>
+        Oppgaven ligger {placePhrase}. Gå dit og trykk E for å hente den.
+        Etterpå kan du jobbe med den hvor du vil.
+      </>,
+    ];
+  }
   if (current.status === "offered") {
     return [...reaction, ...introPages];
   }
@@ -235,10 +248,8 @@ function Details({
 }: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
   const current = board.current;
   const firstForging = current?.quest.id === FIRST_QUEST && !forged;
-  const remoteSite =
-    current?.status === "active" && current.quest.villageSite !== "forge"
-      ? current.quest.villageSite
-      : undefined;
+  // Waiting at its place: send the player there to pick it up.
+  const remoteSite = current?.pickup;
   // Written in the game's code window, not in the Studio or the repo.
   const inWindow =
     current?.quest.checkedBy === "window" && sanityConfigured !== false;

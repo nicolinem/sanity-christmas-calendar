@@ -173,6 +173,63 @@ export function isPath(x: number, y: number) {
   return x >= 0 && y >= 0 && x < MAP_W && y < MAP_H && pathGrid[y][x];
 }
 
+// A walking route along the village paths (px points), for «Gå til …»: step
+// onto the nearest path, follow the paths to the one nearest the goal, then
+// step off. Straight lines get stuck on fences and trees.
+export function pathRoute(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+): { x: number; y: number }[] {
+  const nearest = (px: { x: number; y: number }) => {
+    let best: [number, number] | null = null;
+    let bestD = Infinity;
+    for (let y = 0; y < MAP_H; y++)
+      for (let x = 0; x < MAP_W; x++) {
+        if (!pathGrid[y][x]) continue;
+        const d = Math.hypot(x * 16 + 8 - px.x, y * 16 + 8 - px.y);
+        if (d < bestD) {
+          bestD = d;
+          best = [x, y];
+        }
+      }
+    return best;
+  };
+  const start = nearest(from);
+  const end = nearest(to);
+  if (!start || !end) return [to];
+
+  const key = (x: number, y: number) => y * MAP_W + x;
+  const cameFrom = new Map<number, number>([[key(...start), -1]]);
+  const queue: [number, number][] = [start];
+  while (queue.length) {
+    const [x, y] = queue.shift()!;
+    if (x === end[0] && y === end[1]) break;
+    for (const [nx, ny] of [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1],
+    ] as [number, number][]) {
+      if (!isPath(nx, ny) || cameFrom.has(key(nx, ny))) continue;
+      cameFrom.set(key(nx, ny), key(x, y));
+      queue.push([nx, ny]);
+    }
+  }
+  if (!cameFrom.has(key(...end))) return [to];
+
+  const tiles: [number, number][] = [];
+  for (let k = key(...end); k !== -1; k = cameFrom.get(k)!)
+    tiles.unshift([k % MAP_W, Math.floor(k / MAP_W)]);
+  // Keep only the corners, so the walk is a few straight legs.
+  const corners = tiles.filter((t, i) => {
+    if (i === 0 || i === tiles.length - 1) return true;
+    const [px, py] = tiles[i - 1];
+    const [nx, ny] = tiles[i + 1];
+    return !(px === nx || py === ny);
+  });
+  return [...corners.map(([x, y]) => ({ x: x * 16 + 8, y: y * 16 + 10 })), to];
+}
+
 // Tiny Town's 3×3 path set plus its four inner corners.
 function pathFrame(x: number, y: number): number {
   const n = isPath(x, y - 1) || y === 0;

@@ -44,6 +44,7 @@ import { IconQuill } from "./hud/icons";
 import {
   closeStudio,
   focusGame,
+  openStudio,
   toggleStudio,
   useStudioFocused,
   useStudioPane,
@@ -138,6 +139,7 @@ export default function GameClient() {
     solveTask,
     markIntroSeen,
     markWeekSeen,
+    fetchQuest,
     jumpTo,
   } = useProgress();
   const dev = useDevMode();
@@ -270,7 +272,8 @@ export default function GameClient() {
     zone && zone !== "forge"
       ? board.states.find(
           (state) =>
-            state.quest.villageSite === zone && state.status === "active",
+            state.quest.villageSite === zone &&
+            (state.status === "active" || state.pickup === zone),
         )
       : undefined;
 
@@ -316,9 +319,10 @@ export default function GameClient() {
   }, []);
   const openSiteQuest = useCallback(() => {
     if (!siteQuest) return;
+    if (siteQuest.pickup) fetchQuest(siteQuest.quest.id);
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
-  }, [siteQuest, openCode, openQuestLog]);
+  }, [siteQuest, openCode, openQuestLog, fetchQuest]);
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
   const onSolved = useCallback(
@@ -365,7 +369,7 @@ export default function GameClient() {
       weapon: hand,
       forgeLit: Boolean(forged),
       forgeLevel,
-      brannMarker: current?.status === "offered",
+      brannMarker: current?.status === "offered" && !current.pickup,
       doors: villageDoors,
       goal: nextStep,
       wraithDefeated: combat.defeated,
@@ -490,6 +494,10 @@ export default function GameClient() {
               metBrann={progress.metBlacksmith}
               compact={narrow}
               onOpenLog={openLog}
+              onOpenQuest={openQuestLog}
+              onOpenCode={openCode}
+              onOpenStudio={openStudio}
+              onTravel={travelToSite}
               finished={
                 celebration && studio.open
                   ? { door: celebration.door, title: celebration.title }
@@ -542,9 +550,11 @@ export default function GameClient() {
                   onClick={openSiteQuest}
                 >
                   <kbd>E</kbd>{" "}
-                  {siteQuest.quest.checkedBy === "window"
-                    ? "Åpne kodevinduet"
-                    : "Åpne luka her"}
+                  {siteQuest.pickup
+                    ? `Hent luke ${siteQuest.quest.door}`
+                    : siteQuest.quest.checkedBy === "window"
+                      ? "Åpne kodevinduet"
+                      : "Åpne luka her"}
                 </button>
               )}
             {!hasMoved &&

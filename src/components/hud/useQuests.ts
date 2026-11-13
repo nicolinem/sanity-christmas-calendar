@@ -58,6 +58,15 @@ export function useProgress() {
     );
   }, []);
 
+  // Picked up at its place in the village; from now on it's worked on anywhere.
+  const fetchQuest = useCallback((questId: string) => {
+    updateProgress(PROJECT, (p) =>
+      p.fetched?.[questId]
+        ? p
+        : { ...p, fetched: { ...p.fetched, [questId]: true } },
+    );
+  }, []);
+
   // The week summary shows once per week; the journal can open it again.
   const markWeekSeen = useCallback((week: number) => {
     updateProgress(PROJECT, (p) =>
@@ -129,8 +138,12 @@ export function useProgress() {
         briefings[id] = true;
       }
       if (briefed && questId !== "__end") briefings[questId] = true;
+      // "…som gitt" means ready to work on, so it's picked up too.
+      const fetched = { ...p.fetched };
+      if (briefed && questId !== "__end") fetched[questId] = true;
       return {
         ...p,
+        fetched,
         introSeen: true,
         metBlacksmith: true,
         wraithDefeated: before.length > 0 || p.wraithDefeated,
@@ -149,6 +162,7 @@ export function useProgress() {
     solveTask,
     markIntroSeen,
     markWeekSeen,
+    fetchQuest,
     jumpTo,
   };
 }

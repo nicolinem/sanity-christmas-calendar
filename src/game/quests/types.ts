@@ -12,6 +12,7 @@ export type Progress = {
   wraithDefeated: boolean;
   completed: Record<string, string>; // quest id → ISO time it was completed
   briefed: Record<string, true>; // quests Brann has already explained
+  fetched: Record<string, true>; // quests picked up at their place in the village
   hints: Record<string, number>; // how many hints the player has revealed per quest
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
   introSeen: boolean; // the opening has been shown
@@ -97,4 +98,7 @@ export type QuestState = {
   status: QuestStatus;
   result: CheckResult;
   opensAt?: Date; // set when the calendar is what keeps it locked
+  // Brann has explained it, but it waits at this place in the village. Walk
+  // there once (E) to pick it up; after that it's worked on from anywhere.
+  pickup?: QuestSiteId;
 };

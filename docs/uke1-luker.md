@@ -30,9 +30,10 @@ Studio og spillet, ikke bare en bestått kodeøvelse.
   Ingen krav om en samling av en bestemt størrelse, og ingen ekstra poeng for
   gjentatt publisering.
 
-Brann og journalen gir tilgang til oppgaven. Ikke krev ekstra gåturer som
-bevis på læring. De eksisterende stedene i bygda kan fortsatt vise hvor
-oppgaven hører til; det nødvendige arbeidet foregår i Studio eller koden.
+Brann forklarer oppgaven. Har den et eget sted i bygda, henter deltakeren den
+der én gang (E), som en liten tur i bygda (avtalt 2026-11-13). Etterpå åpnes
+den hvor som helst. Ikke krev gåturer som bevis på læring: arbeidet foregår i
+Studio eller koden, og en bestått sjekk fullfører luka.
 
 ## Hva en sjekk betyr
 

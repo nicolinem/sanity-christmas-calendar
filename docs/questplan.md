@@ -319,8 +319,9 @@ Kan bytte inn en oppgave som ikke fungerer, eller bli ekstra bonus.
 - **Kalenderen** viser tre ukentlige kapitler, ikke 24 daglige luker. Nye
   kapitler åpner på dato; lukene i valgt løype tas i rekkefølge, og neste luke
   åpnes først når den aktive er fullført.
-- **Brann er veiviser.** Han deler ut luka og peker til stedet i bygda. Stedet
-  er valgfritt; mål, hint og kodevindu er tilgjengelig fra Brann og journalen.
+- **Brann er veiviser.** Han forklarer luka. Har luka et eget sted i bygda,
+  går deltakeren dit én gang og henter den med E (avtalt 2026-11-13). Etterpå
+  kan den åpnes hvor som helst: fra hjørnekortet, journalen eller kartet.
 - **J åpner kartet.** Journalen viser luker og lærdommer via egen knapp. Kartet
   viser hvor åpne, fullførte og låste luker ligger; «Gå til» bruker den
   eksisterende klikk-for-å-gå-bevegelsen. Senere luker er låst fram til den

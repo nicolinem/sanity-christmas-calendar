@@ -10,6 +10,7 @@ export const EMPTY_PROGRESS: Progress = {
   wraithDefeated: false,
   completed: {},
   briefed: {},
+  fetched: {},
   hints: {},
   struck: {},
   introSeen: false,

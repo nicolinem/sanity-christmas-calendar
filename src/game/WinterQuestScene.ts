@@ -12,6 +12,7 @@ import {
   MAP_W,
   PROPS,
   QUEST_SITES,
+  pathRoute,
   placeDoors,
   SPAWN,
   TREES,
@@ -58,6 +59,7 @@ export class WinterQuestScene extends Phaser.Scene {
   private moveTarget: Phaser.Math.Vector2 | null = null;
   private pendingSite: QuestSiteId | null = null;
   private stuckFrames = 0;
+  private route: Phaser.Math.Vector2[] = []; // legs still to walk after moveTarget
   private walkClock = 0;
   private speed = 64; // world px per second
 
@@ -448,6 +450,7 @@ export class WinterQuestScene extends Phaser.Scene {
     // Tap/click to walk: makes the game playable without a keyboard.
     this.input.on("pointerdown", (p: Phaser.Input.Pointer) => {
       this.moveTarget = new Phaser.Math.Vector2(p.worldX, p.worldY + 4);
+      this.route = [];
       this.stuckFrames = 0;
     });
   }
@@ -483,8 +486,10 @@ export class WinterQuestScene extends Phaser.Scene {
     // A cold forge smoulders; once lit it burns brighter with every level.
     this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
     this.sparks.frequency = w.forgeLit ? Math.round(150 / w.forgeLevel) : 260;
-    if (w.frozen) this.moveTarget = null;
-    else if (this.pendingSite) {
+    if (w.frozen) {
+      this.moveTarget = null;
+      this.route = [];
+    } else if (this.pendingSite) {
       this.moveToSite(this.pendingSite);
       this.pendingSite = null;
     }
@@ -508,7 +513,10 @@ export class WinterQuestScene extends Phaser.Scene {
 
   private moveToSite(id: QuestSiteId) {
     const destination = QUEST_SITES[id];
-    this.moveTarget = new Phaser.Math.Vector2(destination.x, destination.y);
+    this.route = pathRoute(this.knight, destination).map(
+      (p) => new Phaser.Math.Vector2(p.x, p.y),
+    );
+    this.moveTarget = this.route.shift() ?? null;
     this.stuckFrames = 0;
   }
 
@@ -763,11 +771,16 @@ export class WinterQuestScene extends Phaser.Scene {
 
     if (vx || vy) {
       this.moveTarget = null;
+      this.route = [];
     } else if (this.moveTarget) {
       const dx = this.moveTarget.x - this.knight.x;
       const dy = this.moveTarget.y - this.knight.y;
-      if (Math.hypot(dx, dy) < 2 || this.stuckFrames > 8) {
+      if (this.stuckFrames > 8) {
         this.moveTarget = null;
+        this.route = [];
+      } else if (Math.hypot(dx, dy) < 2) {
+        this.moveTarget = this.route.shift() ?? null;
+        this.stuckFrames = 0;
       } else {
         vx = dx;
         vy = dy;

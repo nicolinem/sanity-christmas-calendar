@@ -465,8 +465,11 @@ brukes i journalen, på kartet og i bygda. Skisser:
 
 **Rammer:**
 
-- Ingen gåtur er et krav. En kodeoppgave er ferdig når sjekken består, slik
-  avtalt 2026-11-12. Brann og stedene i bygda reagerer, men porter ingenting.
+- En kodeoppgave er ferdig når sjekken består, slik avtalt 2026-11-12. En luke
+  med eget sted hentes der én gang etter Brann (2026-11-13); det er den eneste
+  gåturen, og den kommer før arbeidet, ikke som bevis etterpå.
+- Idé for uke 2–3: flere personer i bygda som deler ut luker («Gå til Jonas ved
+  huset»), så det blir naturlig å gå rundt.
 - Bare grafikk vi har (Kenney). Tall og etiketter er HUD-tekst.
 - Sjekk hver leveranse i nettleseren på 1280×720, 1440×900, 1920×1080 og
   mobilbredde, med fersk og delvis fullført framgang.

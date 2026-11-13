@@ -349,7 +349,9 @@ kbd {
   cursor: pointer;
 }
 .tracker-week {
+  flex: none;
   font-size: 13px;
+  white-space: nowrap;
   color: var(--frost-dim);
 }
 .tracker-title {
@@ -421,6 +423,21 @@ kbd {
   font-size: 14px;
   line-height: 1.35;
   color: var(--snow);
+}
+.tracker-step {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  margin-top: 12px;
+}
+.tracker-step-btn {
+  font-size: 14px;
+}
+.tracker-where {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--frost-dim);
 }
 .tracker-foot {
   display: flex;
