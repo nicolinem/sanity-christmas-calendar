@@ -49,6 +49,20 @@ const COLORS: { key: ColorKey; title: string; options: { id: string; label: stri
   { key: "scarfColor", title: "Skjerffarge", options: CLOTH_COLORS },
 ];
 
+// Our take on each Tiny Dungeon person, to compare part by part.
+const TWINS: { frame: number; choice: FigureChoice }[] = [
+  { frame: 84, choice: { ...DEFAULT_FIGURE, hairColor: "white", facialHair: "wizard", top: "robe", topColor: "purple", hat: "wizard", hatColor: "purple" } },
+  { frame: 85, choice: { ...DEFAULT_FIGURE, hat: "none", topColor: "grey" } },
+  { frame: 86, choice: { ...DEFAULT_FIGURE, hair: "bald", facialHair: "beard", hairColor: "brown", top: "apron", topColor: "grey", hat: "none" } },
+  { frame: 87, choice: { ...DEFAULT_FIGURE, facialHair: "beard", hairColor: "white", topColor: "grey", hat: "viking" } },
+  { frame: 88, choice: { ...DEFAULT_FIGURE, hair: "bun", topColor: "yellow", hat: "none" } },
+  { frame: 96, choice: { ...DEFAULT_FIGURE, top: "sweater", topColor: "grey", armour: "plate", hat: "knight" } },
+  { frame: 97, choice: { ...DEFAULT_FIGURE, topColor: "grey", armour: "plate", hat: "helmet" } },
+  { frame: 99, choice: { ...DEFAULT_FIGURE, hair: "long", top: "dress", topColor: "purple", hat: "none" } },
+  { frame: 100, choice: { ...DEFAULT_FIGURE, hair: "bun", hairColor: "white", topColor: "purple", hat: "none" } },
+  { frame: 112, choice: { ...DEFAULT_FIGURE, topColor: "green", hat: "bandana", hatColor: "green" } },
+];
+
 // The Tiny Dungeon people, for comparison at the same scale.
 const KENNEY = [84, 85, 86, 87, 88, 96, 97, 98, 99, 100];
 
@@ -134,6 +148,20 @@ export default function FigureLab() {
           </div>
           <p className="flab-label">Lagret som</p>
           <pre className="flab-json">{JSON.stringify(choice, null, 2)}</pre>
+        </div>
+      </section>
+
+      <section className="flab-crowd" aria-label="Tvillinger">
+        <p className="flab-label">Tvillinger: vår versjon av hver Kenney-figur (vår til venstre i hvert par)</p>
+        <div className="flab-row flab-row--wrap">
+          {TWINS.map((t) => (
+            <span key={t.frame} className="flab-twin">
+              <button type="button" className="flab-pick" onClick={() => set(t.choice)} aria-label={`Bruk tvillingen til figur ${t.frame}`}>
+                <FigureCanvas choice={t.choice} scale={5} outline={outline} />
+              </button>
+              <SpriteIcon sprite={{ sheet: "dungeon", frame: t.frame }} scale={5} />
+            </span>
+          ))}
         </div>
       </section>
 

@@ -64,6 +64,8 @@ const FIXED: Record<string, string> = {
   i: "#8b9bb4",
   O: "#ffffff",
   V: "#52607c", // dark steel
+  R: "#eaa56c", // horn
+  r: "#bd6c4a", // horn shade
   X: OUTLINE, // lines drawn inside a part, like a helmet's ridges
 };
 
@@ -114,7 +116,9 @@ export const HAIRSTYLES: Part[] = [
     label: "Langt",
     grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HHHHHHHH", "...hHHHHH..Hh", "...HHH......H", "...HH.......h", "...HH.......H", "...HHH.....hH"),
   },
-  { id: "bun", label: "Knute", grid: grid(0, "......hHHh", ".....hHHHHh", "", ".....hHHHHh", "....hHHHHHHh", "....HHHHHHHH", "....H......H") },
+  // The knot sits right on the head, like Tiny Dungeon's frame 88, so no
+  // outline cuts between them.
+  { id: "bun", label: "Knute", grid: grid(1, "......hHHh", "......hHHh", ".....hHHHHh", "....hHHHHHHh", "....HH.HHH.H", "....H") },
   // Two braids in front of the shoulders, tied off at the ends.
   {
     id: "braids",
@@ -131,6 +135,12 @@ export const FACIAL_HAIR: Part[] = [
   { id: "moustache", label: "Bart", grid: grid(9, "......HhhH") },
   { id: "beard", label: "Skjegg", grid: grid(8, "....H......H", "....HHHHHHHH", ".....hHHHHh") },
   { id: "long", label: "Langt skjegg", grid: grid(8, "....H......H", "....HHHHHHHH", ".....HHHHHH", "......HHHH", ".......hh") },
+  // Down to the belt, like the wizard's (frame 84).
+  {
+    id: "wizard",
+    label: "Trollmannsskjegg",
+    grid: grid(8, "....H......H", "....HHHHHHHH", "....HHHHHHHH", ".....HHHHHH", ".....HHHHHH", "......HHhH", ".......hH"),
+  },
 ];
 
 // Tops: shoulders, sleeves, waist (rows 10–12), like the Kenney shirts.
@@ -139,6 +149,10 @@ export const TOPS: Part[] = [
   { id: "sweater", label: "Genser", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCWCCWCc") },
   { id: "santa", label: "Nissedrakt", grid: grid(10, "....Ww....wW", "...CCCCWWCCCC", "....ckkYYkkc", ".....CCCCCC") },
   { id: "coat", label: "Frakk", grid: grid(10, "....Ww....wW", "...CCCCCYCCCC", "....cCCCYCCc", ".....cCCYCc") },
+  // A baker's or smith's apron over the shirt (Tiny Dungeon frame 86).
+  { id: "apron", label: "Forkle", grid: grid(10, "....Cc....cC", "...CCWWWWWWCC", "....cWWWWWWc", ".....WWWWWW") },
+  // A long robe to the feet, like the wizard (frame 84).
+  { id: "robe", label: "Kjortel", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCCYCCCc", "....cCCCCCCc", "....cCCCCCCc", ".....cCCCCc") },
   { id: "dress", label: "Kjole", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCCYYCCc", "....cCCCCCCc", "....cccccccc") },
 ];
 
@@ -165,6 +179,28 @@ export const HATS: Part[] = [
     grid: grid(3, ".....IiiiiiI", "....XiXiXiXi", "....ViXiXiXi", "....iiiiiiii", "....i", "....i", "....i"),
     unlock: "Finnes i bygda",
   },
+  // Closed knight's helmet with a crest and visor slits (frame 96).
+  {
+    id: "knight",
+    label: "Ridderhjelm",
+    grid: grid(3, ".......II", ".....iIIIIi", "....ViIIIIiV", "....iiiiiiii", "....iiXiXiXi", "....iiXiXiXi", "....iiiiiiii"),
+    unlock: "Finnes i bygda",
+  },
+  // Horned helmet (frame 87).
+  {
+    id: "viking",
+    label: "Vikinghjelm",
+    grid: grid(3, ".....iIIiIi", "..RRiIIIiIIirR", "..RRrIIIiIIIrR", "...rRIiiIiiIR"),
+    unlock: "Finnes i bygda",
+  },
+  // Pointed hat tipped to one side, its brim shading the eyes (frame 84).
+  {
+    id: "wizard",
+    label: "Trollmannshatt",
+    grid: grid(1, ".....aAa", "....aAAAa", "...a.aAAAAa", ".....aAAAAAa", "...aAAAAAAAAa", "...AaXXXXXXaA"),
+  },
+  // A cloth band across the forehead (frame 112).
+  { id: "bandana", label: "Bandana", grid: grid(5, "....aAAWAWAa", "...a") },
   { id: "crown", label: "Krone", grid: grid(2, "....Y..Y..Y", "....YyYYYyYY", "....YGYYYGYY"), unlock: "Finnes i bygda" },
 ];
 

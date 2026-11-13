@@ -4414,3 +4414,10 @@ kbd {
   font-size: 11px;
   color: #3a4466;
 }
+
+.flab-twin {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  background: #c0cbdc;
+}
