@@ -105,6 +105,10 @@ const brannsLedger: Quest = {
     "Jeg har hengt våpenlista på oppslagstavla. Velg et ikon for Item, og vis navn og bilde for hvert våpen, så jeg slipper å lete neste gang.",
   ],
   goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*.",
+  goalPreview: {
+    before: "I dag viser lista bare navn.",
+    after: "Etterpå ser du bildet og typen til hvert våpen.",
+  },
   where:
     "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
   hints: [
@@ -155,6 +159,10 @@ const theGuildsLaw: Quest = {
     "Vi må stoppe slike feil før de kommer på lista. Kan du få Studio til å nekte våpen uten sprite og navn som allerede er i bruk?",
   ],
   goal: "Få Studio til å nekte våpen uten sprite og gjenstander uten navn eller med navn som allerede er brukt.",
+  goalPreview: {
+    before: "I dag kan et våpen uten sprite publiseres.",
+    after: "Etterpå sier Studio fra og stopper Publish.",
+  },
   where:
     "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
   hints: [

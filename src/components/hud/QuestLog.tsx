@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CHAPTERS } from "@/game/quests/chapters";
 import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
+import { fridayOf } from "@/game/quests/weeks";
 import type { Progress, QuestState } from "@/game/quests/types";
 import type { QuestSiteId } from "@/game/village";
 import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
@@ -31,6 +32,7 @@ type Props = {
   onTravelToSite: (siteId: QuestSiteId) => void;
   onClose: () => void;
   onReset: () => void;
+  onShowWeek?: (week: number) => void; // reopen a finished week's summary
 };
 
 type Tab = "quests" | "map" | "book";
@@ -51,6 +53,7 @@ export default function QuestLog({
   onTravelToSite,
   onClose,
   onReset,
+  onShowWeek,
 }: Props) {
   const [tab, setTab] = useState<Tab>(initialTab);
   const [selectedId, setSelectedId] = useState(
@@ -158,6 +161,7 @@ export default function QuestLog({
               selected={selected}
               completedAt={completedAt}
               onSelect={setSelectedId}
+              onShowWeek={onShowWeek}
               detail={
                 selected && selected.chapter.number === week ? (
                   <QuestDetail
@@ -178,8 +182,6 @@ export default function QuestLog({
           <div className="log-map-panel">
             <VillageMap
               board={board}
-              selectedId={selected?.quest.id}
-              onSelect={setSelectedId}
               onTravel={onTravelToSite}
               onOpenQuest={(questId) => {
                 setSelectedId(questId);
@@ -257,9 +259,7 @@ function rowStatus(
 function fridayLine(chapter: (typeof CHAPTERS)[number]) {
   const opens = chapterOpensAt(chapter);
   if (!opens) return "Fredag: løsningene for uka kommer.";
-  const friday = new Date(opens);
-  friday.setDate(opens.getDate() + ((5 - opens.getDay() + 7) % 7));
-  return `Fredag ${dateLabel(friday)}: løsningene for uka kommer.`;
+  return `Fredag ${dateLabel(fridayOf(opens))}: løsningene for uka kommer.`;
 }
 
 // One button per week: its number, a light per core door (lit when done), a
@@ -335,6 +335,7 @@ function WeekBody({
   selected,
   completedAt,
   onSelect,
+  onShowWeek,
   detail,
 }: {
   board: QuestBoard;
@@ -342,6 +343,7 @@ function WeekBody({
   selected: QuestState | undefined;
   completedAt: Progress["completed"];
   onSelect: (questId: string) => void;
+  onShowWeek?: (week: number) => void;
   detail: React.ReactNode;
 }) {
   const chapter = CHAPTERS.find((c) => c.number === week) ?? CHAPTERS[0];
@@ -404,6 +406,15 @@ function WeekBody({
           ))}
         </ul>
         <p className="log-friday">{fridayLine(chapter)}</p>
+        {onShowWeek && core.length > 0 && done === core.length && (
+          <button
+            type="button"
+            className="btn btn--quiet log-week-summary"
+            onClick={() => onShowWeek(chapter.number)}
+          >
+            Se ukeoppsummering
+          </button>
+        )}
       </nav>
       {detail}
     </div>

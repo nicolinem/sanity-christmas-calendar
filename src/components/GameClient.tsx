@@ -17,9 +17,9 @@ import {
   toGameItem,
   type GameItemView,
 } from "@/game/items";
+import { nextStepPoint, weekDoors } from "@/game/quests/doors";
 import {
   bridge,
-  type DoorMarker,
   type QuestCelebration as QuestCelebrationData,
   type Zone,
 } from "@/game/bridge";
@@ -31,6 +31,8 @@ import QuestTracker from "./hud/QuestTracker";
 import QuestLog from "./hud/QuestLog";
 import Toasts, { pushToast } from "./hud/Toasts";
 import QuestCelebration from "./hud/QuestCelebration";
+import WeekComplete from "./hud/WeekComplete";
+import { finishedWeeks, weekSummary } from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { useLiveRefresh } from "./hud/useLive";
@@ -135,6 +137,7 @@ export default function GameClient() {
     revealHint,
     solveTask,
     markIntroSeen,
+    markWeekSeen,
     jumpTo,
   } = useProgress();
   const dev = useDevMode();
@@ -258,26 +261,11 @@ export default function GameClient() {
   });
   const current = board.current;
   const currentId = current?.quest.id;
-  // This week's doors hang over their places in the village, locked ones too,
-  // so the player sees the whole week. A door without a place hangs at the forge.
-  const villageDoors = useMemo<DoorMarker[]>(() => {
-    const open = board.states.filter((s) => s.status !== "locked");
-    const week = current?.chapter.number ?? open.at(-1)?.chapter.number;
-    if (week === undefined) return [];
-    return board.states
-      .filter((s) => s.chapter.number === week)
-      .map((s) => ({
-        id: s.quest.id,
-        door: s.quest.door,
-        site: s.quest.villageSite ?? "forge",
-        status:
-          s.status === "done"
-            ? "done"
-            : s.status === "locked"
-              ? "locked"
-              : "open",
-      }));
-  }, [board.states, current?.chapter.number]);
+  const villageDoors = useMemo(() => weekDoors(board), [board]);
+  const nextStep = useMemo(
+    () => nextStepPoint(board, villageDoors),
+    [board, villageDoors],
+  );
   const siteQuest =
     zone && zone !== "forge"
       ? board.states.find(
@@ -342,6 +330,29 @@ export default function GameClient() {
 
   const showOpening = !progress.introSeen;
 
+  // A finished week gets its summary once, after the last door's celebration;
+  // the journal can open it again (weekShown).
+  const [weekShown, setWeekShown] = useState<number | null>(null);
+  const pendingWeek = finishedWeeks(board).find(
+    (week) => !progress.weeksSeen?.[week],
+  );
+  const quiet =
+    celebrations.length === 0 &&
+    codeQuestId === null &&
+    !studio.open &&
+    !logOpen &&
+    !dialogueOpen &&
+    !showOpening;
+  const summaryWeek = weekShown ?? (quiet ? pendingWeek : undefined);
+  const summary =
+    summaryWeek === undefined
+      ? null
+      : weekSummary(board, summaryWeek, progress);
+  const closeSummary = useCallback(() => {
+    if (summaryWeek !== undefined) markWeekSeen(summaryWeek);
+    setWeekShown(null);
+  }, [summaryWeek, markWeekSeen]);
+
   // Keep the world in sync with game state.
   useEffect(() => {
     const hand =
@@ -356,13 +367,15 @@ export default function GameClient() {
       forgeLevel,
       brannMarker: current?.status === "offered",
       doors: villageDoors,
+      goal: nextStep,
       wraithDefeated: combat.defeated,
       frozen:
         dialogueOpen ||
         logOpen ||
         codeOpen ||
         showOpening ||
-        Boolean(celebration),
+        Boolean(celebration) ||
+        Boolean(summary),
     });
   }, [
     equipped,
@@ -370,12 +383,14 @@ export default function GameClient() {
     forgeLevel,
     current?.status,
     villageDoors,
+    nextStep,
     combat.defeated,
     dialogueOpen,
     logOpen,
     codeOpen,
     showOpening,
     celebration,
+    summary,
   ]);
 
   const slots = narrow ? 5 : 8;
@@ -595,6 +610,10 @@ export default function GameClient() {
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}
+            onShowWeek={(week) => {
+              setLogOpen(false);
+              setWeekShown(week);
+            }}
           />
         )}
 
@@ -649,6 +668,22 @@ export default function GameClient() {
           onReadPage={() => {
             dismissCelebration();
             openQuestLog(celebration.questId);
+          }}
+        />
+      )}
+
+      {summary && !celebration && (
+        <WeekComplete
+          key={summary.number}
+          summary={summary}
+          forgeLevel={forgeLevel}
+          onClose={closeSummary}
+          onOpenBook={() => {
+            closeSummary();
+            setTalking(false);
+            setLogInitialTab("book");
+            setLogInitialQuestId(undefined);
+            setLogOpen(true);
           }}
         />
       )}

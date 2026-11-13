@@ -131,6 +131,34 @@ export const QUEST_SITES = {
 
 export type QuestSiteId = keyof typeof QUEST_SITES;
 
+// Where a place's calendar doors hang (px, bottom centre of the window), clear
+// of Brann's «!». The forge's roof sits at the world's top edge, where a door
+// would be cut off, so its doors hang east of the weapon rack instead.
+export const DOOR_ANCHORS: Record<QuestSiteId, { x: number; y: number }> = {
+  forge: {
+    x: (FORGE.x + FORGE.rows[0].length) * 16 + 22,
+    y: (FORGE.y + 2) * 16,
+  },
+  westHouse: { x: 10 * 16, y: 6 * 16 - 4 },
+  noticeboard: { x: QUEST_SITES.noticeboard.mapX, y: 13 * 16 - 4 },
+};
+
+// Doors that share a place stand side by side, 22px apart.
+export function placeDoors<T extends { site: QuestSiteId }>(
+  doors: T[],
+): (T & { x: number; y: number })[] {
+  return doors.map((door) => {
+    const group = doors.filter((d) => d.site === door.site);
+    const i = group.indexOf(door);
+    const anchor = DOOR_ANCHORS[door.site];
+    return {
+      ...door,
+      x: Math.round(anchor.x + (i - (group.length - 1) / 2) * 22),
+      y: anchor.y,
+    };
+  });
+}
+
 // --- derived grid -----------------------------------------------------------
 
 function inRect(x: number, y: number, r: Rect) {

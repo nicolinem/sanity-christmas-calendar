@@ -6,6 +6,7 @@ import type { QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
 import { QUEST_SITES, type QuestSiteId } from "@/game/village";
 import SpriteIcon from "./SpriteIcon";
+import GoalPreview from "./goalPreviews";
 import { IconQuill } from "./icons";
 import { renderText } from "./richText";
 import { openStudio } from "./studioPane";
@@ -98,6 +99,11 @@ export default function ForgeDialogue(props: Props) {
         <div className="dialogue-speech" aria-live="polite">
           {pages[page]}
         </div>
+        {last && current && sanityConfigured !== false && (
+          <div className="dialogue-picture">
+            <GoalPreview quest={current.quest} />
+          </div>
+        )}
 
         {last ? (
           <Details {...props} studioRef={studioRef} />
@@ -139,14 +145,16 @@ function buildPages(
     ];
   }
   const { current, previous } = board;
-  const reaction = previous && current?.status === "offered"
-    ? [<Reaction key="r" state={previous} />]
-    : [];
+  const reaction =
+    previous && current?.status === "offered"
+      ? [<Reaction key="r" state={previous} />]
+      : [];
   if (!current) {
     return [
       ...reaction,
       <>
-        Det var alle lukene som er åpne nå. Se det du har gjort i journalen (J), og kom tilbake når neste luke åpner.
+        Det var alle lukene som er åpne nå. Se det du har gjort i journalen (J),
+        og kom tilbake når neste luke åpner.
       </>,
     ];
   }
@@ -198,7 +206,8 @@ function buildPages(
 function Reaction({ state }: { state: QuestState }) {
   return (
     <>
-      Bra jobbet! Luke {state.quest.door} er krysset ut i journalen. Det du lærte:
+      Bra jobbet! Luke {state.quest.door} er krysset ut i journalen. Det du
+      lærte:
       <span className="dialogue-lesson">
         <span className="dialogue-lesson-title">
           {renderText(state.quest.lesson.title)}

@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { EditorView, basicSetup } from "codemirror";
 import { EditorState } from "@codemirror/state";
+import { keymap } from "@codemirror/view";
+import { indentWithTab } from "@codemirror/commands";
+import { lintGutter, setDiagnostics } from "@codemirror/lint";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 import type { QuestState, SolvedTask } from "@/game/quests/types";
@@ -56,6 +59,20 @@ type Props = {
   onClose: () => void;
 };
 
+// Prettier is big, so it loads the first time someone formats.
+async function format(source: string): Promise<string> {
+  const [prettier, typescript, estree] = await Promise.all([
+    import("prettier/standalone"),
+    import("prettier/plugins/typescript"),
+    import("prettier/plugins/estree"),
+  ]);
+  return prettier.format(source, {
+    parser: "typescript",
+    plugins: [typescript, estree],
+    printWidth: 72,
+  });
+}
+
 const draftKey = (questId: string) => `winter-quest:code:${questId}`;
 
 function loadDraft(questId: string, starter: string) {
@@ -92,6 +109,31 @@ export default function CodeWindow({
   const reference = tab === null ? null : task.references[tab];
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const [formatNote, setFormatNote] = useState<string | null>(null);
+
+  // Formats the player's file in place. Code that doesn't parse is left alone;
+  // the status line already says where the typo is.
+  const formatCode = async () => {
+    const view = viewRef.current;
+    if (!view) return;
+    const before = view.state.doc.toString();
+    try {
+      const after = await format(before);
+      if (view.state.doc.toString() !== before) return; // typed meanwhile
+      if (after !== before)
+        view.dispatch({
+          changes: { from: 0, to: view.state.doc.length, insert: after },
+        });
+      setFormatNote(null);
+    } catch {
+      setFormatNote("Rett skrivefeilen først, så kan koden formateres.");
+    }
+    view.focus();
+  };
+  const formatRef = useRef(formatCode);
+  useEffect(() => {
+    formatRef.current = formatCode;
+  });
   const [initiallySolved] = useState(() => solved);
 
   // The editor owns the text; React hears about every change.
@@ -102,6 +144,18 @@ export default function CodeWindow({
       parent: editorRef.current,
       extensions: [
         basicSetup,
+        // Tab indents, like in an editor. Esc then Tab still leaves the field.
+        keymap.of([
+          indentWithTab,
+          {
+            key: "Shift-Alt-f",
+            run: () => {
+              void formatRef.current();
+              return true;
+            },
+          },
+        ]),
+        lintGutter(),
         javascript({ jsx: true, typescript: true }),
         oneDark,
         EditorView.theme({ "&": { height: "100%" } }),
@@ -160,6 +214,26 @@ export default function CodeWindow({
       onSolved(verdict.solvedAs);
   }, [error, verdict, solved, onSolved]);
 
+  // Point at the line the error is on, in the gutter and under the text.
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    const doc = view.state.doc;
+    const line = error?.line;
+    const diagnostics =
+      error && line && line <= doc.lines
+        ? [
+            {
+              from: doc.line(line).from,
+              to: doc.line(line).to,
+              severity: "error" as const,
+              message: error.message.replace(/`/g, ""),
+            },
+          ]
+        : [];
+    view.dispatch(setDiagnostics(view.state, diagnostics));
+  }, [error]);
+
   const startOver = () => {
     const view = viewRef.current;
     if (!view) return;
@@ -175,6 +249,8 @@ export default function CodeWindow({
     hintsShown > 0
       ? Math.min(hintsShown - 1, Math.max(0, selectedHint ?? hintsShown - 1))
       : 0;
+  // Passing now, or (before the first run finishes) passed earlier.
+  const passed = !taskError && (verdict ? verdict.done : solved);
   const passedRequirements =
     verdict?.requirements.filter((requirement) => requirement.done).length ?? 0;
 
@@ -192,6 +268,15 @@ export default function CodeWindow({
           <p className="log-meta">
             <span className="cw-door">Luke {quest.door}</span>: {quest.title}
           </p>
+          <button
+            type="button"
+            className="btn btn--quiet"
+            onClick={() => void formatCode()}
+            title="Shift+Alt+F"
+            hidden={reference !== null}
+          >
+            Formater
+          </button>
           <button type="button" className="btn btn--quiet" onClick={startOver}>
             Start på nytt
           </button>
@@ -254,20 +339,45 @@ export default function CodeWindow({
             {reference && (
               <ReadOnlyCode key={reference.file} source={reference.source} />
             )}
-            <p
-              className={`cw-status${taskError ? " is-error" : ""}`}
-              role={taskError ? "alert" : "status"}
-            >
-              {taskError ? (
-                <>
-                  <strong>Feil i {task.file}:</strong> {renderText(taskError)}
-                </>
-              ) : verdict?.done ? (
-                "Oppgave godkjent."
-              ) : (
-                "Koden kjører. Se hvilke kriterier som er oppfylt."
-              )}
-            </p>
+            {passed ? (
+              <div className="cw-status is-done" role="status">
+                <span>
+                  <strong>Oppgave godkjent!</strong>{" "}
+                  {initiallySolved
+                    ? "Studio bruker vår versjon av koden."
+                    : "Luka blir ferdig når du går videre."}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn--amber"
+                  onClick={onClose}
+                >
+                  {initiallySolved ? "Lukk" : "Gå videre"}
+                </button>
+              </div>
+            ) : (
+              <p
+                className={`cw-status${taskError ? " is-error" : ""}`}
+                role={taskError ? "alert" : "status"}
+              >
+                {taskError ? (
+                  <>
+                    <strong>
+                      Feil i {task.file}
+                      {error?.line && !taskError.includes(`linje ${error.line}`)
+                        ? `, linje ${error.line}`
+                        : ""}
+                      :
+                    </strong>{" "}
+                    {renderText(taskError)}
+                  </>
+                ) : formatNote ? (
+                  formatNote
+                ) : (
+                  "Koden kjører. Se hvilke kriterier som er oppfylt."
+                )}
+              </p>
+            )}
           </div>
 
           <div className="cw-side">
@@ -397,17 +507,9 @@ export default function CodeWindow({
                   aria-label="Godkjent oppgave"
                 >
                   <p role="status">
-                    <strong>Oppgave godkjent!</strong> Studio bruker nå vår versjon av koden.
+                    <strong>Oppgave godkjent!</strong> Studio bruker nå vår
+                    versjon av koden.
                   </p>
-                  {!initiallySolved && (
-                    <button
-                      type="button"
-                      className="btn btn--amber"
-                      onClick={onClose}
-                    >
-                      Gå videre
-                    </button>
-                  )}
                   <StudioPractice
                     state={state}
                     codePassed={solved}

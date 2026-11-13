@@ -14,6 +14,7 @@ export const EMPTY_PROGRESS: Progress = {
   struck: {},
   introSeen: false,
   solved: {},
+  weeksSeen: {},
 };
 
 // One record per Sanity project, so a fresh project is a fresh start.
