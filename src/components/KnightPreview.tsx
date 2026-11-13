@@ -7,6 +7,7 @@ type Props = {
   spriteId?: string | null; // the item's sprite, e.g. "axe"
   kind?: string | null; // so unknown sprites get the right stand-in
   scale?: number; // whole-number zoom; 5 suits a Studio view
+  showWeapon?: boolean;
 };
 
 const KNIGHT = { sheet: "dungeon", frame: 96 } as const;
@@ -15,11 +16,11 @@ const SNOW = { sheet: "town", frame: 0 } as const;
 // The knight on a patch of Frostholm snow, swinging the given weapon in a
 // loop. Made for Studio views (the Proving Room quest), but works anywhere
 // React renders. Animation is plain CSS, and stops for reduced motion.
-export default function KnightPreview({ spriteId, kind, scale = 5 }: Props) {
+export default function KnightPreview({ spriteId, kind, scale = 5, showWeapon = true }: Props) {
   const px = TILE * scale;
   return (
     <div
-      aria-label="Ridderen med våpenet"
+      aria-label={showWeapon ? "Ridderen med våpenet" : "Ridderen"}
       style={{ position: "relative", width: px * 3, height: px * 2, overflow: "hidden", borderRadius: 4 }}
     >
       <style>{`
@@ -39,18 +40,20 @@ export default function KnightPreview({ spriteId, kind, scale = 5 }: Props) {
         className="wq-lunge"
         style={{ position: "absolute", left: px, top: px / 2, animation: "wq-lunge 1.4s steps(4) infinite" }}
       >
-        <div
-          className="wq-swing"
-          style={{
-            position: "absolute",
-            left: px * 0.55,
-            top: -px * 0.2,
-            transformOrigin: "30% 85%",
-            animation: "wq-swing 1.4s steps(4) infinite",
-          }}
-        >
-          <SpriteImage spriteId={spriteId} kind={kind ?? "weapon"} scale={scale} />
-        </div>
+        {showWeapon && (
+          <div
+            className="wq-swing"
+            style={{
+              position: "absolute",
+              left: px * 0.55,
+              top: -px * 0.2,
+              transformOrigin: "30% 85%",
+              animation: "wq-swing 1.4s steps(4) infinite",
+            }}
+          >
+            <SpriteImage spriteId={spriteId} kind={kind ?? "weapon"} scale={scale} />
+          </div>
+        )}
         <SpriteImage sprite={KNIGHT} scale={scale} style={{ position: "relative" }} />
       </div>
     </div>

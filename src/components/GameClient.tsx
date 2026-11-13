@@ -35,6 +35,7 @@ import WeekComplete from "./hud/WeekComplete";
 import { finishedWeeks, weekSummary } from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
+import { PROGRESS_PROJECT } from "@/game/quests/progress";
 import { useLiveRefresh } from "./hud/useLive";
 import DevPanel from "./hud/DevPanel";
 import ForgeDialogue from "./hud/ForgeDialogue";
@@ -101,6 +102,7 @@ export default function GameClient() {
   const [unclaimed, setUnclaimed] = useState(false);
   const [unpublishedDrafts, setUnpublishedDrafts] = useState(0);
   const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
+  const [communityReady, setCommunityReady] = useState(false);
   const [equippedId, setEquippedId] = useState<string | null>(null);
   // While true, the game keeps the strongest weapon equipped as content loads.
   // A manual click turns it off so the player's choice sticks.
@@ -142,6 +144,12 @@ export default function GameClient() {
     fetchQuest,
     jumpTo,
   } = useProgress();
+  useEffect(() => {
+    fetch("/api/community", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => setCommunityReady(Boolean(data?.publishing)))
+      .catch(() => {}); // The shared project is optional; the game stays playable offline.
+  }, []);
   const dev = useDevMode();
   const studio = useStudioPane();
   const studioFocused = useStudioFocused() && studio.open;
@@ -225,14 +233,36 @@ export default function GameClient() {
     () => items.find((i) => i.id === equippedId) ?? null,
     [items, equippedId],
   );
+  const bestWeapon = useMemo(
+    () => [...items].filter(isUsableWeapon)
+      .sort((a, b) => (b.power?.damage ?? 0) - (a.power?.damage ?? 0))[0],
+    [items],
+  );
+
+  useEffect(() => {
+    if (!communityReady || configured !== true || PROGRESS_PROJECT === "demo" ||
+        (autoEquip && bestWeapon && equippedId !== bestWeapon.id) ||
+        new URLSearchParams(window.location.search).has("dev")) return;
+    // Resend on reload: milestones deduplicate, while the selected weapon stays current.
+    fetch("/api/community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerId: PROGRESS_PROJECT,
+        questIds: Object.keys(progress.completed),
+        character: {
+          weapon: equipped?.source === "sanity" && equipped.kind === "weapon"
+            ? { name: equipped.name, spriteId: equipped.spriteId }
+            : null,
+        },
+      }),
+    }).catch(() => {});
+  }, [communityReady, configured, progress.completed, equipped, autoEquip, bestWeapon, equippedId]);
 
   useEffect(() => {
     if (!autoEquip) return;
-    const best = [...items]
-      .filter(isUsableWeapon)
-      .sort((a, b) => (b.power?.damage ?? 0) - (a.power?.damage ?? 0))[0];
-    if (best && best.id !== equippedId) setEquippedId(best.id);
-  }, [items, autoEquip, equippedId]);
+    if (bestWeapon && bestWeapon.id !== equippedId) setEquippedId(bestWeapon.id);
+  }, [bestWeapon, autoEquip, equippedId]);
 
   const handleEquip = useCallback((item: GameItemView) => {
     setAutoEquip(false);

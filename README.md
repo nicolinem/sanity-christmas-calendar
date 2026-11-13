@@ -113,3 +113,5 @@ Studio: damage comes from the forge level, and a weapon's element from its
 name. Your Studio chooses *what* things are; the rules live in `src/game/`.
 
 Organizing the calendar? See [docs/arrangor.md](docs/arrangor.md).
+The first optional shared-progress prototype and its safety limitations are
+documented in [docs/fellesskap.md](docs/fellesskap.md).

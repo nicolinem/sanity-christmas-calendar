@@ -16,6 +16,7 @@ import QuestHint from "./QuestHint";
 import QuestBook from "./QuestBook";
 import { openStudio } from "./studioPane";
 import SpriteIcon from "./SpriteIcon";
+import Community from "./Community";
 
 const dateLabel = (date: Date) =>
   date.toLocaleDateString("nb-NO", { day: "numeric", month: "long" });
@@ -36,7 +37,7 @@ type Props = {
   onShowWeek?: (week: number) => void; // reopen a finished week's summary
 };
 
-type Tab = "quests" | "map" | "book";
+type Tab = "quests" | "map" | "book" | "community";
 
 // The calendar: every door by week, what's done, what's next, and the layered
 // hints. Lessons collects what each finished door taught. Weeks that aren't
@@ -111,6 +112,15 @@ export default function QuestLog({
               onClick={() => setTab("book")}
             >
               Boka
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "community"}
+              className={`log-tab${tab === "community" ? " is-on" : ""}`}
+              onClick={() => setTab("community")}
+            >
+              Andre
             </button>
           </div>
           <p
@@ -198,6 +208,8 @@ export default function QuestLog({
               }}
             />
           </div>
+        ) : tab === "community" ? (
+          <Community />
         ) : (
           <QuestBook
             board={board}
