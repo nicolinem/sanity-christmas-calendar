@@ -2448,6 +2448,25 @@ kbd {
   color: #ffd2c9;
   background: color-mix(in srgb, var(--sanity) 28%, var(--night-2));
 }
+/* Approved: the way on sits right under the code, never below the fold. */
+.cw-status.is-done {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-height: none;
+  padding: 8px 10px 8px 14px;
+  font-size: 14px;
+  color: var(--snow);
+  background: color-mix(in srgb, var(--evergreen) 70%, var(--night-2));
+  box-shadow: inset 3px 0 0 var(--amber);
+}
+.cw-status.is-done strong {
+  color: var(--amber);
+}
+.cw-status.is-done .btn {
+  flex: none;
+}
 /* The last result that ran, kept while the code doesn't. */
 .cw-stale {
   opacity: 0.78;
