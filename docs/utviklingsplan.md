@@ -89,7 +89,7 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 - Kapittel 1: Den knuste smia → Prøv bladet (beseir wraith-en, **+1 smienivå**) → Branns protokoll → Laugets lov → Spritevelgeren → Prøvestua → Smi-knappen (**+1 smienivå**). Quest 3–6 sjekkes fra koden; Smi-knappen sjekkes i data (`forgedAt`).
 - Kodesjekker leses fra `.quest/results.json` via `/api/quest-checks` (gitignored). `npm run quest` som skriver fila, kommer i fase 3.
 - HUD: tracker med aktiv quest og fremgang, questlogg (J) med lagvise hint og Learn-lenker, toasts for fullført quest og hetere smie, Brann deler ut quester med egen replikk, «!» over Brann når han har en ny oppgave.
-- `NEXT_PUBLIC_CALENDAR_START=YYYY-MM-DD` slår på datoåpning (kapittel N åpner N−1 uker etter). Uten den er alt åpent. `?dev=quests` åpner alt for testing.
+- `NEXT_PUBLIC_CALENDAR_START=YYYY-MM-DD` slår på datoåpning: kapittel 1 åpner på datoen, senere kapitler på mandagene etter (med `2026-12-01`: 1., 7. og 14. desember). Uten den er alt åpent. `?dev=quests` åpner alt for testing.
 
 ## Fase 2: Navnemagi (delvis gjort 2026-10-23)
 
@@ -451,3 +451,38 @@ ekte Studio-publisering.
   fullføring, lagring/reload/reset, nivåbelønning og feiring av neste luke.
   Fyll testhullene og kjør nettleserprøve; ikke legg til nye ukeoppgaver i
   samme leveranse.
+
+### Journal, kart og følelsen av å bli ferdig (2026-11-13)
+
+**Mål:** Deltakeren skal alltid se hva uka består av, hva som er neste steg og
+hva hen allerede har fått til. Å fullføre en luke skal sette spor som blir
+stående, ikke bare vise en melding.
+
+**Retning:** «luka som lyser» er det felles symbolet. Hver luke har et vindu
+(Kenney town-ramme 84) som er slukket, åpent eller tent. Det samme bildet
+brukes i journalen, på kartet og i bygda. Skisser:
+[Journal, kart og flyt](https://claude.ai/artifact/963Tmvey9AjB4ApsWoawuE).
+
+**Rammer:**
+
+- Ingen gåtur er et krav. En kodeoppgave er ferdig når sjekken består, slik
+  avtalt 2026-11-12. Brann og stedene i bygda reagerer, men porter ingenting.
+- Bare grafikk vi har (Kenney). Tall og etiketter er HUD-tekst.
+- Sjekk hver leveranse i nettleseren på 1280×720, 1440×900, 1920×1080 og
+  mobilbredde, med fersk og delvis fullført framgang.
+
+| Steg                       | Innhold                                                                                                                                                                                                                                                    | Ferdig når                                                                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **J1. Uka** (journalen) ✅ | Fanene Uka · Kart · Boka. Én uke om gangen med lys per luke. Rader med vindu, «Luke N» og status. Høyre side etter tilstand: hos Brann, pågår, fullført (stempel, dato, lærdom), uke som ikke har åpnet (tema og dato). Fredagslinje. Smie-måler i toppen. | Ingen tom høyre side i noen tilstand. Tellingen stemmer med lista. Låste uker viser dato når `NEXT_PUBLIC_CALENDAR_START` er satt. |
+| **J2. Boka** ✅            | Lærdommer som pergamentsider per uke. Tomme sider for det som gjenstår. «Prøv selv» fra `studioPractice`. Ordliste med Sanity-ordene (`code`-termer) fra lærdommene.                                                                                       | Hver fullført luke har en side. Ordlista kan lenke til siden ordet kom fra.                                                        |
+| **J3. Fullføring** ✅      | Hjørnekortet blir gyllent når sjekken består. Feiringen viser tre spor: luka lyser, smia stiger, ny side i boka, med «Les siden». Brann kommenterer ved neste møte.                                                                                        | Hver belønning i feiringen kan finnes igjen etterpå. Ingen ekstra steg før neste luke åpnes.                                       |
+| **J4. Luker i bygda** ✅   | Et nummerert vindu svever over hvert `villageSite`, synlig fra uka åpner. Slukket, åpent (gul kant og puls) eller tent. Luker uten sted henger over smia. «E Åpne luke N» er valgfritt.                                                                    | Alle ukas luker synes i verden. Tilstandene følger motoren og overlever reload.                                                    |
+| **J5. Kart**               | Kartet tegnes fra selve tilemapet i liten skala, med de samme vinduene og spilleren. Pil i skjermkanten mot målet når det er utenfor bildet.                                                                                                               | Kartet bruker ingen egen tegnestil. Pila peker riktig i alle tilstander.                                                           |
+| **J6. Uka er ferdig**      | Fredagsskjerm: alle lys, oppsummering, deletekst uten emoji og neste ukes tema og dato. Bakeren og løsningene fra historien.                                                                                                                               | Vises én gang per uke. Deleteksten avslører ingen løsninger.                                                                       |
+
+**Rekkefølge:** J1 → J3 → J4 → J2 → J5 → J6. J1 og J3 gir mest effekt for
+uke 1. J4 avhenger av at J1 og J3 bruker samme tilstander. J5 og J6 kan vente
+til etter at uke 1 er gjennomspilt.
+
+**Åpne spørsmål:** «Du laget» på en fullført side krever en kobling fra luke
+til dokumentet deltakeren laget. Avklar før J1 utvides med det.

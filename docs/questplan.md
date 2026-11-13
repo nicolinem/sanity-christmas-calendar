@@ -127,7 +127,7 @@ publisering uten utilsiktet fremgang.
 
 ★ oppgave, ☆ bonus. Datoene gjelder 2026.
 
-### Uke 1: Studio (åpner mandag 30. november)
+### Uke 1: Studio (åpner tirsdag 1. desember)
 
 Konkrete Brann-tekster, Studio-avslutninger, lærdommer, hint og sjekkvilkår for
 begge løyper står i [uke1-luker.md](uke1-luker.md). Dette er det nye
@@ -203,7 +203,7 @@ variere, må poengfordelingen utformes slik at en løype ikke gir mer framgang b
 fordi den har flere luker. Poeng låser ikke opp innhold. Nivågrenser er
 startverdier som testes etter uke 1.
 
-**Kalenderforslag:** uke 1 åpner mandag 30. november 2026, deretter mandag 7. og 14. desember. Åpne kapitler blir stående tilgjengelige ut desember, og
+**Kalender:** uke 1 åpner tirsdag 1. desember 2026, deretter mandag 7. og 14. desember (avklart 2026-11-13). Åpne kapitler blir stående tilgjengelige ut desember, og
 senere deltakere kan ta dem igjen.
 
 **Deltakeroversikt — personvernforslag:** tydelig, frivillig opt-in separat
@@ -225,7 +225,8 @@ Avklaringer per leveranse:
    ikke.
 - [ ] Poengfordeling som er rettferdig mellom løypene, bonus uten poeng og
       nivågrenser som startverdier.
-- [ ] Åpningsdatoene 30. november, 7. desember og 14. desember 2026.
+- [x] Åpningsdatoene 1. desember (tirsdag), 7. desember og 14. desember 2026
+      (2026-11-13).
 - [ ] Opt-in og avmelding for oversikten, hvilke felter som vises, hvem som er
       eier/behandlingsansvarlig, og når data slettes.
 

@@ -20,15 +20,20 @@ export function chaptersForTrack(
   }));
 }
 
-// Quests unlock one after another. Each chapter opens weekly from
-// NEXT_PUBLIC_CALENDAR_START (30 November). Without it, dates are ignored.
+// Quests unlock one after another. Chapter 1 opens on
+// NEXT_PUBLIC_CALENDAR_START (Tuesday 1 December); later chapters open on the
+// Mondays after it (7 and 14 December). Without it, dates are ignored.
 const CALENDAR_START = process.env.NEXT_PUBLIC_CALENDAR_START;
 
 export function chapterOpensAt(chapter: Chapter): Date | undefined {
   if (!CALENDAR_START) return undefined;
   const start = new Date(`${CALENDAR_START}T00:00:00`);
   if (Number.isNaN(start.getTime())) return undefined;
-  return new Date(start.getTime() + (chapter.number - 1) * 7 * 864e5);
+  if (chapter.number <= 1) return start;
+  const monday = new Date(start);
+  monday.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+  monday.setDate(monday.getDate() + (chapter.number - 1) * 7);
+  return monday;
 }
 
 export type QuestBoard = {

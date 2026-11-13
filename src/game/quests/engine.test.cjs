@@ -183,6 +183,18 @@ test("an unfinished bonus never blocks the next core task, and bonuses never aff
   );
 });
 
+test("a mid-week start opens week 1 on that day and later weeks on Mondays", () => {
+  const engine = loadEngine("2026-12-01");
+  const opens = [1, 2, 3].map((n) =>
+    engine.chapterOpensAt(chapter(n, [])).getTime(),
+  );
+  assert.deepEqual(opens, [
+    new Date("2026-12-01T00:00:00").getTime(),
+    new Date("2026-12-07T00:00:00").getTime(),
+    new Date("2026-12-14T00:00:00").getTime(),
+  ]);
+});
+
 test("weekly gating uses chapter numbers even when track selection leaves empty weeks", () => {
   const engine = loadEngine("2026-11-30");
   const chapters = chaptersForTrack(

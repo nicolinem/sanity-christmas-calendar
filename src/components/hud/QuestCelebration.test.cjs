@@ -50,7 +50,9 @@ test("quest completion shows the finished task and reward before opening the nex
   assert.match(html, /Validation: regler for våpen/);
   assert.match(html, /Krysset av i journalen/);
   assert.match(html, /Koden er bestått/);
-  assert.match(html, /Nivå 2! Våpnene dine gjør nå 6 skade/);
+  assert.match(html, /Smia nivå 2! Våpnene dine gjør nå 6 skade/);
+  assert.match(html, /Luke 3 lyser i journalen/);
+  assert.match(html, /Ny side i boka: Validation/);
   assert.match(html, />Se neste luke<\/button>/);
   assert.doesNotMatch(html, /Luke 4 er åpnet/);
   assert.doesNotMatch(html, /quest-celebration-doorway/);
@@ -115,4 +117,19 @@ test("when there is no new unlocked door, completion just returns to the village
   assert.doesNotMatch(html, /Se neste luke/);
   assert.doesNotMatch(html, /Brann · smia/);
   assert.doesNotMatch(html, /Åpne journal/);
+});
+
+test("the finished beat links to the door's page when the journal can show it", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(QuestCelebration, {
+      questId: "the-guilds-law",
+      door: 3,
+      title: "Validation",
+      lesson: "Validation",
+      onClose() {},
+      onOpenLog() {},
+      onReadPage() {},
+    }),
+  );
+  assert.match(html, />Les siden<\/button>/);
 });

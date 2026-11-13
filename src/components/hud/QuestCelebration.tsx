@@ -6,7 +6,11 @@ import type { QuestCelebration as Celebration } from "@/game/bridge";
 import { IconCheck } from "./icons";
 import SpriteIcon from "./SpriteIcon";
 
-type Props = Celebration & { onClose: () => void; onOpenLog: () => void };
+type Props = Celebration & {
+  onClose: () => void;
+  onOpenLog: () => void;
+  onReadPage?: () => void; // the finished door's page in the journal
+};
 
 export default function QuestCelebration({
   door,
@@ -17,6 +21,7 @@ export default function QuestCelebration({
   nextDoor,
   onClose,
   onOpenLog,
+  onReadPage,
 }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
@@ -29,11 +34,16 @@ export default function QuestCelebration({
         event.preventDefault();
         onClose();
       } else if (event.key === "Tab") {
-        const buttons = actionsRef.current?.querySelectorAll<HTMLButtonElement>("button");
+        const buttons =
+          actionsRef.current?.querySelectorAll<HTMLButtonElement>("button");
         if (!buttons?.length) return;
-        const index = Array.from(buttons).indexOf(document.activeElement as HTMLButtonElement);
+        const index = Array.from(buttons).indexOf(
+          document.activeElement as HTMLButtonElement,
+        );
         event.preventDefault();
-        buttons[(index + (event.shiftKey ? buttons.length - 1 : 1)) % buttons.length]?.focus();
+        buttons[
+          (index + (event.shiftKey ? buttons.length - 1 : 1)) % buttons.length
+        ]?.focus();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -72,13 +82,23 @@ export default function QuestCelebration({
           </p>
           {unlocked && (
             <div className="quest-celebration-guide">
-              <span className="quest-celebration-guide-portrait" role="img" aria-label="Brann, smeden">
-                <SpriteIcon sprite={{ sheet: "dungeon", frame: 86 }} scale={4} />
+              <span
+                className="quest-celebration-guide-portrait"
+                role="img"
+                aria-label="Brann, smeden"
+              >
+                <SpriteIcon
+                  sprite={{ sheet: "dungeon", frame: 86 }}
+                  scale={4}
+                />
               </span>
             </div>
           )}
           {!unlocked && objectives && objectives.length > 0 && (
-            <ul className="quest-celebration-checklist" aria-label="Krysset av i journalen">
+            <ul
+              className="quest-celebration-checklist"
+              aria-label="Krysset av i journalen"
+            >
               {objectives.map((objective) => (
                 <li key={objective}>
                   <IconCheck size={14} /> {objective}
@@ -86,25 +106,70 @@ export default function QuestCelebration({
               ))}
             </ul>
           )}
-          <p className="quest-celebration-note">
-            {unlocked
-              ? "Gå til smia og snakk med Brann (E) for å få oppgaven. Den nye luka venter også i journalen."
-              : `Krysset av i journalen. Lærdom: ${lesson}. Se Lærdommer med J.`}
-          </p>
-          {!unlocked && level && (
-            <p className="quest-celebration-reward">
-              Nivå {level.number}! Våpnene dine gjør nå {level.damage} skade.
+          {unlocked ? (
+            <p className="quest-celebration-note">
+              Gå til smia og snakk med Brann (E) for å få oppgaven. Den nye luka
+              venter også i journalen.
             </p>
+          ) : (
+            <ul className="quest-celebration-traces" aria-label="Dette er nytt">
+              <li>
+                <span
+                  className="quest-celebration-trace-icon is-lit"
+                  aria-hidden="true"
+                >
+                  <SpriteIcon sprite={{ sheet: "town", frame: 84 }} scale={2} />
+                </span>
+                <span>Luke {door} lyser i journalen</span>
+              </li>
+              {level && (
+                <li className="quest-celebration-reward">
+                  <span
+                    className="quest-celebration-trace-icon"
+                    aria-hidden="true"
+                  >
+                    <span className="quest-celebration-pips">
+                      {Array.from({ length: 4 }, (_, i) => (
+                        <span
+                          key={i}
+                          className={i < level.number ? "is-on" : undefined}
+                        />
+                      ))}
+                    </span>
+                  </span>
+                  <span>
+                    Smia nivå {level.number}! Våpnene dine gjør nå{" "}
+                    {level.damage} skade.
+                  </span>
+                </li>
+              )}
+              <li>
+                <span
+                  className="quest-celebration-trace-icon"
+                  aria-hidden="true"
+                >
+                  <span className="quest-celebration-page" />
+                </span>
+                <span>Ny side i boka: {lesson}</span>
+              </li>
+            </ul>
           )}
           <div className="quest-celebration-actions" ref={actionsRef}>
             <button
               ref={closeRef}
               type="button"
               className="btn btn--amber"
-              onClick={nextDoor && !unlocked ? () => setUnlocked(true) : onClose}
+              onClick={
+                nextDoor && !unlocked ? () => setUnlocked(true) : onClose
+              }
             >
               {nextDoor && !unlocked ? "Se neste luke" : "Tilbake til bygda"}
             </button>
+            {!unlocked && onReadPage && (
+              <button type="button" className="btn" onClick={onReadPage}>
+                Les siden
+              </button>
+            )}
             {unlocked && (
               <button type="button" className="btn" onClick={onOpenLog}>
                 Åpne journalen

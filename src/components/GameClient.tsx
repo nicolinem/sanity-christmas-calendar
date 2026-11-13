@@ -19,6 +19,7 @@ import {
 } from "@/game/items";
 import {
   bridge,
+  type DoorMarker,
   type QuestCelebration as QuestCelebrationData,
   type Zone,
 } from "@/game/bridge";
@@ -39,6 +40,7 @@ import EncounterPanel from "./hud/EncounterPanel";
 import { useCombat } from "./hud/useCombat";
 import { IconQuill } from "./hud/icons";
 import {
+  closeStudio,
   focusGame,
   toggleStudio,
   useStudioFocused,
@@ -256,6 +258,26 @@ export default function GameClient() {
   });
   const current = board.current;
   const currentId = current?.quest.id;
+  // This week's doors hang over their places in the village, locked ones too,
+  // so the player sees the whole week. A door without a place hangs at the forge.
+  const villageDoors = useMemo<DoorMarker[]>(() => {
+    const open = board.states.filter((s) => s.status !== "locked");
+    const week = current?.chapter.number ?? open.at(-1)?.chapter.number;
+    if (week === undefined) return [];
+    return board.states
+      .filter((s) => s.chapter.number === week)
+      .map((s) => ({
+        id: s.quest.id,
+        door: s.quest.door,
+        site: s.quest.villageSite ?? "forge",
+        status:
+          s.status === "done"
+            ? "done"
+            : s.status === "locked"
+              ? "locked"
+              : "open",
+      }));
+  }, [board.states, current?.chapter.number]);
   const siteQuest =
     zone && zone !== "forge"
       ? board.states.find(
@@ -309,9 +331,7 @@ export default function GameClient() {
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
   }, [siteQuest, openCode, openQuestLog]);
-  const codeState = board.states.find(
-    (s) => s.quest.id === codeQuestId,
-  );
+  const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
   const onSolved = useCallback(
     (how: Parameters<typeof solveTask>[1]) => {
@@ -335,19 +355,7 @@ export default function GameClient() {
       forgeLit: Boolean(forged),
       forgeLevel,
       brannMarker: current?.status === "offered",
-      noticeboardMarker: board.states.find(
-        (state) =>
-          state.quest.villageSite === "noticeboard" &&
-          state.status === "active",
-      )
-        ? "!"
-        : null,
-      westHouseMarker: board.states.find(
-        (state) =>
-          state.quest.villageSite === "westHouse" && state.status === "active",
-      )
-        ? "!"
-        : null,
+      doors: villageDoors,
       wraithDefeated: combat.defeated,
       frozen:
         dialogueOpen ||
@@ -361,8 +369,7 @@ export default function GameClient() {
     forged,
     forgeLevel,
     current?.status,
-    current?.quest.villageSite,
-    board.states,
+    villageDoors,
     combat.defeated,
     dialogueOpen,
     logOpen,
@@ -468,6 +475,12 @@ export default function GameClient() {
               metBrann={progress.metBlacksmith}
               compact={narrow}
               onOpenLog={openLog}
+              finished={
+                celebration && studio.open
+                  ? { door: celebration.door, title: celebration.title }
+                  : null
+              }
+              onShowCelebration={closeStudio}
             />
           </div>
 
@@ -578,6 +591,7 @@ export default function GameClient() {
             onRevealHint={revealHint}
             onOpenCode={openCode}
             solvedTasks={progress.solved}
+            completedAt={progress.completed}
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}
@@ -631,6 +645,10 @@ export default function GameClient() {
           onOpenLog={() => {
             dismissCelebration();
             openLog();
+          }}
+          onReadPage={() => {
+            dismissCelebration();
+            openQuestLog(celebration.questId);
           }}
         />
       )}

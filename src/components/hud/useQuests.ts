@@ -237,6 +237,7 @@ export function useQuestBoard({
     ).current;
     for (const [index, s] of finished.entries()) {
       bridge.emit("questCelebration", {
+        questId: s.quest.id,
         door: s.quest.door,
         title: s.quest.title,
         lesson: plainText(s.quest.lesson.title),
