@@ -1,0 +1,341 @@
+// The player's own figure: layered 16×16 parts in the Tiny Dungeon style.
+// Ported from the prototype in design/figur/figur.py.
+//
+// Each part is a 16×16 map of role letters. A role gets its colour from the
+// player's choices, so one drawing gives many variants. The dark outline is
+// added last, around everything drawn, like the Kenney sheets. No image files:
+// the same code draws the figure in the game, in Studio and on cards, and
+// there are no licence questions.
+//
+// Pure data and pixels, no DOM or Phaser, so it runs anywhere (and in tests).
+
+export const FIGURE_SIZE = 16;
+export const OUTLINE = "#3f2631"; // Kenney's outline, as in the rest of the art
+
+type Pair = readonly [main: string, shade: string];
+type Option<T> = { id: string; label: string; unlock?: string } & T;
+
+// --- Colours: (main, shade) pairs from the same palette as the UI -------------
+
+export const SKINS: Option<{ colors: Pair }>[] = [
+  { id: "light", label: "Lys", colors: ["#f7c282", "#e19a65"] },
+  { id: "medium", label: "Middels", colors: ["#e4a672", "#b86f50"] },
+  { id: "brown", label: "Brun", colors: ["#bd6c4a", "#8a4836"] },
+  { id: "dark", label: "Mørk", colors: ["#8a4836", "#5c2f2a"] },
+];
+
+export const HAIR_COLORS: Option<{ colors: Pair }>[] = [
+  { id: "brown", label: "Brun", colors: ["#b86f50", "#763b36"] },
+  { id: "black", label: "Svart", colors: ["#3a4466", "#262b44"] },
+  { id: "blond", label: "Blond", colors: ["#fee761", "#feae34"] },
+  { id: "red", label: "Rød", colors: ["#f77622", "#be4a2f"] },
+  { id: "white", label: "Hvit", colors: ["#ffffff", "#c0cbdc"] },
+  { id: "pink", label: "Rosa", colors: ["#f6757a", "#b55088"] },
+];
+
+export const CLOTH_COLORS: Option<{ colors: Pair }>[] = [
+  { id: "red", label: "Rød", colors: ["#e43b44", "#a22633"] },
+  { id: "green", label: "Grønn", colors: ["#3e8948", "#265c42"] },
+  { id: "blue", label: "Blå", colors: ["#0099db", "#124e89"] },
+  { id: "purple", label: "Lilla", colors: ["#b55088", "#68386c"] },
+  { id: "grey", label: "Grå", colors: ["#8b9bb4", "#5a6988"] },
+  { id: "yellow", label: "Gul", colors: ["#feae34", "#f77622"] },
+];
+
+export const PANTS: Option<{ colors: Pair }>[] = [
+  { id: "dark", label: "Mørk", colors: ["#3a4466", "#262b44"] },
+  { id: "brown", label: "Brun", colors: ["#763b36", "#5c2f2a"] },
+  { id: "grey", label: "Grå", colors: ["#5a6988", "#3a4466"] },
+];
+
+// Roles that never change colour: eyes, white trim, gold.
+const FIXED: Record<string, string> = {
+  E: "#262b44",
+  W: "#ffffff",
+  w: "#c0cbdc",
+  Y: "#feae34",
+  y: "#f77622",
+  k: "#262b44",
+  G: "#fee761",
+  B: "#262b44",
+  L: "#b86f50",
+  l: "#763b36",
+  I: "#c0cbdc",
+  i: "#8b9bb4",
+  O: "#ffffff",
+};
+
+// --- Parts --------------------------------------------------------------------
+
+type Grid = string[];
+
+// A part: a drawing, and optionally where it's earned. `behind` parts are
+// drawn before the body (a cape).
+export type Part = { id: string; label: string; grid: Grid; behind?: true; unlock?: string };
+
+const BLANK: Grid = Array.from({ length: 16 }, () => ".".repeat(16));
+
+// Rows of up to 16 characters, starting at row `top`; the rest is empty.
+function grid(top: number, ...rows: string[]): Grid {
+  const out = [...BLANK];
+  rows.forEach((r, i) => (out[top + i] = r.padEnd(16, ".").slice(0, 16)));
+  return out;
+}
+
+// Head, hands, legs, measured from Tiny Dungeon's villagers (frames 85, 88):
+// an 8×7 head with two-pixel eyes, 2×2 hands beside the shirt, a belt row,
+// legs and boots. S/s skin, E eyes, P/p trousers, B boots.
+const BODY = grid(
+  3,
+  ".....SSSSSS",
+  "....SSSSSSSS",
+  "....SSSSSSSS",
+  "....SSSSSSSS",
+  "....SSESSSES",
+  "....sSEsssEs",
+  ".....ssSSSs",
+  "......ssss",
+  "",
+  "..SS........SS",
+  "..SS.PPPPPP.SS",
+  ".....pp..pp",
+  ".....BB..BB",
+);
+
+// Hair: H/h. Under a hat only the sides show, so styles differ most there.
+export const HAIRSTYLES: Part[] = [
+  { id: "short", label: "Kort", grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "....HH.HHH.H", "....H") },
+  {
+    id: "long",
+    label: "Langt",
+    grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "...HHH.HHH.HH", "...HH......HH", "...HH......HH", "...Hh......hH", "...h........h"),
+  },
+  { id: "bun", label: "Knute", grid: grid(0, "......hHHh", ".....hHHHHh", "", ".....hHHHHh", "....hHHHHHHh", "....HHHHHHHH", "....H......H") },
+  {
+    id: "braids",
+    label: "Fletter",
+    grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "...HH.HHHH.HH", "...H........H", "...h........h", "..hH........Hh", "..H..........H", "..h..........h"),
+  },
+  {
+    id: "beard",
+    label: "Skjegg",
+    grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "....HH.HHH.H", "....H", "", "....H......H", "....HhHHHHhH", ".....hHHHHh"),
+  },
+  { id: "bald", label: "Skallet", grid: BLANK },
+];
+
+// Tops: shoulders, sleeves, waist (rows 10–12), like the Kenney shirts.
+// C/c main and shade; trim and details use fixed colours.
+export const TOPS: Part[] = [
+  { id: "sweater", label: "Genser", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCWCCWCc") },
+  { id: "santa", label: "Nissedrakt", grid: grid(10, "....Ww....wW", "...CCCCWWCCCC", "....ckkYYkkc", ".....CCCCCC") },
+  { id: "coat", label: "Frakk", grid: grid(10, "....Ww....wW", "...CCCCCYCCCC", "....cCCCYCCc", ".....cCCYCc") },
+  { id: "dress", label: "Kjole", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCCYYCCc", "....cCCCCCCc", "....cccccccc") },
+];
+
+// Armour over the top. Fixed colours: L/l leather, I/i iron, O shine.
+export const ARMOURS: Part[] = [
+  { id: "none", label: "Ingen", grid: BLANK },
+  { id: "leather", label: "Lærvest", grid: grid(10, "....Ll....lL", "....LLLLLLLL", "....lLLkkLLl", ".....lLLLLl"), unlock: "Finnes i bygda" },
+  { id: "chain", label: "Ringbrynje", grid: grid(10, "....Ii....iI", "...IiIiIiIiI", "....iIiIiIiI", ".....IiIiIi"), unlock: "Finnes i bygda" },
+  { id: "plate", label: "Rustning", grid: grid(10, "....OI....IO", "...IIIOIIOIII", "....iIIIIIIi", ".....ikkkki"), unlock: "Finnes i bygda" },
+];
+
+// Hats: A/a main and shade. A helmet is iron whatever the colour choice.
+export const HATS: Part[] = [
+  { id: "none", label: "Ingen", grid: BLANK },
+  { id: "santa", label: "Nisselue", grid: grid(0, "..........WW", "........AAWW", "......AAAAa", ".....AAAAAAa", "...WWWWWWWWWW") },
+  { id: "bobble", label: "Topplue", grid: grid(0, ".......WW", "......WWWW", ".....AaAaAa", "....AaAaAaAa", "...wWWWWWWWWw"), unlock: "Arkivarens spørsmål" },
+  { id: "earmuffs", label: "Øreklokker", grid: grid(2, ".....aAAAAa", "....a......a", "", "..WW........WW", "..Ww........wW", "..ww........ww") },
+  { id: "hood", label: "Hette", grid: grid(2, ".....aAAAAa", "....aAAAAAAa", "...aAAAAAAAAa", "...aA......Aa", "...aA......Aa", "...aa......aa") },
+  { id: "helmet", label: "Hjelm", grid: grid(2, ".....iIIIIi", "....iIIOIIIi", "....IIIIIIII", "....I..I...I", "....i......i"), unlock: "Finnes i bygda" },
+  { id: "crown", label: "Krone", grid: grid(2, "....Y..Y..Y", "....YyYYYyYY", "....YGYYYGYY"), unlock: "Finnes i bygda" },
+];
+
+// Scarves: K main.
+export const SCARVES: Part[] = [
+  { id: "none", label: "Ingen", grid: BLANK },
+  { id: "scarf", label: "Skjerf", grid: grid(10, "....KWKWKWKW", "....KW", ".....W"), unlock: "Arkivarens spørsmål" },
+];
+
+// Small extras. M mittens and the cape (K/q) use the scarf colour; the cape
+// hangs behind the body.
+export const EXTRAS: Part[] = [
+  { id: "none", label: "Ingen", grid: BLANK },
+  { id: "mittens", label: "Votter", grid: grid(12, "..MM........MM", "..MM........MM") },
+  {
+    id: "lantern",
+    label: "Lykt",
+    grid: grid(11, "..............k", ".............kkk", ".............YGY", ".............YGY", ".............kkk"),
+    unlock: "Arkivarens spørsmål",
+  },
+  {
+    id: "cape",
+    label: "Kappe",
+    // Shows at the waist and behind the legs; the body covers the rest.
+    grid: grid(10, "...KKKKKKKKKK", "...KKKKKKKKKK", "...KKKKKKKKKK", "...KKKKKKKKKK", "...KqqqqqqqqK", "....qqqqqqqq"),
+    behind: true,
+    unlock: "Arkivarens spørsmål",
+  },
+  { id: "star", label: "Stjerne", grid: grid(10, "", "........G", ".......GYG", "........Y"), unlock: "Arkivarens spørsmål" },
+];
+
+// --- Choices ------------------------------------------------------------------
+
+export type FigureChoice = {
+  skin: string;
+  hair: string;
+  hairColor: string;
+  top: string;
+  topColor: string;
+  armour: string;
+  pants: string;
+  hat: string;
+  hatColor: string;
+  scarf: string;
+  scarfColor: string;
+  extra: string;
+};
+
+// What each choice picks from, in the order a creator would show them.
+export const FIGURE_OPTIONS: { [K in keyof FigureChoice]: readonly Option<object>[] } = {
+  skin: SKINS,
+  hair: HAIRSTYLES,
+  hairColor: HAIR_COLORS,
+  top: TOPS,
+  topColor: CLOTH_COLORS,
+  armour: ARMOURS,
+  pants: PANTS,
+  hat: HATS,
+  hatColor: CLOTH_COLORS,
+  scarf: SCARVES,
+  scarfColor: CLOTH_COLORS,
+  extra: EXTRAS,
+};
+
+export const DEFAULT_FIGURE: FigureChoice = {
+  skin: "light",
+  hair: "short",
+  hairColor: "brown",
+  top: "sweater",
+  topColor: "red",
+  armour: "none",
+  pants: "dark",
+  hat: "santa",
+  hatColor: "red",
+  scarf: "none",
+  scarfColor: "green",
+  extra: "none",
+};
+
+// Any stored choice becomes a valid one: unknown ids fall back to the default,
+// so content from Sanity can never break the drawing.
+export function normalizeFigure(input: Partial<Record<string, unknown>> | null | undefined): FigureChoice {
+  const out = { ...DEFAULT_FIGURE };
+  for (const key of Object.keys(FIGURE_OPTIONS) as (keyof FigureChoice)[]) {
+    const value = input?.[key];
+    if (typeof value === "string" && FIGURE_OPTIONS[key].some((o) => o.id === value)) out[key] = value;
+  }
+  return out;
+}
+
+export function randomFigure(random: () => number = Math.random): FigureChoice {
+  const pick = <T extends { id: string }>(list: readonly T[]) => list[Math.floor(random() * list.length)].id;
+  const out = {} as FigureChoice;
+  for (const key of Object.keys(FIGURE_OPTIONS) as (keyof FigureChoice)[]) out[key] = pick(FIGURE_OPTIONS[key]);
+  return out;
+}
+
+// --- Drawing ------------------------------------------------------------------
+
+const find = <T extends { id: string }>(list: readonly T[], id: string) => list.find((o) => o.id === id) ?? list[0];
+
+function hexToRgba(hex: string): [number, number, number, number] {
+  const h = hex.replace("#", "");
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 255];
+}
+
+export type OutlineMode = "kenney" | "thin"; // two-pixel outline like Kenney, or one
+
+// One frame of the figure as RGBA pixels (16×16×4). `bob` moves the upper body
+// down one pixel, for a two-frame breathing idle.
+export function drawFigure(choice: FigureChoice, opts: { bob?: boolean; outline?: OutlineMode } = {}): Uint8ClampedArray<ArrayBuffer> {
+  const c = normalizeFigure(choice);
+  const pair = (list: readonly Option<{ colors: Pair }>[], id: string) => find(list, id).colors;
+  const roles: Record<string, string> = {
+    ...FIXED,
+    S: pair(SKINS, c.skin)[0],
+    s: pair(SKINS, c.skin)[1],
+    H: pair(HAIR_COLORS, c.hairColor)[0],
+    h: pair(HAIR_COLORS, c.hairColor)[1],
+    C: pair(CLOTH_COLORS, c.topColor)[0],
+    c: pair(CLOTH_COLORS, c.topColor)[1],
+    P: pair(PANTS, c.pants)[0],
+    p: pair(PANTS, c.pants)[1],
+    A: pair(CLOTH_COLORS, c.hatColor)[0],
+    a: pair(CLOTH_COLORS, c.hatColor)[1],
+    K: pair(CLOTH_COLORS, c.scarfColor)[0],
+    M: pair(CLOTH_COLORS, c.scarfColor)[0],
+    q: pair(CLOTH_COLORS, c.scarfColor)[1],
+  };
+  const extra = find(EXTRAS, c.extra);
+  const layers = [
+    ...(extra.behind ? [extra.grid] : []),
+    BODY,
+    find(HAIRSTYLES, c.hair).grid,
+    find(TOPS, c.top).grid,
+    find(ARMOURS, c.armour).grid,
+    find(SCARVES, c.scarf).grid,
+    find(HATS, c.hat).grid,
+    ...(extra.behind ? [] : [extra.grid]),
+  ];
+
+  const N = FIGURE_SIZE;
+  const art: (string | null)[] = new Array(N * N).fill(null);
+  for (const layer of layers)
+    layer.forEach((row, y) =>
+      [...row].forEach((ch, x) => {
+        if (ch !== "." && roles[ch]) art[y * N + x] = roles[ch];
+      }),
+    );
+
+  // Breathing: everything above the feet (rows 0–12) moves down a pixel; the
+  // feet (rows 13–15) stay put and are drawn on top.
+  const placed: (string | null)[] = opts.bob ? new Array(N * N).fill(null) : art;
+  if (opts.bob)
+    for (let y = 0; y < N; y++)
+      for (let x = 0; x < N; x++) {
+        const feet = y >= 13 ? art[y * N + x] : null;
+        const body = y >= 1 && y <= 13 ? art[(y - 1) * N + x] : null;
+        placed[y * N + x] = feet ?? body;
+      }
+
+  const out = new Uint8ClampedArray(N * N * 4);
+  const outline = hexToRgba(OUTLINE);
+  // Kenney's outline is two pixels: one all round (corners too), then one
+  // more on the sides only. "thin" keeps just the first ring.
+  const ALL = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
+  const SIDES = [[0, -1], [-1, 0], [1, 0], [0, 1]];
+  const filled = placed.map(Boolean);
+  const grow = (mask: boolean[], near: number[][]) => {
+    const next = [...mask];
+    for (let y = 0; y < N; y++)
+      for (let x = 0; x < N; x++) {
+        if (!mask[y * N + x]) continue;
+        for (const [dx, dy] of near) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && ny >= 0 && nx < N && ny < N) next[ny * N + nx] = true;
+        }
+      }
+    return next;
+  };
+  let ring = grow(filled, ALL);
+  if ((opts.outline ?? "kenney") === "kenney") ring = grow(ring, SIDES);
+  for (let i = 0; i < N * N; i++) if (ring[i] && !filled[i]) out.set(outline, i * 4);
+  for (let i = 0; i < N * N; i++) {
+    const col = placed[i];
+    if (col) out.set(hexToRgba(col), i * 4);
+  }
+  return out;
+}
