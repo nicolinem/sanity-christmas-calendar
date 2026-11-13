@@ -1,9 +1,10 @@
 import Phaser from "phaser";
-import { bridge, type WorldState, type Zone } from "./bridge";
+import { bridge, type DoorMarker, type WorldState, type Zone } from "./bridge";
 import { SHEETS, TILE, type SpriteDef } from "./sprites";
 import {
   BLACKSMITH,
   BUILDINGS,
+  FORGE,
   FORGE_FIRE,
   FURNACE,
   GLADE,
@@ -40,8 +41,8 @@ export class WinterQuestScene extends Phaser.Scene {
   private weapon!: Phaser.GameObjects.Image;
   private blacksmith!: Phaser.GameObjects.Image;
   private marker!: Phaser.GameObjects.Text;
-  private noticeboardMarker!: Phaser.GameObjects.Text;
-  private westHouseMarker!: Phaser.GameObjects.Text;
+  private doorMarkers: Phaser.GameObjects.Container[] = [];
+  private doorsKey = "";
   private wraith!: Phaser.GameObjects.Image;
   private forgeGlow!: Phaser.GameObjects.Image;
   private sparks!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -227,22 +228,6 @@ export class WinterQuestScene extends Phaser.Scene {
       12,
       "#fdbe53",
     ).setDepth(9000);
-    this.noticeboardMarker = this.text(
-      QUEST_SITES.noticeboard.x,
-      QUEST_SITES.noticeboard.y - 22,
-      "!",
-      12,
-      "#fdbe53",
-    ).setDepth(9000);
-    this.noticeboardMarker.setVisible(false);
-    this.westHouseMarker = this.text(
-      QUEST_SITES.westHouse.x,
-      QUEST_SITES.westHouse.y - 22,
-      "!",
-      12,
-      "#fdbe53",
-    ).setDepth(9000);
-    this.westHouseMarker.setVisible(false);
     if (!this.reducedMotion) {
       this.tweens.add({
         targets: this.marker,
@@ -335,6 +320,99 @@ export class WinterQuestScene extends Phaser.Scene {
     }
   }
 
+  // --- calendar doors in the village -----------------------------------------
+
+  // Where a place's doors hang, clear of Brann's «!».
+  private doorAnchor(site: DoorMarker["site"]) {
+    // Beside the forge, east of the weapon rack: the roof sits at the world's
+    // top edge, where a door would be cut off.
+    if (site === "forge")
+      return {
+        x: (FORGE.x + FORGE.rows[0].length) * TILE + 22,
+        y: (FORGE.y + 2) * TILE,
+      };
+    if (site === "westHouse") return { x: 10 * TILE, y: 6 * TILE - 4 };
+    return { x: QUEST_SITES[site].mapX, y: 13 * TILE - 4 };
+  }
+
+  private syncDoors(doors: DoorMarker[]) {
+    const key = doors.map((d) => `${d.id}:${d.status}`).join("|");
+    if (key === this.doorsKey) return;
+    this.doorsKey = key;
+    this.doorMarkers.forEach((m) => {
+      this.tweens.killTweensOf([m, ...m.list]);
+      m.destroy();
+    });
+    this.doorMarkers = [];
+
+    const bySite = new Map<string, DoorMarker[]>();
+    for (const d of doors)
+      bySite.set(d.site, [...(bySite.get(d.site) ?? []), d]);
+    for (const [site, group] of bySite) {
+      const anchor = this.doorAnchor(site as DoorMarker["site"]);
+      group.forEach((d, i) => {
+        const x = Math.round(anchor.x + (i - (group.length - 1) / 2) * 22);
+        this.doorMarkers.push(this.makeDoor(d, x, anchor.y));
+      });
+    }
+  }
+
+  // A numbered Kenney window: dark and faded while locked, dark with a
+  // pulsing amber frame while open, lit and glowing when done.
+  private makeDoor(d: DoorMarker, x: number, y: number) {
+    const parts: Phaser.GameObjects.GameObject[] = [];
+    if (d.status === "done") {
+      parts.push(
+        this.add
+          .image(0, -8, "glow")
+          .setTint(0xffc56b)
+          .setScale(1.1)
+          .setAlpha(0.8)
+          .setBlendMode(Phaser.BlendModes.ADD),
+      );
+    }
+    const frame = this.add
+      .rectangle(0, -8, 20, 20)
+      .setStrokeStyle(1, 0xfdbe53)
+      .setVisible(d.status === "open");
+    const pane = this.add.image(0, 0, "town", 84).setOrigin(0.5, 1);
+    if (d.status !== "done") pane.setTint(0x6b7899);
+    const label = this.text(
+      8,
+      5,
+      String(d.door),
+      9,
+      d.status === "locked" ? "#c0cbdc" : "#fdbe53",
+    );
+    parts.push(frame, pane, label);
+    const door = this.add
+      .container(x, y, parts)
+      .setDepth(9000)
+      .setAlpha(d.status === "locked" ? 0.75 : 1);
+    if (!this.reducedMotion) {
+      this.tweens.add({
+        targets: door,
+        y: y - 2,
+        duration: 900,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.inOut",
+      });
+      if (d.status === "open") {
+        this.tweens.add({
+          targets: frame,
+          alpha: 0.25,
+          duration: 700,
+          yoyo: true,
+          repeat: -1,
+          ease: "Stepped",
+          easeParams: [2],
+        });
+      }
+    }
+    return door;
+  }
+
   private addLight(
     x: number,
     y: number,
@@ -419,14 +497,7 @@ export class WinterQuestScene extends Phaser.Scene {
   private applyWorld(w: WorldState) {
     this.setWeapon(w.weapon);
     this.marker.setVisible(w.brannMarker);
-    this.noticeboardMarker
-      .setText(w.noticeboardMarker ?? "!")
-      .setColor(w.noticeboardMarker === "↩" ? "#8fd3ff" : "#fdbe53")
-      .setVisible(Boolean(w.noticeboardMarker));
-    this.westHouseMarker
-      .setText(w.westHouseMarker ?? "!")
-      .setColor(w.westHouseMarker === "↩" ? "#8fd3ff" : "#fdbe53")
-      .setVisible(Boolean(w.westHouseMarker));
+    this.syncDoors(w.doors);
     // A cold forge smoulders; once lit it burns brighter with every level.
     this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
     this.sparks.frequency = w.forgeLit ? Math.round(150 / w.forgeLevel) : 260;

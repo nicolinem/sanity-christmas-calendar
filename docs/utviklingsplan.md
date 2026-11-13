@@ -89,7 +89,7 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 - Kapittel 1: Den knuste smia → Prøv bladet (beseir wraith-en, **+1 smienivå**) → Branns protokoll → Laugets lov → Spritevelgeren → Prøvestua → Smi-knappen (**+1 smienivå**). Quest 3–6 sjekkes fra koden; Smi-knappen sjekkes i data (`forgedAt`).
 - Kodesjekker leses fra `.quest/results.json` via `/api/quest-checks` (gitignored). `npm run quest` som skriver fila, kommer i fase 3.
 - HUD: tracker med aktiv quest og fremgang, questlogg (J) med lagvise hint og Learn-lenker, toasts for fullført quest og hetere smie, Brann deler ut quester med egen replikk, «!» over Brann når han har en ny oppgave.
-- `NEXT_PUBLIC_CALENDAR_START=YYYY-MM-DD` slår på datoåpning (kapittel N åpner N−1 uker etter). Uten den er alt åpent. `?dev=quests` åpner alt for testing.
+- `NEXT_PUBLIC_CALENDAR_START=YYYY-MM-DD` slår på datoåpning: kapittel 1 åpner på datoen, senere kapitler på mandagene etter (med `2026-12-01`: 1., 7. og 14. desember). Uten den er alt åpent. `?dev=quests` åpner alt for testing.
 
 ## Fase 2: Navnemagi (delvis gjort 2026-10-23)
 
@@ -218,7 +218,7 @@ Dette er rekkefølgen på eksisterende tekniske arbeid før release, med avhengi
 
 1. **Produktkontrakt:** lås læringsmål og lukeinnhold for begge løypene, poengregel, hint-/fasitflyt og databeslutning for deltakeroversikten. Utkast for uke 1 og åpne produktvalg står i [questplan.md](questplan.md), men må godkjennes før nye mekanikker bygges.
 2. **Progresjonsfundament:** støtt valg av løype, ukentlig kapittelåpning, lineær lukeprogresjon, statusene låst/aktiv/fullført og gjenopptakelse etter reload. Neste luke krever fullføring. Poeng må knyttes til reell fullføring og kan ikke være nødvendig for å låse opp innhold.
-3. **Teknisk løype uke 1:** ta custom input inn som kjerneoppgave. Kodesjekker kjøres automatisk der det er robust; behold CLI-sjekk som eksplisitt reserve for oppgaver der automatikk ikke er praktisk.
+3. **Teknisk løype uke 1:** custom input er en kjerneoppgave. Kodevinduet sjekker valgene; den innebygde komponenten kan prøves frivillig i Studio, uten bekreftelseskrav.
 4. **Ikke-teknisk løype uke 1:** bygg oppgaver rundt innhold og grunnleggende Sanity-bruk, uten å kreve kode. Gjenbruk ukas historie og spillverden, men ikke samme ferdighetskrav.
 5. **Felles deltakeroversikt:** bygg først etter at offentliggjorte felt, samtykke, avmelding/skjuling og eier av deltakerlista er bestemt. Kun nødvendige publiserte data; ingen token i klienten og ingen sist-sett-posisjon i første release.
 6. **Uke 2–3 og finale:** utvid begge løypene. Felleskapitler og karakterer kan gjenbrukes, men oppgaver og belønninger må utformes og testes for hver målgruppe. Finalen må virke uten deltakeroversikt.
@@ -226,12 +226,14 @@ Dette er rekkefølgen på eksisterende tekniske arbeid før release, med avhengi
 
 **Scope-varsel:** To fullverdige løyper dobler ikke nødvendigvis spillmekanikken, men gir reelt mer oppgave- og testarbeid. Dersom tidsplanen blir for stram, kutt bonusoppgaver, spøkelser og sanntid først; ikke slipp en løype som bare er en utestet idé.
 
-**Sjekkflyt (2026-11-10):** Kodevinduet sjekker allerede automatisk ved åpning
-og etter en kort skrivepause; utkast lagres i nettleseren, ikke i repo-filer.
-Ikon/preview og validation bruker denne flyten. Custom input og document view
-løses foreløpig i repoet og sjekkes med `npm run quest`. Automatisk sjekk ved
-fillagring gjelder repooppgaver og er fortsatt planlagt, ikke en del av det
-som allerede er levert i kodevinduet.
+**Sjekkflyt (2026-11-12):** Kodevinduet sjekker automatisk ved åpning og etter
+en kort skrivepause; utkast lagres i nettleseren, ikke i repo-filer.
+Ikon/preview, validation og custom input bruker denne flyten. Etter bestått
+aktiverer Studio vår versjon av custom input; deltakerens kodeutkast blir ikke
+skrevet til prosjektet. Studio-prøving er valgfri; deltakeren trenger ikke
+bekrefte den for å fullføre. Document view (oppgave 5) er tatt ut av uke 1.
+Automatisk sjekk ved fillagring av repooppgaver er fortsatt planlagt for en
+eventuell framtidig repo-oppgave.
 
 ### Neste utviklingssteg: progresjonsgrunnlag (2026-11-10)
 
@@ -438,3 +440,49 @@ kodekjører: tom start, navnevalidering alene, sprite-validering alene og begge
 reglene sammen. Den tidligere Chrome-prøven av kodevindu og Studio-bekreftelse
 er ikke gjentatt etter denne startkodeendringen. Testdata er simulert, ikke
 ekte Studio-publisering.
+
+### Avtale etter gjennomgang av uke 1 (2026-11-12)
+
+- Behold uke 1-løypa uten `Document view` (tidligere oppgave 5).
+- Kodeoppgaver fullføres når kodesjekken består. Studio-bruk kan prøves
+  frivillig, men skal ikke bekreftes eller lagres som progresjon.
+- Før uke 2–3 legges inn, gjør en samlet kontroll av eksisterende spillogikk:
+  løypefilter, kapittel-/lukeåpning, aktiv/låst/fullført-status, sjekk kontra
+  fullføring, lagring/reload/reset, nivåbelønning og feiring av neste luke.
+  Fyll testhullene og kjør nettleserprøve; ikke legg til nye ukeoppgaver i
+  samme leveranse.
+
+### Journal, kart og følelsen av å bli ferdig (2026-11-13)
+
+**Mål:** Deltakeren skal alltid se hva uka består av, hva som er neste steg og
+hva hen allerede har fått til. Å fullføre en luke skal sette spor som blir
+stående, ikke bare vise en melding.
+
+**Retning:** «luka som lyser» er det felles symbolet. Hver luke har et vindu
+(Kenney town-ramme 84) som er slukket, åpent eller tent. Det samme bildet
+brukes i journalen, på kartet og i bygda. Skisser:
+[Journal, kart og flyt](https://claude.ai/artifact/963Tmvey9AjB4ApsWoawuE).
+
+**Rammer:**
+
+- Ingen gåtur er et krav. En kodeoppgave er ferdig når sjekken består, slik
+  avtalt 2026-11-12. Brann og stedene i bygda reagerer, men porter ingenting.
+- Bare grafikk vi har (Kenney). Tall og etiketter er HUD-tekst.
+- Sjekk hver leveranse i nettleseren på 1280×720, 1440×900, 1920×1080 og
+  mobilbredde, med fersk og delvis fullført framgang.
+
+| Steg                       | Innhold                                                                                                                                                                                                                                                    | Ferdig når                                                                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **J1. Uka** (journalen) ✅ | Fanene Uka · Kart · Boka. Én uke om gangen med lys per luke. Rader med vindu, «Luke N» og status. Høyre side etter tilstand: hos Brann, pågår, fullført (stempel, dato, lærdom), uke som ikke har åpnet (tema og dato). Fredagslinje. Smie-måler i toppen. | Ingen tom høyre side i noen tilstand. Tellingen stemmer med lista. Låste uker viser dato når `NEXT_PUBLIC_CALENDAR_START` er satt. |
+| **J2. Boka** ✅            | Lærdommer som pergamentsider per uke. Tomme sider for det som gjenstår. «Prøv selv» fra `studioPractice`. Ordliste med Sanity-ordene (`code`-termer) fra lærdommene.                                                                                       | Hver fullført luke har en side. Ordlista kan lenke til siden ordet kom fra.                                                        |
+| **J3. Fullføring** ✅      | Hjørnekortet blir gyllent når sjekken består. Feiringen viser tre spor: luka lyser, smia stiger, ny side i boka, med «Les siden». Brann kommenterer ved neste møte.                                                                                        | Hver belønning i feiringen kan finnes igjen etterpå. Ingen ekstra steg før neste luke åpnes.                                       |
+| **J4. Luker i bygda** ✅   | Et nummerert vindu svever over hvert `villageSite`, synlig fra uka åpner. Slukket, åpent (gul kant og puls) eller tent. Luker uten sted henger over smia. «E Åpne luke N» er valgfritt.                                                                    | Alle ukas luker synes i verden. Tilstandene følger motoren og overlever reload.                                                    |
+| **J5. Kart**               | Kartet tegnes fra selve tilemapet i liten skala, med de samme vinduene og spilleren. Pil i skjermkanten mot målet når det er utenfor bildet.                                                                                                               | Kartet bruker ingen egen tegnestil. Pila peker riktig i alle tilstander.                                                           |
+| **J6. Uka er ferdig**      | Fredagsskjerm: alle lys, oppsummering, deletekst uten emoji og neste ukes tema og dato. Bakeren og løsningene fra historien.                                                                                                                               | Vises én gang per uke. Deleteksten avslører ingen løsninger.                                                                       |
+
+**Rekkefølge:** J1 → J3 → J4 → J2 → J5 → J6. J1 og J3 gir mest effekt for
+uke 1. J4 avhenger av at J1 og J3 bruker samme tilstander. J5 og J6 kan vente
+til etter at uke 1 er gjennomspilt.
+
+**Åpne spørsmål:** «Du laget» på en fullført side krever en kobling fra luke
+til dokumentet deltakeren laget. Avklar før J1 utvides med det.

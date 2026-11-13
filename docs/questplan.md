@@ -79,8 +79,8 @@ forenklet eller poengmessig mindreverdig utgave av den tekniske.
 
 Over alle tre ukene bør teknisk løype dekke Studio, skjema, React og GROQ,
 mens ikke-teknisk løype dekker publisering, strukturering og bruk av innhold.
-Uke 1-forslaget under er ikke vedtatt; uke 2–3 og læringsmålene på tvers av
-ukene må fortsatt revideres. Uke 1s tidligere pitch er historisk:
+Uke 1-løypa er beholdt uten `Document view`; uke 2–3 og læringsmålene på
+tvers av ukene må fortsatt revideres. Uke 1s tidligere pitch er historisk:
 https://claude.ai/artifact/CgjW2uFneNYbhMvFJ4UBaF
 
 For å vurdere en oppgave før den bygges: skillen `luke-design`
@@ -92,26 +92,25 @@ Sanity skal løse konkrete behov i bygda, ikke bare være et sted å få en sjek
 godkjent. Flyten er: behov fra Brann → arbeid i Studio eller kode → bruk
 forbedringen i eget Studio → se resultatet i Studio eller spillet.
 
-Kodevinduet er arbeidsbenken for å forbedre Studio. Kodeoppgaver avsluttes med
-å bruke forbedringen i deltakerens eget Studio, som del av samme luke, ikke
-automatisk som en ekstra oppgave. Innholdsoppgaver bruker publisert innhold
-som spillet faktisk leser. Sanity beskriver innholdet; spillet avgjør fortsatt
-skade og andre spillregler.
+Kodevinduet er arbeidsbenken for å forbedre Studio. Bestått kodesjekk fullfører
+kodeoppgaven; deltakeren trenger ikke bekrefte eller dokumentere at hen prøvde
+forbedringen i eget Studio. En Studio-prøve kan fortsatt være et frivillig
+forslag. Innholdsoppgaver bruker publisert innhold som spillet faktisk leser.
+Sanity beskriver innholdet; spillet avgjør fortsatt skade og andre spillregler.
 
 **Uke 1 følger våpenlista til Brann:**
 
-| Arbeid                             | Avslutning i Studio og spillet                                       |
-| ---------------------------------- | -------------------------------------------------------------------- |
-| Publiser et våpen                  | Finn våpenet i spillet og prøv det                                   |
-| Ikon og preview                    | Finn igjen ditt eget våpen i den forbedrede Studio-lista             |
-| Validation                         | Prøv å publisere et ugyldig våpen, rett feilen og publiser           |
-| Custom input                       | Bruk sprite-velgeren på et våpen, publiser og se endringen i spillet |
-| Document view, hvis bonusen velges | Åpne visningen på ditt eget våpen i Studio                           |
+| Arbeid                             | Ønsket Studio-/spillresultat (Studio-prøving er valgfri for kodeoppgaver) |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| Publiser et våpen                  | Finn våpenet i spillet og prøv det                                       |
+| Ikon og preview                    | Finn igjen ditt eget våpen i den forbedrede Studio-lista                 |
+| Validation                         | Prøv å publisere et ugyldig våpen, rett feilen og publiser               |
+| Custom input                       | Bygg visuelle spritekort med Sanity UI; prøv dem gjerne i Studio          |
 
-Dette er krav til oppgaveutformingen, ikke en påstand om at hele flyten er
-implementert. Kodetesten bekrefter kodekravene; den beviser ikke alene at
-deltakeren har brukt forbedringen i Studio. Hver luke må beskrive hva som
-sjekkes automatisk, og hva deltakeren blir bedt om å prøve.
+Dette er ønskede resultater, ikke en påstand om at hele flyten er implementert.
+Kodetesten avgjør fullføring av kodeoppgaven; den beviser ikke at deltakeren
+brukte forbedringen i Studio, og det trenger den heller ikke. Hver luke må
+beskrive hva som sjekkes automatisk. Studio-prøving kan foreslås frivillig.
 
 **Frivillig videre spilling:** Deltakeren kan lage og endre mer innhold i
 Studio og bruke det i spillet. Ingen mengdekrav som «publiser ti våpen» for å
@@ -128,7 +127,7 @@ publisering uten utilsiktet fremgang.
 
 ★ oppgave, ☆ bonus. Datoene gjelder 2026.
 
-### Uke 1: Studio (åpner mandag 30. november)
+### Uke 1: Studio (åpner tirsdag 1. desember)
 
 Konkrete Brann-tekster, Studio-avslutninger, lærdommer, hint og sjekkvilkår for
 begge løyper står i [uke1-luker.md](uke1-luker.md). Dette er det nye
@@ -142,8 +141,7 @@ automatisk sjekk av repo-filer ved lagring er en planlagt forbedring.
 | ★   | Documents og Publish | Lager og publiserer et våpen, ser det i spillet | Spillet                                           |
 | ★   | `icon` og `preview`  | Viser ikon og sprite i dokumentlista            | Automatisk mens du skriver i kodevinduet          |
 | ★   | Validation           | Påkrevd sprite for våpen, unike navn            | Automatisk mens du skriver i kodevinduet          |
-| ★   | Custom input         | Velger som viser pikselkunsten                  | Repo: `npm run quest`; ved fillagring er planlagt |
-| ☆   | Document view        | Egen fane som viser våpenet slik spillet gjør   | Repo: `npm run quest`; ved fillagring er planlagt |
+| ★   | Custom input         | Visuell string selector med bildeknapper        | Kodevindu; Studio-prøve er valgfri                |
 
 **Kodevinduet i dag:** Første sjekk kjører når vinduet åpnes; deretter sjekkes
 koden omtrent 300 ms etter siste endring (implementert forsinkelse). Utkastet
@@ -151,33 +149,32 @@ lagres i nettleseren, ikke i en fil i repoet. Ingen lagreknapp er nødvendig.
 Bestått sjekk fullfører bare luka når den er aktiv; tidligere luker må fortsatt
 være fullført.
 
-### Produktkontrakt uke 1 — forslag, ikke vedtatt
+### Uke 1 — avtalt teknisk retning; detaljer prøves i gjennomspilling
 
 **Felles oppstart:** Alle lager og publiserer ett våpen, og prøver det i spillet.
 Dette er en kort introduksjon til Studio, ikke en poenggivende kjerneoppgave.
 Da kan de to løypene ha egne læringsmål uten å hoppe over det
 som trengs for å spille.
 
-**Teknisk løype — foreløpig oppgavesett (antallet er ikke låst):**
+**Teknisk løype — oppgavesett:**
 
 1. `icon` og `preview`: gjør våpen gjenkjennelige i dokumentlista, og finn
    igjen ditt eget våpen i den ekte Studio-lista.
 2. `validation`: krev sprite på våpen og hindre like navn; prøv feiltilfellene
    i Studio før du retter og publiserer.
-3. `custom input`: velg sprite fra pikselbilder. Dette er allerede besluttet
-   som kjerneoppgave; bruk velgeren og se den publiserte endringen i spillet.
+3. `custom input`: bygg en visuell string selector med spritekort. Dette er
+   kjerneoppgaven; kodevinduet sjekker kortene og patchene. Studio-prøving
+   kan være frivillig; deltakeren blir ikke bedt om å bekrefte den.
 
-Kodetestene beviser ikke alene at Studio-avslutningene er utført. Utkastet i
-[uke1-luker.md](uke1-luker.md) skiller mellom kode bestått, egenbekreftet
-Studio-prøve og resultat som kan leses fra publisert innhold. Egenbekreftelse
-etter bestått kodetest for ikon/preview og validation er vedtatt 2026-11-11,
-og er nå implementert. Øvrige nye fullføringsvilkår må
-godkjennes for den enkelte leveransen.
+Kodesjekken avgjør om kodeoppgaven er bestått; Studio-prøve og egenbekreftelse
+er ikke et krav og blir ikke sporet. Utkastene i kodevinduet aktiverer vår
+versjon i Studio, men skriver ikke deltakerens kode til prosjektet. Oppgaver
+som sjekker publisert innhold, krever fortsatt at innholdet faktisk publiseres.
 
-`Document view` er foreløpig bonus. Felles oppstart dekker det grunnleggende
-uten å være en egen poengoppgave. Oppgaver kan legges til, tas bort eller
-flyttes etter testing; `custom input` er fortsatt kjerneoppgave. Document
-action («Smi»-knappen) ligger i uke 3.
+`Document view` (den tidligere oppgave 5) er tatt ut av uke 1. Felles oppstart
+dekker det grunnleggende uten å være en egen poengoppgave. Oppgaver kan legges
+til, tas bort eller flyttes etter testing; `custom input` er fortsatt
+kjerneoppgave. Document action («Smi»-knappen) ligger i uke 3.
 
 **Ikke-teknisk løype — foreløpige oppgaveideer (antallet trenger ikke være
 det samme som i den tekniske løypa):**
@@ -206,7 +203,7 @@ variere, må poengfordelingen utformes slik at en løype ikke gir mer framgang b
 fordi den har flere luker. Poeng låser ikke opp innhold. Nivågrenser er
 startverdier som testes etter uke 1.
 
-**Kalenderforslag:** uke 1 åpner mandag 30. november 2026, deretter mandag 7. og 14. desember. Åpne kapitler blir stående tilgjengelige ut desember, og
+**Kalender:** uke 1 åpner tirsdag 1. desember 2026, deretter mandag 7. og 14. desember (avklart 2026-11-13). Åpne kapitler blir stående tilgjengelige ut desember, og
 senere deltakere kan ta dem igjen.
 
 **Deltakeroversikt — personvernforslag:** tydelig, frivillig opt-in separat
@@ -219,16 +216,17 @@ innsamling; lista slettes etter kalenderen på en dato som avklares på forhånd
 Ingen token i klienten. Må godkjennes av ansvarlig for personvern før det
 bygges.
 
-Avklaringer per leveranse; åpne poeng- og personvernvalg blokkerer ikke den
-vedtatte Studio-bekreftelsen:
+Avklaringer per leveranse:
 
 - [ ] Felles oppstart og oppgavesettet i hver løype; antall luker fastsettes
       etter læringsmål og testet tidsbruk, og kan være ulikt mellom løypene.
-- [x] Ikon/preview og validation krever bestått kodetest og «Jeg har prøvd
-      dette i Studio» før neste luke åpnes (2026-11-11). Se [uke1-luker.md](uke1-luker.md).
+- [x] Studio-bekreftelse er ikke et fullføringskrav for kodeoppgaver; bestått
+   kodesjekk er nok (2026-11-12). En Studio-prøve kan anbefales, men spores
+   ikke.
 - [ ] Poengfordeling som er rettferdig mellom løypene, bonus uten poeng og
       nivågrenser som startverdier.
-- [ ] Åpningsdatoene 30. november, 7. desember og 14. desember 2026.
+- [x] Åpningsdatoene 1. desember (tirsdag), 7. desember og 14. desember 2026
+      (2026-11-13).
 - [ ] Opt-in og avmelding for oversikten, hvilke felter som vises, hvem som er
       eier/behandlingsansvarlig, og når data slettes.
 

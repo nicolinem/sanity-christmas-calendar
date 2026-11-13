@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import type { Quest } from "@/game/quests/types";
-import KnightPreview from "../KnightPreview";
 import SpriteImage from "../SpriteImage";
 import { KNOWN_SPRITE_IDS } from "@/game/sprites";
 
@@ -59,50 +58,8 @@ function GridAfter() {
   );
 }
 
-function Tabs({ tabs, active }: { tabs: string[]; active: string }) {
-  return (
-    <div className="gp-tabs">
-      {tabs.map((t) => (
-        <span key={t} className={`gp-tab${t === active ? " is-on" : ""}`}>
-          {t}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function FormBefore() {
-  return (
-    <StudioCard>
-      <Tabs tabs={["Skjema"]} active="Skjema" />
-      <div className="gp-label">Name</div>
-      <div className="gp-select">
-        <span>Frostbit</span>
-      </div>
-      <div className="gp-label">Sprite</div>
-      <div className="gp-select">
-        <span>sword</span>
-        <span className="gp-chevron" />
-      </div>
-    </StudioCard>
-  );
-}
-
-function ViewAfter() {
-  return (
-    <StudioCard>
-      <Tabs tabs={["Skjema", "I spillet"]} active="I spillet" />
-      <div className="gp-stage">
-        <KnightPreview spriteId="sword" kind="weapon" scale={3} />
-        <div className="gp-stage-name">Frostbit</div>
-      </div>
-    </StudioCard>
-  );
-}
-
 const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   "the-drawing-board": { before: <SelectBefore />, after: <GridAfter /> },
-  "the-proving-room": { before: <FormBefore />, after: <ViewAfter /> },
 };
 
 export function hasGoalPreview(quest: Quest) {

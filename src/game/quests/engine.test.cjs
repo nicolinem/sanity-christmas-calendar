@@ -183,6 +183,18 @@ test("an unfinished bonus never blocks the next core task, and bonuses never aff
   );
 });
 
+test("a mid-week start opens week 1 on that day and later weeks on Mondays", () => {
+  const engine = loadEngine("2026-12-01");
+  const opens = [1, 2, 3].map((n) =>
+    engine.chapterOpensAt(chapter(n, [])).getTime(),
+  );
+  assert.deepEqual(opens, [
+    new Date("2026-12-01T00:00:00").getTime(),
+    new Date("2026-12-07T00:00:00").getTime(),
+    new Date("2026-12-14T00:00:00").getTime(),
+  ]);
+});
+
 test("weekly gating uses chapter numbers even when track selection leaves empty weeks", () => {
   const engine = loadEngine("2026-11-30");
   const chapters = chaptersForTrack(
@@ -371,8 +383,19 @@ test("real chapters share startup while all existing code/window tasks stay tech
   }
 });
 
-// Studio practice: the check needs the code pass (solved) and the player's own
-// confirmation in Studio (studioConfirmed). Neither completes the quest alone.
+test("week one ends with custom input and has no Document view quest", () => {
+  assert.deepEqual(
+    CHAPTERS[0].quests.map(({ id }) => id),
+    [
+      "the-broken-forge",
+      "branns-ledger",
+      "the-guilds-law",
+      "the-drawing-board",
+    ],
+  );
+});
+
+// Studio practice remains available, but only the code check unlocks the next door.
 const STUDIO_STEPS = [
   { id: "branns-ledger", before: ["the-broken-forge"], next: "the-guilds-law" },
   {
@@ -380,17 +403,15 @@ const STUDIO_STEPS = [
     before: ["the-broken-forge", "branns-ledger"],
     next: "the-drawing-board",
   },
+  {
+    id: "the-drawing-board",
+    before: ["the-broken-forge", "branns-ledger", "the-guilds-law"],
+    next: null,
+  },
 ];
-const STUDIO_STATES = [
-  ["nothing", false, false, false],
-  ["code only", true, false, false],
-  ["confirmation only", false, true, false],
-  ["code and confirmation", true, true, true],
-];
-
 function studioBoard(
   step,
-  { solved = false, confirmed = false, done = false } = {},
+  { solved = false, done = false } = {},
 ) {
   const ids = done ? [...step.before, step.id] : step.before;
   return evaluateQuests(
@@ -400,7 +421,6 @@ function studioBoard(
       completed: Object.fromEntries(ids.map((id) => [id, COMPLETED_AT])),
       briefed: { [step.id]: true },
       solved: solved ? { [step.id]: { at: COMPLETED_AT } } : {},
-      studioConfirmed: confirmed ? { [step.id]: COMPLETED_AT } : {},
     }),
     NOW,
   );
@@ -409,7 +429,7 @@ function studioBoard(
 const stateOf = (board, id) =>
   board.states.find(({ quest }) => quest.id === id);
 
-test("only the two Studio quests name a Studio step, and both are technical", () => {
+test("Studio-practice quests name their real Studio step and are technical", () => {
   const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];
   const named = all.filter(
     ({ studioPractice }) => studioPractice !== undefined,
@@ -422,38 +442,40 @@ test("only the two Studio quests name a Studio step, and both are technical", ()
     assert.equal(typeof quest.studioPractice, "string", quest.id);
     assert.notEqual(quest.studioPractice.trim(), "", quest.id);
     assert.equal(quest.track, "technical", quest.id);
+    assert.equal(quest.bonus, undefined, quest.id);
   }
+  assert.equal(named.length, STUDIO_STEPS.length);
 });
 
 for (const step of STUDIO_STEPS) {
-  test(`${step.id}: Studio check needs both the code pass and the Studio confirmation`, () => {
-    for (const [name, solved, confirmed, passes] of STUDIO_STATES) {
-      const board = studioBoard(step, { solved, confirmed });
+  test(`${step.id}: code pass is enough; Studio is optional`, () => {
+    for (const solved of [false, true]) {
+      const board = studioBoard(step, { solved });
       const state = stateOf(board, step.id);
-      assert.equal(state.result.done, passes, name);
+      assert.equal(state.result.done, solved);
       assert.deepEqual(
         Object.fromEntries(
           state.result.objectives.map(({ label, done }) => [label, done]),
         ),
-        {
-          "Koden er bestått": solved,
-          "Studio-prøven er bekreftet": confirmed,
-        },
-        name,
+        { "Koden er bestått": solved },
       );
       // Passing the check is not completion: the hook records it on the next render.
-      assert.equal(state.status, "active", name);
-      assert.equal(board.completedCount, step.before.length, name);
-      assert.equal(stateOf(board, step.next).status, "locked", name);
+      assert.equal(state.status, "active");
+      assert.equal(board.completedCount, step.before.length);
+      if (step.next)
+        assert.equal(stateOf(board, step.next).status, "locked");
+      else assert.equal(board.current.quest.id, step.id);
     }
   });
 
-  test(`${step.id}: a recorded completion stays done without code or confirmation`, () => {
+  test(`${step.id}: a recorded completion stays done without code`, () => {
     const board = studioBoard(step, { done: true });
     const state = stateOf(board, step.id);
     assert.equal(state.status, "done");
     assert.equal(state.result.done, false);
     assert.equal(board.completedCount, step.before.length + 1);
-    assert.equal(stateOf(board, step.next).status, "offered");
+    if (step.next)
+      assert.equal(stateOf(board, step.next).status, "offered");
+    else assert.equal(board.current, null);
   });
 }

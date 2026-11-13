@@ -10,20 +10,35 @@ import type { QuestSiteId } from "./village";
 // knight is standing (`zone`) and one-shot effects travel as events.
 
 export type Zone = "forge" | "noticeboard" | "westHouse" | "wraith" | null;
-export type QuestSiteMarker = "!" | "↩" | null;
+// One calendar door shown in the village: a numbered window that hangs over
+// the place its task belongs to. Dark while locked, outlined while open, lit
+// when done.
+export type DoorMarker = {
+  id: string;
+  door: number;
+  site: QuestSiteId;
+  status: "locked" | "open" | "done";
+};
 
 export type WorldState = {
   weapon: SpriteDef | null;
   forgeLit: boolean; // the first blade has been forged
   forgeLevel: number; // 1..4, glows hotter as it grows
   brannMarker: boolean; // Brann has a task he hasn't explained yet
-  noticeboardMarker: QuestSiteMarker;
-  westHouseMarker: QuestSiteMarker;
+  doors: DoorMarker[]; // this week's doors, in calendar order
   wraithDefeated: boolean;
   frozen: boolean; // a dialogue is open: the knight stands still
 };
 
-export type QuestCelebration = { door: number; title: string };
+export type QuestCelebration = {
+  questId: string;
+  door: number;
+  title: string;
+  lesson: string;
+  objectives?: string[];
+  nextDoor?: number;
+  level?: { number: number; damage: number };
+};
 
 type EventMap = {
   zone: Zone;
@@ -54,8 +69,7 @@ class Bridge {
     forgeLit: false,
     forgeLevel: 1,
     brannMarker: true,
-    noticeboardMarker: null,
-    westHouseMarker: null,
+    doors: [],
     wraithDefeated: false,
     frozen: false,
   };

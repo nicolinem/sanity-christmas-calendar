@@ -14,18 +14,7 @@ export const EMPTY_PROGRESS: Progress = {
   struck: {},
   introSeen: false,
   solved: {},
-  studioConfirmed: {},
 };
-
-// Older saves have no studioConfirmed; anything that isn't a record of strings is dropped.
-function readStudioConfirmed(raw: unknown): Record<string, string> {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
-  return Object.fromEntries(
-    Object.entries(raw).filter(
-      (entry): entry is [string, string] => typeof entry[1] === "string",
-    ),
-  );
-}
 
 // One record per Sanity project, so a fresh project is a fresh start.
 export const PROGRESS_PROJECT =
@@ -55,11 +44,11 @@ export function readProgress(project: string): Progress {
         (Partial<Progress> & { skipped?: unknown }) | null;
       if (saved && typeof saved === "object") {
         delete saved.skipped;
+        delete (saved as Partial<Progress> & { studioConfirmed?: unknown }).studioConfirmed;
         value = {
           ...EMPTY_PROGRESS,
           ...saved,
           track: saved.track === "nonTechnical" ? "nonTechnical" : "technical",
-          studioConfirmed: readStudioConfirmed(saved.studioConfirmed),
         };
       }
     }
@@ -88,5 +77,14 @@ export function updateProgress(
 
 // Starts over: used by the quest log's "Reset progress".
 export function resetProgress(project: string) {
+  try {
+    const storage = window.localStorage;
+    const drafts = Array.from({ length: storage.length }, (_, index) =>
+      storage.key(index),
+    ).filter((key): key is string => key?.startsWith("winter-quest:code:") ?? false);
+    drafts.forEach((key) => storage.removeItem(key));
+  } catch {
+    // Reset progress even when browser storage is unavailable.
+  }
   updateProgress(project, () => EMPTY_PROGRESS);
 }

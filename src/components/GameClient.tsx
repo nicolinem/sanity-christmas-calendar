@@ -19,6 +19,7 @@ import {
 } from "@/game/items";
 import {
   bridge,
+  type DoorMarker,
   type QuestCelebration as QuestCelebrationData,
   type Zone,
 } from "@/game/bridge";
@@ -39,6 +40,7 @@ import EncounterPanel from "./hud/EncounterPanel";
 import { useCombat } from "./hud/useCombat";
 import { IconQuill } from "./hud/icons";
 import {
+  closeStudio,
   focusGame,
   toggleStudio,
   useStudioFocused,
@@ -121,7 +123,6 @@ export default function GameClient() {
       bridge.on("questCelebration", (celebration) => {
         setTalking(false);
         setLogOpen(false);
-        setCodeQuestId(null);
         setCelebrations((queue) => [...queue, celebration]);
       }),
     [],
@@ -249,6 +250,7 @@ export default function GameClient() {
   const board = useQuestBoard({
     items,
     codeChecks: checks,
+    codeQuestId,
     sanityConfigured: configured,
     unpublishedDrafts,
     wraithDefeatedNow: combat.defeated,
@@ -256,6 +258,26 @@ export default function GameClient() {
   });
   const current = board.current;
   const currentId = current?.quest.id;
+  // This week's doors hang over their places in the village, locked ones too,
+  // so the player sees the whole week. A door without a place hangs at the forge.
+  const villageDoors = useMemo<DoorMarker[]>(() => {
+    const open = board.states.filter((s) => s.status !== "locked");
+    const week = current?.chapter.number ?? open.at(-1)?.chapter.number;
+    if (week === undefined) return [];
+    return board.states
+      .filter((s) => s.chapter.number === week)
+      .map((s) => ({
+        id: s.quest.id,
+        door: s.quest.door,
+        site: s.quest.villageSite ?? "forge",
+        status:
+          s.status === "done"
+            ? "done"
+            : s.status === "locked"
+              ? "locked"
+              : "open",
+      }));
+  }, [board.states, current?.chapter.number]);
   const siteQuest =
     zone && zone !== "forge"
       ? board.states.find(
@@ -286,13 +308,6 @@ export default function GameClient() {
     setLogOpen(true);
   }, []);
 
-  const openMap = useCallback(() => {
-    setTalking(false);
-    setLogInitialTab("map");
-    setLogInitialQuestId(undefined);
-    setLogOpen(true);
-  }, []);
-
   const openQuestLog = useCallback((questId: string) => {
     setTalking(false);
     setLogInitialTab("quests");
@@ -316,9 +331,7 @@ export default function GameClient() {
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
   }, [siteQuest, openCode, openQuestLog]);
-  const codeState = board.states.find(
-    (s) => s.quest.id === codeQuestId && s.status !== "locked",
-  );
+  const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
   const onSolved = useCallback(
     (how: Parameters<typeof solveTask>[1]) => {
@@ -342,19 +355,7 @@ export default function GameClient() {
       forgeLit: Boolean(forged),
       forgeLevel,
       brannMarker: current?.status === "offered",
-      noticeboardMarker: board.states.find(
-        (state) =>
-          state.quest.villageSite === "noticeboard" &&
-          state.status === "active",
-      )
-        ? "!"
-        : null,
-      westHouseMarker: board.states.find(
-        (state) =>
-          state.quest.villageSite === "westHouse" && state.status === "active",
-      )
-        ? "!"
-        : null,
+      doors: villageDoors,
       wraithDefeated: combat.defeated,
       frozen:
         dialogueOpen ||
@@ -368,8 +369,7 @@ export default function GameClient() {
     forged,
     forgeLevel,
     current?.status,
-    current?.quest.villageSite,
-    board.states,
+    villageDoors,
     combat.defeated,
     dialogueOpen,
     logOpen,
@@ -388,7 +388,7 @@ export default function GameClient() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || showOpening) return;
-      if (celebrations.length > 0) return;
+      if (celebrations.length > 0 && !codeOpen) return;
       if ((e.target as HTMLElement)?.closest?.(".dev")) return;
       // Typing in the code window: every key is code, except Escape.
       if (codeOpen) {
@@ -404,7 +404,7 @@ export default function GameClient() {
         return;
       }
       if (e.key === "j" || e.key === "J") {
-        openMap();
+        openLog();
         return;
       }
       if (e.key === "Escape" && dialogueOpen) {
@@ -446,7 +446,7 @@ export default function GameClient() {
     showOpening,
     celebrations.length,
     openDialogue,
-    openMap,
+    openLog,
     openSiteQuest,
     combat,
     items,
@@ -475,6 +475,12 @@ export default function GameClient() {
               metBrann={progress.metBlacksmith}
               compact={narrow}
               onOpenLog={openLog}
+              finished={
+                celebration && studio.open
+                  ? { door: celebration.door, title: celebration.title }
+                  : null
+              }
+              onShowCelebration={closeStudio}
             />
           </div>
 
@@ -504,8 +510,6 @@ export default function GameClient() {
                 onCheck={checkForge}
                 onTravelToSite={travelToSite}
                 onOpenCode={openCode}
-                solvedTasks={progress.solved}
-                onConfirmStudioPractice={board.confirmStudioPractice}
                 onClose={() => setTalking(false)}
               />
             )}
@@ -572,7 +576,7 @@ export default function GameClient() {
               <kbd>1</kbd>–<kbd>{slots}</kbd> utstyr
             </span>
             <span>
-              <kbd>J</kbd> kart
+              <kbd>J</kbd> journal
             </span>
           </p>
         </div>
@@ -587,7 +591,7 @@ export default function GameClient() {
             onRevealHint={revealHint}
             onOpenCode={openCode}
             solvedTasks={progress.solved}
-            onConfirmStudioPractice={board.confirmStudioPractice}
+            completedAt={progress.completed}
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}
@@ -600,9 +604,6 @@ export default function GameClient() {
             state={codeState}
             solved={Boolean(progress.solved[codeState.quest.id])}
             onSolved={onSolved}
-            onConfirmStudioPractice={() =>
-              board.confirmStudioPractice(codeState.quest.id)
-            }
             hintsShown={progress.hints[codeState.quest.id] ?? 0}
             onRevealHint={() => revealHint(codeState.quest.id)}
             onClose={() => setCodeQuestId(null)}
@@ -636,11 +637,19 @@ export default function GameClient() {
         )}
       </div>
 
-      {celebration && (
+      {celebration && codeQuestId === null && !studio.open && (
         <QuestCelebration
-          door={celebration.door}
-          title={celebration.title}
+          key={`${celebration.door}:${celebration.title}`}
+          {...celebration}
           onClose={dismissCelebration}
+          onOpenLog={() => {
+            dismissCelebration();
+            openLog();
+          }}
+          onReadPage={() => {
+            dismissCelebration();
+            openQuestLog(celebration.questId);
+          }}
         />
       )}
 

@@ -89,7 +89,6 @@ _custom inputs_, enklere enn figurskaperen.
 | Ikon og preview (`icon`, `preview`)       | Lista er bare navn. Jeg vil se hvordan våpnene ser ut, med en gang.                                   | Nå kjenner jeg dem igjen på avstand.       |
 | Regler for våpen (_validation_)           | Noen har lagt inn et sverd uten bilde. Og to våpen med samme navn. Det må stoppes før det publiseres. | Ingen flere spøkelsessverd.                |
 | Velg sprite med bilder (_custom input_)   | Ingen husker hva `sword_03` er. Kan du lage en velger med bilder?                                     | Mye bedre. Selv jeg treffer riktig.        |
-| ☆ Se våpenet i Studio (_document view_)   | Kunne du vist meg våpenet slik det ser ut i spillet, rett i Studio?                                   | Akkurat som i smia.                        |
 
 **Fredag**
 

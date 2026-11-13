@@ -8,7 +8,6 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import type { QuestState, SolvedTask } from "@/game/quests/types";
 import { IconCheck } from "../icons";
 import { renderText } from "../richText";
-import { openStudio } from "../studioPane";
 import StudioPractice from "../StudioPractice";
 import QuestHint from "../QuestHint";
 import { runModule } from "./runCode";
@@ -52,7 +51,6 @@ type Props = {
   state: QuestState;
   solved: boolean;
   onSolved: (how: Omit<SolvedTask, "at">) => void;
-  onConfirmStudioPractice: () => void;
   hintsShown: number;
   onRevealHint: () => void;
   onClose: () => void;
@@ -80,7 +78,6 @@ export default function CodeWindow({
   state,
   solved,
   onSolved,
-  onConfirmStudioPractice,
   hintsShown,
   onRevealHint,
   onClose,
@@ -95,6 +92,7 @@ export default function CodeWindow({
   const reference = tab === null ? null : task.references[tab];
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const [initiallySolved] = useState(() => solved);
 
   // The editor owns the text; React hears about every change.
   useEffect(() => {
@@ -265,7 +263,7 @@ export default function CodeWindow({
                   <strong>Feil i {task.file}:</strong> {renderText(taskError)}
                 </>
               ) : verdict?.done ? (
-                "Kodeeksemplene er bestått. Neste steg er å prøve i Studio."
+                "Oppgave godkjent."
               ) : (
                 "Koden kjører. Se hvilke kriterier som er oppfylt."
               )}
@@ -396,34 +394,25 @@ export default function CodeWindow({
               {solved && (
                 <section
                   className="cw-panel cw-solved"
-                  aria-label="Studio-prøve"
+                  aria-label="Godkjent oppgave"
                 >
                   <p role="status">
-                    <strong>
-                      {state.status === "done"
-                        ? "Luka er fullført!"
-                        : "Koden er bestått!"}
-                    </strong>{" "}
-                    Studio bruker nå vår versjon av den samme koden.
+                    <strong>Oppgave godkjent!</strong> Studio bruker nå vår versjon av koden.
                   </p>
+                  {!initiallySolved && (
+                    <button
+                      type="button"
+                      className="btn btn--amber"
+                      onClick={onClose}
+                    >
+                      Gå videre
+                    </button>
+                  )}
                   <StudioPractice
                     state={state}
                     codePassed={solved}
-                    onConfirm={onConfirmStudioPractice}
                     onLeave={onClose}
                   />
-                  {state.status === "done" && (
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => {
-                        openStudio();
-                        onClose();
-                      }}
-                    >
-                      Se det i Studio
-                    </button>
-                  )}
                   <details>
                     <summary>Koden som er slått på i Studio</summary>
                     <pre className="cw-ours">{task.ours}</pre>

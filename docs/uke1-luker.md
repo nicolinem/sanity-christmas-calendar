@@ -1,17 +1,18 @@
 # Uke 1: Gjør våpenlista til Brann brukbar
 
-Oppgaveutkast 2026-11-11. Retningen «Sanity er bygdas verksted» er vedtatt i
+Oppdatert 2026-11-12. Retningen «Sanity er bygdas verksted» er vedtatt i
 [questplan.md](questplan.md#sanity-er-bygdas-verksted--vedtatt-retning-2026-11-10).
-Øvrige nye luker, tekster og innholdssjekker under er fortsatt forslag til
-godkjenning. Den avgrensede Studio-bekreftelsen under er implementert.
-Dette erstatter de løse uke-1-ideene, ikke
-avtalene om poeng, datoer, løypebytte eller personvern.
+Teknisk rekkefølge er avtalt; tekst, sjekker og Studio-resultat må fortsatt
+gjennomspilles. Den ikke-tekniske løypa er fortsatt et forslag. Åpne valg om
+poeng og personvern står i [questplan.md](questplan.md).
+Dette erstatter de løse uke-1-ideene, ikke avtalene om poeng, datoer,
+løypebytte eller personvern.
 
-**Implementert 2026-11-11:** For ikon/preview og validation kreves bestått kodetest
-og egenbekreftelsen «Jeg har prøvd dette i Studio» før neste luke åpnes.
-Bekreftelsen lagres per Sanity-prosjekt i nettleseren. Eksisterende
-fullføringer beholdes; resten av uke-1-innholdet gjennomføres trinnvis og
-må fortsatt prøves mot ekte Studio og testere.
+**Gjeldende fullføringsregel:** Kodeoppgaver fullføres når kodesjekken består.
+Deltakeren trenger ikke bekrefte at hen prøvde løsningen i Studio; en slik
+prøve kan tilbys som frivillig neste steg, men lagres ikke som framgang.
+Oppgave 5 (`Document view`) er tatt ut av uke 1. Innholdsoppgaver som sjekker
+publiserte data, krever fortsatt publisering.
 
 ## Sammenhengen
 
@@ -21,8 +22,8 @@ arbeider med innholdet i den samme lista. Begge ender med noe som brukes i
 Studio og spillet, ikke bare en bestått kodeøvelse.
 
 - **Felles oppstart:** Publiser og prøv ditt eget våpen.
-- **Teknisk forslag:** Ikon/preview → validation → custom input. Document view
-  er bonus. Antallet er ikke en kvote.
+- **Teknisk løype:** Ikon/preview → validation → custom input. Oppgave 5,
+  `Document view`, er tatt ut. Antallet er ikke en kvote.
 - **Ikke-teknisk forslag:** Beskrivelse som brukes i spillet → oppdater samme
   dokument uten å publisere endringen for tidlig. Ingen kode eller terminal.
 - **Frivillig videre:** Lag og endre mer innhold hvis du vil bruke det.
@@ -35,24 +36,24 @@ oppgaven hører til; det nødvendige arbeidet foregår i Studio eller koden.
 
 ## Hva en sjekk betyr
 
-**I dag:** Kodevinduet tester deltakerens kode på eksempler og lagrer `solved`.
-Studio slår så på vår tilsvarende løsning, med valgt ikon for preview. Det er
-ikke deltakerens vilkårlige kode som overføres til Studio. Validation bruker
-en falsk klient i kodevinduet, men vår Studio-versjon bruker det ekte datasettet.
-Spillet registrerer i dag automatisk fullføring når en aktiv luke består.
+**Kodeoppgaver:** Kodevinduet tester deltakerens kode på eksempler og lagrer
+`solved`. Når sjekken består for en aktiv luke, fullfører spillet oppgaven;
+egenbekreftelse på Studio-bruk er ikke nødvendig eller lagret. Studio slår på
+vår tilsvarende løsning, med valgt ikon for preview. Deltakerens vilkårlige
+kode overføres ikke til Studio. Validation bruker en falsk klient i
+kodevinduet, mens vår Studio-versjon bruker det ekte datasettet.
 
-**Implementert for ikon/preview og validation:** «Koden er bestått» er skilt
-fra avslutningen i Studio før neste luke åpnes. For handlinger som ikke kan observeres fra publisert innhold
-(å finne et våpen i lista eller se en valideringsfeil), kreves en tydelig
-egenbekreftelse: «Jeg har prøvd dette i Studio». Dette er ikke automatisk bevis
-og må presenteres som det. Ingen sporing av klikk eller privat innhold.
+**Frivillig Studio-prøve:** Oppgaveteksten kan foreslå at deltakeren prøver
+forbedringen i eget Studio, men det er ikke en port før neste luke. Dette
+gjelder ikke innholdsoppgaver der sjekken faktisk krever publiserte data.
 
 Der vi kan lese resultatet, brukes reelt publisert innhold i stedet: bare
 `source: sanity`, ikke demo- eller innebygde gjenstander. Utkast, åpning av
 Studio og klikk på «Sjekk på nytt» er ikke i seg selv fullføring. En senere
 feil eller sletting tar ikke tilbake en allerede opptjent fullføring.
 
-Repooppgaver bruker foreløpig `npm run quest`. Sjekk ved fillagring er fortsatt
+Ingen aktiv uke-1-oppgave krever en repo-sjekk. Hvis en senere oppgave trenger
+det, brukes `npm run quest`; automatisk sjekk ved fillagring er fortsatt
 planlagt. Kodetestens begrensninger beskrives under hver luke.
 
 ## Felles oppstart: Publiser et våpen
@@ -90,12 +91,12 @@ spillet. **Resultat:** Ditt eget våpen vises og kan brukes.
 **Gjør i kodevinduet:** Legg til et støttet ikon og en preview som viser navn
 og dokumentets egen sprite. Se listen endre seg mens du skriver.
 
-**Bruk i Studio:** Åpne den ekte dokumentlista og finn våpenet fra oppstarten.
+**Valgfri prøve i Studio:** Åpne den ekte dokumentlista og finn våpenet fra oppstarten.
 Sammenlign med eksemplene: dette er ditt innhold i den forbedrede lista.
 
 **Automatisk i dag:** Ikon, valg av sprite-felt og riktig navn/bilde på
-eksempeldokumentene. **Implementert fullføring:** Koden består og deltakeren
-bekrefter Studio-prøven; det siste er egenbekreftelse, ikke målt bruk.
+eksempeldokumentene. **Fullføring:** Kodesjekken består. Studio-prøven er
+frivillig og bekreftes ikke i spillet.
 
 **Hintstige:** `icon` og `preview` styrer lista → hent `sprite` i `select` →
 bruk `SpriteImage` i `prepare().media` uten å miste navnet.
@@ -120,13 +121,13 @@ GROQ, versjons-ID-er og draft-/release-versjoner; oppgaven er å bruke dem i en
 regel og returnere en feilmelding for et navn som er tatt. Sanity-dokumentasjonen
 har delen «Enforce a unique field value» med det samme mønsteret.
 
-**Bruk i Studio:** Lag et midlertidig våpenutkast uten sprite og prøv et
+**Valgfri prøve i Studio:** Lag et midlertidig våpenutkast uten sprite og prøv et
 eksisterende navn. Se at `Publish` blokkeres. Rett feltene, gi det et unikt
 navn og publiser. Et feilaktig utkast skal ikke bli synlig i spillet.
 
 **Automatisk i dag:** Feil og lovlige tilfeller prøves med eksempler og falsk
-klient; bare warning er ikke nok. **Implementert fullføring:** Kodetest og
-egenbekreftet Studio-prøve. Vi kan ikke utlede en avvist publisering fra det
+klient; bare warning er ikke nok. **Fullføring:** Kodesjekken består; Studio-
+prøven er frivillig. Vi kan ikke utlede en avvist publisering fra det
 offentlige datasettet. Organisatøren må teste vår aktiverte Studio-regel mot
 et ekte prosjekt før release, inkludert upåvirket ny lagring av samme document.
 Unikhetsregelen håndheves i Studio, ikke som en databasebegrensning; API-
@@ -142,57 +143,49 @@ kan lese `kind` gjennom `context.document`, men er ikke eneste mulige løsning.
 innholdet. **Resultat:** Synlig feilmelding i Studio, deretter et lovlig
 publisert våpen i spillet.
 
-### Custom input: Velg bilde og bruk det
+### Custom input: Bygg en visuell spritevelger
 
 **Eksisterende ID:** `the-drawing-board`. **Tema:** Egen input component.
-Vedtatt som kjerneoppgave; ligger fortsatt som bonus i dagens spillkode.
+Kjerneoppgave i den tekniske løypa.
 
-> **Brann:** Jeg husker ikke hvilken sprite som er hvilken. Lag en velger
-> med bilder, og bruk den til å gi våpenet ditt et annet utseende.
+> **Brann:** Jeg husker ikke hvilken sprite som er hvilken. Bygg ikonknapper
+> med Sanity UI, uten synlige ID-er.
 
-**Gjør i repoet:** Fyll ut `SpritePicker.tsx` og koble den til `sprite`-feltet.
-Gjenbruk `SpriteImage`, `KNOWN_SPRITE_IDS` og Sanitys `set`/`unset`.
-Ingen nye stats eller skadefelt.
+**Gjør i kodevinduet:** Startfila leser typen og gir deg sprite-ID-ene som
+passer, og importerer `SpriteImage`. Deltakeren bygger selv én Sanity UI
+`Button` per ID og viser spriten enten i `icon`-propen eller som barn i knappen.
+Vår ferdige Studio-versjon bruker `icon` for midtstilling. `aria-label` og
+`aria-pressed` finnes i vår ferdige Studio-kode, men er ikke krav i kodevinduet.
+Bruk `mode` for å vise valgt verdi; ikke bruk blå `tone="primary"`.
+Klikket sender `props.onChange(set(id))`; Fjern sender
+`props.onChange(unset())`.
 
-**Bruk i Studio:** Velg et annet bilde på ditt publiserte våpen, publiser og
-se samme våpen med den nye spriten i spillet. Utkastet skal ikke endre det
-publiserte utseendet før `Publish`.
+**Viktig:** Kodevinduet lagrer utkastet i nettleseren, ikke i en fil i repoet.
+Når testen består, slår spillet på vår ferdige versjon av
+`src/sanity/studio/SpritePicker.tsx` i Studio. Koden deltakeren skrev, blir
+ikke installert eller skrevet til prosjektet.
 
-**Automatisk i dag:** `npm run quest` sjekker at en input-komponent er koblet
-på feltet. Den beviser ikke at bildene vises, tastaturet virker eller klikk
-sender riktig patch. **Foreslått fullføring:** Bestått kodesjekk og endret,
-kjent `spriteId` på det samme publiserte dokumentet. Referansen må lagres ved
-start, før redigeringen; denne innholdssjekken finnes ikke ennå.
+**Valgfri prøve i Studio:** Velg et annet våpenbilde på ditt publiserte våpen, publiser
+og se samme våpen med den nye spriten i spillet. Prøv også et `Material`-
+dokument for å se den andre sprite-gruppa. Et gammelt valg som ikke passer til
+ny type skal varsles og stoppe `Publish` til det endres eller fjernes.
 
-**Hintstige:** Startkomponenten viser standardfeltet → tegn bilder med
-`SpriteImage` → et valg sender `onChange(set(id))`, og feltet kobles på med
-`components.input`.
-[Input components](https://www.sanity.io/docs/studio/form-components-reference).
+**Automatisk:** Kodevinduet prøver at våpen bare viser våpensprites,
+materialer og potions viser andre itemsprites, og at ingen sprites vises før
+type er valgt. Det tester også markering, riktig `set(id)` og `unset()`.
+Studio-prøven er frivillig og registreres ikke. Organisatøren må fortsatt
+prøve valg, tastatur og publisering i et ekte Sanity-prosjekt før release.
 
-**Lærdom:** En egen input gjør det enklere å redigere vanlige felt; dataformatet
-er fortsatt samme sprite-ID. **Resultat:** Bildevelgeren brukes i Studio, og
-spillet viser den publiserte endringen. Komponenten må prøves med tastatur
-og både valg og fjerning av verdi, ikke bare bestå en koblingssjekk.
+**Hintstige:** Startfila har typefilteret; gå gjennom `spriteIds` med `.map()`
+→ bygg hvert kort med Sanity UI → sammenlign ID-en med `props.value` → send
+`set(id)` eller `unset()` gjennom `props.onChange`, og prøv begge typene i
+Studio. Se [Visual string selector field input](https://www.sanity.io/docs/developer-guides/create-a-rich-string-selector-field-input).
+For ekstra lesing: [egne Studio-komponenter](https://www.sanity.io/docs/studio/intro-to-custom-studio-components)
+og [Sanity UI Button](https://www.sanity.io/ui/docs/primitive/button).
 
-### Valgfri bonus: Document view
-
-**Eksisterende ID:** `the-proving-room`. **Tema:** En egen visning av et document.
-
-> **Brann:** Kan du vise våpenet slik spillet gjør, uten at jeg må forlate
-> Studio for å se på det?
-
-**Gjør:** Lag en fane med `KnightPreview`, behold redigeringsfanen, og prøv den
-på ditt eget våpen i Studio. `npm run quest` bekrefter at en komponentfane og
-skjemafanen er konfigurert, ikke at forhåndsvisningen viser riktig våpen.
-Innhold og interaksjon må prøves i nettleseren. Bonusen blokkerer aldri neste
-kjerneoppgave. Ingen ny belønning eller poengregel foreslås her.
-
-**Hintstige:** `defaultDocumentNode` velger fanene → behold `S.view.form()` →
-vis `document.displayed` i en komponentfane.
-[Document views](https://www.sanity.io/docs/studio/create-custom-document-views-with-structure-builder).
-
-**Lærdom / resultat:** Samme innhold kan få en egen arbeidsvisning; ditt våpen
-vises i Studio uten å endre dokumentstrukturen.
+**Lærdom:** En visuell string selector gjør faste verdier lettere å kjenne
+igjen, mens Sanity UI holder valgene hjemme i Studio. **Resultat:** Den
+publiserte spriten vises på våpenet i spillet.
 
 ## Ikke-teknisk løype — nye luker, ikke implementert
 
@@ -249,7 +242,7 @@ spillet fortsatt viser det publiserte bildet mens endringen er et utkast.
 Publiser og se at det samme våpenet nå viser det nye bildet.
 
 **Foreslått automatisk sjekk:** Dokument-ID er uendret, og publisert, kjent
-`spriteId` er forskjellig fra referansen tatt ved start av denne luka. Et
+`spriteId` er forskjellig fra referansen tatt ved oppstart av denne luka. Et
 annet dokument, sletting og ukjent sprite med reservebilde teller ikke.
 Dette bekrefter den publiserte oppdateringen, ikke at spilleren observerte
 utkastfasen. Innholdssjekken og referanselagringen må bygges.
@@ -308,26 +301,25 @@ med gjentakelser bare for å nå en time eller samme antall luker.
 - Tilskuer: En som ser på, kan peke på hva som endret seg i Studio eller
   spillet og hvorfor Sanity var nødvendig.
 
-Juster først den konkrete Studio-avslutningen og feilmeldingene hvis
+Juster først den konkrete resultatvisningen og feilmeldingene hvis
 sammenhengen er svak. Ikke legg til mer kamp, poeng eller flere oppgaver for
 å skjule at Sanity-arbeidet mangler mening.
 
 ## Avklaringer og avgrensede arbeidspakker
 
-Første leveranse er den vedtatte egenbekreftelsen for ikon/preview og
-validation. Koden skal først bestå, deretter bekrefter deltakeren Studio-prøven;
-egenbekreftelsen skal aldri merkes som automatisk verifisert. Ubekreftede,
-aktive luker sperrer neste luke; allerede fullførte luker tas ikke tilbake.
-Bekreftelsen må overleve reload og være uvirksom for låste eller ikke-beståtte
-luker. Dette kan bygges før referansesjekker, nye luker og poengfordeling.
+**Besluttet 2026-11-12:** Kodebestått er nok til å fullføre; Studio-bruk skal
+ikke bekreftes eller lagres. `Document view` (oppgave 5) er tatt ut. Før uke 2
+og 3 utformes, skal den eksisterende progresjons- og fullføringslogikken
+gjennomgås og testes samlet.
 
 Videre arbeid deles slik når de respektive oppgavene godkjennes, uten
 parallelle eiere av samme fil:
 
-1. **Felles integrasjon først:** Hovedagent eier quest-data, progress, hook og
-   fullføringsvilkår. Bevar eksisterende ID-er og fullføringer. Skill kode
-   bestått fra eventuell Studio-bekreftelse, og bygg referanselagring og
-   innholdssjekker med syntetiske tester før oppgaver kobles på.
+1. **Logikk først:** Hovedagent eier quest-data, progress, hook og
+   fullføringsvilkår. Bevar eksisterende ID-er og fullføringer. Test rekkefølge,
+   kapittelåpning, reload, kodebestått/fullført, reset og løypefilter før nye
+   oppgaver kobles på. Studio-bekreftelse inngår ikke. Referanselagring bygges
+   først når innholdssjekkene for den ikke-tekniske løypa godkjennes.
 2. **Teknisk oppgaveagent:** Konkret tekst/hint og praktisk Studio-flyt;
    custom input som kjerneoppgave og at dagens CLI-koblingssjekk ikke kan stå
    som eneste bevis på en fungerende bildevelger. Endringer i felles quest-data

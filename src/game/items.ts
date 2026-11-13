@@ -1,9 +1,15 @@
 import type { SanityItem } from "@/sanity/queries";
-import { resolveSprite, hasKnownSprite, type SpriteDef } from "./sprites";
+import {
+  hasKnownSprite,
+  isSpriteAllowedForKind,
+  resolveItemSprite,
+  type ItemKind,
+  type SpriteDef,
+} from "./sprites";
 import { forgedPower, type Power } from "./rules";
 import { readName, type NameMagic } from "./magic";
 
-export type ItemKind = "weapon" | "material" | "potion";
+export type { ItemKind } from "./sprites";
 
 // The game-side view of an item: the raw content plus a resolved sprite, the
 // power the rules grant it, and a `source` so the UI can tell Sanity-created
@@ -19,6 +25,7 @@ export type GameItemView = {
   spriteId: string | null;
   sprite: SpriteDef;
   knownSprite: boolean;
+  spriteMatchesKind: boolean;
   source: "sanity" | "builtin";
 };
 
@@ -46,12 +53,16 @@ function build(
     name,
     kind,
     power: kind === "weapon" ? weaponPower : null,
-    magic: kind === "weapon" && source === "sanity" ? readName(name) : { kind: "none" },
+    magic:
+      kind === "weapon" && source === "sanity"
+        ? readName(name)
+        : { kind: "none" },
     description: raw.description,
     forgedAt: raw.forgedAt ?? null,
     spriteId: raw.spriteId,
-    sprite: resolveSprite(raw.spriteId, kind),
+    sprite: resolveItemSprite(raw.spriteId, kind),
     knownSprite: hasKnownSprite(raw.spriteId),
+    spriteMatchesKind: isSpriteAllowedForKind(raw.spriteId, kind),
     source,
   };
 }

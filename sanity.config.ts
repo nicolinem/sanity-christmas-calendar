@@ -16,8 +16,6 @@ export default defineConfig({
   dataset,
   schema,
   plugins: [
-    // QUEST: Luke 5. Gi item-dokumentene en ekstra document view her, en som
-    // viser gjenstanden slik spillet ser den.
     structureTool(),
     visionTool({ defaultApiVersion: apiVersion }),
   ],

@@ -16,7 +16,6 @@ export type Progress = {
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
   introSeen: boolean; // the opening has been shown
   solved: Record<string, SolvedTask>; // tasks solved in the code window (quest id → how)
-  studioConfirmed: Record<string, string>; // quests the player confirmed in Studio (quest id → ISO time, self-reported)
 };
 
 // A task solved in the game's code window. The Studio reads this and switches
@@ -59,8 +58,7 @@ export type Quest = {
   intro: string[]; // what Brann says when he hands it over, one short page each
   goal: string; // one line for the tracker: what, not how
   where?: string; // where the work happens: a file or a place, not the answer
-  // Norwegian steps for the player to try the result in the real Studio, then
-  // confirm it in the game. Only quests with this also need a self-report.
+  // Optional steps to try the result in the real Studio after solving the code.
   studioPractice?: string;
   villageSite?: QuestSiteId; // where the player finds this task in Frostholm
   // "Slik blir det": a Før / Etter picture of the goal, with a short caption

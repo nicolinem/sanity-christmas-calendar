@@ -10,8 +10,10 @@
 // "@/" alias.
 
 import { useSyncExternalStore } from "react";
+import type { StringInputProps } from "sanity";
 import { DocumentIcon } from "@sanity/icons/Document";
 import SpriteImage from "../../components/SpriteImage";
+import { SpritePicker } from "../studio/SpritePicker";
 import { PROGRESS_PROJECT, storageKey } from "../../game/quests/progress";
 import type { SolvedTask } from "../../game/quests/types";
 import { TASK_ICONS, type TaskIconName } from "./taskIcons";
@@ -44,7 +46,11 @@ function subscribe(onChange: () => void) {
 }
 
 export function useSolved(questId: string): SolvedTask | undefined {
-  return useSyncExternalStore(subscribe, () => read()[questId], () => undefined);
+  return useSyncExternalStore(
+    subscribe,
+    () => read()[questId],
+    () => undefined,
+  );
 }
 
 // The same switch for code that isn't React, like a validation function. Not
@@ -57,6 +63,14 @@ export function isSolved(questId: string): boolean {
 // --- Luke 2: icon and preview ----------------------------------------------------
 
 const LEDGER = "branns-ledger";
+const DRAWING_BOARD = "the-drawing-board";
+
+// The game task activates our working version; it never writes learner code
+// into the schema or the repository.
+export function ItemSpriteInput(props: StringInputProps) {
+  const solved = useSolved(DRAWING_BOARD);
+  return solved ? <SpritePicker {...props} /> : props.renderDefault(props);
+}
 
 // The icon the player picked in the code window, or the plain document icon.
 export function ItemIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -66,7 +80,17 @@ export function ItemIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 // The item's own sprite in the document list, once Luke 2 is solved.
-export function ItemMedia({ spriteId, kind }: { spriteId?: string; kind?: string }) {
+export function ItemMedia({
+  spriteId,
+  kind,
+}: {
+  spriteId?: string;
+  kind?: string;
+}) {
   const solved = useSolved(LEDGER);
-  return solved ? <SpriteImage spriteId={spriteId} kind={kind} /> : <ItemIcon />;
+  return solved ? (
+    <SpriteImage spriteId={spriteId} kind={kind} />
+  ) : (
+    <ItemIcon />
+  );
 }
