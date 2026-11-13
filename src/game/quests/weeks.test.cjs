@@ -8,6 +8,7 @@ const {
   fridayOf,
   shareText,
   weekSummary,
+  weekNeedsSummary,
 } = require("./weeks.ts");
 const { CHAPTERS } = require("./chapters.ts");
 
@@ -58,4 +59,11 @@ test("the share text says how far and how, never what", () => {
   assert.match(lines[2], /Smia nivå 3 · ferdig torsdag · 2 hint brukt/);
   for (const quest of week1.quests) assert.ok(!text.includes(quest.title));
   assert.doesNotMatch(text, /\p{Extended_Pictographic}/u);
+});
+
+test("a week's summary shows once, and again if the week gets more doors", () => {
+  assert.equal(weekNeedsSummary(undefined, 3), true);
+  assert.equal(weekNeedsSummary(3, 3), false);
+  assert.equal(weekNeedsSummary(2, 3), true, "a door was added after it was seen");
+  assert.equal(weekNeedsSummary(true, 3), false, "older saves count as seen");
 });

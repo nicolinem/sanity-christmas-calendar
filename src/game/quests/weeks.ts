@@ -1,8 +1,10 @@
 import { CHAPTERS } from "./chapters";
 import { chapterOpensAt, type QuestBoard } from "./engine";
 import type { Progress } from "./types";
+import { QUEST_SITES } from "../village";
 
 export type WeekSummary = {
+  optional: { title: string; place: string } | null; // an unfinished optional luke
   number: number;
   title: string;
   doors: number; // core doors in the week
@@ -17,6 +19,16 @@ export type WeekSummary = {
     topics: string[];
   } | null;
 };
+
+// Whether a finished week's summary is still to be shown: never seen, or seen
+// when the week had fewer core doors than it has now.
+export function weekNeedsSummary(
+  seen: true | number | undefined,
+  doors: number,
+): boolean {
+  if (seen === undefined) return true;
+  return typeof seen === "number" && seen < doors;
+}
 
 // Weeks where every core door is done, in calendar order.
 export function finishedWeeks(board: QuestBoard): number[] {
@@ -56,7 +68,14 @@ export function weekSummary(
   const opens = chapterOpensAt(chapter);
   const nextChapter = CHAPTERS.find((c) => c.number === week + 1);
   const nextStates = board.states.filter((s) => s.chapter.number === week + 1);
+  const open = states.find((s) => s.quest.bonus && s.status !== "done");
   return {
+    optional: open
+      ? {
+          title: open.quest.title,
+          place: QUEST_SITES[open.quest.villageSite ?? "forge"].label.toLowerCase(),
+        }
+      : null,
     number: week,
     title: chapter.title,
     doors: states.filter((s) => !s.quest.bonus).length,

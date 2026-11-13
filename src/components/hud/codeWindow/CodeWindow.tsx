@@ -13,6 +13,7 @@ import { IconCheck } from "../icons";
 import { renderText } from "../richText";
 import StudioPractice from "../StudioPractice";
 import QuestHint from "../QuestHint";
+import { lukeName } from "@/game/quests/label";
 import { runModule } from "./runCode";
 import {
   WINDOW_TASKS,
@@ -266,7 +267,7 @@ export default function CodeWindow({
         <header className="log-head">
           <h2 className="log-title">Kodevindu</h2>
           <p className="log-meta">
-            <span className="cw-door">Luke {quest.door}</span>: {quest.title}
+            <span className="cw-door">{lukeName(quest)}</span>: {quest.title}
           </p>
           <button
             type="button"
@@ -344,7 +345,9 @@ export default function CodeWindow({
                 <span>
                   <strong>Oppgave godkjent!</strong>{" "}
                   {initiallySolved
-                    ? "Studio bruker vår versjon av koden."
+                    ? task.studioCode === false
+                      ? "Du har løst denne før."
+                      : "Studio bruker vår versjon av koden."
                     : "Luka blir ferdig når du går videre."}
                 </span>
                 <button
@@ -507,8 +510,10 @@ export default function CodeWindow({
                   aria-label="Godkjent oppgave"
                 >
                   <p role="status">
-                    <strong>Oppgave godkjent!</strong> Studio bruker nå vår
-                    versjon av koden.
+                    <strong>Oppgave godkjent!</strong>{" "}
+                    {task.studioCode === false
+                      ? "Svaret stemmer med Arkivarens."
+                      : "Studio bruker nå vår versjon av koden."}
                   </p>
                   <StudioPractice
                     state={state}
@@ -516,9 +521,14 @@ export default function CodeWindow({
                     onLeave={onClose}
                   />
                   <details>
-                    <summary>Koden som er slått på i Studio</summary>
+                    <summary>
+                      {task.studioCode === false
+                        ? "Arkivarens spørring"
+                        : "Koden som er slått på i Studio"}
+                    </summary>
                     <pre className="cw-ours">{task.ours}</pre>
                   </details>
+                  {task.extend && (
                   <details className="cw-extend">
                     <summary>
                       Vil du prøve mer i din egen editor? (valgfritt)
@@ -534,6 +544,7 @@ export default function CodeWindow({
                     </p>
                     <p>{renderText(task.extend.idea)}</p>
                   </details>
+                  )}
                 </section>
               )}
             </div>
@@ -555,7 +566,11 @@ function ReferenceNote({ reference }: { reference: Reference }) {
         </code>
       </h3>
       <p className="cw-file">
-        Ligger i <code>{reference.path}</code> i repoet ditt.{" "}
+        {reference.path && (
+          <>
+            Ligger i <code>{reference.path}</code> i repoet ditt.{" "}
+          </>
+        )}
         {renderText(reference.about)}
       </p>
       <ul className="cw-ref-examples">

@@ -89,7 +89,7 @@ Fjern fellene vi fant. Eksisterende funksjonalitet skal virke likt etterpå.
 - Kapittel 1: Den knuste smia → Prøv bladet (beseir wraith-en, **+1 smienivå**) → Branns protokoll → Laugets lov → Spritevelgeren → Prøvestua → Smi-knappen (**+1 smienivå**). Quest 3–6 sjekkes fra koden; Smi-knappen sjekkes i data (`forgedAt`).
 - Kodesjekker leses fra `.quest/results.json` via `/api/quest-checks` (gitignored). `npm run quest` som skriver fila, kommer i fase 3.
 - HUD: tracker med aktiv quest og fremgang, questlogg (J) med lagvise hint og Learn-lenker, toasts for fullført quest og hetere smie, Brann deler ut quester med egen replikk, «!» over Brann når han har en ny oppgave.
-- `NEXT_PUBLIC_CALENDAR_START=YYYY-MM-DD` slår på datoåpning: kapittel 1 åpner på datoen, senere kapitler på mandagene etter (med `2026-12-01`: 1., 7. og 14. desember). Uten den er alt åpent. `?dev=quests` åpner alt for testing.
+- `NEXT_PUBLIC_CALENDAR_START=YYYY-MM-DD` slår på datoåpning: kapittel 1 åpner på datoen, senere kapitler på mandagene etter (med `2026-12-01`: 1., 7. og 14. desember). Uten den er alt åpent. `?dev` åpner alt for testing.
 
 ## Fase 2: Navnemagi (delvis gjort 2026-10-23)
 
@@ -282,7 +282,7 @@ vurderes før innhold endres mens folk spiller.
 `npm run build` og `git diff --check` passerer. Produksjonsbygget er også
 prøvd i Chromium: oppstart og bevegelse, fullføring via React-effekten,
 låst etterfølger selv om sjekken består, gammel lagring, løypeavhengige
-tellere og reload. `?dev=quests` viser ikke utviklerpanelet i produksjon.
+tellere og reload. `?dev` viser ikke utviklerpanelet i produksjon.
 
 **Begrensning:** Nettleserprøven brukte simulerte API-svar og lagrede
 testfakta, ikke innhold skrevet i et ekte Sanity-prosjekt. Kalenderdato var

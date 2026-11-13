@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { GameItemView } from "@/game/items";
 import type { QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
-import { QUEST_SITES, type QuestSiteId } from "@/game/village";
+import { NPCS, QUEST_SITES, type NpcId, type QuestSiteId } from "@/game/village";
+import { giverOf, lukeName } from "@/game/quests/label";
 import SpriteIcon from "./SpriteIcon";
 import GoalPreview from "./goalPreviews";
 import { IconQuill } from "./icons";
@@ -12,6 +13,7 @@ import { renderText } from "./richText";
 import { openStudio } from "./studioPane";
 
 type Props = {
+  npc: NpcId; // who the player is talking to
   board: QuestBoard;
   forged: GameItemView | undefined;
   sanityConfigured: boolean | null;
@@ -27,12 +29,35 @@ type Props = {
 
 const FIRST_QUEST = "the-broken-forge";
 
-// Brann introduces the task and points toward its place in Frostholm. The
+// The giver (Brann, Arkivaren or Bakeren) introduces the task and points
+// toward its place in the village. Anyone else just says who to talk to. The
 // location is optional; the quest log and code window are available anywhere.
 // The pages stay fixed during a conversation; GameClient remounts on new quests.
 export default function ForgeDialogue(props: Props) {
   const { board, forged, sanityConfigured } = props;
-  const [pages] = useState(() => buildPages(board, forged, sanityConfigured));
+  const speaker = NPCS[props.npc];
+  const giver = board.current ? giverOf(board.current.quest) : NPCS.brann;
+  // Someone else's luke: say who has a new one, or that it's already yours.
+  const elsewhere = Boolean(board.current) && giver.id !== speaker.id;
+  const waitingAtGiver =
+    board.current?.status === "offered" && !board.current.pickup;
+  const [pages] = useState<ReactNode[]>(() =>
+    !elsewhere
+      ? buildPages(board, forged, sanityConfigured)
+      : waitingAtGiver
+        ? [
+            <>
+              {giver.name} har en ny luke til deg. Du finner {giver.name}{" "}
+              {giver.at}.
+            </>,
+          ]
+        : [
+            <>
+              Jeg har ingen luke til deg akkurat nå. Det du jobber med, står i
+              journalen (J).
+            </>,
+          ],
+  );
   const [page, setPage] = useState(0);
   const last = page >= pages.length - 1;
   const continueRef = useRef<HTMLButtonElement>(null);
@@ -73,18 +98,19 @@ export default function ForgeDialogue(props: Props) {
     <section
       className="dialogue frame frame--wood"
       role="dialog"
-      aria-label="Brann, smeden"
+      aria-label={speaker.title ? `${speaker.name}, ${speaker.title}` : speaker.name}
     >
       <div className="dialogue-portrait frame frame--inset">
-        <SpriteIcon sprite={{ sheet: "dungeon", frame: 86 }} scale={4} />
+        <SpriteIcon sprite={speaker.sprite} scale={4} />
       </div>
       <div ref={bodyRef} className="dialogue-body">
         <p className="dialogue-name">
-          Brann, smeden
-          {current && sanityConfigured !== false && (
+          {speaker.name}
+          {speaker.title && `, ${speaker.title}`}
+          {current && !elsewhere && sanityConfigured !== false && (
             <>
               {" "}
-              <span className="dialogue-task">Luke {current.quest.door}</span>
+              <span className="dialogue-task">{lukeName(current.quest)}</span>
             </>
           )}
           {pages.length > 1 && (
@@ -99,13 +125,32 @@ export default function ForgeDialogue(props: Props) {
         <div className="dialogue-speech" aria-live="polite">
           {pages[page]}
         </div>
-        {last && current && sanityConfigured !== false && (
+        {last && current && !elsewhere && sanityConfigured !== false && (
           <div className="dialogue-picture">
             <GoalPreview quest={current.quest} />
           </div>
         )}
 
-        {last ? (
+        {last && elsewhere ? (
+          <div className="dialogue-actions">
+            {waitingAtGiver && (
+              <button
+                type="button"
+                className="btn btn--amber"
+                onClick={() => props.onTravelToSite(giver.site)}
+              >
+                Gå til {giver.name}
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={props.onClose}
+            >
+              Gå <kbd>Esc</kbd>
+            </button>
+          </div>
+        ) : last ? (
           <Details {...props} studioRef={studioRef} />
         ) : (
           <div className="dialogue-actions">
@@ -145,8 +190,12 @@ function buildPages(
     ];
   }
   const { current, previous } = board;
+  // Only the one who gave the finished luke praises it.
   const reaction =
-    previous && current?.status === "offered" && !current.pickup
+    previous &&
+    current?.status === "offered" &&
+    !current.pickup &&
+    giverOf(previous.quest).id === giverOf(current.quest).id
       ? [<Reaction key="r" state={previous} />]
       : [];
   if (!current) {
@@ -207,7 +256,7 @@ function buildPages(
   }
   return [
     <>
-      Vi er ikke ferdige med luke {current.quest.door} ennå.{" "}
+      Vi er ikke ferdige med {lukeName(current.quest).toLowerCase()} ennå.{" "}
       {renderText(current.quest.goal)}{" "}
       {placePhrase && <>Oppgaven ligger {placePhrase}. </>}
       Se hva som gjenstår i journalen (J).
@@ -215,11 +264,11 @@ function buildPages(
   ];
 }
 
-// Brann on the quest you just finished, and what it taught you.
+// The giver on the quest you just finished, and what it taught you.
 function Reaction({ state }: { state: QuestState }) {
   return (
     <>
-      Bra jobbet! Luke {state.quest.door} er krysset ut i journalen. Det du
+      Bra jobbet! {lukeName(state.quest)} er krysset ut i journalen. Det du
       lærte:
       <span className="dialogue-lesson">
         <span className="dialogue-lesson-title">

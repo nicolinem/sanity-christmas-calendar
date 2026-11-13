@@ -20,6 +20,8 @@ vm.runInNewContext(
     module: moduleResult,
     exports: moduleResult.exports,
     require(name) {
+      if (name === "@/game/village")
+        return { NPCS: { brann: { name: "Brann", title: "smeden", at: "ved smia", sprite: {} } } };
       if (name === "./SpriteIcon")
         return () => React.createElement("span", { className: "brann-sprite" });
       return name === "./icons"
@@ -70,6 +72,8 @@ test("the second beat opens the new door and directs the player to Brann", () =>
       module: stage,
       exports: stage.exports,
       require(name) {
+          if (name === "@/game/village")
+          return { NPCS: { brann: { name: "Brann", title: "smeden", at: "ved smia", sprite: {} } } };
         if (name === "./icons")
           return { IconCheck: () => React.createElement("span", null, "✓") };
         if (name === "./SpriteIcon")
@@ -91,7 +95,7 @@ test("the second beat opens the new door and directs the player to Brann", () =>
     }),
   );
   assert.match(html, /Luke 4 er åpnet/);
-  assert.match(html, /Gå til smia og snakk med Brann \(E\)/);
+  assert.match(html, /Snakk med Brann ved smia \(E\)/);
   assert.match(html, /aria-label="Brann, smeden"/);
   assert.doesNotMatch(html, /Brann · smia/);
   assert.match(html, /brann-sprite/);

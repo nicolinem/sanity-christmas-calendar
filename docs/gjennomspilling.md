@@ -10,9 +10,9 @@ med «Sanity Studio» øverst til høyre: det legger seg ved siden av spillet i 
 fane (dra i kanten for å endre bredde, «Egen fane» åpner det for seg).
 
 **Snarveier:** legg til `?dev` på adressen for utviklerpanelet. Der kan du
-hoppe rett til en luke, se alle stegene, late som en kodesjekk er bestått,
-spille av effekter og nullstille. `?dev=quests` åpner i tillegg alle luker
-uansett rekkefølge og dato.
+hoppe rett til en luke, fullføre en luke med ett klikk, se alle stegene,
+late som en kodesjekk er bestått, spille av effekter og nullstille. `?dev`
+åpner også alle luker uansett rekkefølge og dato.
 
 ---
 

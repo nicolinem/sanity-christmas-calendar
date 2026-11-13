@@ -18,6 +18,10 @@ vm.runInNewContext(
     require(name) {
       if (name === "@/game/village")
         return require(path.resolve(__dirname, "../../game/village.ts"));
+      if (name === "@/game/quests/label") {
+        const { NPCS } = require(path.resolve(__dirname, "../../game/village.ts"));
+        return { giverOf: (q) => NPCS[q.giver ?? "brann"] };
+      }
       return require(name);
     },
   },
@@ -30,11 +34,14 @@ const door = (quest, status = "active") => ({
   status,
 });
 
-test("an offered door sends you to Brann", () => {
-  assert.equal(
-    nextStep(door({ checkedBy: "window" }, "offered")).kind,
-    "brann",
-  );
+test("an offered door sends you to its giver: Brann unless another is named", () => {
+  const brann = nextStep(door({ checkedBy: "window" }, "offered"));
+  assert.equal(brann.kind, "giver");
+  assert.equal(brann.site, "forge");
+  assert.equal(brann.label, "Gå til Brann");
+  const arkivaren = nextStep(door({ checkedBy: "window", giver: "arkivaren" }, "offered"));
+  assert.equal(arkivaren.site, "square");
+  assert.equal(arkivaren.label, "Gå til Arkivaren");
 });
 
 test("a code-window door opens the window from anywhere, with no place line", () => {

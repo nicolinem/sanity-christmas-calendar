@@ -43,6 +43,8 @@ function renderCodeWindow(initiallySolved) {
       if (name === "../icons")
         return { IconCheck: () => React.createElement("span", null, "✓") };
       if (name === "../richText") return { renderText: (text) => text };
+      if (name === "@/game/quests/label")
+        return { lukeName: (q) => (q.bonus ? "☆ Frivillig" : `Luke ${q.door}`) };
       if (name === "../StudioPractice" || name === "../QuestHint") return () => null;
       if (name === "codemirror" || name.startsWith("@codemirror/") || name === "./runCode")
         return {};

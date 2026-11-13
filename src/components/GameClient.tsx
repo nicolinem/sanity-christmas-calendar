@@ -23,7 +23,6 @@ import {
   type QuestCelebration as QuestCelebrationData,
   type Zone,
 } from "@/game/bridge";
-import type { QuestSiteId } from "@/game/village";
 import { findForgedWeapon } from "@/game/quests/chapters";
 import type { CodeCheck } from "@/game/quests/types";
 import Hotbar from "./hud/Hotbar";
@@ -32,10 +31,17 @@ import QuestLog from "./hud/QuestLog";
 import Toasts, { pushToast } from "./hud/Toasts";
 import QuestCelebration from "./hud/QuestCelebration";
 import WeekComplete from "./hud/WeekComplete";
-import { finishedWeeks, weekSummary } from "@/game/quests/weeks";
+import {
+  finishedWeeks,
+  weekNeedsSummary,
+  weekSummary,
+} from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT } from "@/game/quests/progress";
+import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
+import { giverOf } from "@/game/quests/label";
+import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
 import DevPanel from "./hud/DevPanel";
 import ForgeDialogue from "./hud/ForgeDialogue";
@@ -101,6 +107,9 @@ export default function GameClient() {
   const [fetchFailed, setFetchFailed] = useState(false);
   const [unclaimed, setUnclaimed] = useState(false);
   const [unpublishedDrafts, setUnpublishedDrafts] = useState(0);
+  // Arkivarens observasjoner in the player's project (uke 2, non-technical).
+  const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
+  const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
   const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
   const [communityReady, setCommunityReady] = useState(false);
   const [equippedId, setEquippedId] = useState<string | null>(null);
@@ -143,10 +152,12 @@ export default function GameClient() {
     markWeekSeen,
     fetchQuest,
     jumpTo,
+    completeQuest,
+    setTrack,
   } = useProgress();
   useEffect(() => {
     fetch("/api/community", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
+      .then((response) => (response.ok ? response.json() : null))
       .then((data) => setCommunityReady(Boolean(data?.publishing)))
       .catch(() => {}); // The shared project is optional; the game stays playable offline.
   }, []);
@@ -159,12 +170,17 @@ export default function GameClient() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, checks] = await Promise.all([
+      const [res, checks, own] = await Promise.all([
         fetch("/api/items", { cache: "no-store" }),
         fetch("/api/quest-checks", { cache: "no-store" })
           .then((r) => r.json())
           .catch(() => ({ checks: {} })),
+        fetch("/api/archive", { cache: "no-store" })
+          .then((r) => r.json())
+          .catch(() => null),
       ]);
+      setArchive(own?.error ? null : (own?.docs ?? null));
+      setArchiveCases(own?.error ? null : (own?.cases ?? null));
       const data: {
         configured: boolean;
         unclaimed?: boolean;
@@ -234,15 +250,22 @@ export default function GameClient() {
     [items, equippedId],
   );
   const bestWeapon = useMemo(
-    () => [...items].filter(isUsableWeapon)
-      .sort((a, b) => (b.power?.damage ?? 0) - (a.power?.damage ?? 0))[0],
+    () =>
+      [...items]
+        .filter(isUsableWeapon)
+        .sort((a, b) => (b.power?.damage ?? 0) - (a.power?.damage ?? 0))[0],
     [items],
   );
 
   useEffect(() => {
-    if (!communityReady || configured !== true || PROGRESS_PROJECT === "demo" ||
-        (autoEquip && bestWeapon && equippedId !== bestWeapon.id) ||
-        new URLSearchParams(window.location.search).has("dev")) return;
+    if (
+      !communityReady ||
+      configured !== true ||
+      PROGRESS_PROJECT === "demo" ||
+      (autoEquip && bestWeapon && equippedId !== bestWeapon.id) ||
+      new URLSearchParams(window.location.search).has("dev")
+    )
+      return;
     // Resend on reload: milestones deduplicate, while the selected weapon stays current.
     fetch("/api/community", {
       method: "POST",
@@ -251,17 +274,27 @@ export default function GameClient() {
         playerId: PROGRESS_PROJECT,
         questIds: Object.keys(progress.completed),
         character: {
-          weapon: equipped?.source === "sanity" && equipped.kind === "weapon"
-            ? { name: equipped.name, spriteId: equipped.spriteId }
-            : null,
+          weapon:
+            equipped?.source === "sanity" && equipped.kind === "weapon"
+              ? { name: equipped.name, spriteId: equipped.spriteId }
+              : null,
         },
       }),
     }).catch(() => {});
-  }, [communityReady, configured, progress.completed, equipped, autoEquip, bestWeapon, equippedId]);
+  }, [
+    communityReady,
+    configured,
+    progress.completed,
+    equipped,
+    autoEquip,
+    bestWeapon,
+    equippedId,
+  ]);
 
   useEffect(() => {
     if (!autoEquip) return;
-    if (bestWeapon && bestWeapon.id !== equippedId) setEquippedId(bestWeapon.id);
+    if (bestWeapon && bestWeapon.id !== equippedId)
+      setEquippedId(bestWeapon.id);
   }, [bestWeapon, autoEquip, equippedId]);
 
   const handleEquip = useCallback((item: GameItemView) => {
@@ -288,6 +321,8 @@ export default function GameClient() {
     codeQuestId,
     sanityConfigured: configured,
     unpublishedDrafts,
+    archive,
+    archiveCases,
     wraithDefeatedNow: combat.defeated,
     progress,
   });
@@ -312,15 +347,18 @@ export default function GameClient() {
     refresh();
   }, [refresh]);
 
-  // Walking away from Brann ends the conversation.
-  const dialogueOpen = talking && zone === "forge";
+  // Who the knight is standing by, if anyone. Walking away ends the talk.
+  const talkTo = npcAtSite(zone === "wraith" ? null : zone);
+  const dialogueOpen = talking && Boolean(talkTo);
   const openDialogue = useCallback(() => setTalking(true), []);
 
   // Talking to Brann is how a quest is handed over, including one that
   // unlocks while you're still talking.
+  // Only the luke's own giver hands it over.
+  const currentGiver = board.current ? giverOf(board.current.quest).id : "brann";
   useEffect(() => {
-    if (dialogueOpen) metBrann(currentId);
-  }, [dialogueOpen, currentId, metBrann]);
+    if (dialogueOpen && talkTo?.id === currentGiver) metBrann(currentId);
+  }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann]);
 
   const openLog = useCallback(() => {
     setTalking(false);
@@ -353,6 +391,24 @@ export default function GameClient() {
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
   }, [siteQuest, openCode, openQuestLog, fetchQuest]);
+  // The non-technical uke 2 tasks work on observations in the player's own
+  // project. Once Brann has handed one over, the game writes the starting
+  // documents (existing ones are left alone) and reads them back.
+  const archiveSeeded = useRef(false);
+  const needsArchive = board.states.some(
+    (s) =>
+      ["source-check", "link-the-place", "case-file"].includes(s.quest.id) &&
+      s.status === "active",
+  );
+  useEffect(() => {
+    if (!needsArchive || archive === null || archive.length > 0) return;
+    if (archiveSeeded.current) return;
+    archiveSeeded.current = true;
+    fetch("/api/archive", { method: "POST" })
+      .then((r) => (r.ok ? refresh() : undefined))
+      .catch(() => {});
+  }, [needsArchive, archive, refresh]);
+
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
   const onSolved = useCallback(
@@ -367,8 +423,12 @@ export default function GameClient() {
   // A finished week gets its summary once, after the last door's celebration;
   // the journal can open it again (weekShown).
   const [weekShown, setWeekShown] = useState<number | null>(null);
-  const pendingWeek = finishedWeeks(board).find(
-    (week) => !progress.weeksSeen?.[week],
+  const pendingWeek = finishedWeeks(board).find((week) =>
+    weekNeedsSummary(
+      progress.weeksSeen?.[week],
+      board.states.filter((s) => s.chapter.number === week && !s.quest.bonus)
+        .length,
+    ),
   );
   const quiet =
     celebrations.length === 0 &&
@@ -383,9 +443,10 @@ export default function GameClient() {
       ? null
       : weekSummary(board, summaryWeek, progress);
   const closeSummary = useCallback(() => {
-    if (summaryWeek !== undefined) markWeekSeen(summaryWeek);
+    if (summaryWeek !== undefined && summary)
+      markWeekSeen(summaryWeek, summary.doors);
     setWeekShown(null);
-  }, [summaryWeek, markWeekSeen]);
+  }, [summaryWeek, summary, markWeekSeen]);
 
   // Keep the world in sync with game state.
   useEffect(() => {
@@ -399,7 +460,10 @@ export default function GameClient() {
       weapon: hand,
       forgeLit: Boolean(forged),
       forgeLevel,
-      brannMarker: current?.status === "offered" && !current.pickup,
+      npcMarker:
+        current?.status === "offered" && !current.pickup
+          ? giverOf(current.quest).id
+          : null,
       doors: villageDoors,
       goal: nextStep,
       wraithDefeated: combat.defeated,
@@ -460,7 +524,7 @@ export default function GameClient() {
         setTalking(false);
         return;
       }
-      if ((e.key === "e" || e.key === "E") && zone === "forge") {
+      if ((e.key === "e" || e.key === "E") && talkTo) {
         if (!dialogueOpen) openDialogue();
         return;
       }
@@ -488,6 +552,7 @@ export default function GameClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, [
     zone,
+    talkTo,
     siteQuest,
     dialogueOpen,
     logOpen,
@@ -552,7 +617,8 @@ export default function GameClient() {
           <div className="hud-bc">
             {dialogueOpen && (
               <ForgeDialogue
-                key={currentId ?? "none"}
+                key={`${talkTo?.id}:${currentId ?? "none"}`}
+                npc={talkTo!.id}
                 board={board}
                 forged={forged}
                 sanityConfigured={configured}
@@ -566,9 +632,9 @@ export default function GameClient() {
                 onClose={() => setTalking(false)}
               />
             )}
-            {zone === "forge" && !dialogueOpen && (
+            {talkTo && !dialogueOpen && (
               <button type="button" className="prompt" onClick={openDialogue}>
-                <kbd>E</kbd> Snakk med Brann
+                <kbd>E</kbd> Snakk med {talkTo.name}
               </button>
             )}
             {siteQuest &&
@@ -581,7 +647,9 @@ export default function GameClient() {
                 >
                   <kbd>E</kbd>{" "}
                   {siteQuest.pickup
-                    ? `Hent luke ${siteQuest.quest.door}`
+                    ? siteQuest.quest.bonus
+                      ? "Les oppslaget"
+                      : `Hent luke ${siteQuest.quest.door}`
                     : siteQuest.quest.checkedBy === "window"
                       ? "Åpne kodevinduet"
                       : "Åpne luka her"}
@@ -671,7 +739,7 @@ export default function GameClient() {
 
         {showOpening && <Opening onStart={markIntroSeen} />}
 
-        {dev && (
+        {dev && codeQuestId === null && (
           <DevPanel
             board={board}
             forgeLevel={forgeLevel}
@@ -687,6 +755,9 @@ export default function GameClient() {
               })
             }
             onJump={jumpTo}
+            onComplete={completeQuest}
+            track={progress.track}
+            onTrack={setTrack}
             onReset={() => {
               reset();
               setDevChecks({});

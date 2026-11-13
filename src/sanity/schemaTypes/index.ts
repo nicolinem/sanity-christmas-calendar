@@ -1,7 +1,8 @@
 import type { SchemaTypeDefinition } from "sanity";
 import { item } from "./item";
+import { caseFile, observation, place, witness } from "./archive";
 
-// Monsters arrive in chapter 2 as their own document type.
+// Week 2 brings Arkivarens observasjoner, ready-made for every player.
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [item],
+  types: [item, observation, place, witness, caseFile],
 };

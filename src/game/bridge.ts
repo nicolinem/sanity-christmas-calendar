@@ -1,6 +1,6 @@
 import type { SpriteDef } from "./sprites";
 import type { Element } from "./magic";
-import type { QuestSiteId } from "./village";
+import type { NpcId, QuestSiteId } from "./village";
 
 // The seam between React (HUD, content, rules) and Phaser (world, motion).
 // Deliberately Phaser-free so HUD components can import it during SSR.
@@ -9,13 +9,14 @@ import type { QuestSiteId } from "./village";
 // scene reads it on boot and on every change. The scene pushes back where the
 // knight is standing (`zone`) and one-shot effects travel as events.
 
-export type Zone = "forge" | "noticeboard" | "westHouse" | "wraith" | null;
+export type Zone = QuestSiteId | "wraith" | null;
 // One calendar door shown in the village: a numbered window that hangs over
 // the place its task belongs to. Dark while locked, outlined while open, lit
 // when done.
 export type DoorMarker = {
   id: string;
   door: number;
+  bonus?: true; // optional: drawn with «?» instead of its number
   site: QuestSiteId;
   status: "locked" | "open" | "done";
 };
@@ -24,7 +25,7 @@ export type WorldState = {
   weapon: SpriteDef | null;
   forgeLit: boolean; // the first blade has been forged
   forgeLevel: number; // 1..4, glows hotter as it grows
-  brannMarker: boolean; // Brann has a task he hasn't explained yet
+  npcMarker: NpcId | null; // who has a luke the player hasn't heard yet
   doors: DoorMarker[]; // this week's doors, in calendar order
   goal: { x: number; y: number } | null; // the next step, in world px
   wraithDefeated: boolean;
@@ -38,6 +39,7 @@ export type QuestCelebration = {
   lesson: string;
   objectives?: string[];
   nextDoor?: number;
+  nextGiver?: NpcId; // who hands the next door over
   level?: { number: number; damage: number };
 };
 
@@ -69,7 +71,7 @@ class Bridge {
     weapon: null,
     forgeLit: false,
     forgeLevel: 1,
-    brannMarker: true,
+    npcMarker: "brann",
     doors: [],
     goal: null,
     wraithDefeated: false,

@@ -128,7 +128,7 @@ function harness(
         return dependencies[id];
       },
       process: { env: { NODE_ENV: "production" } },
-      window: { location: { search: "?dev=quests" } },
+      window: { location: { search: "?dev" } },
       URLSearchParams,
     },
     { filename },

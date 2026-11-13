@@ -2,7 +2,6 @@ import Phaser from "phaser";
 import { bridge, type DoorMarker, type WorldState, type Zone } from "./bridge";
 import { SHEETS, TILE, type SpriteDef } from "./sprites";
 import {
-  BLACKSMITH,
   BUILDINGS,
   FORGE_FIRE,
   FURNACE,
@@ -10,6 +9,7 @@ import {
   GROUND,
   MAP_H,
   MAP_W,
+  NPCS,
   PROPS,
   QUEST_SITES,
   pathRoute,
@@ -18,7 +18,7 @@ import {
   TREES,
   WRAITH_HOME,
 } from "./village";
-import type { QuestSiteId } from "./village";
+import type { NpcId, QuestSiteId } from "./village";
 
 // Frostholm at blue hour. The world is a 54×30 tile village built from Kenney's
 // Tiny Town/Dungeon sheets; the camera follows the knight at an integer zoom so
@@ -40,8 +40,7 @@ export class WinterQuestScene extends Phaser.Scene {
   private knight!: Phaser.GameObjects.Container;
   private knightBody!: Phaser.GameObjects.Image;
   private weapon!: Phaser.GameObjects.Image;
-  private blacksmith!: Phaser.GameObjects.Image;
-  private marker!: Phaser.GameObjects.Text;
+  private markers = new Map<NpcId, Phaser.GameObjects.Text>();
   private doorMarkers: Phaser.GameObjects.Container[] = [];
   private doorsKey = "";
   private goalBadge!: Phaser.GameObjects.Container;
@@ -79,8 +78,8 @@ export class WinterQuestScene extends Phaser.Scene {
 
   preload() {
     const frame = { frameWidth: TILE, frameHeight: TILE };
-    this.load.spritesheet("town", SHEETS.town.url, frame);
-    this.load.spritesheet("dungeon", SHEETS.dungeon.url, frame);
+    for (const [key, sheet] of Object.entries(SHEETS))
+      this.load.spritesheet(key, sheet.url, frame);
   }
 
   create() {
@@ -217,31 +216,29 @@ export class WinterQuestScene extends Phaser.Scene {
   }
 
   private buildCharacters() {
-    // The blacksmith, Brann, waits by his anvil with a quest marker overhead.
-    this.add
-      .image(BLACKSMITH.x, BLACKSMITH.y + 1, "shadow")
-      .setDepth(BLACKSMITH.y - 1);
-    this.blacksmith = this.add
-      .image(BLACKSMITH.x, BLACKSMITH.y, "dungeon", 86)
-      .setOrigin(0.5, 1)
-      .setDepth(BLACKSMITH.y);
-    this.solids.push({ x: BLACKSMITH.x - 5, y: BLACKSMITH.y - 5, w: 10, h: 5 });
-    this.marker = this.text(
-      BLACKSMITH.x,
-      BLACKSMITH.y - 22,
-      "!",
-      12,
-      "#fdbe53",
-    ).setDepth(9000);
-    if (!this.reducedMotion) {
-      this.tweens.add({
-        targets: this.marker,
-        y: "-=2",
-        duration: 600,
-        yoyo: true,
-        repeat: -1,
-        ease: "Sine.inOut",
-      });
+    // The people who hand out lukes: Brann by his anvil, Arkivaren on the
+    // square, Bakeren by the bakery. Each gets a «!» while they have a luke
+    // the player hasn't heard about yet.
+    for (const npc of Object.values(NPCS)) {
+      this.add.image(npc.x, npc.y + 1, "shadow").setDepth(npc.y - 1);
+      this.add
+        .image(npc.x, npc.y, npc.sprite.sheet, npc.sprite.frame)
+        .setOrigin(0.5, 1)
+        .setDepth(npc.y);
+      this.solids.push({ x: npc.x - 5, y: npc.y - 5, w: 10, h: 5 });
+      const marker = this.text(npc.x, npc.y - 22, "!", 12, "#fdbe53")
+        .setDepth(9000)
+        .setVisible(false);
+      if (!this.reducedMotion)
+        this.tweens.add({
+          targets: marker,
+          y: "-=2",
+          duration: 600,
+          yoyo: true,
+          repeat: -1,
+          ease: "Sine.inOut",
+        });
+      this.markers.set(npc.id, marker);
     }
 
     // The Frost Wraith: Kenney's ghost, tinted to glacier blue.
@@ -355,18 +352,20 @@ export class WinterQuestScene extends Phaser.Scene {
           .setBlendMode(Phaser.BlendModes.ADD),
       );
     }
+    // An optional luke is blue with «?», so it reads as extra, not next.
+    const colour = d.bonus ? 0x8fd3ff : 0xfdbe53;
     const frame = this.add
       .rectangle(0, -8, 20, 20)
-      .setStrokeStyle(1, 0xfdbe53)
+      .setStrokeStyle(1, colour)
       .setVisible(d.status === "open");
     const pane = this.add.image(0, 0, "town", 84).setOrigin(0.5, 1);
     if (d.status !== "done") pane.setTint(0x6b7899);
     const label = this.text(
       8,
       5,
-      String(d.door),
+      d.bonus ? "?" : String(d.door),
       9,
-      d.status === "locked" ? "#c0cbdc" : "#fdbe53",
+      d.status === "locked" ? "#c0cbdc" : d.bonus ? "#8fd3ff" : "#fdbe53",
     );
     parts.push(frame, pane, label);
     const door = this.add
@@ -481,7 +480,8 @@ export class WinterQuestScene extends Phaser.Scene {
 
   private applyWorld(w: WorldState) {
     this.setWeapon(w.weapon);
-    this.marker.setVisible(w.brannMarker);
+    for (const [id, marker] of this.markers)
+      marker.setVisible(w.npcMarker === id);
     this.syncDoors(w.doors);
     // A cold forge smoulders; once lit it burns brighter with every level.
     this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
@@ -857,11 +857,10 @@ export class WinterQuestScene extends Phaser.Scene {
   private updateZone() {
     const k = this.knight;
     let zone: Zone = null;
-    if (
-      Phaser.Math.Distance.Between(k.x, k.y, BLACKSMITH.x, BLACKSMITH.y) <
-      FORGE_RANGE
-    )
-      zone = "forge";
+    const npc = Object.values(NPCS).find(
+      (n) => Phaser.Math.Distance.Between(k.x, k.y, n.x, n.y) < FORGE_RANGE,
+    );
+    if (npc) zone = npc.site;
     else if (
       Phaser.Math.Distance.Between(
         k.x,
