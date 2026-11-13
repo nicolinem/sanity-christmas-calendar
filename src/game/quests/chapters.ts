@@ -1,3 +1,4 @@
+import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
 import type { GameItemView } from "../items";
 import type {
   Chapter,
@@ -332,6 +333,259 @@ export const theForgeButton: Quest = {
   },
 };
 
+// --- Uke 2: Arkivarens mysterium ----------------------------------------------
+// Halve bygda vil avlyse markedet. Arkivaren har samlet observasjoner, men
+// trenger hjelp til å skille det som skjedde fra rykter. Teknisk løype spør
+// med GROQ i kodevinduet; ikke-teknisk løype sorterer og kobler i eget Studio.
+// Begge ender med sporet fra skogkanten til bakeriet. See docs/historie.md.
+
+const GROQ_DOCS = "https://www.sanity.io/docs/groq";
+
+const followTheTrail: Quest = {
+  id: "follow-the-trail",
+  giver: "arkivaren",
+  track: "technical",
+  door: 5,
+  title: "GROQ: følg sporet",
+  intro: [
+    "Halve bygda vil avlyse markedet på grunn av alle ryktene. Jeg har femti observasjoner og ingen svar. Hjelp meg å skille det som skjedde fra det folk tror skjedde.",
+    "Skriv én GROQ-spørring mot observasjonene mine: bare det som er bekreftet, i tidsrekkefølge, og med stedet. Kartet viser hvor sporet går.",
+  ],
+  goal: "Skriv en GROQ-spørring som gir de bekreftede observasjonene i tidsrekkefølge, med stedet.",
+  where: "I kodevinduet.",
+  hints: [
+    {
+      text: "Et filter står inne i `*[ … ]`. Flere vilkår settes sammen med `&&`.",
+      link: { label: "GROQ: filters", url: GROQ_DOCS },
+    },
+    { text: "`| order(time asc)` etter filteret sorterer radene." },
+    {
+      text: "`place` er en *reference*. `place->` henter dokumentet den peker på, og `place->{ name, x, y }` velger feltene.",
+    },
+  ],
+  learn: { label: "GROQ", url: GROQ_DOCS },
+  lesson: {
+    title: "*Filter*, `order` og `->`",
+    text: "Et filter avgjør hvilke dokumenter som er med, og det avgjør også konklusjonen. `order()` sorterer, og `->` følger en *reference* til dokumentet den peker på.",
+  },
+  studioPractice:
+    "Vil du prøve i Studio? Åpne *Vision* og kjør den samme spørringen mot ditt eget prosjekt. Der finnes det ingen observasjoner, så prøv den på `item` i stedet.",
+  checkedBy: "window",
+  reward: { forgeLevel: 1 },
+  check: fromWindow("follow-the-trail"),
+};
+
+const archiveLists: Quest = {
+  id: "archive-lists",
+  giver: "arkivaren",
+  track: "technical",
+  door: 6,
+  title: "Structure: Arkivarens lister",
+  intro: [
+    "For et kart! Jeg har hengt opp noen frivillige GROQ-spørsmål på skiltet ved torget, hvis du vil ha mer. Men først: jeg kan ikke skrive GROQ hver gang jeg skal lete.",
+    "Lag to lister i Studio med *Structure Builder*: «Bare bekreftede» og «Per sted». Filtrene er de samme som i spørringen din.",
+  ],
+  goal: "Lag listene «Bare bekreftede» og «Per sted» med *Structure Builder*.",
+  where: "I kodevinduet.",
+  hints: [
+    {
+      text: "Et punkt i lista er `S.listItem().title(…).child(…)`. Barnet kan være en `S.documentList()` med `.filter(…)`.",
+      link: { label: "Structure Builder", url: `${DOCS}/structure-builder-introduction` },
+    },
+    {
+      text: "«Per sted» kan starte med `S.documentTypeList(\"place\")`. Dens `.child((placeId) => …)` får id-en til stedet du klikker på.",
+    },
+    {
+      text: "Gi id-en videre som en parameter: `.filter('_type == \"observation\" && references($placeId)').params({ placeId })`.",
+    },
+  ],
+  learn: { label: "Structure Builder", url: `${DOCS}/structure-builder-introduction` },
+  lesson: {
+    title: "*Structure Builder*",
+    text: "Lista til venstre i Studio er kode. Med `S.documentList().filter()` blir en GROQ-spørring en liste redaktørene kan klikke seg gjennom, uten å skrive GROQ selv.",
+  },
+  studioPractice:
+    "Åpne Studio. Listene «Bare bekreftede» og «Per sted» står øverst. Last Studio på nytt hvis du ikke ser dem.",
+  checkedBy: "window",
+  reward: { forgeLevel: 1 },
+  check: fromWindow("archive-lists"),
+};
+
+const whoPointsHere: Quest = {
+  id: "who-points-here",
+  giver: "arkivaren",
+  track: "technical",
+  door: 7,
+  title: "Document view: hvem peker hit?",
+  intro: [
+    "Når jeg åpner Bakeriet i Studio, står det ingenting om hva som er sett der. Stedet vet ikke hva som peker på det.",
+    "Lag en egen fane på steder, en *document view*, som henter observasjonene som peker hit.",
+  ],
+  goal: "Lag en *document view* som viser observasjonene som peker på stedet du har åpnet.",
+  where: "I kodevinduet.",
+  hints: [
+    {
+      text: "`client.fetch(query, params)` gir et løfte. Send resultatet til `setRows` med `.then(setRows)`.",
+      link: { label: "Component views", url: `${DOCS}/create-custom-document-views-with-structure-builder` },
+    },
+    { text: "`references($id)` er sant for dokumenter som peker på `$id`." },
+    { text: "Gi id-en som parameter: `{ id: props.documentId }`. `props.document.displayed._id` kan være en *draft*-id." },
+  ],
+  learn: { label: "Document views", url: `${DOCS}/create-custom-document-views-with-structure-builder` },
+  lesson: {
+    title: "*References* går én vei",
+    text: "Et dokument vet ikke hva som peker på det. Med `references($id)` spør du etter det, og en *document view* kan vise svaret rett i Studio.",
+  },
+  studioPractice:
+    "Åpne et sted i Studio, for eksempel Bakeriet, og velg fanen «Observasjoner her». Last Studio på nytt hvis fanen ikke vises.",
+  checkedBy: "window",
+  reward: { forgeLevel: 1 },
+  check: fromWindow("who-points-here"),
+};
+
+// Optional: five GROQ questions gathered in one luke. It opens with the GROQ
+// luke done and waits on the signpost by the square, where Arkivaren hung it.
+const archiveQuestions: Quest = {
+  id: "archive-questions",
+  track: "technical",
+  door: 8,
+  title: "Arkivarens spørsmål",
+  villageSite: "noticeboard",
+  intro: [
+    "Arkivaren har hengt opp fem spørsmål om observasjonene på skiltet. Svar på så mange du vil, med GROQ.",
+  ],
+  goal: "Svar på Arkivarens fem spørsmål med GROQ. Hvert svar gir en gjenstand.",
+  where: "På skiltet ved torget. Etterpå i kodevinduet.",
+  hints: [
+    { text: "Hvert spørsmål har sin egen `svar`-konstant. Resultatet vises med en gang, og du kan ta dem i hvilken rekkefølge du vil." },
+    { text: "Tell med `count(…)`. En underspørring inne i en projeksjon kan bruke `^` for dokumentet utenfor." },
+  ],
+  learn: { label: "GROQ", url: GROQ_DOCS },
+  lesson: {
+    title: "GROQ: tell, sammenlign og `^`",
+    text: "`count()` teller, et filter kan sammenligne tekst som tidspunkter, og `^` i en underspørring peker på dokumentet utenfor. Da kan én spørring svare på spørsmål om hele datasettet.",
+  },
+  checkedBy: "window",
+  bonus: true,
+  check: fromWindow("archive-questions"),
+};
+
+function waitingForArchive(archive: QuestContext["archive"]): CheckResult | null {
+  if (archive == null)
+    return { done: false, message: "Henter Arkivarens observasjoner fra prosjektet ditt…" };
+  if (archive.length === 0)
+    return { done: false, message: "Arkivarens observasjoner er ikke i Studio ennå. Spillet legger dem inn når luka er gitt." };
+  return null;
+}
+
+const sourceCheck: Quest = {
+  id: "source-check",
+  giver: "arkivaren",
+  track: "nonTechnical",
+  door: 2,
+  title: "Kildesjekk",
+  intro: [
+    "Halve bygda vil avlyse markedet på grunn av alle ryktene. Jeg vil ha fakta først, og jeg trenger hjelp til å sortere.",
+    "Ni observasjoner i Studio har status *Unknown*. Regelen min: bekreftet hvis den har et bilde, eller hvis et *annet* vitne så det samme stedet. Ellers er det et rykte.",
+  ],
+  goal: "Gi de ni observasjonene riktig *Status* etter Arkivarens regel, og publiser dem.",
+  where: "I Sanity Studio, under *Observation* eller «Per sted».",
+  hints: [
+    { text: "Åpne «Per sted» i Studio. Da ser du hvilke observasjoner som hører til samme sted." },
+    { text: "Se på *Witness* også. Det teller bare hvis det er et *annet* vitne." },
+    { text: "Husk *Publish* på hver av dem. Spillet ser bare publiserte dokumenter." },
+  ],
+  lesson: {
+    title: "Innhold som henger sammen",
+    text: "Et felt alene sier ikke alt. *References* til sted og vitne gjør at du kan se hva som hører sammen, og et filter finner bare det som er registrert riktig.",
+  },
+  checkedBy: "game",
+  reward: { forgeLevel: 1 },
+  check: ({ archive }) => {
+    const waiting = waitingForArchive(archive);
+    if (waiting) return waiting;
+    const { right, total } = sourceCheckScore(archive!);
+    return {
+      done: right === total,
+      objectives: [{ label: `${right} av ${total} har riktig publisert status`, done: right === total }],
+    };
+  },
+};
+
+const linkThePlace: Quest = {
+  id: "link-the-place",
+  giver: "arkivaren",
+  track: "nonTechnical",
+  door: 3,
+  title: "Koble til stedet",
+  intro: [
+    "Tre bekreftede observasjoner har stedet skrevet som tekst: «bakriet», «ved smia, tror jeg». Da finner ingen liste dem.",
+    "Velg riktig *Place* i hver av dem, så havner de på kartet og under «Per sted».",
+  ],
+  goal: "Gi de tre observasjonene med stedet som tekst en *reference* til riktig sted, og publiser.",
+  where: "I Sanity Studio, under *Observation*.",
+  hints: [
+    { text: "Observasjonene det gjelder, har feltet *Place (as written down)*." },
+    { text: "Feltet *Place* over er en *reference*. Begynn å skrive navnet på stedet, og velg det fra lista." },
+    { text: "Husk *Publish*." },
+  ],
+  learn: { label: "Reference type", url: `${DOCS}/reference-type` },
+  lesson: {
+    title: "*References* i stedet for tekst",
+    text: "Tekst kan staves på mange måter. En *reference* peker på ett bestemt dokument, så lister og spørringer finner det igjen.",
+  },
+  checkedBy: "game",
+  reward: { forgeLevel: 1 },
+  check: ({ archive }) => {
+    const waiting = waitingForArchive(archive);
+    if (waiting) return waiting;
+    const { right, total } = linkScore(archive!);
+    return {
+      done: right === total,
+      objectives: [{ label: `${right} av ${total} peker på riktig sted`, done: right === total }],
+    };
+  },
+};
+
+const caseFile: Quest = {
+  id: "case-file",
+  giver: "arkivaren",
+  track: "nonTechnical",
+  door: 4,
+  title: "Saksmappa",
+  intro: [
+    "Jeg vil samle alt om det store sporet på ett sted, så hele bygda kan lese det før markedet.",
+    "Lag en *Case* i Studio og legg inn alle de bekreftede observasjonene, også de tre du koblet til et sted. Ingen rykter.",
+  ],
+  goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene, og ingen rykter.",
+  where: "I Sanity Studio, under *Case*.",
+  hints: [
+    { text: "Lista «Bare bekreftede» i Studio viser hvilke observasjoner som skal med." },
+    { text: "Feltet *Observations* er en liste av *references*. Trykk «Add item» og søk etter observasjonen du vil legge til." },
+    { text: "Husk *Publish*. Spillet ser bare publiserte dokumenter." },
+  ],
+  learn: { label: "Array of references", url: `${DOCS}/array-type` },
+  lesson: {
+    title: "En liste av *references*",
+    text: "Én *Case* kan peke på mange observasjoner uten å kopiere dem. Endrer du en observasjon, er mappa fortsatt oppdatert.",
+  },
+  checkedBy: "game",
+  reward: { forgeLevel: 1 },
+  check: ({ archiveCases }) => {
+    if (archiveCases == null)
+      return { done: false, message: "Henter saksmappene fra prosjektet ditt…" };
+    const { right, wrong, total } = caseFileScore(archiveCases);
+    const done = right === total && wrong === 0;
+    return {
+      done,
+      objectives: [
+        { label: `${right} av ${total} bekreftede er med`, done: right === total },
+        { label: wrong === 0 ? "Ingen rykter i mappa" : `${wrong} rykte${wrong === 1 ? "" : "r"} i mappa`, done: wrong === 0 },
+      ],
+    };
+  },
+};
+
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
@@ -345,15 +599,15 @@ export const CHAPTERS: Chapter[] = [
   },
   {
     number: 2,
-    title: "Innholdsmodellering",
-    quests: [],
-    teaser: [
-      "Ny document type",
-      "References",
-      "GROQ",
-      "Bilder og assets",
-      "Bonus: migrering",
-      "Bonus: TypeGen",
+    title: "Finne",
+    quests: [
+      followTheTrail,
+      archiveQuestions,
+      archiveLists,
+      whoPointsHere,
+      sourceCheck,
+      linkThePlace,
+      caseFile,
     ],
   },
   {

@@ -97,6 +97,10 @@ export const PROPS: Prop[] = [
   { sheet: "dungeon", frame: 89, x: 9, y: 9, solid: true }, // chest by a door
   { sheet: "town", frame: 106, x: 35, y: 7, solid: true }, // firewood
   { sheet: "town", frame: 106, x: 9, y: 20, solid: true },
+  // The bakery (the east house): flour, wheat and bread by the door.
+  { sheet: "farm", frame: 74, x: 31, y: 8, solid: true }, // flour sack
+  { sheet: "farm", frame: 71, x: 32, y: 8, solid: true }, // crate of wheat
+  { sheet: "farm", frame: 125, x: 35, y: 8, solid: true }, // a loaf on the step
 ];
 
 export const SPAWN = { x: 23 * 16, y: 12 * 16 + 8 }; // on the forge path, Brann in view
@@ -127,6 +131,22 @@ export const QUEST_SITES = {
     mapX: 10 * 16 + 8,
     mapY: 9 * 16 + 8,
   },
+  // Where Arkivaren stands: the north-west corner of the square.
+  square: {
+    label: "Torget",
+    x: 19 * 16 + 8,
+    y: 14 * 16,
+    mapX: 19 * 16 + 8,
+    mapY: 13 * 16,
+  },
+  // The east house by the forge, where Bakeren bakes.
+  bakery: {
+    label: "Bakeriet",
+    x: 35 * 16 + 8,
+    y: 10 * 16,
+    mapX: 33 * 16 + 8,
+    mapY: 7 * 16,
+  },
 } as const;
 
 export type QuestSiteId = keyof typeof QUEST_SITES;
@@ -141,7 +161,59 @@ export const DOOR_ANCHORS: Record<QuestSiteId, { x: number; y: number }> = {
   },
   westHouse: { x: 10 * 16, y: 6 * 16 - 4 },
   noticeboard: { x: QUEST_SITES.noticeboard.mapX, y: 13 * 16 - 4 },
+  square: { x: 19 * 16 + 8, y: 11 * 16 + 2 },
+  bakery: { x: 33 * 16, y: 5 * 16 + 4 },
 };
+
+// The people in the village who hand out lukes. Each stands at a place and
+// gets a «!» while they have a luke the player hasn't heard about yet.
+export type NpcId = "brann" | "arkivaren" | "bakeren";
+export type Npc = {
+  id: NpcId;
+  name: string;
+  title?: string; // shown after the name in the dialogue, when it adds something
+  sprite: { sheet: SpriteSheet; frame: number };
+  site: QuestSiteId; // where they stand; talking happens in this zone
+  at: string; // where they stand, in a sentence: "ved smia"
+  x: number; // feet position in px
+  y: number;
+};
+
+export const NPCS: Record<NpcId, Npc> = {
+  brann: {
+    id: "brann",
+    name: "Brann",
+    title: "smeden",
+    sprite: { sheet: "dungeon", frame: 86 },
+    site: "forge",
+    at: "ved smia",
+    x: BLACKSMITH.x,
+    y: BLACKSMITH.y,
+  },
+  arkivaren: {
+    id: "arkivaren",
+    name: "Arkivaren",
+    sprite: { sheet: "dungeon", frame: 84 },
+    site: "square",
+    at: "på torget",
+    x: QUEST_SITES.square.x,
+    y: QUEST_SITES.square.y,
+  },
+  bakeren: {
+    id: "bakeren",
+    name: "Bakeren",
+    sprite: { sheet: "dungeon", frame: 85 },
+    site: "bakery",
+    at: "ved bakeriet",
+    x: QUEST_SITES.bakery.x,
+    y: QUEST_SITES.bakery.y,
+  },
+};
+
+// Who stands at a place, if anyone.
+export function npcAtSite(site: QuestSiteId | null | undefined): Npc | undefined {
+  return Object.values(NPCS).find((n) => n.site === site);
+}
 
 // Doors that share a place stand side by side, 22px apart.
 export function placeDoors<T extends { site: QuestSiteId }>(

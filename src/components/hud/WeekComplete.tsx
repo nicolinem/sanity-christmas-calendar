@@ -95,6 +95,12 @@ export default function WeekComplete({
           </button>
         </div>
 
+        <p className="week-done-friday">
+          {summary.optional
+            ? `Til neste uke kan du utforske bygda. Har du lyst på mer, henger «${summary.optional.title}» fortsatt ved ${summary.optional.place}.`
+            : "Til neste uke kan du utforske bygda og prøve våpnene dine."}
+        </p>
+
         {summary.next ? (
           <div className="week-done-next">
             <p className="week-done-label">

@@ -23,7 +23,7 @@ export type Verdict<Data = unknown> = {
 // the real file, so it never drifts from what the Studio uses.
 export type Reference = {
   file: string;
-  path: string;
+  path?: string; // where it lives in the repo; left out for data that isn't a file
   source: string;
   about: string;
   examples: { code: string; shows: ReactNode }[];
@@ -51,5 +51,8 @@ export type WindowTask = {
   Result: ComponentType<{ verdict: Verdict | null }>;
   ours: string; // our version of the code, shown once solved
   references: Reference[];
-  extend: Extend;
+  extend?: Extend; // left out when there's no repo file to go on in
+  // false: nothing switches on in the Studio (a GROQ answer, say), so the
+  // window doesn't claim it does.
+  studioCode?: false;
 };

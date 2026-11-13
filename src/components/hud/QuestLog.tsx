@@ -1,5 +1,6 @@
 "use client";
 
+import { coreFirst, giverOf, lukeName } from "@/game/quests/label";
 import { useEffect, useRef, useState } from "react";
 import { CHAPTERS } from "@/game/quests/chapters";
 import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
@@ -181,7 +182,7 @@ export default function QuestLog({
                     shown={hintsShown[selected.quest.id] ?? 0}
                     onMoreHint={() => onRevealHint(selected.quest.id)}
                     onOpenCode={() => onOpenCode(selected.quest.id)}
-                    onGoToBrann={() => onTravelToSite("forge")}
+                    onGoToGiver={() => onTravelToSite(giverOf(selected.quest).site)}
                     onTravel={onTravelToSite}
                     codePassed={Boolean(solvedTasks[selected.quest.id])}
                     onClose={onClose}
@@ -276,7 +277,7 @@ function rowStatus(
   if (state.status === "active") return "pågår";
   if (state.pickup)
     return `hentes ved ${QUEST_SITES[state.pickup].label.toLowerCase()}`;
-  if (state.status === "offered") return "venter hos Brann";
+  if (state.status === "offered") return `venter hos ${giverOf(state.quest).name}`;
   if (state.opensAt) return `åpner ${dateLabel(state.opensAt)}`;
   const before = week[week.indexOf(state) - 1];
   return before ? `etter luke ${before.quest.door}` : "låst";
@@ -374,7 +375,7 @@ function WeekBody({
   detail: React.ReactNode;
 }) {
   const chapter = CHAPTERS.find((c) => c.number === week) ?? CHAPTERS[0];
-  const states = board.states.filter((s) => s.chapter.number === week);
+  const states = coreFirst(board.states.filter((s) => s.chapter.number === week));
   const core = states.filter((s) => !s.quest.bonus);
   const done = core.filter((s) => s.status === "done").length;
   const open = states.some((s) => s.status !== "locked");
@@ -424,14 +425,11 @@ function WeekBody({
                 />
                 <span className="log-quest-name">
                   <span className="log-quest-door">
-                    Luke {s.quest.door} · {rowStatus(s, states, completedAt)}
+                    {lukeName(s.quest)} · {rowStatus(s, states, completedAt)}
                   </span>
                   {s.status === "offered" && !s.pickup
-                    ? "Snakk med Brann"
+                    ? `Snakk med ${giverOf(s.quest).name}`
                     : s.quest.title}
-                  {s.quest.bonus && (
-                    <span className="log-bonus"> ☆ Bonus · valgfri</span>
-                  )}
                 </span>
               </button>
             </li>
@@ -459,7 +457,7 @@ function QuestDetail({
   shown,
   onMoreHint,
   onOpenCode,
-  onGoToBrann,
+  onGoToGiver,
   onTravel,
   codePassed,
   onClose,
@@ -469,7 +467,7 @@ function QuestDetail({
   shown: number;
   onMoreHint: () => void;
   onOpenCode: () => void;
-  onGoToBrann: () => void;
+  onGoToGiver: () => void;
   onTravel: (site: QuestSiteId) => void;
   codePassed: boolean;
   onClose: () => void;
@@ -477,31 +475,31 @@ function QuestDetail({
   const { quest, status, result } = state;
 
   if (status === "offered" && !state.pickup) {
+    const giver = giverOf(quest);
     return (
       <article className="log-detail">
         <div className="log-brann">
           <span
             className="log-brann-portrait"
             role="img"
-            aria-label="Brann, smeden"
+            aria-label={giver.title ? `${giver.name}, ${giver.title}` : giver.name}
           >
-            <SpriteIcon sprite={{ sheet: "dungeon", frame: 86 }} scale={4} />
+            <SpriteIcon sprite={giver.sprite} scale={4} />
           </span>
           <div>
             <p className="log-week-kicker">
-              Luke {quest.door}
-              {quest.bonus && " · ☆ Bonus · valgfri"}
+              {lukeName(quest)}
             </p>
-            <h3 className="log-quest-title">Brann har en ny luke til deg</h3>
+            <h3 className="log-quest-title">{giver.name} har en ny luke til deg</h3>
             <p className="log-locked">
-              Snakk med ham ved smia, så forteller han hva du skal gjøre.
+              Snakk med {giver.name} {giver.at} for å høre hva du skal gjøre.
             </p>
             <button
               type="button"
               className="btn btn--amber log-code"
-              onClick={onGoToBrann}
+              onClick={onGoToGiver}
             >
-              Gå til Brann
+              Gå til {giver.name}
             </button>
           </div>
         </div>
@@ -512,11 +510,8 @@ function QuestDetail({
   if (status === "locked") {
     return (
       <article className="log-detail">
-        <p className="log-week-kicker">Luke {quest.door}</p>
-        <h3 className="log-quest-title">
-          {quest.title}
-          {quest.bonus && <span className="log-bonus">☆ Bonus · valgfri</span>}
-        </h3>
+        <p className="log-week-kicker">{lukeName(quest)}</p>
+        <h3 className="log-quest-title">{quest.title}</h3>
         <p className="log-locked">
           {state.opensAt
             ? `Åpner ${dateLabel(state.opensAt)}.`
@@ -538,8 +533,7 @@ function QuestDetail({
             : ""}
         </div>
         <p className="log-week-kicker">
-          Luke {quest.door}
-          {quest.bonus && " · ☆ Bonus"}
+          {lukeName(quest)}
         </p>
         <h3 className="log-quest-title">{quest.title}</h3>
         <div className="log-lesson log-lesson--inline">
@@ -592,11 +586,10 @@ function QuestDetail({
   return (
     <article className="log-detail">
       <p className="log-week-kicker log-week-kicker--active">
-        Luke {quest.door} ·{" "}
+        {lukeName(quest)} ·{" "}
         {state.pickup
           ? `hentes ved ${QUEST_SITES[state.pickup].label.toLowerCase()}`
           : "pågår"}
-        {quest.bonus && " · ☆ Bonus · valgfri"}
       </p>
       <h3 className="log-quest-title">{quest.title}</h3>
       <p className="log-intro">

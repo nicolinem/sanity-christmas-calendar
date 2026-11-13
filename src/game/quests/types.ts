@@ -1,6 +1,7 @@
+import type { OwnArchiveDoc, OwnCase } from "../archive";
 import type { GameItemView } from "../items";
 import type { Element } from "../magic";
-import type { QuestSiteId } from "../village";
+import type { NpcId, QuestSiteId } from "../village";
 
 export type QuestTrack = "technical" | "nonTechnical";
 
@@ -17,7 +18,9 @@ export type Progress = {
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
   introSeen: boolean; // the opening has been shown
   solved: Record<string, SolvedTask>; // tasks solved in the code window (quest id → how)
-  weeksSeen: Record<string, true>; // week numbers whose summary has been shown
+  // Week numbers whose summary has been shown, with how many core doors the
+  // week had then (true in older saves). A week that grows shows it again.
+  weeksSeen: Record<string, true | number>;
 };
 
 // A task solved in the game's code window. The Studio reads this and switches
@@ -33,6 +36,10 @@ export type QuestContext = {
   codeChecks: Record<string, CodeCheck>;
   sanityConfigured: boolean | null;
   unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
+  // Arkivarens observasjoner in the player's own project (uke 2, non-technical
+  // track), published versions only. null until the game has asked.
+  archive?: OwnArchiveDoc[] | null;
+  archiveCases?: OwnCase[] | null; // published `case` documents, same source
 };
 
 export type Objective = { label: string; done: boolean };
@@ -63,6 +70,7 @@ export type Quest = {
   // Optional steps to try the result in the real Studio after solving the code.
   studioPractice?: string;
   villageSite?: QuestSiteId; // where the player finds this task in Frostholm
+  giver?: NpcId; // who hands it over; Brann when left out
   // "Slik blir det": a Før / Etter picture of the goal, with a short caption
   // under each. The pictures are React, so they live in a registry keyed by
   // quest id (src/components/hud/goalPreviews.tsx); only the captions are here.

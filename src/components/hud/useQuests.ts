@@ -18,7 +18,7 @@ import {
   subscribeProgress,
   updateProgress,
 } from "@/game/quests/progress";
-import type { CodeCheck, QuestContext, SolvedTask } from "@/game/quests/types";
+import type { CodeCheck, QuestContext, QuestTrack, SolvedTask } from "@/game/quests/types";
 import { plainText } from "./richText";
 
 const noSubscribe = () => () => {};
@@ -68,11 +68,11 @@ export function useProgress() {
   }, []);
 
   // The week summary shows once per week; the journal can open it again.
-  const markWeekSeen = useCallback((week: number) => {
+  const markWeekSeen = useCallback((week: number, doors: number) => {
     updateProgress(PROJECT, (p) =>
-      p.weeksSeen?.[week]
+      p.weeksSeen?.[week] === doors
         ? p
-        : { ...p, weeksSeen: { ...p.weeksSeen, [week]: true } },
+        : { ...p, weeksSeen: { ...p.weeksSeen, [week]: doors } },
     );
   }, []);
 
@@ -153,6 +153,23 @@ export function useProgress() {
     });
   }, []);
 
+  // Dev panel: switch between the technical and non-technical track.
+  const setTrack = useCallback((track: QuestTrack) => {
+    updateProgress(PROJECT, (p) => ({ ...p, track }));
+  }, []);
+
+  // Dev panel: finish one quest as if its check passed, nothing else changes.
+  const completeQuest = useCallback((questId: string) => {
+    updateProgress(PROJECT, (p) => ({
+      ...p,
+      introSeen: true,
+      metBlacksmith: true,
+      completed: { ...p.completed, [questId]: new Date().toISOString() },
+      briefed: { ...p.briefed, [questId]: true },
+      fetched: { ...p.fetched, [questId]: true },
+    }));
+  }, []);
+
   return {
     progress,
     forgeLevel,
@@ -164,6 +181,8 @@ export function useProgress() {
     markWeekSeen,
     fetchQuest,
     jumpTo,
+    completeQuest,
+    setTrack,
   };
 }
 
@@ -173,6 +192,8 @@ type BoardInput = {
   codeQuestId?: string | null;
   sanityConfigured: boolean | null;
   unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
+  archive?: QuestContext["archive"];
+  archiveCases?: QuestContext["archiveCases"];
   wraithDefeatedNow: boolean;
   progress: ReturnType<typeof useProgress>["progress"];
 };
@@ -185,6 +206,8 @@ export function useQuestBoard({
   codeQuestId,
   sanityConfigured,
   unpublishedDrafts,
+  archive = null,
+  archiveCases = null,
   wraithDefeatedNow,
   progress,
 }: BoardInput) {
@@ -192,7 +215,7 @@ export function useQuestBoard({
     noSubscribe,
     () =>
       process.env.NODE_ENV !== "production" &&
-      new URLSearchParams(window.location.search).get("dev") === "quests",
+      new URLSearchParams(window.location.search).has("dev"),
     () => false,
   );
 
@@ -207,6 +230,8 @@ export function useQuestBoard({
       codeChecks,
       sanityConfigured,
       unpublishedDrafts,
+      archive,
+      archiveCases,
     };
     return evaluateQuests(chapters, ctx, new Date(), devUnlock);
   }, [
@@ -216,6 +241,8 @@ export function useQuestBoard({
     codeChecks,
     sanityConfigured,
     unpublishedDrafts,
+    archive,
+    archiveCases,
     devUnlock,
   ]);
 
@@ -255,6 +282,8 @@ export function useQuestBoard({
         codeChecks,
         sanityConfigured,
         unpublishedDrafts,
+        archive,
+        archiveCases,
       },
       new Date(),
       devUnlock,
@@ -268,10 +297,16 @@ export function useQuestBoard({
         objectives: s.result.objectives
           ?.filter((o) => o.done)
           .map((o) => o.label),
+        // Only a core door is "the next luke"; the optional one waits quietly,
+        // and the week summary mentions it.
         nextDoor:
-          index === finished.length - 1 && next && next.status !== "locked"
+          index === finished.length - 1 &&
+          next &&
+          !next.quest.bonus &&
+          next.status !== "locked"
             ? next.quest.door
             : undefined,
+        nextGiver: next ? (next.quest.giver ?? "brann") : undefined,
         level:
           index === finished.length - 1 && after > before
             ? { number: after, damage: forgedPower(after).damage }
@@ -290,6 +325,8 @@ export function useQuestBoard({
     codeChecks,
     sanityConfigured,
     unpublishedDrafts,
+    archive,
+    archiveCases,
     devUnlock,
   ]);
 

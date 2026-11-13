@@ -168,7 +168,9 @@ test("an unfinished bonus never blocks the next core task, and bonuses never aff
     const board = evaluateQuests(chapters, context({ completed }), NOW);
     assert.equal(board.total, 2);
     assert.equal(board.completedCount, 1);
-    assert.equal(board.states[1].status, bonusDone ? "done" : "offered");
+    // An optional luke isn't handed over by Brann: open means ready.
+    assert.equal(board.states[1].status, bonusDone ? "done" : "active");
+    assert.equal(board.current.quest.id, "next", "the core luke leads");
     assert.equal(board.states[2].status, "offered");
   }
   const blocked = evaluateQuests(
@@ -406,6 +408,21 @@ const STUDIO_STEPS = [
   {
     id: "the-drawing-board",
     before: ["the-broken-forge", "branns-ledger", "the-guilds-law"],
+    next: "follow-the-trail",
+  },
+  {
+    id: "follow-the-trail",
+    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board"],
+    next: "archive-lists",
+  },
+  {
+    id: "archive-lists",
+    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail"],
+    next: "who-points-here",
+  },
+  {
+    id: "who-points-here",
+    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists"],
     next: null,
   },
 ];
@@ -477,7 +494,8 @@ for (const step of STUDIO_STEPS) {
     assert.equal(board.completedCount, step.before.length + 1);
     if (step.next)
       assert.equal(stateOf(board, step.next).status, "offered");
-    else assert.equal(board.current, null);
+    // Only an optional luke may be left once the core doors are done.
+    else assert.ok(board.current === null || board.current.quest.bonus);
   });
 }
 

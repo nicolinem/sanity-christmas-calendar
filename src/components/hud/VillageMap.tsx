@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { giverOf, lukeName } from "@/game/quests/label";
+import { useState } from "react";
 import { bridge } from "@/game/bridge";
 import { weekDoors } from "@/game/quests/doors";
 import type { QuestBoard } from "@/game/quests/engine";
-import { SHEETS, TILE } from "@/game/sprites";
+import { TILE } from "@/game/sprites";
+import { useVillageCanvas } from "./villageCanvas";
 import {
-  BLACKSMITH,
-  BUILDINGS,
-  GROUND,
   MAP_H,
   MAP_W,
-  PROPS,
   QUEST_SITES,
-  TREES,
   placeDoors,
   type QuestSiteId,
 } from "@/game/village";
@@ -29,70 +26,6 @@ const STATUS_LABEL = {
   open: "åpen",
   done: "ferdig",
 } as const;
-
-function loadImage(url: string) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
-  });
-}
-
-// The village drawn from the same tile data the world uses (village.ts), so
-// the map is Frostholm in miniature rather than a separate drawing.
-function useVillageCanvas() {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([loadImage(SHEETS.town.url), loadImage(SHEETS.dungeon.url)])
-      .then(([town, dungeon]) => {
-        const ctx = ref.current?.getContext("2d");
-        if (!ctx || cancelled) return;
-        ctx.imageSmoothingEnabled = false;
-        const sheets = { town, dungeon };
-        const draw = (
-          sheet: keyof typeof sheets,
-          frame: number,
-          x: number,
-          y: number,
-        ) => {
-          const cols = SHEETS[sheet].cols;
-          ctx.drawImage(
-            sheets[sheet],
-            (frame % cols) * TILE,
-            Math.floor(frame / cols) * TILE,
-            TILE,
-            TILE,
-            x,
-            y,
-            TILE,
-            TILE,
-          );
-        };
-        GROUND.forEach((row, y) =>
-          row.forEach((frame, x) => draw("town", frame, x * TILE, y * TILE)),
-        );
-        for (const b of BUILDINGS)
-          b.rows.forEach((row, r) =>
-            row.forEach((frame, c) =>
-              draw("town", frame, (b.x + c) * TILE, (b.y + r) * TILE),
-            ),
-          );
-        for (const p of PROPS) draw(p.sheet, p.frame, p.x * TILE, p.y * TILE);
-        draw("dungeon", 86, BLACKSMITH.x - 8, BLACKSMITH.y - TILE);
-        for (const t of [...TREES].sort((a, b) => a.y - b.y))
-          draw("town", t.frame, t.x - 8, t.y - TILE);
-      })
-      .catch(() => {
-        // The markers and list still work without the picture.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  return ref;
-}
 
 // The journal's map tab: the real village with this week's doors over their
 // places, Brann's «!» while he has something for you, and where you stand.
@@ -116,11 +49,13 @@ export default function VillageMap({
   const doors = placeDoors(weekDoors(board));
   const current = board.current;
   const week = board.states.find((s) => s.quest.id === doors[0]?.id)?.chapter;
-  const lit = doors.filter((d) => d.status === "done").length;
+  // The optional luke isn't part of the week's count.
+  const core = doors.filter((d) => !d.bonus);
+  const lit = core.filter((d) => d.status === "done").length;
   const step = nextStep(current);
   const runStep = () => {
     if (!step) return;
-    if (step.kind === "brann") onTravel("forge");
+    if (step.kind === "giver") onTravel(step.site);
     else if (step.kind === "code") onOpenCode(step.questId);
     else if (step.kind === "travel") onTravel(step.site);
     else if (step.kind === "studio") onOpenStudio();
@@ -143,8 +78,8 @@ export default function VillageMap({
           <span
             className="vmap-brann"
             style={{
-              left: pct(BLACKSMITH.x, W),
-              top: pct(BLACKSMITH.y - 22, H),
+              left: pct(giverOf(current.quest).x, W),
+              top: pct(giverOf(current.quest).y - 22, H),
             }}
             aria-hidden="true"
           >
@@ -155,13 +90,13 @@ export default function VillageMap({
           <button
             key={d.id}
             type="button"
-            className={`vmap-door is-${d.status}`}
+            className={`vmap-door is-${d.status}${d.bonus ? " is-bonus" : ""}`}
             style={{ left: pct(d.x, W), top: pct(d.y, H) }}
             onClick={() => onOpenQuest(d.id)}
-            aria-label={`Luke ${d.door}, ${STATUS_LABEL[d.status]}: ${QUEST_SITES[d.site].label}`}
+            aria-label={`${d.bonus ? "Frivillig luke" : `Luke ${d.door}`}, ${STATUS_LABEL[d.status]}: ${QUEST_SITES[d.site].label}`}
           >
             <SpriteIcon sprite={{ sheet: "town", frame: 84 }} />
-            <span className="vmap-door-n">{d.door}</span>
+            <span className="vmap-door-n">{d.bonus ? "?" : d.door}</span>
           </button>
         ))}
         {knight.x > 0 && (
@@ -180,12 +115,12 @@ export default function VillageMap({
           {week ? `Uke ${week.number} i bygda` : "Bygda"}
         </p>
         <p className="vmap-count">
-          {lit} av {doors.length} luker lyser
+          {lit} av {core.length} luker lyser
         </p>
         {current && step && (
           <div className="vmap-next">
             <p className="vmap-kicker">
-              Neste steg · luke {current.quest.door}
+              Neste steg · {lukeName(current.quest).toLowerCase()}
             </p>
             {step.where && <p>{step.where}</p>}
             <button type="button" className="btn btn--amber" onClick={runStep}>
@@ -201,18 +136,19 @@ export default function VillageMap({
                 className={`vmap-row is-${d.status}`}
                 onClick={() => onOpenQuest(d.id)}
               >
-                <span className={`vmap-door is-${d.status} is-inline`}>
+                <span className={`vmap-door is-${d.status}${d.bonus ? " is-bonus" : ""} is-inline`}>
                   <SpriteIcon sprite={{ sheet: "town", frame: 84 }} />
                 </span>
                 <span className="vmap-row-text">
                   <span className="vmap-row-meta">
-                    Luke {d.door} · {QUEST_SITES[d.site].label} ·{" "}
+                    {d.bonus ? "Frivillig" : `Luke ${d.door}`} ·{" "}
+                    {QUEST_SITES[d.site].label} ·{" "}
                     {STATUS_LABEL[d.status]}
                   </span>
                   {d.id === current?.quest.id &&
                   current.status === "offered" &&
                   !current.pickup
-                    ? "Snakk med Brann"
+                    ? `Snakk med ${giverOf(current.quest).name}`
                     : title(d.id)}
                 </span>
               </button>

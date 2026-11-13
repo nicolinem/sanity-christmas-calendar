@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { QuestCelebration as Celebration } from "@/game/bridge";
 import { IconCheck } from "./icons";
 import SpriteIcon from "./SpriteIcon";
+import { NPCS } from "@/game/village";
 
 type Props = Celebration & {
   onClose: () => void;
@@ -19,10 +20,12 @@ export default function QuestCelebration({
   objectives,
   level,
   nextDoor,
+  nextGiver,
   onClose,
   onOpenLog,
   onReadPage,
 }: Props) {
+  const giver = NPCS[nextGiver ?? "brann"];
   const closeRef = useRef<HTMLButtonElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
   const [unlocked, setUnlocked] = useState(false);
@@ -78,19 +81,16 @@ export default function QuestCelebration({
             {unlocked ? "Ny luke!" : "Gratulerer!"}
           </h2>
           <p className="quest-celebration-title">
-            {unlocked ? "Neste oppgave venter hos Brann" : title}
+            {unlocked ? `Neste oppgave venter hos ${giver.name}` : title}
           </p>
           {unlocked && (
             <div className="quest-celebration-guide">
               <span
                 className="quest-celebration-guide-portrait"
                 role="img"
-                aria-label="Brann, smeden"
+                aria-label={giver.title ? `${giver.name}, ${giver.title}` : giver.name}
               >
-                <SpriteIcon
-                  sprite={{ sheet: "dungeon", frame: 86 }}
-                  scale={4}
-                />
+                <SpriteIcon sprite={giver.sprite} scale={4} />
               </span>
             </div>
           )}
@@ -108,8 +108,8 @@ export default function QuestCelebration({
           )}
           {unlocked ? (
             <p className="quest-celebration-note">
-              Gå til smia og snakk med Brann (E) for å få oppgaven. Den nye luka
-              venter også i journalen.
+              Snakk med {giver.name} {giver.at} (E) for å få oppgaven. Den nye
+              luka venter også i journalen.
             </p>
           ) : (
             <ul className="quest-celebration-traces" aria-label="Dette er nytt">

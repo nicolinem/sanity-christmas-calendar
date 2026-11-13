@@ -3,13 +3,13 @@
 // missing ids fall back to a per-kind sprite, and finally a generic one, so
 // a brand new item is always representable in the game.
 //
-// Sprites are 16×16 frames from Kenney's CC0 Tiny Dungeon / Tiny Town sheets
+// Sprites are 16×16 frames from Kenney's CC0 Tiny Dungeon / Town / Farm / Ski sheets
 // (public/assets). The same definition is drawn by Phaser in the world and by
 // CSS in the HUD, so an item looks identical in the knight's hand and in a slot.
 
 export type SpriteCategory = "weapon" | "material" | "potion" | "creature";
 export type ItemKind = Exclude<SpriteCategory, "creature">;
-export type SpriteSheet = "dungeon" | "town";
+export type SpriteSheet = "dungeon" | "town" | "farm" | "ski";
 
 export type SpriteDef = {
   sheet: SpriteSheet;
@@ -25,6 +25,9 @@ export const SHEETS: Record<
   dungeon: { url: "/assets/kenney/tiny-dungeon.png", cols: 12, rows: 11 },
   // Tiny Town with snow palette-swapped in (scripts/winterize-tiles.py).
   town: { url: "/assets/winter-town.png", cols: 12, rows: 11 },
+  // Tiny Farm (sacks, crates, bread) and Tiny Ski (snow creatures, snowman).
+  farm: { url: "/assets/kenney/tiny-farm.png", cols: 12, rows: 11 },
+  ski: { url: "/assets/kenney/tiny-ski.png", cols: 12, rows: 11 },
 };
 
 const d = (frame: number): SpriteDef => ({ sheet: "dungeon", frame });

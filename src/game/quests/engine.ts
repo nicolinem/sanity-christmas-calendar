@@ -47,7 +47,7 @@ export type QuestBoard = {
   total: number;
 };
 
-// `devUnlock` (?dev=quests) opens everything for testing, ignoring order and dates.
+// `devUnlock` (?dev) opens everything for testing, ignoring order and dates.
 export function evaluateQuests(
   chapters: Chapter[],
   ctx: QuestContext,
@@ -64,7 +64,8 @@ export function evaluateQuests(
       const result = quest.check(ctx);
       const done = Boolean(ctx.progress.completed[quest.id]);
       const unlocked = devUnlock || (previousResolved && dateOpen);
-      const briefed = Boolean(ctx.progress.briefed[quest.id]);
+      // An optional luke isn't handed over: it waits at its place once open.
+      const briefed = Boolean(ctx.progress.briefed[quest.id]) || Boolean(quest.bonus);
       // A door with its own place is picked up there after Brann's briefing.
       const site = quest.villageSite;
       const pickup =
@@ -90,9 +91,11 @@ export function evaluateQuests(
     }
   }
 
-  const index = states.findIndex(
-    (s) => s.status === "active" || s.status === "offered",
-  );
+  // The next core luke leads; an optional one only when no core luke waits.
+  const waiting = (s: QuestState) =>
+    s.status === "active" || s.status === "offered";
+  let index = states.findIndex((s) => waiting(s) && !s.quest.bonus);
+  if (index < 0) index = states.findIndex(waiting);
   return {
     states,
     current: index >= 0 ? states[index] : null,

@@ -673,7 +673,9 @@ kbd {
   height: 82px;
   margin: 18px auto 0;
   background: var(--wood-deep);
-  box-shadow: inset 0 0 0 3px var(--wood), 0 0 0 2px var(--amber);
+  box-shadow:
+    inset 0 0 0 3px var(--wood),
+    0 0 0 2px var(--amber);
 }
 .quest-celebration-guide {
   display: flex;
@@ -2084,7 +2086,9 @@ kbd {
 }
 .community-heading h2 {
   margin: 0 0 4px;
-  font: 32px/1 var(--font-display), var(--font-body);
+  font:
+    32px/1 var(--font-display),
+    var(--font-body);
   color: var(--snow);
 }
 .community-heading p,
@@ -2117,11 +2121,15 @@ kbd {
   gap: 10px;
   min-width: 0;
 }
-.community-player-top > div:last-child { min-width: 0; }
+.community-player-top > div:last-child {
+  min-width: 0;
+}
 .community-player h3,
 .community-feed h3 {
   margin: 0 0 4px;
-  font: 19px/1.1 var(--font-display), var(--font-body);
+  font:
+    19px/1.1 var(--font-display),
+    var(--font-body);
   color: var(--snow);
   overflow-wrap: anywhere;
 }
@@ -2130,8 +2138,14 @@ kbd {
   gap: 3px;
   margin: 9px 0;
 }
-.community-level span { flex: 1; height: 6px; background: var(--night-3); }
-.community-level .is-on { background: var(--amber); }
+.community-level span {
+  flex: 1;
+  height: 6px;
+  background: var(--night-3);
+}
+.community-level .is-on {
+  background: var(--amber);
+}
 .community-weapon {
   display: flex;
   align-items: center;
@@ -2142,8 +2156,15 @@ kbd {
   color: var(--amber);
   font-size: 13px;
 }
-.community-weapon small { display: block; color: var(--frost-dim); }
-.community-feed ul { list-style: none; margin: 0; padding: 0; }
+.community-weapon small {
+  display: block;
+  color: var(--frost-dim);
+}
+.community-feed ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 .community-feed li {
   padding: 9px 0;
   border-top: 1px solid var(--night-3);
@@ -2151,14 +2172,26 @@ kbd {
   font-size: 13px;
   line-height: 1.4;
 }
-.community-feed strong { color: var(--amber); }
-.community-feed time { display: block; color: var(--frost-dim); font-size: 12px; }
+.community-feed strong {
+  color: var(--amber);
+}
+.community-feed time {
+  display: block;
+  color: var(--frost-dim);
+  font-size: 12px;
+}
 @media (max-width: 800px) {
-  .community-layout { grid-template-columns: 1fr; }
-  .community-feed { order: 2; }
+  .community-layout {
+    grid-template-columns: 1fr;
+  }
+  .community-feed {
+    order: 2;
+  }
 }
 @media (max-width: 550px) {
-  .community-players { grid-template-columns: 1fr; }
+  .community-players {
+    grid-template-columns: 1fr;
+  }
 }
 .log-lesson {
   padding: 10px 12px;
@@ -3396,7 +3429,9 @@ kbd {
 }
 .book-term {
   padding: 2px 6px;
-  font: 12px ui-monospace, monospace;
+  font:
+    12px ui-monospace,
+    monospace;
   color: var(--amber);
   background: #1b1f33;
   border: 0;
@@ -3820,7 +3855,9 @@ kbd {
 }
 .week-done-share pre {
   margin: 0;
-  font: 13px/1.5 ui-monospace, monospace;
+  font:
+    13px/1.5 ui-monospace,
+    monospace;
   color: var(--snow);
   white-space: pre-wrap;
   user-select: all;
@@ -3854,4 +3891,371 @@ kbd {
   .week-done-light .sprite {
     animation: none;
   }
+}
+
+/* --- Uke 2: Arkivarens kart, GROQ-svar og Studio-lister i kodevinduet --- */
+.cw-trail {
+  display: grid;
+  gap: 8px;
+}
+.cw-trail-map {
+  position: relative;
+  aspect-ratio: 54 / 30;
+  max-width: 100%;
+  overflow: hidden;
+  background: var(--night-2);
+  box-shadow: 0 0 0 var(--px) var(--wood-dark);
+}
+.cw-trail-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.cw-trail-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cw-trail-line polyline {
+  fill: none;
+  stroke: var(--ember);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 1.4;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.cw-trail-line polyline.is-done {
+  stroke: var(--amber);
+  stroke-width: 3;
+}
+.cw-trail-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%);
+  background: var(--ember);
+  box-shadow: 0 0 0 1px var(--night-2);
+}
+.cw-trail-dot.is-confirmed {
+  width: 18px;
+  height: 18px;
+  box-shadow: 0 0 0 2px var(--night-2);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2a140e;
+  background: var(--amber);
+}
+.cw-trail-dot.is-last {
+  box-shadow: 0 0 0 2px var(--night-2), 0 0 14px var(--amber);
+}
+.cw-trail-label {
+  position: absolute;
+  transform: translate(-50%, 14px);
+  padding: 1px 6px;
+  font-size: 12px;
+  color: var(--amber);
+  background: var(--night-2);
+  white-space: nowrap;
+}
+.cw-trail-empty {
+  position: absolute;
+  inset: auto 8px 8px;
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: var(--snow);
+  background: color-mix(in srgb, var(--night-2) 88%, transparent);
+}
+.cw-trail-json pre,
+.cw-groq-result {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--snow);
+  background: #11141f;
+  box-shadow: 0 0 0 var(--px) var(--night-3);
+}
+.cw-groq-result.is-done {
+  box-shadow: 0 0 0 var(--px) #7fd6a4;
+}
+.cw-trail-json summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--frost);
+}
+
+.cw-sb {
+  display: flex;
+  min-height: 260px;
+  overflow-x: auto;
+  background: #13141b;
+  color: #e4e6ec;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: auto;
+  box-shadow: 0 0 0 var(--px) var(--night-3);
+}
+.cw-sb-pane {
+  flex: 1 0 150px;
+  min-width: 0;
+  padding: 8px 6px;
+  border-right: 1px solid #2a2c38;
+}
+.cw-sb-pane:last-child {
+  border-right: 0;
+}
+.cw-sb-head {
+  margin: 2px 8px 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.cw-sb-items,
+.cw-sb-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+.cw-sb-items button {
+  width: 100%;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.cw-sb-items button:hover:not(:disabled) {
+  background: #222433;
+}
+.cw-sb-items button.is-open {
+  color: #ffffff;
+  background: #2b3a66;
+}
+.cw-sb-items button:disabled {
+  color: #a3a8b8;
+  cursor: default;
+}
+.cw-sb-items button:focus-visible {
+  outline: 2px solid var(--glacier);
+}
+.cw-sb-divider {
+  height: 1px;
+  margin: 6px 8px;
+  background: #2a2c38;
+}
+.cw-sb-rows li {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+}
+.cw-sb-title {
+  font-size: 12.5px;
+}
+.cw-sb-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #a3a8b8;
+}
+.cw-sb-chip {
+  padding: 0 6px;
+  font-size: 11px;
+  color: #a3a8b8;
+  background: #262833;
+}
+.cw-sb-chip.is-confirmed {
+  color: #9be3b4;
+  background: #1d3a2a;
+}
+.cw-sb-chip.is-rumor {
+  color: #f2b77a;
+  background: #3a2a1a;
+}
+.cw-sb-empty {
+  margin: 4px 8px;
+  font-size: 12.5px;
+  color: #a3a8b8;
+}
+
+/* The optional luke: blue «?» instead of a number. */
+.vmap-door.is-bonus .vmap-door-n {
+  color: var(--night-2);
+  background: var(--glacier);
+}
+.vmap-door.is-bonus.is-open .sprite {
+  box-shadow: 0 0 0 2px var(--glacier);
+}
+
+/* Arkivarens spørsmål: five answers in a row, rewards visible up front. */
+.cw-aq {
+  display: grid;
+  gap: 10px;
+}
+.cw-aq-row {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.cw-aq-row button {
+  width: 100%;
+  min-height: 52px;
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 6px 8px;
+  font: inherit;
+  text-align: left;
+  color: var(--frost);
+  background: var(--night-3);
+  border: 0;
+  cursor: pointer;
+}
+.cw-aq-row button.is-done {
+  box-shadow: inset 0 -3px 0 #7fd6a4;
+}
+.cw-aq-row button.is-shown {
+  color: var(--snow);
+  box-shadow: inset 0 0 0 2px var(--amber);
+}
+.cw-aq-row button.is-done.is-shown {
+  box-shadow: inset 0 0 0 2px var(--amber), inset 0 -3px 0 #7fd6a4;
+}
+.cw-aq-row button:focus-visible {
+  outline: 2px solid var(--glacier);
+}
+.cw-aq-n {
+  font-size: 11px;
+  color: var(--frost-dim);
+}
+.cw-aq-row button.is-done .cw-aq-n {
+  color: #a5e6b8;
+}
+.cw-aq-reward {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.cw-aq-ask {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.cw-aq-who {
+  margin-right: 6px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--night-2);
+  background: var(--glacier);
+}
+
+/* «Hvem peker hit?»: a place's document pane, in the Studio's dark look. */
+/* Uke 2, luke 7: a place's document pane with «Observasjoner her». */
+.cw-wph {
+  min-height: 260px;
+  padding: 8px;
+  background: #13141b;
+  color: #e4e6ec;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: auto;
+  box-shadow: 0 0 0 var(--px) var(--night-3);
+}
+.cw-wph-places {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2a2c38;
+}
+.cw-wph-places button,
+.cw-wph-tabs button {
+  padding: 5px 9px;
+  font: inherit;
+  font-size: 12.5px;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.cw-wph-places button:hover,
+.cw-wph-tabs button:hover {
+  background: #222433;
+}
+.cw-wph-places button.is-open {
+  color: #ffffff;
+  background: #2b3a66;
+}
+.cw-wph-places button:focus-visible,
+.cw-wph-tabs button:focus-visible {
+  outline: 2px solid var(--glacier);
+}
+.cw-wph-title {
+  margin: 10px 4px 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.cw-wph-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid #2a2c38;
+}
+.cw-wph-tabs button {
+  border-radius: 3px 3px 0 0;
+  color: #a3a8b8;
+}
+.cw-wph-tabs button.is-open {
+  color: #ffffff;
+  box-shadow: inset 0 -2px 0 var(--glacier);
+}
+.cw-wph-body {
+  padding-top: 8px;
+  font-size: 12.5px;
+}
+.cw-wph-card {
+  border: 1px solid #2a2c38;
+  border-radius: 3px;
+  background: #1a1c26;
+}
+.cw-wph-badge {
+  padding: 0 6px;
+  font-size: 11px;
+  background: #262833;
+}
+.cw-wph-field {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: #a3a8b8;
+}
+.cw-wph-field input {
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  color: #e4e6ec;
+  background: #1a1c26;
+  border: 1px solid #2a2c38;
+  border-radius: 3px;
+}
+.cw-wph-empty {
+  margin: 4px 8px;
+  font-size: 12.5px;
+  color: #a3a8b8;
 }

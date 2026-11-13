@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 // refused the stream, so the game checks every few seconds instead.
 export type LiveMode = "off" | "live" | "polling";
 
-const QUERY = '*[_type == "item"]';
+const QUERY = '*[_type in ["item", "observation", "case"]]';
 
 // Sanity pushes every change to the browser as it happens. The game listens
 // for published items and refetches, so a blade appears the moment you press

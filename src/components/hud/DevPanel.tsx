@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { bridge } from "@/game/bridge";
 import type { QuestBoard } from "@/game/quests/engine";
-import type { CodeCheck } from "@/game/quests/types";
+import type { CodeCheck, QuestTrack } from "@/game/quests/types";
 import type { SpriteDef } from "@/game/sprites";
 import type { LiveMode } from "./useLive";
 import { renderText } from "./richText";
@@ -16,6 +16,9 @@ type Props = {
   devChecks: Record<string, boolean>; // overrides set here
   onDevCheck: (questId: string, done: boolean | null) => void;
   onJump: (questId: string, briefed: boolean) => void;
+  onComplete: (questId: string) => void;
+  track: QuestTrack;
+  onTrack: (track: QuestTrack) => void;
   onReset: () => void;
   weaponSprite: SpriteDef | null;
 };
@@ -39,9 +42,14 @@ export default function DevPanel({
   devChecks,
   onDevCheck,
   onJump,
+  onComplete,
+  track,
+  onTrack,
   onReset,
   weaponSprite,
 }: Props) {
+  const current = board.current && board.current.status !== "done" ? board.current : null;
+
   const [open, setOpen] = useState(true);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -68,6 +76,22 @@ export default function DevPanel({
         Nivå {forgeLevel}, {board.completedCount}/{board.total} luker ferdig, prosjekt{" "}
         <code>{process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo"}</code>
       </p>
+
+      <p className="dev-line">Alle uker og luker er åpne, uansett dato og rekkefølge.</p>
+      <p className="dev-line">
+        Løype:{" "}
+        <select value={track} onChange={(e) => onTrack(e.target.value as QuestTrack)}>
+          <option value="technical">Teknisk</option>
+          <option value="nonTechnical">Ikke-teknisk</option>
+        </select>
+      </p>
+      {current && (
+        <div className="dev-actions">
+          <button type="button" onClick={() => onComplete(current.quest.id)}>
+            Fullfør luke {current.quest.door}
+          </button>
+        </div>
+      )}
 
       <h3 className="dev-title">Oppdrag</h3>
       <ol className="dev-quests">
@@ -118,6 +142,11 @@ export default function DevPanel({
                 <button type="button" onClick={() => onJump(s.quest.id, true)} title="Alt før er ferdig, og denne er gitt">
                   …som gitt
                 </button>
+                {s.status !== "done" && (
+                  <button type="button" onClick={() => onComplete(s.quest.id)} title="Merk som fullført uten å gjøre oppgaven">
+                    Fullfør
+                  </button>
+                )}
                 {code && (
                   <select
                     value={override === undefined ? "" : override ? "pass" : "fail"}

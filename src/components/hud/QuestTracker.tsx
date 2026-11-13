@@ -1,5 +1,7 @@
 "use client";
 
+import { giverOf } from "@/game/quests/label";
+import { lukeName } from "@/game/quests/label";
 import { useState } from "react";
 import type { QuestBoard } from "@/game/quests/engine";
 import type { QuestSiteId } from "@/game/village";
@@ -48,7 +50,7 @@ export default function QuestTracker({
   const step = nextStep(current);
   const runStep = () => {
     if (!step) return;
-    if (step.kind === "brann") onTravel("forge");
+    if (step.kind === "giver") onTravel(step.site);
     else if (step.kind === "code") onOpenCode(step.questId);
     else if (step.kind === "travel") onTravel(step.site);
     else if (step.kind === "studio") onOpenStudio();
@@ -85,10 +87,11 @@ export default function QuestTracker({
     );
   }
 
+  const giverName = current ? giverOf(current.quest).name : "";
   const title = !current
     ? "Ferdig for nå"
     : offered
-      ? "Snakk med Brann"
+      ? `Snakk med ${giverName}`
       : current.quest.title;
 
   return (
@@ -103,8 +106,7 @@ export default function QuestTracker({
         onClick={() => setOpen((o) => !o)}
       >
         <span className="tracker-week">
-          {current ? `Luke ${current.quest.door}` : "Julekalenderen"}
-          {current?.quest.bonus && " · ☆ Bonus · valgfri"}
+          {current ? lukeName(current.quest) : "Julekalenderen"}
         </span>
         <span className="tracker-title">{title}</span>
       </button>
@@ -114,8 +116,8 @@ export default function QuestTracker({
           {current && offered && (
             <p className="tracker-goal">
               {metBrann
-                ? "Ny luke er åpen. Brann forteller hva den handler om."
-                : "Brann har noe til deg."}
+                ? `Ny luke er åpen. ${giverName} forteller hva den handler om.`
+                : `${giverName} har noe til deg.`}
             </p>
           )}
           {current && !offered && (

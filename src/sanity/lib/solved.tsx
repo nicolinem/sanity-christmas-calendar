@@ -15,13 +15,14 @@ import { DocumentIcon } from "@sanity/icons/Document";
 import SpriteImage from "../../components/SpriteImage";
 import { SpritePicker } from "../studio/SpritePicker";
 import { PROGRESS_PROJECT, storageKey } from "../../game/quests/progress";
-import type { SolvedTask } from "../../game/quests/types";
+import type { QuestTrack, SolvedTask } from "../../game/quests/types";
 import { TASK_ICONS, type TaskIconName } from "./taskIcons";
 
 type Solved = Record<string, SolvedTask>;
 
 let lastRaw: string | null | undefined;
 let last: Solved = {};
+let lastTrack: QuestTrack = "technical";
 
 function read(): Solved {
   let raw: string | null = null;
@@ -33,11 +34,22 @@ function read(): Solved {
   if (raw === lastRaw) return last;
   lastRaw = raw;
   try {
-    last = (raw && JSON.parse(raw).solved) || {};
+    const parsed = raw ? JSON.parse(raw) : {};
+    last = parsed.solved || {};
+    lastTrack = parsed.track === "nonTechnical" ? "nonTechnical" : "technical";
   } catch {
     last = {};
+    lastTrack = "technical";
   }
   return last;
+}
+
+// The track the player chose in the game. The Studio gives the non-technical
+// track the tools its tasks need, without a code task in front of them.
+export function isTrack(track: QuestTrack): boolean {
+  if (typeof window === "undefined") return false;
+  read();
+  return lastTrack === track;
 }
 
 function subscribe(onChange: () => void) {
