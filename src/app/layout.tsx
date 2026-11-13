@@ -1,16 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Jersey_10, Pixelify_Sans } from "next/font/google";
+import { Chakra_Petch, Geist_Mono, Jersey_10, Pixelify_Sans } from "next/font/google";
 import "./globals.css";
 
-// Keep the pixel faces for game identity; use readable sans and mono for UI and code.
+// Keep the pixel faces for game identity. UI text uses Chakra Petch: angular
+// enough to feel like a game, plain enough for hints and lessons. Code stays mono.
 const display = Jersey_10({
   variable: "--font-display",
   weight: "400",
   subsets: ["latin"],
 });
 
-const ui = Geist({
+const ui = Chakra_Petch({
   variable: "--font-ui",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
 

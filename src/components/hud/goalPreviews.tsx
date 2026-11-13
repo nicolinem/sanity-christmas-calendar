@@ -12,11 +12,28 @@ import { KNOWN_SPRITE_IDS } from "@/game/sprites";
 // Build the pictures from `StudioCard` and the real game pieces (SpriteImage,
 // KnightPreview), so they can't drift from what the player ends up with.
 
-const PICKS = ["sword", "wooden-sword", "dagger", "longsword", "greatsword", "axe", "hand-axe", "hammer", "spear", "staff-frost", "bow", "shield"].filter(
-  (id) => KNOWN_SPRITE_IDS.includes(id),
-);
+const PICKS = [
+  "sword",
+  "wooden-sword",
+  "dagger",
+  "longsword",
+  "greatsword",
+  "axe",
+  "hand-axe",
+  "hammer",
+  "spear",
+  "staff-frost",
+  "bow",
+  "shield",
+].filter((id) => KNOWN_SPRITE_IDS.includes(id));
 
-function StudioCard({ label, children }: { label?: string; children: ReactNode }) {
+function StudioCard({
+  label,
+  children,
+}: {
+  label?: string;
+  children: ReactNode;
+}) {
   return (
     <div className="gp-card">
       {label && <div className="gp-label">{label}</div>}
@@ -58,7 +75,77 @@ function GridAfter() {
   );
 }
 
+// Luke 2: the document list, first with names only, then with sprites.
+const LEDGER = [
+  { name: "Frostbit", sprite: "sword" },
+  { name: "Nyhugger", sprite: "axe" },
+  { name: "Isklinge", sprite: "dagger" },
+];
+
+function ListBefore() {
+  return (
+    <StudioCard label="Item">
+      <ul className="gp-list">
+        {LEDGER.map((row) => (
+          <li key={row.name}>
+            <span className="gp-doc-icon" />
+            <span className="gp-row-title">{row.name}</span>
+          </li>
+        ))}
+      </ul>
+    </StudioCard>
+  );
+}
+
+function ListAfter() {
+  return (
+    <StudioCard label="Item">
+      <ul className="gp-list">
+        {LEDGER.map((row) => (
+          <li key={row.name}>
+            <span className="gp-media">
+              <SpriteImage spriteId={row.sprite} kind="weapon" scale={2} />
+            </span>
+            <span className="gp-row-text">
+              <span className="gp-row-title">{row.name}</span>
+              <span className="gp-row-sub">weapon · {row.sprite}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </StudioCard>
+  );
+}
+
+// Luke 3: a weapon without a sprite, first publishable, then stopped.
+function DocumentCard({ blocked }: { blocked: boolean }) {
+  return (
+    <StudioCard>
+      <div className="gp-doc-head">
+        <span>Nytt våpen</span>
+        <span className={`gp-publish${blocked ? " is-off" : ""}`}>Publish</span>
+      </div>
+      <dl className="gp-fields">
+        <dt>Name</dt>
+        <dd>Nyhugger</dd>
+        <dt>Kind</dt>
+        <dd>weapon</dd>
+        <dt>Sprite</dt>
+        <dd>
+          <em>tom</em>
+          {blocked && <span className="gp-error">A weapon needs a sprite</span>}
+        </dd>
+      </dl>
+    </StudioCard>
+  );
+}
+
 const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
+  "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
+  "the-guilds-law": {
+    before: <DocumentCard blocked={false} />,
+    after: <DocumentCard blocked />,
+  },
   "the-drawing-board": { before: <SelectBefore />, after: <GridAfter /> },
 };
 
@@ -82,7 +169,8 @@ export default function GoalPreview({ quest }: { quest: Quest }) {
         <figure className="gp-fig">
           <div className="gp-pic">{pics.after}</div>
           <figcaption>
-            <span className="gp-tag gp-tag--after">Etter</span> {quest.goalPreview.after}
+            <span className="gp-tag gp-tag--after">Etter</span>{" "}
+            {quest.goalPreview.after}
           </figcaption>
         </figure>
       </div>
