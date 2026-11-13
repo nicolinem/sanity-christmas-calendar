@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeFigure } from "@/game/figure";
 import {
   useCallback,
   useEffect,
@@ -458,6 +459,7 @@ export default function GameClient() {
         : null;
     bridge.setWorld({
       weapon: hand,
+      figure: progress.figure ? normalizeFigure(progress.figure) : null,
       forgeLit: Boolean(forged),
       forgeLevel,
       npcMarker:
@@ -489,6 +491,7 @@ export default function GameClient() {
     showOpening,
     celebration,
     summary,
+    progress.figure,
   ]);
 
   const slots = narrow ? 5 : 8;

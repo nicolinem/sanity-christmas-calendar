@@ -19,6 +19,7 @@ import {
   type OutlineMode,
 } from "@/game/figure";
 import FigureCanvas from "./FigureCanvas";
+import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 
 // A workbench for the figure parts, at /figur in development. Pick parts and
 // colours, compare with the Tiny Dungeon figures at the same size, and see a
@@ -63,12 +64,14 @@ export default function FigureLab() {
   const [history, setHistory] = useState<FigureChoice[]>([]);
   const [outline, setOutline] = useState<OutlineMode>("kenney");
   const [seed, setSeed] = useState(7);
+  const [saved, setSaved] = useState(false);
   const crowd = useMemo(() => {
     const r = seeded(seed);
     return Array.from({ length: 16 }, () => randomFigure(r));
   }, [seed]);
 
   const set = (next: FigureChoice) => {
+    setSaved(false);
     setHistory((h) => [...h.slice(-30), choice]);
     setChoice(next);
   };
@@ -94,6 +97,16 @@ export default function FigureLab() {
           <div className="flab-actions">
             <button type="button" className="btn btn--amber" onClick={() => set(randomFigure())}>
               Tilfeldig
+            </button>
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={() => {
+                updateProgress(PROGRESS_PROJECT, (p) => ({ ...p, figure: { ...choice } }));
+                setSaved(true);
+              }}
+            >
+              {saved ? "Brukes i spillet" : "Bruk i spillet"}
             </button>
             <button type="button" className="btn btn--quiet" onClick={undo} disabled={history.length === 0}>
               Angre

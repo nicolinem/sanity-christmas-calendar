@@ -1,4 +1,5 @@
 import type { SpriteDef } from "./sprites";
+import type { FigureChoice } from "./figure";
 import type { Element } from "./magic";
 import type { NpcId, QuestSiteId } from "./village";
 
@@ -23,6 +24,7 @@ export type DoorMarker = {
 
 export type WorldState = {
   weapon: SpriteDef | null;
+  figure: FigureChoice | null; // the player's own figure; null shows the knight
   forgeLit: boolean; // the first blade has been forged
   forgeLevel: number; // 1..4, glows hotter as it grows
   npcMarker: NpcId | null; // who has a luke the player hasn't heard yet
@@ -69,6 +71,7 @@ class Bridge {
 
   world: WorldState = {
     weapon: null,
+    figure: null,
     forgeLit: false,
     forgeLevel: 1,
     npcMarker: "brann",
