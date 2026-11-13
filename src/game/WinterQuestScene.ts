@@ -4,7 +4,6 @@ import { SHEETS, TILE, type SpriteDef } from "./sprites";
 import {
   BLACKSMITH,
   BUILDINGS,
-  FORGE,
   FORGE_FIRE,
   FURNACE,
   GLADE,
@@ -13,6 +12,7 @@ import {
   MAP_W,
   PROPS,
   QUEST_SITES,
+  placeDoors,
   SPAWN,
   TREES,
   WRAITH_HOME,
@@ -43,6 +43,8 @@ export class WinterQuestScene extends Phaser.Scene {
   private marker!: Phaser.GameObjects.Text;
   private doorMarkers: Phaser.GameObjects.Container[] = [];
   private doorsKey = "";
+  private goalBadge!: Phaser.GameObjects.Container;
+  private goalPointer!: Phaser.GameObjects.Graphics;
   private wraith!: Phaser.GameObjects.Image;
   private forgeGlow!: Phaser.GameObjects.Image;
   private sparks!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -95,6 +97,7 @@ export class WinterQuestScene extends Phaser.Scene {
     this.buildAtmosphere();
     this.setupInput();
     this.setupCamera();
+    this.buildGoalArrow();
 
     this.unsubscribe.push(
       bridge.on("world", (w) => this.applyWorld(w)),
@@ -322,19 +325,6 @@ export class WinterQuestScene extends Phaser.Scene {
 
   // --- calendar doors in the village -----------------------------------------
 
-  // Where a place's doors hang, clear of Brann's «!».
-  private doorAnchor(site: DoorMarker["site"]) {
-    // Beside the forge, east of the weapon rack: the roof sits at the world's
-    // top edge, where a door would be cut off.
-    if (site === "forge")
-      return {
-        x: (FORGE.x + FORGE.rows[0].length) * TILE + 22,
-        y: (FORGE.y + 2) * TILE,
-      };
-    if (site === "westHouse") return { x: 10 * TILE, y: 6 * TILE - 4 };
-    return { x: QUEST_SITES[site].mapX, y: 13 * TILE - 4 };
-  }
-
   private syncDoors(doors: DoorMarker[]) {
     const key = doors.map((d) => `${d.id}:${d.status}`).join("|");
     if (key === this.doorsKey) return;
@@ -345,16 +335,8 @@ export class WinterQuestScene extends Phaser.Scene {
     });
     this.doorMarkers = [];
 
-    const bySite = new Map<string, DoorMarker[]>();
-    for (const d of doors)
-      bySite.set(d.site, [...(bySite.get(d.site) ?? []), d]);
-    for (const [site, group] of bySite) {
-      const anchor = this.doorAnchor(site as DoorMarker["site"]);
-      group.forEach((d, i) => {
-        const x = Math.round(anchor.x + (i - (group.length - 1) / 2) * 22);
-        this.doorMarkers.push(this.makeDoor(d, x, anchor.y));
-      });
-    }
+    for (const d of placeDoors(doors))
+      this.doorMarkers.push(this.makeDoor(d, d.x, d.y));
   }
 
   // A numbered Kenney window: dark and faded while locked, dark with a
@@ -697,6 +679,76 @@ export class WinterQuestScene extends Phaser.Scene {
     this.moveWraith(dt);
     this.knight.setDepth(this.knight.y);
     this.updateZone();
+    bridge.knight.x = Math.round(this.knight.x);
+    bridge.knight.y = Math.round(this.knight.y);
+    this.updateGoalArrow();
+  }
+
+  // --- pointer to the next step ----------------------------------------------
+
+  // An amber «!» that sits on the edge of the view, pointing at the next step
+  // whenever it's off screen. Hidden when the goal is in view.
+  private buildGoalArrow() {
+    const box = this.add
+      .rectangle(0, 0, 11, 11, 0xfdbe53)
+      .setStrokeStyle(1, 0x2a140e);
+    const mark = this.add
+      .text(0, 0, "!", {
+        fontFamily: this.font,
+        fontSize: "9px",
+        fontStyle: "bold",
+        color: "#2a140e",
+      })
+      .setOrigin(0.5)
+      .setResolution(6);
+    this.goalBadge = this.add
+      .container(0, 0, [box, mark])
+      .setDepth(10005)
+      .setVisible(false);
+    this.goalPointer = this.add
+      .graphics()
+      .fillStyle(0x2a140e)
+      .fillTriangle(6, 0, -2, -5, -2, 5)
+      .fillStyle(0xfdbe53)
+      .fillTriangle(4, 0, -1, -3, -1, 3)
+      .setDepth(10005)
+      .setVisible(false);
+  }
+
+  private updateGoalArrow() {
+    const goal = bridge.world.goal;
+    const view = this.cameras.main.worldView;
+    const pad = 12;
+    const inView =
+      goal &&
+      goal.x > view.x + pad &&
+      goal.x < view.right - pad &&
+      goal.y > view.y + pad &&
+      goal.y < view.bottom - pad;
+    if (!goal || inView || bridge.world.frozen) {
+      this.goalBadge.setVisible(false);
+      this.goalPointer.setVisible(false);
+      return;
+    }
+    const cx = view.centerX;
+    const cy = view.centerY;
+    const dx = goal.x - cx;
+    const dy = goal.y - cy;
+    const t = Math.min(
+      (view.width / 2 - pad) / Math.max(Math.abs(dx), 0.001),
+      (view.height / 2 - pad) / Math.max(Math.abs(dy), 0.001),
+    );
+    const x = Math.round(cx + dx * t);
+    const y = Math.round(cy + dy * t);
+    const angle = Math.atan2(dy, dx);
+    this.goalBadge.setPosition(x, y).setVisible(true);
+    this.goalPointer
+      .setPosition(
+        Math.round(x + Math.cos(angle) * 9),
+        Math.round(y + Math.sin(angle) * 9),
+      )
+      .setRotation(angle)
+      .setVisible(true);
   }
 
   private moveKnight(dt: number) {

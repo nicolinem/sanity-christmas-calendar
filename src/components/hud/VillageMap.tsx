@@ -1,218 +1,225 @@
 "use client";
 
-import { MAP_H, MAP_W, QUEST_SITES, type QuestSiteId } from "@/game/village";
+import { useEffect, useRef, useState } from "react";
+import { bridge } from "@/game/bridge";
+import { weekDoors } from "@/game/quests/doors";
 import type { QuestBoard } from "@/game/quests/engine";
-import type { QuestStatus } from "@/game/quests/types";
-import { renderText } from "./richText";
+import { SHEETS, TILE } from "@/game/sprites";
+import {
+  BLACKSMITH,
+  BUILDINGS,
+  GROUND,
+  MAP_H,
+  MAP_W,
+  PROPS,
+  QUEST_SITES,
+  TREES,
+  placeDoors,
+  type QuestSiteId,
+} from "@/game/village";
+import SpriteIcon from "./SpriteIcon";
 
-const SITE_IDS: QuestSiteId[] = ["forge", "noticeboard", "westHouse"];
-const STATUS_LABEL: Record<QuestStatus, string> = {
-  active: "Aktiv",
-  offered: "Snakk med Brann",
-  done: "Ferdig",
-  locked: "Låst",
-};
+const W = MAP_W * TILE;
+const H = MAP_H * TILE;
+const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
+const STATUS_LABEL = {
+  locked: "låst",
+  open: "åpen",
+  done: "ferdig",
+} as const;
+
+function loadImage(url: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+// The village drawn from the same tile data the world uses (village.ts), so
+// the map is Frostholm in miniature rather than a separate drawing.
+function useVillageCanvas() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([loadImage(SHEETS.town.url), loadImage(SHEETS.dungeon.url)])
+      .then(([town, dungeon]) => {
+        const ctx = ref.current?.getContext("2d");
+        if (!ctx || cancelled) return;
+        ctx.imageSmoothingEnabled = false;
+        const sheets = { town, dungeon };
+        const draw = (
+          sheet: keyof typeof sheets,
+          frame: number,
+          x: number,
+          y: number,
+        ) => {
+          const cols = SHEETS[sheet].cols;
+          ctx.drawImage(
+            sheets[sheet],
+            (frame % cols) * TILE,
+            Math.floor(frame / cols) * TILE,
+            TILE,
+            TILE,
+            x,
+            y,
+            TILE,
+            TILE,
+          );
+        };
+        GROUND.forEach((row, y) =>
+          row.forEach((frame, x) => draw("town", frame, x * TILE, y * TILE)),
+        );
+        for (const b of BUILDINGS)
+          b.rows.forEach((row, r) =>
+            row.forEach((frame, c) =>
+              draw("town", frame, (b.x + c) * TILE, (b.y + r) * TILE),
+            ),
+          );
+        for (const p of PROPS) draw(p.sheet, p.frame, p.x * TILE, p.y * TILE);
+        draw("dungeon", 86, BLACKSMITH.x - 8, BLACKSMITH.y - TILE);
+        for (const t of [...TREES].sort((a, b) => a.y - b.y))
+          draw("town", t.frame, t.x - 8, t.y - TILE);
+      })
+      .catch(() => {
+        // The markers and list still work without the picture.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return ref;
+}
+
+// The journal's map tab: the real village with this week's doors over their
+// places, Brann's «!» while he has something for you, and where you stand.
+// Its job is to show how much of the village is lit; the arrow at the edge of
+// the screen does the way-finding.
 export default function VillageMap({
   board,
-  selectedId,
-  onSelect,
   onTravel,
   onOpenQuest,
 }: {
   board: QuestBoard;
-  selectedId?: string;
-  onSelect: (questId: string) => void;
   onTravel: (siteId: QuestSiteId) => void;
   onOpenQuest: (questId: string) => void;
 }) {
+  const canvas = useVillageCanvas();
+  const [knight] = useState(() => ({ ...bridge.knight }));
+  const doors = placeDoors(weekDoors(board));
   const current = board.current;
-  const selected = board.states.find((state) => state.quest.id === selectedId);
-  const destination =
-    current?.status === "offered"
+  const week = board.states.find((s) => s.quest.id === doors[0]?.id)?.chapter;
+  const lit = doors.filter((d) => d.status === "done").length;
+  const destination: QuestSiteId | null = current
+    ? current.status === "offered"
       ? "forge"
-      : (current?.quest.villageSite ?? "forge");
-  const destinationLabel = destination && QUEST_SITES[destination].label;
+      : (current.quest.villageSite ?? "forge")
+    : null;
+  const title = (id: string) =>
+    board.states.find((s) => s.quest.id === id)?.quest.title ?? "";
 
   return (
-    <div className="village-map-wrap">
-      <div
-        className="village-map"
-        role="group"
-        aria-label="Kart over Frostholm"
-      >
-        <svg
-          className="village-map-art"
-          viewBox="0 0 432 240"
+    <div className="vmap">
+      <div className="vmap-frame" role="group" aria-label="Kart over bygda">
+        <canvas
+          ref={canvas}
+          className="vmap-canvas"
+          width={W}
+          height={H}
           aria-hidden="true"
-        >
-          <rect width="432" height="240" fill="#28483f" />
-          <path
-            d="M184 56v64M136 128h96M80 96h104M224 128h80M184 144v96M48 176h120"
-            fill="none"
-            stroke="#7c5948"
-            strokeWidth="24"
-          />
-          <path
-            d="M184 56v64M136 128h96M80 96h104M224 128h80M184 144v96M48 176h120"
-            fill="none"
-            stroke="#b9865b"
-            strokeWidth="16"
-          />
-          <rect
-            x="160"
-            y="32"
-            width="40"
-            height="24"
-            fill="#763b36"
-            stroke="#2e1d25"
-            strokeWidth="4"
-          />
-          <rect
-            x="64"
-            y="48"
-            width="32"
-            height="24"
-            fill="#bd6c4a"
-            stroke="#2e1d25"
-            strokeWidth="4"
-          />
-          <rect
-            x="248"
-            y="40"
-            width="32"
-            height="24"
-            fill="#bd6c4a"
-            stroke="#2e1d25"
-            strokeWidth="4"
-          />
-          <rect
-            x="40"
-            y="136"
-            width="32"
-            height="24"
-            fill="#bd6c4a"
-            stroke="#2e1d25"
-            strokeWidth="4"
-          />
-          <rect
-            x="296"
-            y="88"
-            width="56"
-            height="80"
-            fill="#1e3c37"
-            stroke="#8fd3ff"
-            strokeWidth="2"
-            strokeDasharray="6 5"
-          />
-          <path
-            d="M304 98h8v8h-8zM328 112h8v8h-8zM312 138h8v8h-8zM336 150h8v8h-8z"
-            fill="#527466"
-          />
-          <text x="180" y="27" textAnchor="middle">
-            SMIA
-          </text>
-          <text x="184" y="155" textAnchor="middle">
-            TORGET
-          </text>
-          <text x="324" y="182" textAnchor="middle">
-            SKOGEN
-          </text>
-        </svg>
-        {SITE_IDS.map((id) => {
-          const site = QUEST_SITES[id];
-          const states = board.states.filter(
-            (state) =>
-              (state.status === "offered"
-                ? "forge"
-                : (state.quest.villageSite ?? "forge")) === id,
-          );
-          const state =
-            states.find((item) => item.status === "active") ??
-            states.find((item) => item.status === "offered") ??
-            states.find((item) => item.status === "locked") ??
-            states.at(-1);
-          if (!state) return null;
+        />
+        {current?.status === "offered" && (
+          <span
+            className="vmap-brann"
+            style={{
+              left: pct(BLACKSMITH.x, W),
+              top: pct(BLACKSMITH.y - 22, H),
+            }}
+            aria-hidden="true"
+          >
+            !
+          </span>
+        )}
+        {doors.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            className={`vmap-door is-${d.status}`}
+            style={{ left: pct(d.x, W), top: pct(d.y, H) }}
+            onClick={() => onOpenQuest(d.id)}
+            aria-label={`Luke ${d.door}, ${STATUS_LABEL[d.status]}: ${QUEST_SITES[d.site].label}`}
+          >
+            <SpriteIcon sprite={{ sheet: "town", frame: 84 }} />
+            <span className="vmap-door-n">{d.door}</span>
+          </button>
+        ))}
+        {knight.x > 0 && (
+          <span
+            className="vmap-you"
+            style={{ left: pct(knight.x, W), top: pct(knight.y, H) }}
+          >
+            <span className="vmap-you-dot" />
+            <span className="vmap-you-label">Du</span>
+          </span>
+        )}
+      </div>
 
-          return (
-            <button
-              key={id}
-              type="button"
-              className={`village-map-pin is-${state.status}${selectedId === state.quest.id ? " is-selected" : ""}`}
-              style={{
-                left: `${(site.mapX / (MAP_W * 16)) * 100}%`,
-                top: `${(site.mapY / (MAP_H * 16)) * 100}%`,
-              }}
-              onClick={() => onSelect(state.quest.id)}
-              aria-label={`${site.label}: luke ${state.quest.door}, ${STATUS_LABEL[state.status]}`}
-              aria-current={selectedId === state.quest.id ? "true" : undefined}
-            >
-              <span className="village-map-pin-icon">
-                {state.status === "done"
-                  ? "✓"
-                  : state.status === "locked"
-                    ? "·"
-                    : "!"}
-              </span>
-              <span className="village-map-pin-label">
-                {site.label} · Luke {state.quest.door}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <div className="village-map-foot">
-        <p className="village-map-caption">
-          {destinationLabel
-            ? current?.status === "offered"
-              ? "Brann har en ny luke til deg."
-              : "Den aktive luka venter her."
-            : "Ingen ny luke å finne akkurat nå."}{" "}
-          Nye steder åpnes med historien.
+      <aside className="vmap-side">
+        <p className="vmap-kicker">
+          {week ? `Uke ${week.number} i bygda` : "Bygda"}
         </p>
-        <button
-          type="button"
-          className="btn btn--amber"
-          disabled={!destination}
-          onClick={() => destination && onTravel(destination)}
-        >
-          {current?.status === "offered"
-            ? "Gå til Brann"
-            : destinationLabel
-              ? `Gå til ${destinationLabel}`
-              : "Ingen aktiv luke"}
-        </button>
-      </div>
-      {selected && (
-        <article className="village-map-selected" aria-live="polite">
-          {selected.status === "offered" ? (
-            <p>Snakk med Brann ved smia for å få neste luke.</p>
-          ) : selected.status === "locked" ? (
+        <p className="vmap-count">
+          {lit} av {doors.length} luker lyser
+        </p>
+        {current && destination && (
+          <div className="vmap-next">
+            <p className="vmap-kicker">Neste steg</p>
             <p>
-              {selected.opensAt
-                ? `Denne luka åpner ${selected.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
-                : "Denne luka åpnes senere i historien."}
+              {current.status === "offered"
+                ? `Brann har luke ${current.quest.door} klar ved smia.`
+                : `Luke ${current.quest.door} hører til ${QUEST_SITES[destination].label.toLowerCase()}.`}
             </p>
-          ) : (
-            <>
-              <h3>
-                Luke {selected.quest.door}: {selected.quest.title}
-                <span className={`village-map-status is-${selected.status}`}>
-                  {STATUS_LABEL[selected.status]}
-                </span>
-              </h3>
-              <p>{renderText(selected.quest.goal)}</p>
+            <button
+              type="button"
+              className="btn btn--amber"
+              onClick={() => onTravel(destination)}
+            >
+              {current.status === "offered"
+                ? "Gå til Brann"
+                : `Gå til ${QUEST_SITES[destination].label.toLowerCase()}`}
+            </button>
+          </div>
+        )}
+        <ul className="vmap-list">
+          {doors.map((d) => (
+            <li key={d.id}>
               <button
                 type="button"
-                className="btn btn--quiet"
-                onClick={() => onOpenQuest(selected.quest.id)}
+                className={`vmap-row is-${d.status}`}
+                onClick={() => onOpenQuest(d.id)}
               >
-                Åpne luke i journalen
+                <span className={`vmap-door is-${d.status} is-inline`}>
+                  <SpriteIcon sprite={{ sheet: "town", frame: 84 }} />
+                </span>
+                <span className="vmap-row-text">
+                  <span className="vmap-row-meta">
+                    Luke {d.door} · {QUEST_SITES[d.site].label} ·{" "}
+                    {STATUS_LABEL[d.status]}
+                  </span>
+                  {d.id === current?.quest.id && current.status === "offered"
+                    ? "Snakk med Brann"
+                    : title(d.id)}
+                </span>
               </button>
-            </>
-          )}
-        </article>
-      )}
+            </li>
+          ))}
+        </ul>
+        <p className="vmap-hint">
+          Er målet utenfor skjermen, peker en «!» i kanten av bildet dit.
+        </p>
+      </aside>
     </div>
   );
 }

@@ -178,8 +178,6 @@ export default function QuestLog({
           <div className="log-map-panel">
             <VillageMap
               board={board}
-              selectedId={selected?.quest.id}
-              onSelect={setSelectedId}
               onTravel={onTravelToSite}
               onOpenQuest={(questId) => {
                 setSelectedId(questId);

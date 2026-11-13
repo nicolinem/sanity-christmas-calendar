@@ -26,6 +26,7 @@ export type WorldState = {
   forgeLevel: number; // 1..4, glows hotter as it grows
   brannMarker: boolean; // Brann has a task he hasn't explained yet
   doors: DoorMarker[]; // this week's doors, in calendar order
+  goal: { x: number; y: number } | null; // the next step, in world px
   wraithDefeated: boolean;
   frozen: boolean; // a dialogue is open: the knight stands still
 };
@@ -70,11 +71,15 @@ class Bridge {
     forgeLevel: 1,
     brannMarker: true,
     doors: [],
+    goal: null,
     wraithDefeated: false,
     frozen: false,
   };
 
   zone: Zone = null;
+  // Where the knight stands (world px); the scene writes it every frame so
+  // the journal map can show it without an event per step.
+  knight = { x: 0, y: 0 };
 
   on<K extends keyof EventMap>(event: K, fn: Listener<EventMap[K]>) {
     const listeners = this.listeners as Record<

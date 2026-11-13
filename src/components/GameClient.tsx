@@ -17,9 +17,9 @@ import {
   toGameItem,
   type GameItemView,
 } from "@/game/items";
+import { nextStepPoint, weekDoors } from "@/game/quests/doors";
 import {
   bridge,
-  type DoorMarker,
   type QuestCelebration as QuestCelebrationData,
   type Zone,
 } from "@/game/bridge";
@@ -258,26 +258,11 @@ export default function GameClient() {
   });
   const current = board.current;
   const currentId = current?.quest.id;
-  // This week's doors hang over their places in the village, locked ones too,
-  // so the player sees the whole week. A door without a place hangs at the forge.
-  const villageDoors = useMemo<DoorMarker[]>(() => {
-    const open = board.states.filter((s) => s.status !== "locked");
-    const week = current?.chapter.number ?? open.at(-1)?.chapter.number;
-    if (week === undefined) return [];
-    return board.states
-      .filter((s) => s.chapter.number === week)
-      .map((s) => ({
-        id: s.quest.id,
-        door: s.quest.door,
-        site: s.quest.villageSite ?? "forge",
-        status:
-          s.status === "done"
-            ? "done"
-            : s.status === "locked"
-              ? "locked"
-              : "open",
-      }));
-  }, [board.states, current?.chapter.number]);
+  const villageDoors = useMemo(() => weekDoors(board), [board]);
+  const nextStep = useMemo(
+    () => nextStepPoint(board, villageDoors),
+    [board, villageDoors],
+  );
   const siteQuest =
     zone && zone !== "forge"
       ? board.states.find(
@@ -356,6 +341,7 @@ export default function GameClient() {
       forgeLevel,
       brannMarker: current?.status === "offered",
       doors: villageDoors,
+      goal: nextStep,
       wraithDefeated: combat.defeated,
       frozen:
         dialogueOpen ||
@@ -370,6 +356,7 @@ export default function GameClient() {
     forgeLevel,
     current?.status,
     villageDoors,
+    nextStep,
     combat.defeated,
     dialogueOpen,
     logOpen,
