@@ -7,6 +7,7 @@ import {
   CLOTH_COLORS,
   DEFAULT_FIGURE,
   EXTRAS,
+  FACIAL_HAIR,
   HAIR_COLORS,
   HAIRSTYLES,
   HATS,
@@ -26,11 +27,12 @@ import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 // crowd of random figures. Not the real creator: that will be a custom input
 // in the Studio, using the same parts and drawing code.
 
-type PartKey = "hair" | "top" | "armour" | "hat" | "scarf" | "extra";
+type PartKey = "hair" | "facialHair" | "top" | "armour" | "hat" | "scarf" | "extra";
 type ColorKey = "skin" | "hairColor" | "topColor" | "pants" | "hatColor" | "scarfColor";
 
 const PARTS: { key: PartKey; title: string; options: { id: string; label: string; unlock?: string }[] }[] = [
   { key: "hair", title: "Hår", options: HAIRSTYLES },
+  { key: "facialHair", title: "Skjegg og bart", options: FACIAL_HAIR },
   { key: "top", title: "Overdel", options: TOPS },
   { key: "armour", title: "Rustning", options: ARMOURS },
   { key: "hat", title: "Lue", options: HATS },
@@ -93,7 +95,7 @@ export default function FigureLab() {
 
       <section className="flab-stage" aria-label="Figuren din">
         <div className="flab-hero">
-          <FigureCanvas choice={choice} scale={12} animate outline={outline} label="Figuren din" />
+          <FigureCanvas choice={choice} scale={12} outline={outline} label="Figuren din" />
           <div className="flab-actions">
             <button type="button" className="btn btn--amber" onClick={() => set(randomFigure())}>
               Tilfeldig
@@ -187,7 +189,7 @@ export default function FigureLab() {
         <div className="flab-row flab-row--wrap">
           {crowd.map((c, i) => (
             <button key={i} type="button" className="flab-pick" onClick={() => set(c)} aria-label="Bruk denne figuren">
-              <FigureCanvas choice={c} scale={5} animate outline={outline} />
+              <FigureCanvas choice={c} scale={5} outline={outline} />
             </button>
           ))}
         </div>

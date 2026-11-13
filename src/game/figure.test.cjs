@@ -29,12 +29,11 @@ test("every option draws a 16×16 figure with an outline", () => {
     }
 });
 
-test("the idle frame moves the body, not the feet", () => {
-  const a = drawFigure(DEFAULT_FIGURE);
-  const b = drawFigure(DEFAULT_FIGURE, { bob: true });
-  assert.notDeepEqual([...a], [...b]);
-  const row = (px, y) => [...px.slice(y * 64, y * 64 + 64)];
-  assert.deepEqual(row(a, 15), row(b, 15), "boots stay on the ground");
+test("facial hair is its own choice, drawn in the hair colour", () => {
+  const plain = drawFigure({ ...DEFAULT_FIGURE, facialHair: "none" });
+  const beard = drawFigure({ ...DEFAULT_FIGURE, facialHair: "beard" });
+  assert.notDeepEqual([...plain], [...beard]);
+  assert.equal(normalizeFigure({ hair: "beard" }).hair, DEFAULT_FIGURE.hair, "beard is no longer a hairstyle");
 });
 
 test("random figures are always valid", () => {

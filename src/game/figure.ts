@@ -63,6 +63,8 @@ const FIXED: Record<string, string> = {
   I: "#c0cbdc",
   i: "#8b9bb4",
   O: "#ffffff",
+  V: "#52607c", // dark steel
+  X: OUTLINE, // lines drawn inside a part, like a helmet's ridges
 };
 
 // --- Parts --------------------------------------------------------------------
@@ -70,8 +72,8 @@ const FIXED: Record<string, string> = {
 type Grid = string[];
 
 // A part: a drawing, and optionally where it's earned. `behind` parts are
-// drawn before the body (a cape).
-export type Part = { id: string; label: string; grid: Grid; behind?: true; unlock?: string };
+// drawn before the body (a cape), `front` hair over the clothes (braids).
+export type Part = { id: string; label: string; grid: Grid; behind?: true; front?: true; unlock?: string };
 
 const BLANK: Grid = Array.from({ length: 16 }, () => ".".repeat(16));
 
@@ -105,23 +107,30 @@ const BODY = grid(
 // Hair: H/h. Under a hat only the sides show, so styles differ most there.
 export const HAIRSTYLES: Part[] = [
   { id: "short", label: "Kort", grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "....HH.HHH.H", "....H") },
+  // Like Tiny Dungeon's woman (frame 99): a fringe swept to one side, framing
+  // the face down to the shoulders, thick on one side and thin on the other.
   {
     id: "long",
     label: "Langt",
-    grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "...HHH.HHH.HH", "...HH......HH", "...HH......HH", "...Hh......hH", "...h........h"),
+    grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HHHHHHHH", "...hHHHHH..Hh", "...HHH......H", "...HH.......h", "...HH.......H", "...HHH.....hH"),
   },
   { id: "bun", label: "Knute", grid: grid(0, "......hHHh", ".....hHHHHh", "", ".....hHHHHh", "....hHHHHHHh", "....HHHHHHHH", "....H......H") },
+  // Two braids in front of the shoulders, tied off at the ends.
   {
     id: "braids",
     label: "Fletter",
-    grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "...HH.HHHH.HH", "...H........H", "...h........h", "..hH........Hh", "..H..........H", "..h..........h"),
-  },
-  {
-    id: "beard",
-    label: "Skjegg",
-    grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "....HH.HHH.H", "....H", "", "....H......H", "....HhHHHHhH", ".....hHHHHh"),
+    grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HHHHHHHH", "...hHHHHH..Hh", "...HH.......H", "...hH.......h", "...H........H", "...h........h", "...H........H", "...w........w"),
+    front: true,
   },
   { id: "bald", label: "Skallet", grid: BLANK },
+];
+
+// Facial hair, in the hair colour, drawn over the clothes.
+export const FACIAL_HAIR: Part[] = [
+  { id: "none", label: "Ingen", grid: BLANK },
+  { id: "moustache", label: "Bart", grid: grid(9, "......HhhH") },
+  { id: "beard", label: "Skjegg", grid: grid(8, "....H......H", "....HHHHHHHH", ".....hHHHHh") },
+  { id: "long", label: "Langt skjegg", grid: grid(8, "....H......H", "....HHHHHHHH", ".....HHHHHH", "......HHHH", ".......hh") },
 ];
 
 // Tops: shoulders, sleeves, waist (rows 10–12), like the Kenney shirts.
@@ -148,7 +157,14 @@ export const HATS: Part[] = [
   { id: "bobble", label: "Topplue", grid: grid(0, ".......WW", "......WWWW", ".....AaAaAa", "....AaAaAaAa", "...wWWWWWWWWw"), unlock: "Arkivarens spørsmål" },
   { id: "earmuffs", label: "Øreklokker", grid: grid(2, ".....aAAAAa", "....a......a", "", "..WW........WW", "..Ww........wW", "..ww........ww") },
   { id: "hood", label: "Hette", grid: grid(2, ".....aAAAAa", "....aAAAAAAa", "...aAAAAAAAAa", "...aA......Aa", "...aA......Aa", "...aa......aa") },
-  { id: "helmet", label: "Hjelm", grid: grid(2, ".....iIIIIi", "....iIIOIIIi", "....IIIIIIII", "....I..I...I", "....i......i"), unlock: "Finnes i bygda" },
+  // An open knight's helmet, like Tiny Dungeon's frame 97: ridged cap, brim
+  // and a cheek guard, with the face showing.
+  {
+    id: "helmet",
+    label: "Hjelm",
+    grid: grid(3, ".....IiiiiiI", "....XiXiXiXi", "....ViXiXiXi", "....iiiiiiii", "....i", "....i", "....i"),
+    unlock: "Finnes i bygda",
+  },
   { id: "crown", label: "Krone", grid: grid(2, "....Y..Y..Y", "....YyYYYyYY", "....YGYYYGYY"), unlock: "Finnes i bygda" },
 ];
 
@@ -186,6 +202,7 @@ export type FigureChoice = {
   skin: string;
   hair: string;
   hairColor: string;
+  facialHair: string;
   top: string;
   topColor: string;
   armour: string;
@@ -202,6 +219,7 @@ export const FIGURE_OPTIONS: { [K in keyof FigureChoice]: readonly Option<object
   skin: SKINS,
   hair: HAIRSTYLES,
   hairColor: HAIR_COLORS,
+  facialHair: FACIAL_HAIR,
   top: TOPS,
   topColor: CLOTH_COLORS,
   armour: ARMOURS,
@@ -217,6 +235,7 @@ export const DEFAULT_FIGURE: FigureChoice = {
   skin: "light",
   hair: "short",
   hairColor: "brown",
+  facialHair: "none",
   top: "sweater",
   topColor: "red",
   armour: "none",
@@ -257,9 +276,9 @@ function hexToRgba(hex: string): [number, number, number, number] {
 
 export type OutlineMode = "kenney" | "thin"; // two-pixel outline like Kenney, or one
 
-// One frame of the figure as RGBA pixels (16×16×4). `bob` moves the upper body
-// down one pixel, for a two-frame breathing idle.
-export function drawFigure(choice: FigureChoice, opts: { bob?: boolean; outline?: OutlineMode } = {}): Uint8ClampedArray<ArrayBuffer> {
+// The figure as RGBA pixels (16×16×4). One still frame, like the Kenney
+// figures; the game adds its own step when walking.
+export function drawFigure(choice: FigureChoice, opts: { outline?: OutlineMode } = {}): Uint8ClampedArray<ArrayBuffer> {
   const c = normalizeFigure(choice);
   const pair = (list: readonly Option<{ colors: Pair }>[], id: string) => find(list, id).colors;
   const roles: Record<string, string> = {
@@ -279,13 +298,16 @@ export function drawFigure(choice: FigureChoice, opts: { bob?: boolean; outline?
     q: pair(CLOTH_COLORS, c.scarfColor)[1],
   };
   const extra = find(EXTRAS, c.extra);
+  const hair = find(HAIRSTYLES, c.hair);
   const layers = [
     ...(extra.behind ? [extra.grid] : []),
     BODY,
-    find(HAIRSTYLES, c.hair).grid,
+    ...(hair.front ? [] : [hair.grid]),
     find(TOPS, c.top).grid,
     find(ARMOURS, c.armour).grid,
+    ...(hair.front ? [hair.grid] : []),
     find(SCARVES, c.scarf).grid,
+    find(FACIAL_HAIR, c.facialHair).grid,
     find(HATS, c.hat).grid,
     ...(extra.behind ? [] : [extra.grid]),
   ];
@@ -299,16 +321,7 @@ export function drawFigure(choice: FigureChoice, opts: { bob?: boolean; outline?
       }),
     );
 
-  // Breathing: everything above the feet (rows 0–12) moves down a pixel; the
-  // feet (rows 13–15) stay put and are drawn on top.
-  const placed: (string | null)[] = opts.bob ? new Array(N * N).fill(null) : art;
-  if (opts.bob)
-    for (let y = 0; y < N; y++)
-      for (let x = 0; x < N; x++) {
-        const feet = y >= 13 ? art[y * N + x] : null;
-        const body = y >= 1 && y <= 13 ? art[(y - 1) * N + x] : null;
-        placed[y * N + x] = feet ?? body;
-      }
+  const placed = art;
 
   const out = new Uint8ClampedArray(N * N * 4);
   const outline = hexToRgba(OUTLINE);
