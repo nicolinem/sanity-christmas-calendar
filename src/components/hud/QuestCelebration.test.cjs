@@ -103,14 +103,14 @@ test("the second beat opens the new door and directs the player to Brann", () =>
 test("when there is no new unlocked door, completion just returns to the village", () => {
   const html = renderToStaticMarkup(
     React.createElement(QuestCelebration, {
-      door: 5,
+      door: 4,
       title: "Siste oppgave",
       lesson: "Ferdig",
       onClose() {},
       onOpenLog() {},
     }),
   );
-  assert.match(html, /Luke 5 er fullført/);
+  assert.match(html, /Luke 4 er fullført/);
   assert.match(html, />Tilbake til bygda<\/button>/);
   assert.doesNotMatch(html, /Se neste luke/);
   assert.doesNotMatch(html, /Brann · smia/);

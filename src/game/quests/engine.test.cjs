@@ -371,6 +371,18 @@ test("real chapters share startup while all existing code/window tasks stay tech
   }
 });
 
+test("week one ends with custom input and has no Document view quest", () => {
+  assert.deepEqual(
+    CHAPTERS[0].quests.map(({ id }) => id),
+    [
+      "the-broken-forge",
+      "branns-ledger",
+      "the-guilds-law",
+      "the-drawing-board",
+    ],
+  );
+});
+
 // Studio practice remains available, but only the code check unlocks the next door.
 const STUDIO_STEPS = [
   { id: "branns-ledger", before: ["the-broken-forge"], next: "the-guilds-law" },
@@ -382,7 +394,7 @@ const STUDIO_STEPS = [
   {
     id: "the-drawing-board",
     before: ["the-broken-forge", "branns-ledger", "the-guilds-law"],
-    next: "the-proving-room",
+    next: null,
   },
 ];
 function studioBoard(
@@ -438,7 +450,9 @@ for (const step of STUDIO_STEPS) {
       // Passing the check is not completion: the hook records it on the next render.
       assert.equal(state.status, "active");
       assert.equal(board.completedCount, step.before.length);
-      assert.equal(stateOf(board, step.next).status, "locked");
+      if (step.next)
+        assert.equal(stateOf(board, step.next).status, "locked");
+      else assert.equal(board.current.quest.id, step.id);
     }
   });
 
@@ -448,6 +462,8 @@ for (const step of STUDIO_STEPS) {
     assert.equal(state.status, "done");
     assert.equal(state.result.done, false);
     assert.equal(board.completedCount, step.before.length + 1);
-    assert.equal(stateOf(board, step.next).status, "offered");
+    if (step.next)
+      assert.equal(stateOf(board, step.next).status, "offered");
+    else assert.equal(board.current, null);
   });
 }

@@ -1,7 +1,6 @@
 import type { GameItemView } from "../items";
 import type {
   Chapter,
-  CodeCheck,
   CheckResult,
   Quest,
   QuestContext,
@@ -27,15 +26,6 @@ export function findForgedWeapon(
       i.kind === "weapon" &&
       (i.power?.damage ?? 0) > 0,
   );
-}
-
-// Quests judged from the player's code report in through `npm run quest`.
-function fromCode(id: string) {
-  return ({ codeChecks }: QuestContext): CheckResult => {
-    const check: CodeCheck | undefined = codeChecks[id];
-    // No check yet: the HUD explains how code quests are verified.
-    return { done: Boolean(check?.done), message: check?.message };
-  };
 }
 
 // The code window judges these tasks; trying the result in Studio is optional.
@@ -284,62 +274,6 @@ const theDrawingBoard: Quest = {
   check: fromWindow("the-drawing-board"),
 };
 
-const theProvingRoom: Quest = {
-  id: "the-proving-room",
-  track: "technical",
-  door: 5,
-  title: "Document view: se våpenet i Studio",
-  intro: [
-    "Lag en egen fane i Studio som viser gjenstanden slik den ser ut i spillet, med ridderen som svinger våpenet.",
-    "Dette er en bonus, og den løses i selve koden, i din egen editor, ikke i kodevinduet. En *document view* er en React-komponent i Studio, og den trenger mer enn én fil.",
-  ],
-  goal: "Legg til en *document view* i Studio som viser gjenstanden slik spillet ser den.",
-  goalPreview: {
-    before: "I dag har et item bare skjemaet.",
-    after:
-      "Etterpå har det en ekstra fane, «I spillet», med ridderen og våpenet.",
-  },
-  where:
-    "I editoren din: `sanity.config.ts` (kommentaren `QUEST: Luke 5`), og en ny fil for selve visningen. Legg den for eksempel i `src/sanity/studio/`.",
-  hints: [
-    {
-      text: "Lag en ny komponent som tar imot `document` som prop. Verdiene ligger i `document.displayed`, også mens du skriver.",
-      link: {
-        label: "Displaying document data",
-        url: `${DOCS}/create-custom-document-views-with-structure-builder#k62b9d3ceb281`,
-      },
-    },
-    {
-      text: "Spillet har en ferdig `<KnightPreview spriteId={…} kind={…} />` i `src/components/KnightPreview.tsx`. Bruk den i komponenten din.",
-    },
-    {
-      text: "Gi `structureTool()` i `sanity.config.ts` en `defaultDocumentNode` som returnerer `S.document().views([...])`.",
-      link: {
-        label: "Custom document views",
-        url: `${DOCS}/create-custom-document-views-with-structure-builder`,
-      },
-    },
-    {
-      text: "Lista må ha både skjemaet, `S.view.form()`, og din egen, `S.view.component(...)`. Bare items skal ha den nye fanen: sjekk `schemaType`.",
-      link: {
-        label: "Views for specific types",
-        url: `${DOCS}/create-custom-document-views-with-structure-builder#k452c82554fbd`,
-      },
-    },
-  ],
-  learn: {
-    label: "Interactive previews",
-    url: `${LEARN}/studio-excellence/intelligent-integrations`,
-  },
-  lesson: {
-    title: "*Document views*",
-    text: "*Structure tool* lar et *document* ha flere faner. En `S.view.component` får dokumentets verdier mens du skriver, og kan vise hva som helst du kan bygge i React.",
-  },
-  checkedBy: "code",
-  bonus: true,
-  check: fromCode("the-proving-room"),
-};
-
 // Belongs to week 3 (listed in its teaser), so it's not in any chapter yet.
 export const theForgeButton: Quest = {
   id: "the-forge-button",
@@ -399,7 +333,6 @@ export const CHAPTERS: Chapter[] = [
       brannsLedger,
       theGuildsLaw,
       theDrawingBoard,
-      theProvingRoom,
     ],
   },
   {

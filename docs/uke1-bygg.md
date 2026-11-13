@@ -1,9 +1,9 @@
 # Bygg uke 1 ferdig
 
-Plan fra 4. november 2026. Dette er et tidligere utkast med oppvarming,
-oppgaver og bonuser. Antallet er ikke vedtatt; gjeldende rammer står i
-[questplan.md](questplan.md), og uke 1 skal testes før oppgavesettet låses.
-Her står byggeklossene som de neste ukene kan gjenbruke.
+Historisk utkast fra 4. november 2026; ikke følg denne rekkefølgen som gjeldende
+plan. Oppgave 5 (`Document view`) er tatt ut, og Studio-bekreftelse er ikke et
+fullføringskrav. Gjeldende rammer står i [questplan.md](questplan.md). Her står
+bare byggeklosser som eventuelt kan gjenbrukes senere.
 
 ## Prinsipp
 
@@ -17,8 +17,7 @@ i selve koden i repoet. Bonusene skrives i repoet fra start.
 | 1    | Oppvarming: lag og publiser et våpen    | Studio      | Spillet         | Virker. Mangler meldingen «Du har et utkast som ikke er publisert» |
 | 2    | Ikon og preview                         | Kodevinduet | Vinduet         | Virker (prototype)                                                 |
 | 3    | Regler for våpen (_validation_)         | Kodevinduet | Vinduet         | Flyttes fra repoet til vinduet                                     |
-| 4 ☆  | Velg sprite med bilder (_custom input_) | Repoet      | `npm run quest` | Finnes. Må prøves mot løsningen                                    |
-| 5 ☆  | Se våpenet i Studio (_document view_)   | Repoet      | `npm run quest` | Finnes. Må prøves mot løsningen                                    |
+| 4 ★  | Velg sprite med bilder (_custom input_) | Kodevinduet | Kodevinduet     | Implementert; Studio-prøve er frivillig                            |
 | 6    | Smi-knapp (_document action_)           |             |                 | Flyttes til uke 3                                                  |
 
 ## Byggeklossene

@@ -14,7 +14,10 @@ export default function StudioPractice({
 
   return (
     <div className="studio-practice">
-      <p>Se resultatet i Studio hvis du vil.</p>
+      <p>
+        Frivillig: Se resultatet i Studio hvis du vil. Det trengs ikke for å
+        fullføre.
+      </p>
       <div className="dialogue-actions">
         <button
           type="button"

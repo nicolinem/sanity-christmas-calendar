@@ -1,7 +1,8 @@
 # Gjennomspilling: uke 1
 
-Sjekkliste for å teste luke 1–6 som en ny deltaker. Kryss av mens du spiller,
-og noter det som skurrer under hvert punkt.
+Sjekkliste for felles oppstart og de tre tekniske uke-1-oppgavene.
+`Document view` (tidligere oppgave 5) er tatt ut; Studio-prøving etter en
+bestått kodeoppgave er frivillig og skal ikke bekreftes i spillet.
 
 **Oppsett:** en fersk klone, `npm install`, `npm run setup`, `npm run dev` på
 **port 3000** (sanntid virker bare der før prosjektet er claimet). Åpne Studio
@@ -52,19 +53,19 @@ uansett rekkefølge og dato.
       lærdommen, så den nye oppgaven.
 - [ ] Siste side: «Hvor du jobber», «Slik sjekkes det», og hint ett om gangen,
       med lenker til riktig sted i dokumentasjonen.
-- [ ] `QUEST: Luke 2` står i `src/sanity/schemaTypes/item.tsx`.
-- [ ] Etter løsningen: lista i Studio viser ikon og pikselbilde.
-- [ ] `npm run quest` gir ✓, og «Sjekk på nytt» fullfører luken.
-- [ ] Uten løsning gir `npm run quest` en melding som sier hva som mangler, og
-      spillet viser den som «Status».
+- [ ] Kodevinduet sjekker automatisk ikon, valgt sprite-felt og navn/preview.
+- [ ] Feil løsning viser en forklaring; riktig kode fullfører luka når
+      deltakeren går videre eller lukker kodevinduet.
+- [ ] Studio-prøve kan gjøres frivillig; ingen bekreftelse kreves i spillet.
 
 ## Luke 3: Validation
 
 - [ ] Studio nekter å publisere et våpen uten sprite (en feil, ikke en advarsel).
 - [ ] Studio godtar et materiale uten sprite.
 - [ ] Studio nekter et navn som en annen gjenstand allerede har.
-- [ ] `npm run quest` gir ✓ med riktig løsning, og en presis melding hvis regelen
-      er for streng eller bare en advarsel.
+- [ ] Kodevinduet sjekker både påkrevd sprite og unike navn, med presis melding
+      ved feil eller for strenge regler. Varsler alene består ikke.
+- [ ] Bestått kodesjekk fullfører luka; Studio-prøving er valgfri.
 
 ## Luke 4: Custom input
 
@@ -77,26 +78,12 @@ uansett rekkefølge og dato.
       en tydelig melding og stopper publisering til en gyldig sprite velges.
 - [ ] Velg en annen sprite på det publiserte våpenet, trykk _Publish_, og se
       samme endring i spillet. Utkast vises ikke før publisering.
-- [ ] Bekreft Studio-prøven i spillet. Kodevinduets utkast skrives ikke til
-      repoet; det aktiverer vår versjon av komponenten.
-
-## Luke 5: Document view
-
-- [ ] En gjenstand har en ekstra fane, der ridderen svinger våpenet
-      (`KnightPreview`).
-- [ ] Visningen oppdateres mens du endrer feltene, før du publiserer.
-- [ ] `npm run quest` gir ✓.
-
-## Luke 6: Document action
-
-- [ ] Items har en «Smi»-knapp i stedet for Publish.
-- [ ] Smi publiserer og setter `forgedAt`.
-- [ ] **Sanntid:** smia i spillet lyser opp idet du trykker Smi.
-- [ ] Luken fullføres av seg selv (ingen `npm run quest`), og du når nivå 3.
+- [ ] Studio-prøve er valgfri; ingen bekreftelse trengs i spillet. Kodevinduets
+      utkast skrives ikke til repoet; etter bestått aktiveres vår komponent.
 
 ## Etterpå
 
-- [ ] Kalenderen (J) → «Lærdommer» viser alle seks.
+- [ ] Kalenderen (J) → «Lærdommer» viser alle fullførte uke-1-luker.
 - [ ] Brann sier at det ikke er flere åpne luker nå.
 - [ ] «Nullstill fremgang» nederst i kalenderen starter alt på nytt, åpningen
       også.
