@@ -58,6 +58,15 @@ export function useProgress() {
     );
   }, []);
 
+  // The week summary shows once per week; the journal can open it again.
+  const markWeekSeen = useCallback((week: number) => {
+    updateProgress(PROJECT, (p) =>
+      p.weeksSeen?.[week]
+        ? p
+        : { ...p, weeksSeen: { ...p.weeksSeen, [week]: true } },
+    );
+  }, []);
+
   const revealHint = useCallback((questId: string) => {
     updateProgress(PROJECT, (p) => ({
       ...p,
@@ -139,6 +148,7 @@ export function useProgress() {
     revealHint,
     solveTask,
     markIntroSeen,
+    markWeekSeen,
     jumpTo,
   };
 }
@@ -241,7 +251,9 @@ export function useQuestBoard({
         door: s.quest.door,
         title: s.quest.title,
         lesson: plainText(s.quest.lesson.title),
-        objectives: s.result.objectives?.filter((o) => o.done).map((o) => o.label),
+        objectives: s.result.objectives
+          ?.filter((o) => o.done)
+          .map((o) => o.label),
         nextDoor:
           index === finished.length - 1 && next && next.status !== "locked"
             ? next.quest.door

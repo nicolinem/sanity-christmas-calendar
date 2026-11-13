@@ -16,6 +16,7 @@ export type Progress = {
   struck: Partial<Record<Element, true>>; // elements the player has hit the wraith with
   introSeen: boolean; // the opening has been shown
   solved: Record<string, SolvedTask>; // tasks solved in the code window (quest id → how)
+  weeksSeen: Record<string, true>; // week numbers whose summary has been shown
 };
 
 // A task solved in the game's code window. The Studio reads this and switches

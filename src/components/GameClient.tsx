@@ -31,6 +31,8 @@ import QuestTracker from "./hud/QuestTracker";
 import QuestLog from "./hud/QuestLog";
 import Toasts, { pushToast } from "./hud/Toasts";
 import QuestCelebration from "./hud/QuestCelebration";
+import WeekComplete from "./hud/WeekComplete";
+import { finishedWeeks, weekSummary } from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { useLiveRefresh } from "./hud/useLive";
@@ -135,6 +137,7 @@ export default function GameClient() {
     revealHint,
     solveTask,
     markIntroSeen,
+    markWeekSeen,
     jumpTo,
   } = useProgress();
   const dev = useDevMode();
@@ -327,6 +330,29 @@ export default function GameClient() {
 
   const showOpening = !progress.introSeen;
 
+  // A finished week gets its summary once, after the last door's celebration;
+  // the journal can open it again (weekShown).
+  const [weekShown, setWeekShown] = useState<number | null>(null);
+  const pendingWeek = finishedWeeks(board).find(
+    (week) => !progress.weeksSeen?.[week],
+  );
+  const quiet =
+    celebrations.length === 0 &&
+    codeQuestId === null &&
+    !studio.open &&
+    !logOpen &&
+    !dialogueOpen &&
+    !showOpening;
+  const summaryWeek = weekShown ?? (quiet ? pendingWeek : undefined);
+  const summary =
+    summaryWeek === undefined
+      ? null
+      : weekSummary(board, summaryWeek, progress);
+  const closeSummary = useCallback(() => {
+    if (summaryWeek !== undefined) markWeekSeen(summaryWeek);
+    setWeekShown(null);
+  }, [summaryWeek, markWeekSeen]);
+
   // Keep the world in sync with game state.
   useEffect(() => {
     const hand =
@@ -348,7 +374,8 @@ export default function GameClient() {
         logOpen ||
         codeOpen ||
         showOpening ||
-        Boolean(celebration),
+        Boolean(celebration) ||
+        Boolean(summary),
     });
   }, [
     equipped,
@@ -363,6 +390,7 @@ export default function GameClient() {
     codeOpen,
     showOpening,
     celebration,
+    summary,
   ]);
 
   const slots = narrow ? 5 : 8;
@@ -582,6 +610,10 @@ export default function GameClient() {
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
             onReset={reset}
+            onShowWeek={(week) => {
+              setLogOpen(false);
+              setWeekShown(week);
+            }}
           />
         )}
 
@@ -636,6 +668,22 @@ export default function GameClient() {
           onReadPage={() => {
             dismissCelebration();
             openQuestLog(celebration.questId);
+          }}
+        />
+      )}
+
+      {summary && !celebration && (
+        <WeekComplete
+          key={summary.number}
+          summary={summary}
+          forgeLevel={forgeLevel}
+          onClose={closeSummary}
+          onOpenBook={() => {
+            closeSummary();
+            setTalking(false);
+            setLogInitialTab("book");
+            setLogInitialQuestId(undefined);
+            setLogOpen(true);
           }}
         />
       )}
