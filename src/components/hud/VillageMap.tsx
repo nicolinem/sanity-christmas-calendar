@@ -18,6 +18,7 @@ import {
   type QuestSiteId,
 } from "@/game/village";
 import SpriteIcon from "./SpriteIcon";
+import { nextStep } from "./nextStep";
 
 const W = MAP_W * TILE;
 const H = MAP_H * TILE;
@@ -101,10 +102,14 @@ export default function VillageMap({
   board,
   onTravel,
   onOpenQuest,
+  onOpenCode,
+  onOpenStudio,
 }: {
   board: QuestBoard;
   onTravel: (siteId: QuestSiteId) => void;
   onOpenQuest: (questId: string) => void;
+  onOpenCode: (questId: string) => void;
+  onOpenStudio: () => void;
 }) {
   const canvas = useVillageCanvas();
   const [knight] = useState(() => ({ ...bridge.knight }));
@@ -112,11 +117,15 @@ export default function VillageMap({
   const current = board.current;
   const week = board.states.find((s) => s.quest.id === doors[0]?.id)?.chapter;
   const lit = doors.filter((d) => d.status === "done").length;
-  const destination: QuestSiteId | null = current
-    ? current.status === "offered"
-      ? "forge"
-      : (current.quest.villageSite ?? "forge")
-    : null;
+  const step = nextStep(current);
+  const runStep = () => {
+    if (!step) return;
+    if (step.kind === "brann") onTravel("forge");
+    else if (step.kind === "code") onOpenCode(step.questId);
+    else if (step.kind === "travel") onTravel(step.site);
+    else if (step.kind === "studio") onOpenStudio();
+    else onOpenQuest(step.questId);
+  };
   const title = (id: string) =>
     board.states.find((s) => s.quest.id === id)?.quest.title ?? "";
 
@@ -130,7 +139,7 @@ export default function VillageMap({
           height={H}
           aria-hidden="true"
         />
-        {current?.status === "offered" && (
+        {current?.status === "offered" && !current.pickup && (
           <span
             className="vmap-brann"
             style={{
@@ -173,22 +182,14 @@ export default function VillageMap({
         <p className="vmap-count">
           {lit} av {doors.length} luker lyser
         </p>
-        {current && destination && (
+        {current && step && (
           <div className="vmap-next">
-            <p className="vmap-kicker">Neste steg</p>
-            <p>
-              {current.status === "offered"
-                ? `Brann har luke ${current.quest.door} klar ved smia.`
-                : `Luke ${current.quest.door} hører til ${QUEST_SITES[destination].label.toLowerCase()}.`}
+            <p className="vmap-kicker">
+              Neste steg · luke {current.quest.door}
             </p>
-            <button
-              type="button"
-              className="btn btn--amber"
-              onClick={() => onTravel(destination)}
-            >
-              {current.status === "offered"
-                ? "Gå til Brann"
-                : `Gå til ${QUEST_SITES[destination].label.toLowerCase()}`}
+            {step.where && <p>{step.where}</p>}
+            <button type="button" className="btn btn--amber" onClick={runStep}>
+              {step.label}
             </button>
           </div>
         )}
@@ -208,7 +209,9 @@ export default function VillageMap({
                     Luke {d.door} · {QUEST_SITES[d.site].label} ·{" "}
                     {STATUS_LABEL[d.status]}
                   </span>
-                  {d.id === current?.quest.id && current.status === "offered"
+                  {d.id === current?.quest.id &&
+                  current.status === "offered" &&
+                  !current.pickup
                     ? "Snakk med Brann"
                     : title(d.id)}
                 </span>

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { QuestBoard } from "@/game/quests/engine";
-import { QUEST_SITES } from "@/game/village";
+import type { QuestSiteId } from "@/game/village";
 import { IconCheck } from "./icons";
+import { nextStep } from "./nextStep";
 import { renderText } from "./richText";
 
 type Props = {
@@ -12,6 +13,10 @@ type Props = {
   metBrann: boolean;
   compact: boolean;
   onOpenLog: () => void;
+  onOpenQuest: (questId: string) => void; // the door's page in the journal
+  onOpenCode: (questId: string) => void;
+  onOpenStudio: () => void;
+  onTravel: (site: QuestSiteId) => void;
   // A finished door whose celebration waits until the Studio pane closes.
   finished?: { door: number; title: string } | null;
   onShowCelebration?: () => void;
@@ -26,6 +31,10 @@ export default function QuestTracker({
   metBrann,
   compact,
   onOpenLog,
+  onOpenQuest,
+  onOpenCode,
+  onOpenStudio,
+  onTravel,
   finished,
   onShowCelebration,
 }: Props) {
@@ -34,11 +43,17 @@ export default function QuestTracker({
   const waiting = !current
     ? board.states.find((s) => s.status === "locked" && s.opensAt)
     : undefined;
-  const offered = current?.status === "offered";
-  const place =
-    current?.quest.villageSite && QUEST_SITES[current.quest.villageSite].label;
-  const hasVillageDestination =
-    current?.quest.villageSite && current.quest.villageSite !== "forge";
+  // Brann still has to hand it over (a door waiting to be picked up is known).
+  const offered = current?.status === "offered" && !current.pickup;
+  const step = nextStep(current);
+  const runStep = () => {
+    if (!step) return;
+    if (step.kind === "brann") onTravel("forge");
+    else if (step.kind === "code") onOpenCode(step.questId);
+    else if (step.kind === "travel") onTravel(step.site);
+    else if (step.kind === "studio") onOpenStudio();
+    else onOpenQuest(step.questId);
+  };
 
   // Every check passes: the door is about to be finished (the code window
   // finishes it when you leave it), so the corner turns gold.
@@ -99,18 +114,12 @@ export default function QuestTracker({
           {current && offered && (
             <p className="tracker-goal">
               {metBrann
-                ? "Ny luke er åpen. Gå til Brann ved smia"
-                : "Gå til Brann ved smia"}{" "}
-              <kbd>E</kbd>
+                ? "Ny luke er åpen. Brann forteller hva den handler om."
+                : "Brann har noe til deg."}
             </p>
           )}
           {current && !offered && (
             <>
-              {hasVillageDestination && place && (
-                <p className="tracker-note">
-                  Valgfritt sted: {place}. Se Kart i journalen (J).
-                </p>
-              )}
               <p className="tracker-goal">{renderText(current.quest.goal)}</p>
               {ready && (
                 <p className="tracker-ready">
@@ -151,6 +160,17 @@ export default function QuestTracker({
                 ? `Neste luke åpner ${waiting.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
                 : "Ingen flere luker ennå. Nye kommer med kalenderen."}
             </p>
+          )}
+          {step && !ready && (
+            <div className="tracker-step">
+              <button
+                type="button"
+                className="btn btn--amber tracker-step-btn"
+                onClick={runStep}
+              >
+                {step.label}
+              </button>
+            </div>
           )}
           <div className="tracker-foot">
             <span className="tracker-meta">

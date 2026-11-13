@@ -65,6 +65,12 @@ export function evaluateQuests(
       const done = Boolean(ctx.progress.completed[quest.id]);
       const unlocked = devUnlock || (previousResolved && dateOpen);
       const briefed = Boolean(ctx.progress.briefed[quest.id]);
+      // A door with its own place is picked up there after Brann's briefing.
+      const site = quest.villageSite;
+      const pickup =
+        briefed && site && site !== "forge" && !ctx.progress.fetched?.[quest.id]
+          ? site
+          : undefined;
       states.push({
         quest,
         chapter,
@@ -72,11 +78,12 @@ export function evaluateQuests(
           ? "done"
           : !unlocked
             ? "locked"
-            : briefed
+            : briefed && !pickup
               ? "active"
               : "offered",
         result,
         opensAt: !done && previousResolved && !dateOpen ? opensAt : undefined,
+        ...(!done && unlocked && pickup ? { pickup } : {}),
       });
       // Bonus quests remain optional and never hold back the next core quest.
       if (!quest.bonus) previousResolved = done;

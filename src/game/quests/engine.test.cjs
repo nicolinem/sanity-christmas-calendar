@@ -420,6 +420,7 @@ function studioBoard(
       track: "technical",
       completed: Object.fromEntries(ids.map((id) => [id, COMPLETED_AT])),
       briefed: { [step.id]: true },
+      fetched: { [step.id]: true },
       solved: solved ? { [step.id]: { at: COMPLETED_AT } } : {},
     }),
     NOW,
@@ -479,3 +480,35 @@ for (const step of STUDIO_STEPS) {
     else assert.equal(board.current, null);
   });
 }
+
+test("a door with its own place is picked up there after Brann's briefing", () => {
+  const chapters = [
+    chapter(1, [quest("placed", { villageSite: "westHouse" }), quest("desk")]),
+  ];
+  const briefed = evaluateQuests(
+    chapters,
+    context({ briefed: { placed: true } }),
+    NOW,
+  );
+  assert.equal(briefed.states[0].status, "offered");
+  assert.equal(briefed.states[0].pickup, "westHouse");
+
+  const fetched = evaluateQuests(
+    chapters,
+    context({ briefed: { placed: true }, fetched: { placed: true } }),
+    NOW,
+  );
+  assert.equal(fetched.states[0].status, "active");
+  assert.equal(fetched.states[0].pickup, undefined);
+});
+
+test("a door at the forge is active as soon as Brann has explained it", () => {
+  const chapters = [chapter(1, [quest("forge", { villageSite: "forge" })])];
+  const board = evaluateQuests(
+    chapters,
+    context({ briefed: { forge: true } }),
+    NOW,
+  );
+  assert.equal(board.states[0].status, "active");
+  assert.equal(board.states[0].pickup, undefined);
+});

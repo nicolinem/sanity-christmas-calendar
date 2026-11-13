@@ -31,8 +31,12 @@ export function nextStepPoint(
 ): { x: number; y: number } | null {
   const current = board.current;
   if (!current) return null;
-  if (current.status === "offered")
+  if (current.status === "offered" && !current.pickup)
     return { x: BLACKSMITH.x, y: BLACKSMITH.y - 16 };
+  // A door without its own place is done at a desk (code window, Studio):
+  // nothing in the village to walk to, so no arrow.
+  if (!current.quest.villageSite || current.quest.villageSite === "forge")
+    return null;
   const placed = placeDoors(doors).find((d) => d.id === current.quest.id);
   if (placed) return { x: placed.x, y: placed.y - 8 };
   const anchor = DOOR_ANCHORS[current.quest.villageSite ?? "forge"];

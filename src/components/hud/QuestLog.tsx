@@ -5,7 +5,7 @@ import { CHAPTERS } from "@/game/quests/chapters";
 import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
 import { fridayOf } from "@/game/quests/weeks";
 import type { Progress, QuestState } from "@/game/quests/types";
-import type { QuestSiteId } from "@/game/village";
+import { QUEST_SITES, type QuestSiteId } from "@/game/village";
 import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
@@ -14,6 +14,7 @@ import VillageMap from "./VillageMap";
 import StudioPractice from "./StudioPractice";
 import QuestHint from "./QuestHint";
 import QuestBook from "./QuestBook";
+import { openStudio } from "./studioPane";
 import SpriteIcon from "./SpriteIcon";
 
 const dateLabel = (date: Date) =>
@@ -171,6 +172,7 @@ export default function QuestLog({
                     onMoreHint={() => onRevealHint(selected.quest.id)}
                     onOpenCode={() => onOpenCode(selected.quest.id)}
                     onGoToBrann={() => onTravelToSite("forge")}
+                    onTravel={onTravelToSite}
                     codePassed={Boolean(solvedTasks[selected.quest.id])}
                     onClose={onClose}
                   />
@@ -183,6 +185,11 @@ export default function QuestLog({
             <VillageMap
               board={board}
               onTravel={onTravelToSite}
+              onOpenCode={onOpenCode}
+              onOpenStudio={() => {
+                openStudio();
+                onClose();
+              }}
               onOpenQuest={(questId) => {
                 setSelectedId(questId);
                 const target = board.states.find((s) => s.quest.id === questId);
@@ -224,11 +231,17 @@ export default function QuestLog({
 // A door's window: dark until it opens, outlined while it's open, lit when
 // it's done. The same Kenney window the houses use, so the journal and the
 // village speak the same language.
-function Lantern({ status }: { status: QuestState["status"] }) {
+function Lantern({
+  status,
+  atBrann,
+}: {
+  status: QuestState["status"];
+  atBrann?: boolean;
+}) {
   return (
     <span className={`log-lantern is-${status}`} aria-hidden="true">
       <SpriteIcon sprite={{ sheet: "town", frame: 84 }} scale={2} />
-      {status === "offered" && <span className="log-lantern-mark">!</span>}
+      {atBrann && <span className="log-lantern-mark">!</span>}
     </span>
   );
 }
@@ -249,6 +262,8 @@ function rowStatus(
       : "fullført";
   }
   if (state.status === "active") return "pågår";
+  if (state.pickup)
+    return `hentes ved ${QUEST_SITES[state.pickup].label.toLowerCase()}`;
   if (state.status === "offered") return "venter hos Brann";
   if (state.opensAt) return `åpner ${dateLabel(state.opensAt)}`;
   const before = week[week.indexOf(state) - 1];
@@ -391,12 +406,17 @@ function WeekBody({
                 onClick={() => onSelect(s.quest.id)}
                 aria-current={s === selected ? "true" : undefined}
               >
-                <Lantern status={s.status} />
+                <Lantern
+                  status={s.status}
+                  atBrann={s.status === "offered" && !s.pickup}
+                />
                 <span className="log-quest-name">
                   <span className="log-quest-door">
                     Luke {s.quest.door} · {rowStatus(s, states, completedAt)}
                   </span>
-                  {s.status === "offered" ? "Snakk med Brann" : s.quest.title}
+                  {s.status === "offered" && !s.pickup
+                    ? "Snakk med Brann"
+                    : s.quest.title}
                   {s.quest.bonus && (
                     <span className="log-bonus"> ☆ Bonus · valgfri</span>
                   )}
@@ -428,6 +448,7 @@ function QuestDetail({
   onMoreHint,
   onOpenCode,
   onGoToBrann,
+  onTravel,
   codePassed,
   onClose,
 }: {
@@ -437,12 +458,13 @@ function QuestDetail({
   onMoreHint: () => void;
   onOpenCode: () => void;
   onGoToBrann: () => void;
+  onTravel: (site: QuestSiteId) => void;
   codePassed: boolean;
   onClose: () => void;
 }) {
   const { quest, status, result } = state;
 
-  if (status === "offered") {
+  if (status === "offered" && !state.pickup) {
     return (
       <article className="log-detail">
         <div className="log-brann">
@@ -558,7 +580,10 @@ function QuestDetail({
   return (
     <article className="log-detail">
       <p className="log-week-kicker log-week-kicker--active">
-        Luke {quest.door} · pågår
+        Luke {quest.door} ·{" "}
+        {state.pickup
+          ? `hentes ved ${QUEST_SITES[state.pickup].label.toLowerCase()}`
+          : "pågår"}
         {quest.bonus && " · ☆ Bonus · valgfri"}
       </p>
       <h3 className="log-quest-title">{quest.title}</h3>
@@ -603,14 +628,24 @@ function QuestDetail({
         )}
         {quest.reward && " Belønning: våpnene dine blir sterkere."}
       </p>
-      {quest.checkedBy === "window" && (
+      {state.pickup ? (
         <button
           type="button"
           className="btn btn--amber log-code"
-          onClick={onOpenCode}
+          onClick={() => state.pickup && onTravel(state.pickup)}
         >
-          Åpne kodevinduet
+          Gå til {QUEST_SITES[state.pickup].label.toLowerCase()} og hent luka
         </button>
+      ) : (
+        quest.checkedBy === "window" && (
+          <button
+            type="button"
+            className="btn btn--amber log-code"
+            onClick={onOpenCode}
+          >
+            Åpne kodevinduet
+          </button>
+        )
       )}
       <StudioPractice state={state} codePassed={codePassed} onLeave={onClose} />
       {quest.hints.length > 0 && (

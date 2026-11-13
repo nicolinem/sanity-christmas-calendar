@@ -350,6 +350,7 @@ function studioHarness(initial = {}, options = {}) {
       track: "technical",
       completed: { "the-broken-forge": AT },
       briefed: { [STUDIO]: true },
+      fetched: { [STUDIO]: true },
       solved: { [STUDIO]: { at: AT } },
       ...initial,
     },
