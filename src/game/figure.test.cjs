@@ -42,3 +42,16 @@ test("random figures are always valid", () => {
     assert.deepEqual(normalizeFigure(f), f);
   }
 });
+
+test("helmets cover a bald head completely: no skin above or beside them", () => {
+  // The default figure's light skin (main and shade).
+  const SKIN = new Set(["247,194,130", "225,154,101"]);
+  for (const hat of ["helmet", "knight", "viking"]) {
+    const px = drawFigure({ ...DEFAULT_FIGURE, hair: "bald", hat });
+    for (let y = 0; y < 5; y++)
+      for (let x = 0; x < 16; x++) {
+        const i = (y * 16 + x) * 4;
+        assert.ok(!SKIN.has(`${px[i]},${px[i + 1]},${px[i + 2]}`), `${hat}: skin at ${x},${y}`);
+      }
+  }
+});

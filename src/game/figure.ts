@@ -183,7 +183,9 @@ export const HATS: Part[] = [
   {
     id: "knight",
     label: "Ridderhjelm",
-    grid: grid(3, ".......II", ".....iIIIIi", "....ViIIIIiV", "....iiiiiiii", "....iiXiXiXi", "....iiXiXiXi", "....iiiiiiii"),
+    // Starts a row above the head (Kenney's knight has a lower head), so no
+    // skin shows above it; the visor slits stay at eye height.
+    grid: grid(2, ".......II", ".....iIIIIi", "....ViIIIIiV", "....iiiiiiii", "....iiiiiiii", "....iiXiXiXi", "....iiXiXiXi", "....iiiiiiii"),
     unlock: "Finnes i bygda",
   },
   // Horned helmet (frame 87).
