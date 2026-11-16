@@ -5,7 +5,7 @@ import { lukeName } from "@/game/quests/label";
 import { useState } from "react";
 import type { QuestBoard } from "@/game/quests/engine";
 import type { QuestSiteId } from "@/game/village";
-import { IconCheck } from "./icons";
+import { IconBook, IconCheck, IconMap } from "./icons";
 import { nextStep } from "./nextStep";
 import { renderText } from "./richText";
 
@@ -15,6 +15,7 @@ type Props = {
   metBrann: boolean;
   compact: boolean;
   onOpenLog: () => void;
+  onOpenMap: () => void;
   onOpenQuest: (questId: string) => void; // the door's page in the journal
   onOpenCode: (questId: string) => void;
   onOpenStudio: () => void;
@@ -33,6 +34,7 @@ export default function QuestTracker({
   metBrann,
   compact,
   onOpenLog,
+  onOpenMap,
   onOpenQuest,
   onOpenCode,
   onOpenStudio,
@@ -175,12 +177,26 @@ export default function QuestTracker({
             </div>
           )}
           <div className="tracker-foot">
-            <span className="tracker-meta">
-              {board.completedCount} av {board.total} luker, nivå {forgeLevel}
-            </span>
-            <button type="button" className="tracker-log" onClick={onOpenLog}>
-              Kalender og journal
-            </button>
+            <div className="tracker-progress">
+              <span className="tracker-meta">
+                {board.completedCount} av {board.total} · nivå {forgeLevel}
+              </span>
+              <span className="tracker-pips" aria-hidden>
+                {Array.from({ length: board.total }, (_, i) => (
+                  <i key={i} className={i < board.completedCount ? "is-on" : ""} />
+                ))}
+              </span>
+            </div>
+            <div className="tracker-nav">
+              <button type="button" className="tracker-nav-btn" onClick={onOpenMap}>
+                <IconMap size={14} />
+                Kart <kbd>M</kbd>
+              </button>
+              <button type="button" className="tracker-nav-btn" onClick={onOpenLog}>
+                <IconBook size={14} />
+                Journal <kbd>J</kbd>
+              </button>
+            </div>
           </div>
         </>
       )}

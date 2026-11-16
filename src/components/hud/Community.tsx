@@ -5,6 +5,7 @@ import type { CommunityEvent, CommunityPlayer } from "@/game/community";
 import { PROGRESS_PROJECT } from "@/game/quests/progress";
 import { MAX_FORGE_LEVEL } from "@/game/rules";
 import { normalizeFigure } from "@/game/figure";
+import { communityEndpoint } from "@/game/communityEndpoint";
 import FigureCanvas from "../figure/FigureCanvas";
 
 export default function Community() {
@@ -14,7 +15,7 @@ export default function Community() {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/community", { cache: "no-store" })
+    fetch(communityEndpoint, { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error("read_failed");
         return res.json() as Promise<{ configured: boolean; events: CommunityEvent[]; players: CommunityPlayer[] }>;

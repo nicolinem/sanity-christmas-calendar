@@ -155,7 +155,7 @@ export function useProgress() {
 
   // Dev panel: switch between the technical and non-technical track.
   const setTrack = useCallback((track: QuestTrack) => {
-    updateProgress(PROJECT, (p) => ({ ...p, track }));
+    updateProgress(PROJECT, (p) => ({ ...p, track, trackChosen: true }));
   }, []);
 
   // Dev panel: finish one quest as if its check passed, nothing else changes.

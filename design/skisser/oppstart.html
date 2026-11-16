@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oppstart – skisse</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Jersey+10&display=swap");
+      :root { --night: #262b44; --dark: #1b1f33; --edge: #3f2631; --wood: #bd6c4a; --deep: #2e1d25; --amber: #fdbe53; --snow: #e3ebf5; --frost: #c0cbdc; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100dvh; color: var(--snow); background: var(--dark); font-family: "Chakra Petch", sans-serif; }
+      body::before { content: ""; position: fixed; inset: 0; background: url("assets/village-plain.png") center / cover no-repeat; image-rendering: pixelated; }
+      body::after { content: ""; position: fixed; inset: 0; background: linear-gradient(180deg, #1b1f33d6, #262b44bd 46%, #1b1f33df); }
+      main { position: relative; z-index: 1; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; padding: 32px; }
+      .center { align-self: center; min-width: 0; width: min(810px, 100%); margin: 0 auto; text-align: center; }
+      h1 { font: 400 clamp(58px, 8vw, 112px)/0.88 "Jersey 10", Impact, sans-serif; color: var(--amber); text-shadow: 0 4px var(--edge), 4px 4px var(--dark); margin: 0 auto 34px; }
+      h1 span { display: block; }
+      .year { color: var(--snow); letter-spacing: 0.06em; font-size: 0.72em; margin-top: 6px; }
+      .action { display: inline-block; font: 600 21px "Chakra Petch", sans-serif; min-width: 205px; padding: 15px 40px 18px; border: 0; color: #28150f; background: #e38628; cursor: pointer; box-shadow: 0 -3px #5a2a1a, 0 3px #5a2a1a, -3px 0 #5a2a1a, 3px 0 #5a2a1a, inset 0 3px var(--amber), inset 0 -5px #9e4b22; }
+      .action:hover, .card:hover { filter: brightness(1.13); }
+      .action:focus-visible, .card:focus-visible, .small:focus-visible { outline: 3px solid var(--amber); outline-offset: 6px; }
+      .small { display: block; margin: 20px auto 0; color: var(--frost); font: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+      .status { justify-self: center; font-size: 13px; color: var(--frost); padding: 9px 16px; background: #1b1f33d8; box-shadow: 0 -2px #3a4263, 0 2px #15192a, -2px 0 #15192a, 2px 0 #15192a; }
+      .status strong { color: var(--snow); font-weight: 500; }
+      h2 { font: 400 clamp(52px, 6vw, 76px)/1 "Jersey 10", Impact, sans-serif; margin: 0 0 30px; color: var(--amber); text-shadow: 0 3px var(--deep); }
+      .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .card { min-width: 0; width: 100%; min-height: 180px; padding: 25px 27px 28px; text-align: left; color: var(--snow); font: inherit; background: #262b44f2; border: 0; cursor: pointer; box-shadow: 0 -3px var(--dark), 0 3px var(--dark), -3px 0 var(--dark), 3px 0 var(--dark), inset 0 3px #4d5781, inset 0 -3px #15192a; }
+      .card strong { display: block; font: 400 48px/1 "Jersey 10", Impact, sans-serif; color: var(--amber); margin-bottom: 15px; }
+      .card span { font-size: 17px; line-height: 1.5; color: var(--frost); }
+      .choice .center { width: min(760px, 100%); }
+      .choice .status { display: none; }
+      [hidden] { display: none !important; }
+      @media (max-width: 600px) {
+        main { padding: 22px 18px; }
+        h1 { font-size: clamp(48px, 13vw, 70px); margin-bottom: 28px; }
+        h1 .title-word { display: block; }
+        .cards { grid-template-columns: 1fr; gap: 14px; }
+        .card { min-height: auto; padding: 18px 22px 20px; }
+        .card strong { font-size: 40px; margin-bottom: 6px; }
+        .card span { font-size: 15px; }
+        h2 { margin-bottom: 18px; }
+        .status { max-width: 90%; text-align: center; }
+      }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="center" id="start">
+        <h1>Sanity <span class="title-word">Julekalender</span><span class="year">2026</span></h1>
+        <button class="action" type="button" onclick="location.search='?screen=track'">Start</button>
+        <button class="small" type="button" id="new" hidden onclick="if(confirm('Vil du slette fremgangen din og starte på nytt?')) location.search='?screen=track'">Nytt spill</button>
+      </div>
+      <div class="center" id="track" hidden>
+        <h2>Velg spor</h2>
+        <div class="cards">
+          <button class="card" type="button"><strong>Teknisk</strong><span>Du skriver kode og bygger i <em>Studio</em>.</span></button>
+          <button class="card" type="button"><strong>Ikke-teknisk</strong><span>Du jobber med innhold i <em>Studio</em>.</span></button>
+        </div>
+      </div>
+      <div class="status">Koblet til prosjekt <strong>••••••••</strong></div>
+    </main>
+    <script>
+      const screen = new URLSearchParams(location.search).get("screen");
+      if (screen === "track") {
+        document.body.classList.add("choice");
+        document.getElementById("start").hidden = true;
+        document.getElementById("track").hidden = false;
+      } else if (screen === "continue") {
+        document.querySelector(".action").textContent = "Fortsett";
+        document.getElementById("new").hidden = false;
+      }
+    </script>
+  </body>
+</html>

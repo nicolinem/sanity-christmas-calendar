@@ -44,6 +44,9 @@ afterEach(() => {
 test("fresh progress defaults to technical and keeps a stable snapshot", () => {
   const first = progress.readProgress("fresh");
   assert.equal(first.track, "technical");
+  assert.equal(first.trackChosen, false);
+  assert.equal(first.shareProfile, false);
+  assert.equal(first.sharePrompted, false);
   assert.deepEqual(first.completed, {});
   assert.equal(first, progress.readProgress("fresh"));
   assert.equal(progress.EMPTY_PROGRESS.track, "technical");
@@ -64,6 +67,9 @@ test("legacy saves ignore skipped, default to technical, and preserve earned com
   records.set(progress.storageKey("legacy"), JSON.stringify(legacy));
   const restored = progress.readProgress("legacy");
   assert.equal(restored.track, "technical");
+  assert.equal(restored.trackChosen, true);
+  assert.equal(restored.shareProfile, false);
+  assert.equal(restored.sharePrompted, false);
   assert.equal(Object.hasOwn(restored, "skipped"), false);
   const { skipped, ...earned } = legacy;
   assert.ok(skipped.second);
@@ -171,6 +177,9 @@ test("resetting progress also removes saved code answers but keeps unrelated sto
   progress.resetProgress("reset");
 
   assert.equal(progress.readProgress("reset").introSeen, false);
+  assert.equal(progress.readProgress("reset").trackChosen, false);
+  assert.equal(progress.readProgress("reset").shareProfile, false);
+  assert.equal(progress.readProgress("reset").sharePrompted, false);
   assert.equal(records.has("winter-quest:code:branns-ledger"), false);
   assert.equal(records.has("winter-quest:code:the-guilds-law"), false);
   assert.equal(records.get("other-app:preference"), "keep me");

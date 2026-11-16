@@ -32,6 +32,7 @@ test("player snapshot accepts only published weapon identifiers and short names"
     _id: "communityPlayer.abcdefgh",
     _type: "communityPlayer",
     playerId: "abcdefgh",
+    visible: false,
     weapon: { name: "Frostøksa", spriteId: "axe" },
   });
   assert.equal(characterFor({ playerId: "abcdefgh", character: { weapon: null } }).weapon, null);
@@ -80,4 +81,10 @@ test("player snapshot keeps a short, plain display name and omits a bad one", ()
     assert.ok(character);
     assert.equal("name" in character, false);
   }
+});
+
+test("player visibility requires explicit opt-in", () => {
+  assert.equal(characterFor({ playerId: "abcdefgh", character: { visible: true } }).visible, true);
+  assert.equal(characterFor({ playerId: "abcdefgh", character: { visible: false } }).visible, false);
+  assert.equal(characterFor({ playerId: "abcdefgh", character: { visible: "yes" } }), null);
 });

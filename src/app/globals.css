@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Winter Quest. Colours are lifted from Kenney's Tiny Town/Dungeon palette so
+/* Winter Quest. Colours are lifted from Kenney's Tiny Town / Dungeon palette so
    the HUD and the world read as one thing. The palette is fixed on purpose:
    it's a game scene at blue hour, not a document that follows OS dark mode. */
 :root {
@@ -439,35 +439,65 @@ kbd {
   line-height: 1.35;
   color: var(--frost-dim);
 }
+/* The bottom band: how far you've come, and the two ways into the journal
+   (the map tab and the week). */
 .tracker-foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: var(--px) solid var(--night-2);
+  gap: 8px 10px;
+  margin: 10px -14px -12px;
+  padding: 8px 12px 10px 14px;
+  background: var(--night-2);
+  border-top: var(--px) solid var(--night-3);
+}
+.tracker-progress {
+  display: grid;
+  gap: 5px;
 }
 .tracker-meta {
   font-size: 12px;
+  white-space: nowrap;
   color: var(--frost-dim);
 }
-.tracker-log {
+.tracker-pips {
+  display: flex;
+  gap: 3px;
+}
+.tracker-pips i {
+  width: 12px;
+  height: 5px;
+  background: var(--night-3);
+}
+.tracker-pips i.is-on {
+  background: var(--amber);
+}
+.tracker-nav {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.tracker-nav-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 0;
-  font: inherit;
-  font-size: 13px;
-  color: var(--frost);
-  background: none;
-  border: 0;
+  gap: 6px;
+  padding: 4px 7px;
+  font: 600 13px var(--font-body);
+  white-space: nowrap;
+  color: var(--snow);
+  background: var(--night-3);
+  border: var(--px) solid #4e5980;
+  box-shadow: inset 0 calc(var(--px) * -1) 0 #2c3352;
   cursor: pointer;
 }
-.tracker-log:hover {
-  color: var(--snow);
+.tracker-nav-btn:hover {
+  border-color: var(--amber);
 }
-.tracker-log kbd {
+.tracker-nav-btn svg {
+  color: var(--frost);
+}
+.tracker-nav-btn kbd {
   font-size: 11px;
 }
 
@@ -1943,74 +1973,314 @@ kbd {
   }
 }
 
-/* --- Opening: three lines of story before the first step ------------------ */
+/* --- Entry flow: title, track choice and Brann's welcome ----------------- */
 .opening {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  padding: var(--gutter);
-  background: radial-gradient(
-    120% 90% at 50% 40%,
-    rgb(27 31 51 / 0.55),
-    rgb(27 31 51 / 0.92)
-  );
-  cursor: pointer;
+  padding: clamp(18px, 5vw, 48px);
+  background: rgb(27 31 51 / 0.72);
   z-index: 20;
 }
-.opening-text {
-  max-width: 34ch;
+.opening-card {
+  width: min(810px, 100%);
+  min-width: 0;
+  padding: clamp(24px, 4vw, 44px);
   text-align: center;
-  font-size: clamp(17px, 1.6vw, 21px);
-  line-height: 1.5;
-  color: var(--snow);
-  text-shadow: 0 2px 0 var(--night-2);
+  background: rgb(38 43 68 / 0.96);
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--night-2),
+    0 var(--px) 0 0 var(--night-2),
+    calc(var(--px) * -1) 0 0 0 var(--night-2),
+    var(--px) 0 0 0 var(--night-2),
+    inset 0 var(--px) 0 0 #4d5781,
+    inset 0 calc(var(--px) * -1) 0 0 var(--night-2);
 }
-.opening-text p {
-  margin: 0 0 0.6em;
-  animation: opening-in 0.8s steps(5) both;
+.hud.is-hidden {
+  display: none;
 }
-.opening-text p:nth-child(2) {
-  animation-delay: 0.4s;
-}
-.opening-text p:nth-child(3) {
-  animation-delay: 1.2s;
-}
-.opening-text p:nth-child(4) {
-  animation-delay: 2s;
+.opening-card--title {
+  width: min(760px, 100%);
+  padding: clamp(30px, 6vw, 62px) 20px 20px;
+  background: transparent;
+  box-shadow: none;
 }
 .opening-title {
+  margin: 0 0 34px;
   font-family: var(--font-display), var(--font-body);
-  font-size: clamp(44px, 6vw, 72px);
+  font-size: clamp(54px, 9vw, 104px);
+  font-weight: 400;
+  line-height: 0.88;
+  color: var(--amber);
+  text-shadow: 0 4px 0 var(--plum), 4px 4px 0 var(--night-2);
+}
+.opening-title span {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.72em;
+  color: var(--snow);
+  letter-spacing: 0.06em;
+}
+.opening-button {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 205px;
+  padding: 14px 40px 17px;
+  margin: var(--px);
+  border: 0;
+  font: 600 21px/1.2 var(--font-body);
+  color: #2a140e;
+  background: var(--ember);
+  cursor: pointer;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 #5a2a1a,
+    0 var(--px) 0 0 #5a2a1a,
+    calc(var(--px) * -1) 0 0 0 #5a2a1a,
+    var(--px) 0 0 0 #5a2a1a,
+    inset 0 var(--px) 0 0 var(--amber),
+    inset 0 calc(var(--px) * -2) 0 0 #9e4b22;
+}
+.opening-button:hover {
+  background: #f09a3a;
+}
+.opening-button--small {
+  min-width: 0;
+  padding: 9px 16px 11px;
+  font-size: 15px;
+}
+.opening-link {
+  padding: 6px 10px;
+  border: 0;
+  color: var(--frost);
+  font: 500 14px var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+.opening-link:hover {
+  color: var(--snow);
+}
+.opening-new {
+  display: block;
+  margin: 14px auto 0;
+}
+.opening-confirm {
+  max-width: 34ch;
+  margin: 16px auto 0;
+  padding: 12px;
+  color: var(--snow);
+  background: var(--night-2);
+}
+.opening-confirm p {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.opening-confirm > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.opening-status {
+  margin: 36px auto 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 14px;
+  color: var(--frost);
+  font-size: 13px;
+  background: rgb(27 31 51 / 0.85);
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--night-3),
+    0 var(--px) 0 0 var(--night-2),
+    calc(var(--px) * -1) 0 0 0 var(--night-2),
+    var(--px) 0 0 0 var(--night-2);
+}
+.opening-status strong {
+  color: var(--snow);
+  font-weight: 600;
+}
+.opening-heading {
+  margin: 0 0 28px;
+  font-family: var(--font-display), var(--font-body);
+  font-size: clamp(44px, 6vw, 68px);
+  font-weight: 400;
   line-height: 1;
   color: var(--amber);
+  text-shadow: 0 3px var(--wood-deep);
 }
-.opening-text .opening-start {
-  margin-top: 1.6em;
-  font-size: 15px;
+.opening-card--tracks {
+  width: min(810px, 100%);
+}
+.opening-tracks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.opening-track {
+  min-width: 0;
+  min-height: 174px;
+  padding: 24px 26px;
+  color: var(--snow);
+  text-align: left;
+  background: rgb(27 31 51 / 0.84);
+  border: 0;
+  cursor: pointer;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--night-2),
+    0 var(--px) 0 0 var(--night-2),
+    calc(var(--px) * -1) 0 0 0 var(--night-2),
+    var(--px) 0 0 0 var(--night-2),
+    inset 0 var(--px) 0 0 var(--night-3),
+    inset 0 calc(var(--px) * -1) 0 0 var(--night-2);
+}
+.opening-track:hover {
+  background: #343a5b;
+}
+.opening-track strong {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--amber);
+  font-family: var(--font-display), var(--font-body);
+  font-size: 42px;
+  font-weight: 400;
+  line-height: 1;
+}
+.opening-track span {
+  display: block;
   color: var(--frost);
-  animation-delay: 2.8s;
+  font-size: 16px;
+  line-height: 1.5;
 }
-.opening-cursor {
-  display: inline-block;
-  width: 0.6em;
-  height: 0.9em;
-  margin-left: 4px;
-  vertical-align: -2px;
-  background: var(--amber);
-  animation: blink 1s steps(2) infinite;
+.opening-track em {
+  color: var(--snow);
+  font-style: normal;
 }
-@keyframes opening-in {
-  from {
-    opacity: 0;
+.opening-card--welcome {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  max-width: 650px;
+  text-align: left;
+  background: var(--wood-deep);
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--plum),
+    0 var(--px) 0 0 var(--plum),
+    calc(var(--px) * -1) 0 0 0 var(--plum),
+    var(--px) 0 0 0 var(--plum),
+    inset 0 0 0 var(--px) var(--wood),
+    inset 0 0 0 calc(var(--px) * 2) var(--wood-dark);
+}
+.opening-brann {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+}
+.opening-welcome-text {
+  min-width: 0;
+  flex: 1;
+}
+.opening-speaker {
+  margin: 0 0 8px;
+  color: var(--amber);
+  font-weight: 700;
+}
+.opening-welcome-text > p:not(.opening-speaker) {
+  margin: 0 0 14px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.opening-welcome-text .opening-track-note {
+  color: var(--frost);
+  font-size: 14px;
+}
+.opening-welcome-text .opening-button {
+  min-width: 0;
+  margin: 8px 0 0;
+  padding: 10px 18px 12px;
+  font-size: 15px;
+}
+.opening-card--tracks .opening-status {
+  display: none;
+}
+.opening-card--share > p {
+  max-width: 46ch;
+  margin: 0 auto 12px;
+  color: var(--snow);
+  line-height: 1.5;
+}
+.opening-card--share .opening-track-note {
+  color: var(--frost);
+  font-size: 13px;
+}
+.opening-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+.opening :focus-visible {
+  outline: var(--px) solid var(--amber);
+  outline-offset: calc(var(--px) * 2);
+}
+@media (max-width: 640px) {
+  .opening {
+    padding: 16px;
+  }
+  .opening-card--title {
+    padding: 22px 4px 12px;
+  }
+  .opening-title {
+    margin-bottom: 26px;
+    font-size: clamp(48px, 13vw, 72px);
+  }
+  .opening-status {
+    margin-top: 28px;
+    font-size: 11px;
+  }
+  .opening-tracks {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .opening-card--tracks {
+    padding: 22px;
+  }
+  .opening-heading {
+    margin-bottom: 20px;
+  }
+  .opening-track {
+    min-height: 0;
+    padding: 17px 18px;
+  }
+  .opening-track strong {
+    margin-bottom: 6px;
+    font-size: 34px;
+  }
+  .opening-track span {
+    font-size: 14px;
+  }
+  .opening-card--welcome {
+    gap: 14px;
+    padding: 22px 18px;
+  }
+  .opening-brann {
+    width: 52px;
+    height: 60px;
   }
 }
-@keyframes blink {
-  50% {
-    opacity: 0;
+/* Kept for reduced-motion preference on this blocking overlay. */
+@media (prefers-reduced-motion: reduce) {
+  .opening * {
+    animation: none !important;
+    transition: none !important;
   }
 }
-
 /* A nudge for the very first steps; not a button. */
 .prompt--hint {
   margin: 0;
@@ -2068,6 +2338,39 @@ kbd {
 .log-tab.is-on {
   color: var(--snow);
   box-shadow: inset 0 calc(var(--px) * -1) 0 0 var(--amber);
+}
+.log-track-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 7px 9px;
+  background: rgb(27 31 51 / 0.45);
+}
+.log-track-switch > span {
+  margin-right: 4px;
+  color: var(--frost-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.log-track-switch button {
+  padding: 4px 8px;
+  color: var(--frost);
+  font: 500 12px var(--font-body);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.log-track-switch button[aria-pressed="true"] {
+  color: var(--snow);
+  background: rgb(253 190 83 / 0.12);
+  box-shadow: inset 0 calc(var(--px) * -1) 0 var(--amber);
+}
+.log-track-switch button:focus-visible {
+  outline: var(--px) solid var(--amber);
+  outline-offset: 1px;
 }
 .log-quest.is-offered {
   color: var(--amber);
@@ -2239,13 +2542,6 @@ kbd {
   --edge: #3b2a10;
   --hi: #8a6420;
   --bg: color-mix(in srgb, #2c2416 95%, transparent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .opening-text p,
-  .opening-cursor {
-    animation: none;
-  }
 }
 
 /* --- Dev panel (only with ?dev) --------------------------------------------- */
@@ -4652,6 +4948,37 @@ kbd {
 .cs-name input:focus {
   outline: none;
   border-color: var(--amber);
+}
+.cs-share {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 10px;
+  color: var(--frost);
+  text-align: left;
+  background: rgb(27 31 51 / 0.72);
+  cursor: pointer;
+}
+.cs-share input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--amber);
+}
+.cs-share span,
+.cs-share small {
+  display: block;
+}
+.cs-share strong {
+  color: var(--snow);
+  font-size: 13px;
+}
+.cs-share small {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.4;
 }
 .cs-actions {
   display: flex;

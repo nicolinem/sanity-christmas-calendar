@@ -78,7 +78,7 @@ const source = transform(readFileSync(filename, "utf8"), {
 // tests. Effects are collected and can be replayed against the same snapshot.
 function harness(
   initial = {},
-  { chapters = CHAPTERS, engineModule = engine } = {},
+  { chapters = CHAPTERS, engineModule = engine, fixedNow } = {},
 ) {
   let saved = { ...EMPTY_PROGRESS, ...initial };
   let effects = [];
@@ -130,6 +130,9 @@ function harness(
       process: { env: { NODE_ENV: "production" } },
       window: { location: { search: "?dev" } },
       URLSearchParams,
+      Date: fixedNow ? class extends Date {
+        constructor(...args) { super(...(args.length ? args : [fixedNow])); }
+      } : Date,
     },
     { filename },
   );
@@ -395,14 +398,13 @@ test("solving code completes the quest and offers the next without a Studio visi
 });
 
 test("finishing before the next week's calendar date does not announce a new door", () => {
-  const start = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
   const h = harness(
     {
       track: "technical",
       completed: { shared: AT, tech: AT },
       briefed: { "tech-later": true },
     },
-    { engineModule: loadEngineWithCalendar(start) },
+    { engineModule: loadEngineWithCalendar("2026-12-01"), fixedNow: "2026-12-02T12:00:00Z" },
   );
   const view = h.render({ codeChecks: { "tech-later": { done: true } } });
   assert.equal(view.board.current.quest.id, "tech-later");

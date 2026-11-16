@@ -1,6 +1,7 @@
 "use client";
 
 import { normalizeFigure, type FigureChoice } from "@/game/figure";
+import { communityEndpoint } from "@/game/communityEndpoint";
 import { ownedGear, wearable } from "@/game/wardrobe";
 import CharacterSheet from "./figure/CharacterSheet";
 import {
@@ -27,7 +28,7 @@ import {
   type Zone,
 } from "@/game/bridge";
 import { findForgedWeapon } from "@/game/quests/chapters";
-import type { CodeCheck } from "@/game/quests/types";
+import type { CodeCheck, QuestTrack } from "@/game/quests/types";
 import Hotbar from "./hud/Hotbar";
 import QuestTracker from "./hud/QuestTracker";
 import QuestLog from "./hud/QuestLog";
@@ -151,15 +152,15 @@ export default function GameClient() {
     reset,
     revealHint,
     solveTask,
-    markIntroSeen,
     markWeekSeen,
     fetchQuest,
     jumpTo,
     completeQuest,
     setTrack,
   } = useProgress();
+  const [entryStage, setEntryStage] = useState<"title" | "track" | "welcome" | "share" | "figure" | "game">("title");
   useEffect(() => {
-    fetch("/api/community", { cache: "no-store" })
+    fetch(communityEndpoint, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => setCommunityReady(Boolean(data?.publishing)))
       .catch(() => {}); // The shared project is optional; the game stays playable offline.
@@ -172,10 +173,52 @@ export default function GameClient() {
     [progress.figure, owned],
   );
   const [sheetOpen, setSheetOpen] = useState(false);
-  const saveFigure = useCallback((choice: FigureChoice, name: string) => {
-    updateProgress(PROGRESS_PROJECT, (p) => ({ ...p, figure: { ...choice }, name: name || undefined }));
+  const withdrawCommunityProfile = useCallback(() => {
+    if (!communityReady || !configured || PROGRESS_PROJECT === "demo") return;
+    fetch(communityEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerId: PROGRESS_PROJECT,
+        questIds: [],
+        character: { visible: false },
+      }),
+    }).catch(() => {});
+  }, [communityReady, configured]);
+  const saveFigure = useCallback((choice: FigureChoice, name: string, shareProfile: boolean) => {
+    if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
+    updateProgress(PROGRESS_PROJECT, (p) => ({
+      ...p,
+      figure: { ...choice },
+      name: name || undefined,
+      shareProfile,
+      sharePrompted: true,
+      introSeen: true,
+    }));
     setSheetOpen(false);
-  }, []);
+    setEntryStage("game");
+  }, [progress.shareProfile, withdrawCommunityProfile]);
+  const begin = useCallback(() => {
+    setEntryStage(progress.trackChosen ? "welcome" : "track");
+  }, [progress.trackChosen]);
+  const chooseShare = useCallback((shareProfile: boolean) => {
+    if (!shareProfile) withdrawCommunityProfile();
+    updateProgress(PROGRESS_PROJECT, (p) => ({
+      ...p,
+      shareProfile,
+      sharePrompted: true,
+    }));
+    setEntryStage("game");
+  }, [withdrawCommunityProfile]);
+  const chooseTrack = useCallback((track: QuestTrack) => {
+    setTrack(track);
+    setEntryStage("welcome");
+  }, [setTrack]);
+  const startNewGame = useCallback(() => {
+    if (progress.shareProfile || !progress.sharePrompted) withdrawCommunityProfile();
+    reset();
+    setEntryStage("track");
+  }, [progress.shareProfile, progress.sharePrompted, reset, withdrawCommunityProfile]);
   const studio = useStudioPane();
   const studioFocused = useStudioFocused() && studio.open;
   // Dev panel overrides for code checks: true/false wins over npm run quest.
@@ -276,18 +319,20 @@ export default function GameClient() {
       !communityReady ||
       configured !== true ||
       PROGRESS_PROJECT === "demo" ||
+      !progress.shareProfile ||
       (autoEquip && bestWeapon && equippedId !== bestWeapon.id) ||
       new URLSearchParams(window.location.search).has("dev")
     )
       return;
     // Resend on reload: milestones deduplicate, while the selected weapon stays current.
-    fetch("/api/community", {
+    fetch(communityEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         playerId: PROGRESS_PROJECT,
         questIds: Object.keys(progress.completed),
         character: {
+          visible: true,
           weapon:
             equipped?.source === "sanity" && equipped.kind === "weapon"
               ? { name: equipped.name, spriteId: equipped.spriteId }
@@ -301,6 +346,7 @@ export default function GameClient() {
     communityReady,
     configured,
     progress.completed,
+    progress.shareProfile,
     figure,
     progress.name,
     equipped,
@@ -385,6 +431,13 @@ export default function GameClient() {
     setLogOpen(true);
   }, []);
 
+  const openMap = useCallback(() => {
+    setTalking(false);
+    setLogInitialTab("map");
+    setLogInitialQuestId(undefined);
+    setLogOpen(true);
+  }, []);
+
   const openQuestLog = useCallback((questId: string) => {
     setTalking(false);
     setLogInitialTab("quests");
@@ -436,9 +489,8 @@ export default function GameClient() {
     [codeQuestId, solveTask],
   );
 
-  const showOpening = !progress.introSeen;
-  // Right after the opening, everyone makes a figure before they play.
-  const sheetShown = !showOpening && (sheetOpen || !progress.figure);
+  const showOpening = entryStage === "title" || entryStage === "track" || entryStage === "welcome" || entryStage === "share";
+  const sheetShown = entryStage === "figure" || (entryStage === "game" && sheetOpen);
 
   // A finished week gets its summary once, after the last door's celebration;
   // the journal can open it again (weekShown).
@@ -536,12 +588,15 @@ export default function GameClient() {
         "button, a, input, textarea",
       );
       if (logOpen) {
-        if (e.key === "Escape" || e.key === "j" || e.key === "J")
-          setLogOpen(false);
+        if (["Escape", "j", "J", "m", "M"].includes(e.key)) setLogOpen(false);
         return;
       }
       if (e.key === "j" || e.key === "J") {
         openLog();
+        return;
+      }
+      if (e.key === "m" || e.key === "M") {
+        openMap();
         return;
       }
       if ((e.key === "c" || e.key === "C") && !dialogueOpen) {
@@ -590,6 +645,7 @@ export default function GameClient() {
     celebrations.length,
     openDialogue,
     openLog,
+    openMap,
     openSiteQuest,
     combat,
     items,
@@ -605,7 +661,7 @@ export default function GameClient() {
           <div className="stage-vignette" aria-hidden />
         </div>
 
-        <div className="hud">
+        <div className={`hud${showOpening ? " is-hidden" : ""}`}>
           <div className="hud-tl">
             <h1 className="crest">
               <span className="crest-title">Julekalenderen</span>
@@ -618,6 +674,7 @@ export default function GameClient() {
               metBrann={progress.metBlacksmith}
               compact={narrow}
               onOpenLog={openLog}
+              onOpenMap={openMap}
               onOpenQuest={openQuestLog}
               onOpenCode={openCode}
               onOpenStudio={openStudio}
@@ -739,13 +796,17 @@ export default function GameClient() {
               <kbd>J</kbd> journal
             </span>
             <span>
+              <kbd>M</kbd> kart
+            </span>
+            <span>
               <kbd>C</kbd> figur
             </span>
           </p>
         </div>
 
-        {logOpen && (
+        {!showOpening && logOpen && (
           <QuestLog
+            key={progress.track}
             board={board}
             initialTab={logInitialTab}
             initialQuestId={logInitialQuestId}
@@ -757,7 +818,12 @@ export default function GameClient() {
             completedAt={progress.completed}
             onTravelToSite={travelToSite}
             onClose={() => setLogOpen(false)}
-            onReset={reset}
+            track={progress.track}
+            onTrack={setTrack}
+            onReset={() => {
+              setLogOpen(false);
+              startNewGame();
+            }}
             onShowWeek={(week) => {
               setLogOpen(false);
               setWeekShown(week);
@@ -765,7 +831,7 @@ export default function GameClient() {
           />
         )}
 
-        {codeState && (
+        {!showOpening && codeState && (
           <CodeWindow
             key={codeState.quest.id}
             state={codeState}
@@ -777,20 +843,41 @@ export default function GameClient() {
           />
         )}
 
-        {showOpening && <Opening onStart={markIntroSeen} />}
+        {showOpening && (
+          <Opening
+            stage={entryStage}
+            hasProgress={progress.trackChosen}
+            track={progress.track}
+            projectId={process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo"}
+            sanityConfigured={configured}
+            onStart={begin}
+            onContinue={() => setEntryStage(
+              !progress.introSeen && !progress.figure
+                ? (progress.trackChosen ? "welcome" : "track")
+                : !progress.sharePrompted
+                  ? "share"
+                  : "game",
+            )}
+            onChooseTrack={chooseTrack}
+            onWelcomeDone={() => setEntryStage("figure")}
+            onChooseShare={chooseShare}
+            onNewGame={startNewGame}
+          />
+        )}
 
         {sheetShown && (
           <CharacterSheet
             initial={normalizeFigure(progress.figure)}
             initialName={progress.name ?? ""}
             owned={owned}
-            firstTime={!progress.figure}
+            firstTime={entryStage === "figure"}
+            initialShareProfile={progress.shareProfile}
             onDone={saveFigure}
             onClose={() => setSheetOpen(false)}
           />
         )}
 
-        {dev && codeQuestId === null && !sheetShown && (
+        {!showOpening && dev && codeQuestId === null && !sheetShown && (
           <DevPanel
             board={board}
             forgeLevel={forgeLevel}
@@ -818,7 +905,7 @@ export default function GameClient() {
         )}
       </div>
 
-      {celebration && codeQuestId === null && !studio.open && (
+      {!showOpening && celebration && codeQuestId === null && !studio.open && (
         <QuestCelebration
           key={`${celebration.door}:${celebration.title}`}
           {...celebration}
@@ -834,7 +921,7 @@ export default function GameClient() {
         />
       )}
 
-      {summary && !celebration && (
+      {!showOpening && summary && !celebration && (
         <WeekComplete
           key={summary.number}
           summary={summary}
@@ -850,7 +937,7 @@ export default function GameClient() {
         />
       )}
 
-      {studio.loaded && <StudioPane width={studio.width} open={studio.open} />}
+      {!showOpening && studio.loaded && <StudioPane width={studio.width} open={studio.open} />}
     </div>
   );
 }

@@ -59,7 +59,8 @@ export function characterFor(input: unknown) {
   const { playerId, character } = input as Record<string, unknown>;
   if (typeof playerId !== "string" || !/^[a-z0-9]{6,20}$/.test(playerId) ||
       !character || typeof character !== "object") return null;
-  const { weapon, figure, name } = character as Record<string, unknown>;
+  const { weapon, figure, name, visible } = character as Record<string, unknown>;
+  if (visible !== undefined && typeof visible !== "boolean") return null;
   if (figure != null && !isSmallStringRecord(figure)) return null;
   // A weapon the page can't show is left off (or its sprite is), so it never
   // keeps the figure, name and finished doors from being shared.
@@ -74,6 +75,7 @@ export function characterFor(input: unknown) {
     _id: `communityPlayer.${playerId}`,
     _type: "communityPlayer" as const,
     playerId,
+    visible: visible === true,
     weapon: shared,
     ...(figure != null ? { figure: normalizeFigure(figure as Record<string, string>) } : {}),
     ...(displayName(name) ? { name: displayName(name)! } : {}),

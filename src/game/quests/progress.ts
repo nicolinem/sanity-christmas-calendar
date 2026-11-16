@@ -6,6 +6,9 @@ import type { Progress } from "./types";
 
 export const EMPTY_PROGRESS: Progress = {
   track: "technical",
+  trackChosen: false,
+  shareProfile: false,
+  sharePrompted: false,
   metBlacksmith: false,
   wraithDefeated: false,
   completed: {},
@@ -51,6 +54,11 @@ export function readProgress(project: string): Progress {
           ...EMPTY_PROGRESS,
           ...saved,
           track: saved.track === "nonTechnical" ? "nonTechnical" : "technical",
+          // Existing records belonged to players who had already entered the game.
+          // Keep them out of first-run onboarding, but never infer sharing consent.
+          trackChosen: typeof saved.trackChosen === "boolean" ? saved.trackChosen : true,
+          shareProfile: saved.shareProfile === true,
+          sharePrompted: typeof saved.sharePrompted === "boolean" ? saved.sharePrompted : false,
         };
       }
     }

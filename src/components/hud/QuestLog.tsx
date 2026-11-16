@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { CHAPTERS } from "@/game/quests/chapters";
 import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
 import { fridayOf } from "@/game/quests/weeks";
-import type { Progress, QuestState } from "@/game/quests/types";
+import type { Progress, QuestState, QuestTrack } from "@/game/quests/types";
 import { QUEST_SITES, type QuestSiteId } from "@/game/village";
 import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
 import { IconCheck } from "./icons";
@@ -35,6 +35,8 @@ type Props = {
   onTravelToSite: (siteId: QuestSiteId) => void;
   onClose: () => void;
   onReset: () => void;
+  track: QuestTrack;
+  onTrack: (track: QuestTrack) => void;
   onShowWeek?: (week: number) => void; // reopen a finished week's summary
 };
 
@@ -56,6 +58,8 @@ export default function QuestLog({
   onTravelToSite,
   onClose,
   onReset,
+  track,
+  onTrack,
   onShowWeek,
 }: Props) {
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -63,7 +67,7 @@ export default function QuestLog({
     initialQuestId ?? board.current?.quest.id ?? board.states[0]?.quest.id,
   );
   const [confirmReset, setConfirmReset] = useState(false);
-  const initialSelected = board.states.find((s) => s.quest.id === selectedId);
+  const initialSelected = board.states.find((s) => s.quest.id === selectedId) ?? board.current ?? board.states[0];
   const [week, setWeek] = useState(
     initialSelected?.chapter.number ?? CHAPTERS[0].number,
   );
@@ -150,6 +154,16 @@ export default function QuestLog({
             Lukk <kbd>Esc</kbd>
           </button>
         </header>
+
+        <div className="log-track-switch" role="group" aria-label="Læringsspor">
+          <span>Spor</span>
+          <button type="button" aria-pressed={track === "technical"} onClick={() => onTrack("technical")}>
+            Teknisk
+          </button>
+          <button type="button" aria-pressed={track === "nonTechnical"} onClick={() => onTrack("nonTechnical")}>
+            Ikke-teknisk
+          </button>
+        </div>
 
         {tab === "quests" ? (
           <div className="log-quests">
