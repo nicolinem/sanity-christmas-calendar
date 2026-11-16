@@ -1,4 +1,5 @@
 import { clampForgeLevel } from "../rules";
+import { giverOf } from "./label";
 import type {
   Chapter,
   Progress,
@@ -69,7 +70,7 @@ export function evaluateQuests(
       // A door with its own place is picked up there after Brann's briefing.
       const site = quest.villageSite;
       const pickup =
-        briefed && site && site !== "forge" && !ctx.progress.fetched?.[quest.id]
+        briefed && site && site !== giverOf(quest).site && !ctx.progress.fetched?.[quest.id]
           ? site
           : undefined;
       states.push({

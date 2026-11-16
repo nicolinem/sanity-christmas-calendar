@@ -6,6 +6,7 @@ const { test } = require("node:test");
 const vm = require("node:vm");
 const { transform } = require("sucrase");
 require("sucrase/register");
+const { CHAPTERS } = require("../../game/quests/chapters.ts");
 
 const loaded = { exports: {} };
 vm.runInNewContext(
@@ -61,6 +62,10 @@ test("a content door with a place walks there, otherwise opens the Studio", () =
     nextStep(door({ checkedBy: "game", villageSite: "forge" })).kind,
     "studio",
   );
+  assert.equal(
+    nextStep(door({ checkedBy: "game", giver: "bakeren", villageSite: "bakery" })).kind,
+    "studio",
+  );
 });
 
 test("a door waiting at its place sends you there to pick it up", () => {
@@ -71,4 +76,14 @@ test("a door waiting at its place sends you there to pick it up", () => {
   assert.equal(step.kind, "travel");
   assert.equal(step.site, "westHouse");
   assert.match(step.where, /hente den/);
+});
+
+test("week-three quests never send a player back to their giver after briefing", () => {
+  const { NPCS } = require("../../game/village.ts");
+  for (const quest of CHAPTERS[2].quests) {
+    const giver = NPCS[quest.giver ?? "brann"];
+    const step = nextStep(door(quest));
+    assert.notEqual(step.site, giver.site, quest.id);
+    assert.equal(nextStep(door(quest, "offered")).site, giver.site, quest.id);
+  }
 });

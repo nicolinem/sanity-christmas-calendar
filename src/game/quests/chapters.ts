@@ -593,7 +593,6 @@ const bakerTemplate: Quest = {
   track: "technical",
   door: 9,
   title: "Initial value: ny bestilling",
-  villageSite: "bakery",
   intro: [
     "Hver ny bestilling begynner likt. Jeg skriver status og dato om igjen, selv om de allerede er kjent.",
     "Kan du gi meg en *initial value* som fyller dem ut når jeg lager en ny bestilling? Åpne kodevinduet.",
@@ -621,7 +620,6 @@ const bakerForge: Quest = {
   track: "technical",
   door: 10,
   title: "Document action: Smi",
-  villageSite: "bakery",
   intro: [
     "Brann må sette tidspunkt og publisere for hånd hver gang et våpen er klart.",
     "Lag én *document action* som stempler `forgedAt` og publiserer våpenet. Bruk kodevinduet.",
@@ -649,7 +647,6 @@ const bakerFunction: Quest = {
   track: "technical",
   door: 11,
   title: "Sanity Function: skiltet",
-  villageSite: "bakery",
   intro: [
     "Markedet nærmer seg. Tenk om bodskiltet kunne reagere når en bestilling publiseres?",
     "Lag hendelseslogikken i kodevinduet. Vi simulerer publisering med en falsk klient; ingenting deployes til prosjektet ditt.",
@@ -676,7 +673,6 @@ const bakerFirstOrder: Quest = {
   track: "nonTechnical",
   door: 5,
   title: "Initial value template: ny bestilling",
-  villageSite: "bakery",
   intro: [
     "Hver bestilling må ha dato og status. Jeg har laget en mal som fyller inn begge deler.",
     "Åpne *Ny bestilling* i Studio, skriv inn varen og trykk *Publish*. Hva står der allerede?",
@@ -708,7 +704,6 @@ const bakerSign: Quest = {
   track: "nonTechnical",
   door: 6,
   title: "Portable Text: bodskiltet",
-  villageSite: "bakery",
   intro: [
     "Bestillingen er på plass, men boden mangler et skilt.",
     "Skriv skiltet i Studio, gjør det viktigste ordet fett og trykk *Publish*. Da kan alle se det ved bakeriet.",
@@ -738,7 +733,6 @@ const bakerReady: Quest = {
   track: "nonTechnical",
   door: 7,
   title: "Document action: Klar",
-  villageSite: "bakery",
   intro: [
     "Skiltet er på plass. Nå skal den første bestillingen bli ferdig.",
     "Åpne en bestilling i Studio og trykk *Klar*. Knappen setter status og publiserer i ett trykk.",
@@ -770,7 +764,6 @@ const bakerLink: Quest = {
   bonus: true,
   door: 0,
   title: "☆ En lenke på skiltet",
-  villageSite: "bakery",
   intro: [
     "Noen gjester vil vite mer om det vi selger. Et lenket ord på skiltet kan vise dem veien.",
     "Dette er frivillig ☆: legg en relevant HTTPS-lenke på tekst i bodskiltet og publiser.",
