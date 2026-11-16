@@ -9,6 +9,9 @@ export type QuestTrack = "technical" | "nonTechnical";
 // (progress.ts) and never taken back: deleting a sword doesn't undo a quest.
 export type Progress = {
   track: QuestTrack;
+  trackChosen: boolean; // player has completed track choice (legacy saves migrate to true)
+  shareProfile: boolean; // explicit opt-in before name, figure and milestones are shared
+  sharePrompted: boolean; // returning players have answered the one-time sharing question
   metBlacksmith: boolean;
   wraithDefeated: boolean;
   completed: Record<string, string>; // quest id → ISO time it was completed

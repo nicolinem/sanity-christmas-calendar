@@ -1,4 +1,5 @@
 import { createClient } from "next-sanity";
+import { allowedCommunityOrigin, communityRateLimited } from "@/game/communityAccess";
 import {
   characterFor,
   milestonesFor,
@@ -9,6 +10,36 @@ import {
 import { apiVersion } from "@/sanity/env";
 
 export const dynamic = "force-dynamic";
+
+const publishing = () => Boolean(process.env.COMMUNITY_SANITY_TOKEN) &&
+  process.env.COMMUNITY_WRITES_ENABLED === "1";
+
+function corsHeaders(request: Request) {
+  const headers = new Headers({ "Cache-Control": "no-store", Vary: "Origin" });
+  const origin = request.headers.get("origin");
+  if (allowedCommunityOrigin(origin, request.url)) {
+    headers.set("Access-Control-Allow-Origin", origin!);
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    headers.set("Access-Control-Allow-Headers", "Content-Type");
+  }
+  return headers;
+}
+
+function reply(request: Request, data: unknown, status = 200) {
+  return Response.json(data, { status, headers: corsHeaders(request) });
+}
+
+function limited(request: Request) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") || "unknown";
+  return communityRateLimited(ip) ? reply(request, { error: "rate_limited" }, 429) : null;
+}
+
+export function OPTIONS(request: Request) {
+  if (!allowedCommunityOrigin(request.headers.get("origin"), request.url))
+    return reply(request, { error: "invalid_origin" }, 403);
+  return new Response(null, { status: 204, headers: corsHeaders(request) });
+}
 
 function client(write = false) {
   const projectId = process.env.COMMUNITY_SANITY_PROJECT_ID;
@@ -24,70 +55,107 @@ function client(write = false) {
   });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const blocked = limited(request);
+  if (blocked) return blocked;
   const reader = client();
-  if (!reader) return Response.json({ configured: false, events: [], players: [] });
+  if (!reader) return reply(request, { configured: false, events: [], players: [] });
   try {
-    const [events, profiles, milestones] = await Promise.all([
+    const profiles = await reader.fetch<Pick<CommunityPlayer, "playerId" | "weapon" | "figure" | "name">[]>(
+      '*[_type == "communityPlayer" && visible == true]{playerId, weapon, figure, name}',
+    );
+    const playerIds = profiles.map((profile) => profile.playerId);
+    if (!playerIds.length)
+      return reply(request, { configured: true, publishing: publishing(), events: [], players: [] });
+    const [events, milestones] = await Promise.all([
       reader.fetch<CommunityEvent[]>(
-        '*[_type == "questMilestone"] | order(_createdAt desc)[0...100]{playerId, questId, title, "at": _createdAt}',
-      ),
-      reader.fetch<Pick<CommunityPlayer, "playerId" | "weapon" | "figure" | "name">[]>(
-        '*[_type == "communityPlayer"]{playerId, weapon, figure, name}',
+        '*[_type == "questMilestone" && playerId in $playerIds] | order(_createdAt desc)[0...100]{playerId, questId, title, "at": _createdAt}',
+        { playerIds },
       ),
       reader.fetch<Pick<CommunityEvent, "playerId" | "questId">[]>(
-        '*[_type == "questMilestone"]{playerId, questId}',
+        '*[_type == "questMilestone" && playerId in $playerIds]{playerId, questId}',
+        { playerIds },
       ),
     ]);
     const players = playersFromMilestones(milestones, profiles);
-    return Response.json({ configured: true, publishing: Boolean(process.env.COMMUNITY_SANITY_TOKEN) && process.env.COMMUNITY_DEMO_WRITES === "1", events, players });
+    return reply(request, { configured: true, publishing: publishing(), events, players });
   } catch (error) {
     console.error("Could not read community milestones:", error);
-    return Response.json({ configured: true, events: [], players: [], error: "read_failed" }, { status: 502 });
+    return reply(request, { configured: true, events: [], players: [], error: "read_failed" }, 502);
   }
 }
 
 export async function POST(request: Request) {
   const writer = client(true);
-  if (!writer || process.env.COMMUNITY_DEMO_WRITES !== "1")
-    return Response.json({ error: "not_configured" }, { status: 503 });
+  if (!writer || !publishing())
+    return reply(request, { error: "not_configured" }, 503);
 
   // This is a local prototype, not an authenticated public write API.
   const origin = request.headers.get("origin");
-  if (!origin || origin !== new URL(request.url).origin)
-    return Response.json({ error: "invalid_origin" }, { status: 403 });
+  if (!allowedCommunityOrigin(origin, request.url))
+    return reply(request, { error: "invalid_origin" }, 403);
+
+  const blocked = limited(request);
+  if (blocked) return blocked;
 
   let input: unknown;
   try {
     if (Number(request.headers.get("content-length")) > 4096)
-      return Response.json({ error: "invalid_input" }, { status: 400 });
-    input = await request.json();
+      return reply(request, { error: "invalid_input" }, 400);
+    const reader = request.body?.getReader();
+    if (!reader) return reply(request, { error: "invalid_input" }, 400);
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 4096) {
+        await reader.cancel();
+        return reply(request, { error: "invalid_input" }, 400);
+      }
+      chunks.push(value);
+    }
+    input = JSON.parse(new TextDecoder().decode(Buffer.concat(chunks)));
   } catch {
-    return Response.json({ error: "invalid_input" }, { status: 400 });
+    return reply(request, { error: "invalid_input" }, 400);
   }
   const milestones = milestonesFor(input);
   const character = characterFor(input);
   if (!milestones || (input !== null && typeof input === "object" &&
       Object.hasOwn(input, "character") && !character))
-    return Response.json({ error: "invalid_input" }, { status: 400 });
-  if (!milestones.length && !character) return Response.json({ ok: true });
+    return reply(request, { error: "invalid_input" }, 400);
+  if (!milestones.length && !character) return reply(request, { ok: true });
 
   try {
+    if (character && !character.visible) {
+      const documents = await writer.fetch<{ _id: string }[]>(
+        '*[_id == $profileId || (_type == "questMilestone" && playerId == $playerId)]{_id}',
+        { profileId: character._id, playerId: character.playerId },
+      );
+      if (documents.length) {
+        let removal = writer.transaction();
+        for (const document of documents) removal = removal.delete(document._id);
+        await removal.commit();
+      }
+      return reply(request, { ok: true });
+    }
     let transaction = writer.transaction();
     for (const milestone of milestones)
       transaction = transaction.createIfNotExists(milestone);
     if (character) {
       transaction = transaction.createIfNotExists(character);
       transaction = transaction.patch(character._id, (patch) => patch.set({
+        visible: true,
         weapon: character.weapon,
         ...(character.figure ? { figure: character.figure } : {}),
         ...(character.name ? { name: character.name } : {}),
       }));
     }
     await transaction.commit();
-    return Response.json({ ok: true });
+    return reply(request, { ok: true });
   } catch (error) {
     console.error("Could not publish community milestones:", error);
-    return Response.json({ error: "write_failed" }, { status: 502 });
+    return reply(request, { error: "write_failed" }, 502);
   }
 }

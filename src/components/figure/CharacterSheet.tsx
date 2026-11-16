@@ -80,13 +80,15 @@ type Props = {
   initialName: string;
   owned: Set<GearKey>;
   firstTime: boolean; // no figure yet: nothing to go back to, so no close
-  onDone: (choice: FigureChoice, name: string) => void;
+  initialShareProfile: boolean;
+  onDone: (choice: FigureChoice, name: string, shareProfile: boolean) => void;
   onClose: () => void;
 };
 
-export default function CharacterSheet({ initial, initialName, owned, firstTime, onDone, onClose }: Props) {
+export default function CharacterSheet({ initial, initialName, owned, firstTime, initialShareProfile, onDone, onClose }: Props) {
   const [choice, setChoice] = useState<FigureChoice>(() => wearable(initial, owned));
   const [name, setName] = useState(initialName);
+  const [shareProfile, setShareProfile] = useState(initialShareProfile);
   const [history, setHistory] = useState<FigureChoice[]>([]);
   const [mode, setMode] = useState<"look" | "gear">("look");
   const [catId, setCatId] = useState("hair");
@@ -120,7 +122,7 @@ export default function CharacterSheet({ initial, initialName, owned, firstTime,
     setHistory((h) => h.slice(0, -1));
     setChoice(prev);
   };
-  const done = () => onDone(choice, cleanName(name).trim());
+  const done = () => onDone(choice, cleanName(name).trim(), shareProfile);
 
   useEffect(() => {
     doneRef.current?.focus({ preventScroll: true });
@@ -293,6 +295,17 @@ export default function CharacterSheet({ initial, initialName, owned, firstTime,
                 onChange={(e) => setName(cleanName(e.target.value))}
                 onKeyDown={(e) => e.key === "Enter" && done()}
               />
+            </label>
+            <label className="cs-share">
+              <input
+                type="checkbox"
+                checked={shareProfile}
+                onChange={(e) => setShareProfile(e.target.checked)}
+              />
+              <span>
+                <strong>Vis for andre</strong>
+                <small>Navnet og figuren din vises for de andre deltakerne. Fremgangen din vises også.</small>
+              </span>
             </label>
             <div className="cs-actions">
               <button

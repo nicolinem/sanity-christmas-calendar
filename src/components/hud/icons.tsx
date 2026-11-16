@@ -57,6 +57,42 @@ export function IconQuill({ size = 16 }: { size?: number }) {
   );
 }
 
+export function IconBook({ size = 16 }: { size?: number }) {
+  return (
+    <Pixels
+      size={size}
+      rows={[
+        "........",
+        ".######.",
+        ".#.....#",
+        ".#.###.#",
+        ".#.....#",
+        ".#.###.#",
+        ".######.",
+        "..#####.",
+      ]}
+    />
+  );
+}
+
+export function IconMap({ size = 16 }: { size?: number }) {
+  return (
+    <Pixels
+      size={size}
+      rows={[
+        "........",
+        "##..##..",
+        "#.##.###",
+        "#..#..##",
+        "#.##.#.#",
+        "##..##.#",
+        ".###..##",
+        "........",
+      ]}
+    />
+  );
+}
+
 export function IconCheck({ size = 16 }: { size?: number }) {
   return (
     <Pixels

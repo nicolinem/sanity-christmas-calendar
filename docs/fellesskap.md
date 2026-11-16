@@ -1,7 +1,9 @@
 # Første steg mot felles spillfremgang
 
-Hver spiller fortsetter med sitt eget Sanity-prosjekt og lokal fremgang. Det
-felles prosjektet har én `questMilestone` per spillerprosjekt og fullført luke,
+Hver spiller fortsetter med sitt eget Sanity-prosjekt og lokal fremgang. En
+arrangør hoster `/api/community` på Vercel. Deltakernes
+`NEXT_PUBLIC_COMMUNITY_URL` peker til denne HTTPS-ruten; de får aldri
+fellesprosjektets token. Det felles prosjektet har én `questMilestone` per spillerprosjekt og fullført luke,
 pluss ett `communityPlayer`-dokument per spiller. Kortet inneholder kun valgt,
 publisert våpens navn og sprite-ID (eller ingen våpen). Ingen kode, utkast eller
 hele inventaret kopieres.
@@ -16,48 +18,56 @@ spillet åpnes eller noe endres. Lokal fremgang avhenger ikke av opplastingen.
 Journalen → **Andre** viser alle kjente spillere, også de uten fullføringer.
 Smienivå og totalt antall fullførte luker beregnes av *alle* publiserte
 milepæler. Feedet viser de 12 nyeste av de 100 siste hentede hendelsene.
-Alle har enn så lenge samme ridderutseende; når sprite-creatoren er klar, kan
-et publisert utseende legges til spillerkortet uten å endre milepælene.
+Spilleren velger figur og visningsnavn i spillets karakterside; begge sendes
+til spillerkortet sammen med våpenet.
 Egne achievements, figurnivå (ikke smienivå) og fullt inventar er ikke
 publisert ennå. `?dev` sender ikke.
 Lokal «Nullstill fremgang» sletter **ikke** allerede publiserte hendelser.
 
-## Prøv lokalt (kun arrangøren)
+## Prøv delingsflyten (kun arrangøren)
 
-1. Be eieren av det felles Sanity-prosjektet om prosjekt-ID, dataset og et
-   eget API-token med **Editor/skriverettigheter**. Dataset må finnes. En
-   offentlig dataset kan leses uten token, en privat krever token også for lesing.
-2. Legg dette i din gitignorerte `.env.local` etter `npm run setup`:
+1. Be eieren av fellesprosjektet om prosjekt-ID og eget API-token med
+   **Editor/skriverettigheter**. Opprett helst datasettet `test` separat;
+   det krever en konto med Developer/Admin-rettigheter. Et kortvarig
+   ende-til-ende-forsøk mot `production` ble gjennomført 16. november med
+   uttrykkelig tillatelse; de tre testdokumentene ble slettet og fraværet
+   verifisert. Ikke gjenta production-skriving uten ny tillatelse.
+   Serveren leser alltid med token og `perspective=published`: kontroll
+   16. november viste at anonyme spørringer ikke ser fellesdokumentene i
+   `production`, selv om datasettet oppgis som offentlig.
+2. På arrangørserverens **test-deployment**, når `test` finnes, sett:
 
    ```dotenv
    COMMUNITY_SANITY_PROJECT_ID=<felles prosjekt-ID>
-   COMMUNITY_SANITY_DATASET=production
+   COMMUNITY_SANITY_DATASET=test
    COMMUNITY_SANITY_TOKEN=<felles skrive-token>
-   COMMUNITY_DEMO_WRITES=1
+   COMMUNITY_WRITES_ENABLED=1
    ```
 
-3. Start serveren på nytt. Spill på to *ulike* egne Sanity-prosjekter/nettlesere.
+3. I deltakernes `.env.local` settes bare
+   `NEXT_PUBLIC_COMMUNITY_URL=https://<arrangørens-test-deployment>/api/community`.
+   Start begge serverne på nytt. Spill på to *ulike* egne Sanity-prosjekter/nettlesere.
    Fullfør en luke, og åpne journalen → Andre i det andre spillet for å se
    hendelsen. Sanity skriver dokumenttypen uten at det felles prosjektet må
    installere spillets Studio-schema; legg til et schema der om dere vil se
    dokumentene pent i Studio.
 
-**Ikke distribuer tokenet eller disse env-verdiene til spillerne.** Det
-ligger bare på serveren, men spillere som kjører sin egen server har tilgang
-til serverens miljøvariabler. POST-ruten er uten innlogging: selv med
-samme-opprinnelse-kontroll, kjente quest-ID-er og begrenset batch kan en
-klient forfalske fremgang og bruke kvoten. `COMMUNITY_DEMO_WRITES=1` er
-derfor *kun* for privat lokal utprøving; fjern den når dere ikke tester.
-Dette er ikke en trygg løsning for et offentlig multiplayer-spill.
+**Ikke distribuer felles token til spillerne.** POST-ruten er fremdeles uten
+innlogging: tillatte origins kan forfalskes utenfor nettleseren, og klienten
+kan forfalske fremgang. 30 forespørsler/minutt/IP begrenses per serverinstans,
+ikke på tvers av Vercel-instansene. Dette er ikke verifisert deltakerfremgang
+og ikke trygt for offentlig konkurranse; aktiver plattformdekkende rate limit
+og avklar autentisering/samtykke før bred lansering. `COMMUNITY_WRITES_ENABLED`
+skal ikke settes på `production` mens disse punktene er åpne.
 
 ## Før åpning for alle
 
-1. Flytt skrivingen til en arrangørstyrt, hostet tjeneste som **alene** har
-   felles write-token. Spillerne sender ikke tokenet selv.
+1. ~~Flytt skrivingen til en arrangørstyrt tjeneste~~ Ruten er nå klargjort
+   for Vercel, men må faktisk deployes og prøves på deltakeres maskiner.
 2. Velg spilleridentitet og autentisering, og kontroller fullføring pålitelig
    på serversiden. Dagens `localStorage` og spiller-ID fra requesten kan
    endres fritt av klienten; en login alene beviser ikke at en luke er løst.
-3. Legg på rate limiting, misbruksvern, samtykke/visningsnavn og policy for
+3. Legg på delt rate limiting, misbruksvern, samtykke/visningsnavn og policy for
    sletting/reset før egne figurer eller flere personopplysninger publiseres.
    Våpennavn publiseres allerede i denne prototypen.
 4. Bygg en aggregert visning for mange spillere; prototypen leser alle
