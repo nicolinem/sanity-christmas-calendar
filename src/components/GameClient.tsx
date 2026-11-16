@@ -49,6 +49,7 @@ import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
+import { signText } from "@/game/bakery";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
@@ -120,6 +121,7 @@ export default function GameClient() {
   const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
   const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
   const [bakeryOrders, setBakeryOrders] = useState<import("@/game/bakery").BakeryOrder[] | null>(null);
+  const [bakerySign, setBakerySign] = useState<import("@/game/bakery").BakerySign | null>(null);
   const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
   const [communityReady, setCommunityReady] = useState(false);
   const [equippedId, setEquippedId] = useState<string | null>(null);
@@ -302,6 +304,7 @@ export default function GameClient() {
       setArchive(own?.error ? null : (own?.docs ?? null));
       setArchiveCases(own?.error ? null : (own?.cases ?? null));
       setBakeryOrders(bakery?.error ? null : (bakery?.orders ?? null));
+      setBakerySign(bakery?.error ? null : (bakery?.sign ?? null));
       const data: {
         configured: boolean;
         unclaimed?: boolean;
@@ -452,6 +455,7 @@ export default function GameClient() {
     archive,
     archiveCases,
     bakeryOrders,
+    bakerySign,
     wraithDefeatedNow: combat.defeated,
     progress,
   });
@@ -612,6 +616,7 @@ export default function GameClient() {
       doors: villageDoors,
       goal: nextStep,
       wraithDefeated: combat.defeated,
+      signText: signText(bakerySign),
       frozen:
         dialogueOpen ||
         logOpen ||
@@ -637,6 +642,7 @@ export default function GameClient() {
     summary,
     sheetShown,
     figure,
+    bakerySign,
   ]);
 
   const slots = narrow ? 5 : 8;

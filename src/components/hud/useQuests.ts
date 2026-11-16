@@ -200,6 +200,7 @@ type BoardInput = {
   archive?: QuestContext["archive"];
   archiveCases?: QuestContext["archiveCases"];
   bakeryOrders?: QuestContext["bakeryOrders"];
+  bakerySign?: QuestContext["bakerySign"];
   wraithDefeatedNow: boolean;
   progress: ReturnType<typeof useProgress>["progress"];
 };
@@ -215,6 +216,7 @@ export function useQuestBoard({
   archive = null,
   archiveCases = null,
   bakeryOrders = null,
+  bakerySign = null,
   wraithDefeatedNow,
   progress,
 }: BoardInput) {
@@ -240,6 +242,7 @@ export function useQuestBoard({
       archive,
       archiveCases,
       bakeryOrders,
+      bakerySign,
     };
     return evaluateQuests(chapters, ctx, new Date(), devUnlock);
   }, [
@@ -252,6 +255,7 @@ export function useQuestBoard({
     archive,
     archiveCases,
     bakeryOrders,
+    bakerySign,
     devUnlock,
   ]);
 
@@ -294,6 +298,7 @@ export function useQuestBoard({
         archive,
         archiveCases,
         bakeryOrders,
+        bakerySign,
       },
       new Date(),
       devUnlock,
@@ -338,6 +343,7 @@ export function useQuestBoard({
     archive,
     archiveCases,
     bakeryOrders,
+    bakerySign,
     devUnlock,
   ]);
 

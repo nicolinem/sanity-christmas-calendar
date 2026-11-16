@@ -1,5 +1,5 @@
 import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
-import { isNewOrder } from "../bakery";
+import { isNewOrder, signHasStrong } from "../bakery";
 import type { GameItemView } from "../items";
 import type {
   Chapter,
@@ -647,6 +647,36 @@ const bakerFirstOrder: Quest = {
   }),
 };
 
+const bakerSign: Quest = {
+  id: "baker-sign",
+  giver: "bakeren",
+  track: "nonTechnical",
+  door: 6,
+  title: "Portable Text: bodskiltet",
+  villageSite: "bakery",
+  intro: [
+    "Bestillingen er på plass, men boden mangler et skilt.",
+    "Skriv skiltet i Studio, gjør det viktigste ordet fett og trykk *Publish*. Da kan alle se det ved bakeriet.",
+  ],
+  goal: "Skriv og publiser et bodskilt med fremhevet tekst.",
+  where: "I ditt eget Sanity Studio, under *Bodskilt*.",
+  hints: [
+    { text: "Åpne *Bodskilt* i Studio. Feltet *Skilttekst* er *Portable Text*: det kan ha tekst med formatering.", link: { label: "Portable Text", url: `${DOCS}/block-content` } },
+    { text: "Skriv tekst, marker et ord og velg fet skrift. Hele teksten skal ikke være tom." },
+    { text: "Trykk *Publish*. Bare den publiserte teksten vises på skiltet i bygda." },
+  ],
+  learn: { label: "Portable Text", url: `${DOCS}/block-content` },
+  lesson: {
+    title: "*Portable Text*",
+    text: "En tekstblokk kan inneholde ord med egne *marks*, som fet skrift. Spillet leste det publiserte skiltet og viste teksten ved bakeriet; et utkast ville ikke dukket opp.",
+  },
+  checkedBy: "game",
+  check: ({ bakerySign }) => ({
+    done: signHasStrong(bakerySign ?? null),
+    message: "Publiser et bodskilt med tekst og minst ett ord i fet skrift.",
+  }),
+};
+
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
@@ -674,7 +704,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 3,
     title: "Automatisere",
-    quests: [bakerTemplate, bakerFirstOrder],
+    quests: [bakerTemplate, bakerFirstOrder, bakerSign],
     teaser: [
       "Singleton",
       "Portable Text",

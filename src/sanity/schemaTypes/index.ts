@@ -2,8 +2,9 @@ import type { SchemaTypeDefinition } from "sanity";
 import { item } from "./item";
 import { caseFile, observation, place, witness } from "./archive";
 import { bakeryOrder } from "./bakeryOrder";
+import { bakerySign } from "./bakerySign";
 
 // Week 2 brings Arkivarens observasjoner, ready-made for every player.
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [item, observation, place, witness, caseFile, bakeryOrder],
+  types: [item, observation, place, witness, caseFile, bakeryOrder, bakerySign],
 };

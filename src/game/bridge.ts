@@ -31,6 +31,7 @@ export type WorldState = {
   doors: DoorMarker[]; // this week's doors, in calendar order
   goal: { x: number; y: number } | null; // the next step, in world px
   wraithDefeated: boolean;
+  signText: string; // published bakery sign, or blank before it exists
   frozen: boolean; // a dialogue is open: the knight stands still
 };
 
@@ -78,6 +79,7 @@ class Bridge {
     doors: [],
     goal: null,
     wraithDefeated: false,
+    signText: "",
     frozen: false,
   };
 

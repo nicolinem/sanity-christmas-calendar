@@ -48,6 +48,8 @@ export class WinterQuestScene extends Phaser.Scene {
   private goalPointer!: Phaser.GameObjects.Graphics;
   private wraith!: Phaser.GameObjects.Image;
   private forgeGlow!: Phaser.GameObjects.Image;
+  private bakerySign!: Phaser.GameObjects.Container;
+  private bakerySignLabel!: Phaser.GameObjects.Text;
   private sparks!: Phaser.GameObjects.Particles.ParticleEmitter;
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -201,6 +203,15 @@ export class WinterQuestScene extends Phaser.Scene {
         .setDepth(y + TILE);
       if (p.solid) this.solids.push({ x: x + 2, y: y + 6, w: 12, h: 10 });
     }
+
+    const sign = QUEST_SITES.bakery;
+    const board = this.add.rectangle(0, 0, 116, 35, 0x443020).setStrokeStyle(2, 0xfdbe53);
+    this.bakerySignLabel = this.add.text(0, 0, "", {
+      fontFamily: this.font, fontSize: "9px", color: "#ffe2a0",
+      align: "center", wordWrap: { width: 108 },
+    }).setOrigin(0.5).setResolution(6);
+    this.bakerySign = this.add.container(sign.x, sign.y - 44, [board, this.bakerySignLabel])
+      .setDepth(9001).setVisible(false);
 
     for (const t of TREES) {
       this.add.image(t.x, t.y, "town", t.frame).setOrigin(0.5, 1).setDepth(t.y);
@@ -504,6 +515,8 @@ export class WinterQuestScene extends Phaser.Scene {
   }
 
   private applyWorld(w: WorldState) {
+    this.bakerySign.setVisible(Boolean(w.signText));
+    this.bakerySignLabel.setText(w.signText.slice(0, 80));
     this.setWeapon(w.weapon);
     this.setFigure(w.figure);
     for (const [id, marker] of this.markers)
