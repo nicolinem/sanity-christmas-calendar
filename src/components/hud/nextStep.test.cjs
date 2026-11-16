@@ -87,3 +87,14 @@ test("week-three quests never send a player back to their giver after briefing",
     assert.equal(nextStep(door(quest, "offered")).site, giver.site, quest.id);
   }
 });
+
+test("a Bakery sign quest leads first to the sign, then to Studio", () => {
+  for (const id of ["baker-sign", "baker-link"]) {
+    const quest = CHAPTERS[2].quests.find((q) => q.id === id);
+    assert.equal(quest.villageSite, "bakerySign");
+    const pickup = nextStep({ ...door(quest, "offered"), pickup: "bakerySign" });
+    assert.equal(pickup.kind, "travel");
+    assert.equal(pickup.site, "bakerySign");
+    assert.equal(nextStep(door(quest)).kind, "studio");
+  }
+});

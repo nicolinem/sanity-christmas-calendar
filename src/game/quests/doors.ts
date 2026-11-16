@@ -46,7 +46,8 @@ export function nextStepPoint(
   }
   // A door without its own place is done at a desk (code window, Studio):
   // nothing in the village to walk to, so no arrow.
-  if (!current.quest.villageSite || current.quest.villageSite === "forge")
+  if (!current.quest.villageSite || current.quest.villageSite === "forge" ||
+      (current.quest.villageSite === "bakerySign" && !current.pickup))
     return null;
   const placed = placeDoors(doors).find((d) => d.id === current.quest.id);
   if (placed) return { x: placed.x, y: placed.y - 8 };

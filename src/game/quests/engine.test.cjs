@@ -486,6 +486,16 @@ test("the skilt link is a shared optional door and does not change core totals",
   }
 });
 
+test("the sign quest is offered at the sign, never by the Baker", () => {
+  const before = ["the-broken-forge", "source-check", "link-the-place", "case-file", "baker-first-order"];
+  const board = evaluateQuests(chaptersForTrack(CHAPTERS, "nonTechnical"), context({
+    track: "nonTechnical", completed: Object.fromEntries(before.map((id) => [id, COMPLETED_AT])),
+  }), NOW);
+  assert.equal(board.current.quest.id, "baker-sign");
+  assert.equal(board.current.pickup, "bakerySign");
+  assert.equal(board.current.status, "offered");
+});
+
 test("Bakeren's ready door accepts only a published ready order with an item", () => {
   const ready = CHAPTERS.flatMap(({ quests }) => quests).find(({ id }) => id === "baker-ready");
   assert.ok(ready);

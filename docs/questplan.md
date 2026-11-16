@@ -261,14 +261,16 @@ av, aktivert med `isTrack("nonTechnical")` uten krav om å løse kodeoppgaver.
 | 9 | Teknisk | `initialValue` / initial value templates | Lag en mal for ny bestilling med status «ny» og dagens dato i kodevinduet. | Falsk dokumentopprettelse med testklokke gir begge startverdier, uten å endre en eksisterende bestilling. Bestått løser luka og aktiverer vår mal i Studio. |
 | 10 | Teknisk | Document action | Lag «Smi» som setter `forgedAt` og publiserer et eksisterende våpen. Ingen oppskrifter/materialer. | Falske Studio-operasjoner må både stemple og publisere rett dokument. Et publisert stempel alene beviser ikke hvilken knapp som ble brukt; Studio-prøving er frivillig. |
 | 11 | Teknisk | Sanity Function (simulert) | Skriv hendelseslogikk som oppdaterer skilttekst når en bestilling publiseres. | Kodevinduet kjører publiseringshendelser mot en falsk klient og sjekker rett oppdatering, ignorering av andre hendelser og ingen dobbel oppdatering. Ingen deploy eller ekte Function i deltakerens prosjekt. |
-| 5 | Ikke-teknisk | Initial value template | Lag «Ny bestilling» fra Bakerens ferdige mal i Studio, fyll inn en vare og publiser. | Spillet finner en **ny publisert** bestilling med status «ny», dato og ikke-tom vare. Det kan ikke bevise at malen ble brukt; det er akseptert. |
-| 6 | Ikke-teknisk | Portable Text | Skriv bodskiltet i Studio, bruk fet skrift og publiser. | Spillet leser publiserte blokker, krever lesbar tekst og `strong`-markering og viser skiltet ved bakeriet. Utkast teller ikke. |
-| 7 | Ikke-teknisk | Document action | Trykk vår ferdige «Klar»-action på bestillingen; den setter status «klar» og publiserer i ett trykk. | Spillet finner den samme publiserte bestillingen med status «klar». Det kan ikke bevise hvilket knappetrykk som endret status; det er akseptert. |
-| ☆ | Begge | Portable Text-lenke | Legg en relevant HTTPS-lenke i det publiserte bodskiltet. | Spillet krever en lenke-annotation knyttet til tekst; ren URL i teksten teller ikke. Valgfri, uten lukenummer eller krav for å fullføre uka. |
+| 5 | Ikke-teknisk | Initial value template | Se tre ventelapper fra Brann, Arkivaren og Kari; lag **din egen** «Ny bestilling» fra Bakerens ferdige mal i Studio, fyll inn en vare og bruk vanlig Publish. | Spillet finner en **ny publisert** bestilling med status «ny», dato og ikke-tom vare. Ventelappene har status «venter» og teller ikke. Det kan ikke bevise at malen ble brukt; det er akseptert. |
+| 6 | Ikke-teknisk | Portable Text | Hent luka ved bodskiltet, skriv skiltet i Studio, bruk fet skrift og publiser med vanlig Publish. | Spillet leser publiserte blokker, krever lesbar tekst og `strong`-markering og viser skiltet ved bakeriet. Utkast teller ikke. |
+| 7 | Ikke-teknisk | Document action | «Klar» finnes i menyen ved siden av vanlig Publish **først etter luke 6**. Bruk den på din egen bestilling; den setter status «klar» og publiserer i ett trykk. | Spillet finner den **samme** publiserte bestillingen med status «klar». Det kan ikke bevise hvilket knappetrykk som endret status; det er akseptert. |
+| ☆ | Begge | Portable Text-lenke | Hent ☆ ved bodskiltet, legg en relevant HTTPS-lenke i det publiserte bodskiltet. | Spillet krever en lenke-annotation knyttet til tekst; ren URL i teksten teller ikke. Valgfri, uten lukenummer eller krav for å fullføre uka. |
 
-Bakeren gir hver luke ved bakeriet. To korte replikker per luke forklarer
-behovet og hvor deltakeren skal gå; tre trinn med hint og en presis melding
-om hva som mangler følger hver sjekk. Kodelukene har en frivillig Studio-prøve,
+Bakeren gir lukene som gjøres i kodevinduet eller Studio; skiltlukene hentes
+ved bodskiltet, et eget sted i bygda. Korte replikker før og etter hver luke,
+Før/Etter-visning, 2–3 hint og en presis melding om hva som mangler følger
+hver sjekk. Ventelappene seedes én gang i deltakerens prosjekt uten å
+overskrive egne redigeringer. Kodelukene har en frivillig Studio-prøve,
 mens de ikke-tekniske lukene alltid bruker eget Studio. Luke 11s lærdomstekst
 skal si eksplisitt: «Dette var en simulering av hvordan en ekte Sanity Function
 ville reagert på en publisering. Ingen Function ble deployet eller kjørt i

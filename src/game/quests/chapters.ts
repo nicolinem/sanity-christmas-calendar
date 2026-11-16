@@ -713,6 +713,7 @@ const bakerFirstOrder: Quest = {
 const bakerSign: Quest = {
   id: "baker-sign",
   giver: "bakeren",
+  villageSite: "bakerySign",
   track: "nonTechnical",
   door: 6,
   title: "Portable Text: bodskiltet",
@@ -724,7 +725,7 @@ const bakerSign: Quest = {
   outro: ["Nå kan folk se hva som selges før de går inn.", "Det fete ordet gjør skiltet lettere å lese fra stien."],
   goal: "Skriv og publiser et bodskilt med fremhevet tekst.",
   goalPreview: { before: "Boden har et tomt skilt.", after: "Det publiserte skiltet har et fremhevet ord." },
-  where: "I ditt eget Sanity Studio, under *Bodskilt*.",
+  where: "Hent oppgaven ved bodskiltet utenfor bakeriet. Skriv deretter i ditt eget Sanity Studio under *Bodskilt*.",
   hints: [
     { text: "Åpne *Bodskilt* i Studio. Feltet *Skilttekst* er *Portable Text*: det kan ha tekst med formatering.", link: { label: "Portable Text", url: `${DOCS}/block-content` } },
     { text: "Skriv tekst, marker et ord og velg fet skrift. Hele teksten skal ikke være tom." },
@@ -779,6 +780,7 @@ const bakerReady: Quest = {
 const bakerLink: Quest = {
   id: "baker-link",
   giver: "bakeren",
+  villageSite: "bakerySign",
   bonus: true,
   door: 0,
   title: "☆ En lenke på skiltet",
@@ -790,7 +792,7 @@ const bakerLink: Quest = {
   outro: ["Nå kan folk følge et ord på skiltet videre.", "En lenke i et tekstspenn er noe mer enn en adresse skrevet med bokstaver."],
   goal: "Legg en HTTPS-lenke på et ord i bodskiltet og publiser. Frivillig ☆.",
   goalPreview: { before: "Skiltet har bare vanlig tekst.", after: "Et markert ord har en publisert HTTPS-lenke." },
-  where: "I ditt eget Sanity Studio, under *Bodskilt*.",
+  where: "Hent ☆ ved bodskiltet utenfor bakeriet. Legg deretter lenken til i ditt eget Sanity Studio.",
   hints: [
     { text: "Åpne skiltet i Studio, marker et ord og legg på *Lenke* (annotation).", link: { label: "Portable Text", url: `${DOCS}/block-content` } },
     { text: "Bruk en relevant adresse som begynner med `https://`. En URL skrevet som vanlig tekst teller ikke." },

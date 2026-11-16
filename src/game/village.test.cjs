@@ -3,7 +3,14 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
 
-const { BLACKSMITH, QUEST_SITES, isPath, pathRoute } = require("./village.ts");
+const { BLACKSMITH, NPCS, QUEST_SITES, isPath, pathRoute } = require("./village.ts");
+
+test("the bodskilt has its own reachable interaction zone, outside Baker range", () => {
+  const sign = QUEST_SITES.bakerySign;
+  const baker = NPCS.bakeren;
+  assert.ok(Math.hypot(sign.x - baker.x, sign.y - baker.y) > 56);
+  assert.equal(isPath(Math.floor(sign.x / 16), Math.floor(sign.y / 16)), true);
+});
 
 test("walking to a place follows the paths and ends at the place", () => {
   for (const site of Object.values(QUEST_SITES)) {

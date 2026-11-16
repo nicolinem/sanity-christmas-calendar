@@ -46,6 +46,12 @@ export function nextStep(current: QuestState | null): NextStep | null {
       where: "Gjøres i koden din. Stegene står i journalen.",
       questId: quest.id,
     };
+  if (site === "bakerySign")
+    return {
+      kind: "studio",
+      label: "Åpne Sanity Studio",
+      where: "Du hentet oppgaven ved bodskiltet. Skriv og publiser skiltet i Studio.",
+    };
   if (site && place)
     return {
       kind: "travel",

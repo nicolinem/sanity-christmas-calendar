@@ -709,8 +709,7 @@ export default function GameClient() {
       }
       if (
         (e.key === "e" || e.key === "E") &&
-        siteQuest &&
-        (zone === "noticeboard" || zone === "westHouse")
+        siteQuest
       ) {
         e.preventDefault();
         openSiteQuest();
@@ -828,8 +827,7 @@ export default function GameClient() {
               </button>
             )}
             {siteQuest &&
-              !logOpen &&
-              (zone === "noticeboard" || zone === "westHouse") && (
+              !logOpen && (
                 <button
                   type="button"
                   className="prompt"
@@ -838,7 +836,7 @@ export default function GameClient() {
                   <kbd>E</kbd>{" "}
                   {siteQuest.pickup
                     ? siteQuest.quest.bonus
-                      ? "Les oppslaget"
+                      ? siteQuest.quest.villageSite === "bakerySign" ? "Les bodskiltet" : "Les oppslaget"
                       : `Hent luke ${siteQuest.quest.door}`
                     : siteQuest.quest.checkedBy === "window"
                       ? "Åpne kodevinduet"

@@ -230,6 +230,7 @@ function buildPages(
   // Explained, but not picked up yet: a short reminder of where it waits.
   if (current.pickup && placePhrase) {
     return [
+      ...reaction,
       <>
         Oppgaven ligger {placePhrase}. Gå dit og trykk E for å hente den.
         Etterpå kan du jobbe med den hvor du vil.
