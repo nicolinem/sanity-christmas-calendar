@@ -670,7 +670,6 @@ export default function GameClient() {
             <QuestTracker
               key={narrow ? "compact" : "full"}
               board={board}
-              forgeLevel={forgeLevel}
               metBrann={progress.metBlacksmith}
               compact={narrow}
               onOpenLog={openLog}

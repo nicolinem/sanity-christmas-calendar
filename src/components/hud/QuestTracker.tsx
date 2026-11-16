@@ -11,7 +11,6 @@ import { renderText } from "./richText";
 
 type Props = {
   board: QuestBoard;
-  forgeLevel: number;
   metBrann: boolean;
   compact: boolean;
   onOpenLog: () => void;
@@ -30,7 +29,6 @@ type Props = {
 // here: you learn what it is by talking to him.
 export default function QuestTracker({
   board,
-  forgeLevel,
   metBrann,
   compact,
   onOpenLog,
@@ -177,24 +175,23 @@ export default function QuestTracker({
             </div>
           )}
           <div className="tracker-foot">
-            <div className="tracker-progress">
-              <span className="tracker-meta">
-                {board.completedCount} av {board.total} · nivå {forgeLevel}
-              </span>
-              <span className="tracker-pips" aria-hidden>
-                {Array.from({ length: board.total }, (_, i) => (
-                  <i key={i} className={i < board.completedCount ? "is-on" : ""} />
-                ))}
-              </span>
-            </div>
+            <span
+              className="tracker-pips"
+              role="img"
+              aria-label={`${board.completedCount} av ${board.total} luker`}
+            >
+              {Array.from({ length: board.total }, (_, i) => (
+                <i key={i} className={i < board.completedCount ? "is-on" : ""} />
+              ))}
+            </span>
             <div className="tracker-nav">
               <button type="button" className="tracker-nav-btn" onClick={onOpenMap}>
                 <IconMap size={14} />
-                Kart <kbd>M</kbd>
+                Kart
               </button>
               <button type="button" className="tracker-nav-btn" onClick={onOpenLog}>
                 <IconBook size={14} />
-                Journal <kbd>J</kbd>
+                Journal
               </button>
             </div>
           </div>
