@@ -1,5 +1,8 @@
 import { createClient } from "next-sanity";
-import { allowedCommunityOrigin, communityRateLimited } from "@/game/communityAccess";
+import {
+  allowedCommunityOrigin,
+  communityRateLimited,
+} from "@/game/communityAccess";
 import {
   characterFor,
   milestonesFor,
@@ -11,7 +14,8 @@ import { apiVersion } from "@/sanity/env";
 
 export const dynamic = "force-dynamic";
 
-const publishing = () => Boolean(process.env.COMMUNITY_SANITY_TOKEN) &&
+const publishing = () =>
+  Boolean(process.env.COMMUNITY_SANITY_TOKEN) &&
   process.env.COMMUNITY_WRITES_ENABLED === "1";
 
 function corsHeaders(request: Request) {
@@ -30,9 +34,13 @@ function reply(request: Request, data: unknown, status = 200) {
 }
 
 function limited(request: Request) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") || "unknown";
-  return communityRateLimited(ip) ? reply(request, { error: "rate_limited" }, 429) : null;
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  return communityRateLimited(ip)
+    ? reply(request, { error: "rate_limited" }, 429)
+    : null;
 }
 
 export function OPTIONS(request: Request) {
@@ -59,14 +67,22 @@ export async function GET(request: Request) {
   const blocked = limited(request);
   if (blocked) return blocked;
   const reader = client();
-  if (!reader) return reply(request, { configured: false, events: [], players: [] });
+  if (!reader)
+    return reply(request, { configured: false, events: [], players: [] });
   try {
-    const profiles = await reader.fetch<Pick<CommunityPlayer, "playerId" | "weapon" | "figure" | "name">[]>(
+    const profiles = await reader.fetch<
+      Pick<CommunityPlayer, "playerId" | "weapon" | "figure" | "name">[]
+    >(
       '*[_type == "communityPlayer" && visible == true]{playerId, weapon, figure, name}',
     );
     const playerIds = profiles.map((profile) => profile.playerId);
     if (!playerIds.length)
-      return reply(request, { configured: true, publishing: publishing(), events: [], players: [] });
+      return reply(request, {
+        configured: true,
+        publishing: publishing(),
+        events: [],
+        players: [],
+      });
     const [events, milestones] = await Promise.all([
       reader.fetch<CommunityEvent[]>(
         '*[_type == "questMilestone" && playerId in $playerIds] | order(_createdAt desc)[0...100]{playerId, questId, title, "at": _createdAt}',
@@ -78,10 +94,19 @@ export async function GET(request: Request) {
       ),
     ]);
     const players = playersFromMilestones(milestones, profiles);
-    return reply(request, { configured: true, publishing: publishing(), events, players });
+    return reply(request, {
+      configured: true,
+      publishing: publishing(),
+      events,
+      players,
+    });
   } catch (error) {
     console.error("Could not read community milestones:", error);
-    return reply(request, { configured: true, events: [], players: [], error: "read_failed" }, 502);
+    return reply(
+      request,
+      { configured: true, events: [], players: [], error: "read_failed" },
+      502,
+    );
   }
 }
 
@@ -122,8 +147,13 @@ export async function POST(request: Request) {
   }
   const milestones = milestonesFor(input);
   const character = characterFor(input);
-  if (!milestones || (input !== null && typeof input === "object" &&
-      Object.hasOwn(input, "character") && !character))
+  if (
+    !milestones ||
+    (input !== null &&
+      typeof input === "object" &&
+      Object.hasOwn(input, "character") &&
+      !character)
+  )
     return reply(request, { error: "invalid_input" }, 400);
   if (!milestones.length && !character) return reply(request, { ok: true });
 
@@ -135,7 +165,8 @@ export async function POST(request: Request) {
       );
       if (documents.length) {
         let removal = writer.transaction();
-        for (const document of documents) removal = removal.delete(document._id);
+        for (const document of documents)
+          removal = removal.delete(document._id);
         await removal.commit();
       }
       return reply(request, { ok: true });
@@ -145,12 +176,14 @@ export async function POST(request: Request) {
       transaction = transaction.createIfNotExists(milestone);
     if (character) {
       transaction = transaction.createIfNotExists(character);
-      transaction = transaction.patch(character._id, (patch) => patch.set({
-        visible: true,
-        weapon: character.weapon,
-        ...(character.figure ? { figure: character.figure } : {}),
-        ...(character.name ? { name: character.name } : {}),
-      }));
+      transaction = transaction.patch(character._id, (patch) =>
+        patch.set({
+          visible: true,
+          weapon: character.weapon,
+          ...(character.figure ? { figure: character.figure } : {}),
+          ...(character.name ? { name: character.name } : {}),
+        }),
+      );
     }
     await transaction.commit();
     return reply(request, { ok: true });

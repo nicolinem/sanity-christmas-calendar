@@ -48,6 +48,7 @@ test("fresh progress defaults to technical and keeps a stable snapshot", () => {
   assert.equal(first.shareProfile, false);
   assert.equal(first.sharePrompted, false);
   assert.deepEqual(first.completed, {});
+  assert.deepEqual(first.seenGear, {});
   assert.equal(first, progress.readProgress("fresh"));
   assert.equal(progress.EMPTY_PROGRESS.track, "technical");
 });
@@ -140,6 +141,18 @@ test("tracks and earned facts are isolated by project, including after reload", 
   assert.deepEqual(progress.readProgress("demo").completed, {});
 });
 
+test("newly seen gear survives reload and stays isolated by project", () => {
+  progress.updateProgress("gear-alpha", (value) => ({
+    ...value,
+    seenGear: { "hat:bobble": true },
+  }));
+  progress = loadProgress();
+  assert.deepEqual(progress.readProgress("gear-alpha").seenGear, {
+    "hat:bobble": true,
+  });
+  assert.deepEqual(progress.readProgress("gear-beta").seenGear, {});
+});
+
 test("unavailable storage does not prevent in-memory progress or notifications", () => {
   Object.defineProperty(window, "localStorage", {
     get() {
@@ -169,7 +182,10 @@ test("unavailable storage does not prevent in-memory progress or notifications",
 });
 
 test("resetting progress also removes saved code answers but keeps unrelated storage", () => {
-  records.set(progress.storageKey("reset"), JSON.stringify({ introSeen: true }));
+  records.set(
+    progress.storageKey("reset"),
+    JSON.stringify({ introSeen: true }),
+  );
   records.set("winter-quest:code:branns-ledger", "learner code");
   records.set("winter-quest:code:the-guilds-law", "another answer");
   records.set("other-app:preference", "keep me");
@@ -215,6 +231,16 @@ test("malformed or null persisted data falls back to fresh progress", () => {
   for (const raw of ["{broken", "null", "false", "42"]) {
     records.set(progress.storageKey(raw), raw);
     assert.equal(progress.readProgress(raw), progress.EMPTY_PROGRESS);
+  }
+  for (const seenGear of [null, [], "invalid"]) {
+    records.set(
+      progress.storageKey(`invalid-seen-${String(seenGear)}`),
+      JSON.stringify({ seenGear }),
+    );
+    assert.deepEqual(
+      progress.readProgress(`invalid-seen-${String(seenGear)}`).seenGear,
+      {},
+    );
   }
 });
 

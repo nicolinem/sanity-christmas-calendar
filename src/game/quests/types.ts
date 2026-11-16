@@ -24,6 +24,8 @@ export type Progress = {
   // Week numbers whose summary has been shown, with how many core doors the
   // week had then (true in older saves). A week that grows shows it again.
   weeksSeen: Record<string, true | number>;
+  // Gear choices whose new-unlock badge the player has already seen.
+  seenGear: Record<string, true>;
   // The player's own figure (src/game/figure.ts). Left out: the knight.
   figure?: Record<string, string>;
   // The player's chosen display name, shown on the community page.

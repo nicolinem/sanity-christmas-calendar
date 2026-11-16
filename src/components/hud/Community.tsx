@@ -18,22 +18,36 @@ export default function Community() {
     fetch(communityEndpoint, { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error("read_failed");
-        return res.json() as Promise<{ configured: boolean; events: CommunityEvent[]; players: CommunityPlayer[] }>;
+        return res.json() as Promise<{
+          configured: boolean;
+          events: CommunityEvent[];
+          players: CommunityPlayer[];
+        }>;
       })
       .then((data) => {
         if (!active) return;
         setEvents(data.events);
         setPlayers(data.players ?? []);
-        setMessage(data.configured ? "Ingen spillere ennå." : "Fellesskapet er ikke koblet til ennå.");
+        setMessage(
+          data.configured
+            ? "Ingen spillere ennå."
+            : "Fellesskapet er ikke koblet til ennå.",
+        );
       })
       .catch(() => {
-        if (active) setMessage("Kunne ikke hente hendelser. Åpne fanen på nytt for å prøve igjen.");
+        if (active)
+          setMessage(
+            "Kunne ikke hente hendelser. Åpne fanen på nytt for å prøve igjen.",
+          );
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const names = new Map(players.map((p) => [p.playerId, p.name]));
-  const label = (id: string) => names.get(id) ?? (id === PROGRESS_PROJECT ? "Du" : `Spiller ${id}`);
+  const label = (id: string) =>
+    names.get(id) ?? (id === PROGRESS_PROJECT ? "Du" : `Spiller ${id}`);
 
   return (
     <div className="log-book log-community" aria-live="polite">
@@ -44,29 +58,53 @@ export default function Community() {
         </div>
         {players.length > 0 && (
           <div className="community-chips">
-            <span>{players.length} {players.length === 1 ? "deltaker" : "deltakere"}</span>
+            <span>
+              {players.length} {players.length === 1 ? "deltaker" : "deltakere"}
+            </span>
           </div>
         )}
       </div>
-      {players.length === 0 ? <p className="log-lesson-text">{message}</p> : (
+      {players.length === 0 ? (
+        <p className="log-lesson-text">{message}</p>
+      ) : (
         <div className="community-layout">
           <div className="community-players">
             {players.map((player) => {
               const me = player.playerId === PROGRESS_PROJECT;
               return (
-                <article className={`community-player${me ? " is-me" : ""}`} key={player.playerId}>
+                <article
+                  className={`community-player${me ? " is-me" : ""}`}
+                  key={player.playerId}
+                >
                   <div className="community-player-top">
                     <div className="community-figure">
-                      <FigureCanvas choice={normalizeFigure(player.figure)} scale={4} />
+                      <FigureCanvas
+                        choice={normalizeFigure(player.figure)}
+                        scale={4}
+                      />
                     </div>
                     <div>
-                      <h3>{player.name ?? label(player.playerId)}{me && <small> (deg)</small>}</h3>
-                      <p>{player.completedCount} {player.completedCount === 1 ? "luke fullført" : "luker fullført"}</p>
+                      <h3>
+                        {player.name ?? label(player.playerId)}
+                        {me && <small> (deg)</small>}
+                      </h3>
+                      <p>
+                        {player.completedCount}{" "}
+                        {player.completedCount === 1
+                          ? "luke fullført"
+                          : "luker fullført"}
+                      </p>
                     </div>
                   </div>
-                  <div className="community-level" aria-label={`Smia nivå ${player.forgeLevel} av ${MAX_FORGE_LEVEL}`}>
+                  <div
+                    className="community-level"
+                    aria-label={`Nivå ${player.forgeLevel} av ${MAX_FORGE_LEVEL}`}
+                  >
                     {Array.from({ length: MAX_FORGE_LEVEL }, (_, i) => (
-                      <span key={i} className={i < player.forgeLevel ? "is-on" : ""} />
+                      <span
+                        key={i}
+                        className={i < player.forgeLevel ? "is-on" : ""}
+                      />
                     ))}
                   </div>
                 </article>
@@ -75,12 +113,17 @@ export default function Community() {
           </div>
           <aside className="community-feed">
             <h3>Siste nytt</h3>
-            {events.length === 0 ? <p>Ingen luker fullført ennå.</p> : (
+            {events.length === 0 ? (
+              <p>Ingen luker fullført ennå.</p>
+            ) : (
               <ul>
                 {events.slice(0, 12).map((event) => (
                   <li key={`${event.playerId}:${event.questId}`}>
-                    <strong>{label(event.playerId)}</strong> fullførte «{event.title}»
-                    <time dateTime={event.at}>{new Date(event.at).toLocaleDateString("nb-NO")}</time>
+                    <strong>{label(event.playerId)}</strong> fullførte «
+                    {event.title}»
+                    <time dateTime={event.at}>
+                      {new Date(event.at).toLocaleDateString("nb-NO")}
+                    </time>
                   </li>
                 ))}
               </ul>

@@ -138,7 +138,7 @@ export default function QuestCelebration({
                     </span>
                   </span>
                   <span>
-                    Smia nivå {level.number}! Våpnene dine gjør nå{" "}
+                    Nivå {level.number}! Våpnene dine gjør nå{" "}
                     {level.damage} skade.
                   </span>
                 </li>

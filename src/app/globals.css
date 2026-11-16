@@ -439,34 +439,26 @@ kbd {
   line-height: 1.35;
   color: var(--frost-dim);
 }
-/* The bottom band: how far you've come, and the two ways into the journal
-   (the map tab and the week). */
+/* The bottom band: calendar progress and the map and journal. */
 .tracker-foot {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 10px;
+  gap: 8px;
   margin: 10px -14px -12px;
-  padding: 8px 12px 10px 14px;
+  padding: 6px 12px 7px 14px;
   background: var(--night-2);
   border-top: var(--px) solid var(--night-3);
-}
-.tracker-progress {
-  display: grid;
-  gap: 5px;
-}
-.tracker-meta {
-  font-size: 12px;
-  white-space: nowrap;
-  color: var(--frost-dim);
 }
 .tracker-pips {
   display: flex;
   gap: 3px;
+  margin-right: auto;
+  flex: 0 0 auto;
 }
 .tracker-pips i {
-  width: 12px;
+  width: 10px;
   height: 5px;
   background: var(--night-3);
 }
@@ -482,8 +474,8 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 7px;
-  font: 600 13px var(--font-body);
+  padding: 3px 7px;
+  font: 600 12px var(--font-body);
   white-space: nowrap;
   color: var(--snow);
   background: var(--night-3);
@@ -496,9 +488,6 @@ kbd {
 }
 .tracker-nav-btn svg {
   color: var(--frost);
-}
-.tracker-nav-btn kbd {
-  font-size: 11px;
 }
 
 /* --- Toasts: quest complete, forge level up ------------------------------- */
@@ -1534,7 +1523,7 @@ kbd {
   background: var(--night-2);
 }
 
-/* --- Hotbar --------------------------------------------------------------- */
+/* --- Player plate and hotbar --------------------------------------------- */
 .hotbar {
   display: flex;
   align-items: center;
@@ -1548,10 +1537,69 @@ kbd {
   padding: 0;
   list-style: none;
 }
-.hotbar-empty {
-  padding: 0 10px;
-  font-size: 14px;
-  color: var(--frost-dim);
+.hotbar-sep {
+  flex: 0 0 var(--px);
+  height: calc(var(--px) * 14);
+  background: var(--night-3);
+}
+.plate-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.plate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 2px;
+  color: var(--snow);
+  background: transparent;
+  border: 0;
+  border-right: var(--px) solid var(--night-3);
+  cursor: pointer;
+}
+.plate:hover,
+.plate:focus-visible {
+  background: var(--night-3);
+  box-shadow: inset 0 0 0 var(--px) var(--amber);
+}
+.plate-portrait {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border: var(--px) solid var(--night-3);
+}
+.plate-who {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+.plate-name {
+  max-width: 160px;
+  overflow: hidden;
+  font: 400 22px/1 var(--font-display), var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plate-level {
+  font: 500 11px/1.2 var(--font-pixel), var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber);
+  white-space: nowrap;
+}
+.plate-tooltip {
+  left: 0;
+  translate: 0 0;
+}
+.plate-wrap:hover .plate-tooltip,
+.plate-wrap:focus-within .plate-tooltip {
+  visibility: visible;
+}
+.plate-tooltip .tooltip-desc {
+  max-width: 220px;
 }
 .slot-wrap {
   position: relative;
@@ -1730,28 +1778,25 @@ kbd {
   color: var(--amber);
 }
 
-.bag {
-  position: relative;
-}
-.bag-panel {
-  position: absolute;
-  bottom: calc(100% + var(--px) * 6);
-  right: 0;
-  padding: 10px;
-  z-index: 6;
-}
-.bag-title {
-  margin: 0 0 8px;
-  font-size: 14px;
-  color: var(--frost-dim);
-}
-.bag-grid {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: calc(var(--px) * 2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+@media (max-width: 720px) {
+  .hotbar {
+    gap: var(--px);
+    padding: calc(var(--px) * 2);
+  }
+  .hotbar-slots {
+    gap: var(--px);
+  }
+  .hotbar .slot {
+    width: calc(var(--px) * 18);
+    height: calc(var(--px) * 18);
+  }
+  .plate {
+    gap: 0;
+    padding-right: 4px;
+  }
+  .plate.is-compact .plate-who {
+    display: none;
+  }
 }
 
 /* --- Brann's dialogue ------------------------------------------------------ */
@@ -2013,7 +2058,9 @@ kbd {
   font-weight: 400;
   line-height: 0.88;
   color: var(--amber);
-  text-shadow: 0 4px 0 var(--plum), 4px 4px 0 var(--night-2);
+  text-shadow:
+    0 4px 0 var(--plum),
+    4px 4px 0 var(--night-2);
 }
 .opening-title span {
   display: block;
@@ -4263,7 +4310,9 @@ kbd {
   background: var(--amber);
 }
 .cw-trail-dot.is-last {
-  box-shadow: 0 0 0 2px var(--night-2), 0 0 14px var(--amber);
+  box-shadow:
+    0 0 0 2px var(--night-2),
+    0 0 14px var(--amber);
 }
 .cw-trail-label {
   position: absolute;
@@ -4448,7 +4497,9 @@ kbd {
   box-shadow: inset 0 0 0 2px var(--amber);
 }
 .cw-aq-row button.is-done.is-shown {
-  box-shadow: inset 0 0 0 2px var(--amber), inset 0 -3px 0 #7fd6a4;
+  box-shadow:
+    inset 0 0 0 2px var(--amber),
+    inset 0 -3px 0 #7fd6a4;
 }
 .cw-aq-row button:focus-visible {
   outline: 2px solid var(--glacier);
@@ -4696,7 +4747,9 @@ kbd {
   box-shadow: 0 0 0 2px var(--night-2);
 }
 .flab-swatch[aria-pressed="true"] {
-  box-shadow: 0 0 0 2px var(--night-2), 0 0 0 5px var(--amber);
+  box-shadow:
+    0 0 0 2px var(--night-2),
+    0 0 0 5px var(--amber);
 }
 .flab-option:focus-visible,
 .flab-swatch:focus-visible,
@@ -4734,7 +4787,7 @@ kbd {
   background: #c0cbdc;
 }
 
-/* --- Character sheet (C): looks and gear, most of the screen -------------- */
+/* --- Character sheet (C): Ting, looks and gear, most of the screen -------- */
 .cs {
   display: flex;
   flex-direction: column;
@@ -4776,6 +4829,10 @@ kbd {
   border-right: var(--px) solid var(--night-3);
 }
 .cs-cat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 12px 24px;
   font: 600 16px var(--font-body);
   text-align: left;
@@ -4792,6 +4849,17 @@ kbd {
   background: var(--night-2);
   box-shadow: inset var(--px) 0 0 var(--amber);
 }
+.cs-cat-count {
+  font-size: 12px;
+  color: var(--frost-dim);
+}
+.cs-new-badge {
+  padding: 2px 5px;
+  font: 500 9px var(--font-pixel);
+  letter-spacing: 0.04em;
+  color: var(--night-2);
+  background: var(--amber);
+}
 .cs-pick {
   display: grid;
   align-content: start;
@@ -4802,7 +4870,9 @@ kbd {
 }
 .cs-label {
   margin: 0 0 8px;
-  font: 500 12px var(--font-pixel), var(--font-body);
+  font:
+    500 12px var(--font-pixel),
+    var(--font-body);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--frost-dim);
@@ -4814,7 +4884,9 @@ kbd {
 }
 .cs-stepper strong {
   min-width: 8ch;
-  font: 400 28px/1 var(--font-display), var(--font-body);
+  font:
+    400 28px/1 var(--font-display),
+    var(--font-body);
   text-align: center;
 }
 .cs-stepper span {
@@ -4824,7 +4896,9 @@ kbd {
 .cs-arrow {
   width: 32px;
   height: 32px;
-  font: 24px/1 var(--font-display), var(--font-body);
+  font:
+    24px/1 var(--font-display),
+    var(--font-body);
   color: var(--snow);
   background: none;
   border: var(--px) solid var(--night-3);
@@ -4840,6 +4914,7 @@ kbd {
   gap: 10px;
 }
 .cs-option {
+  position: relative;
   display: grid;
   justify-items: center;
   align-content: start;
@@ -4850,6 +4925,11 @@ kbd {
   background: var(--night-2);
   border: var(--px) solid transparent;
   cursor: pointer;
+}
+.cs-option .cs-new-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
 }
 .cs-option:hover:not(:disabled) {
   border-color: var(--night-3);
@@ -4888,36 +4968,72 @@ kbd {
     0 0 0 2px var(--night-2),
     0 0 0 4px var(--amber);
 }
-.cs-slots {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-.cs-slot {
-  display: grid;
-  gap: 2px;
-  padding: 8px;
-  font-size: 13px;
-  text-align: center;
-  color: var(--frost-dim);
-  background: var(--night-2);
-  border: var(--px) dashed var(--night-3);
-}
-.cs-slot.is-on {
-  color: var(--snow);
-  border-style: solid;
-  border-color: var(--glacier);
-}
-.cs-slot b {
-  font: 500 11px var(--font-pixel), var(--font-body);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--frost-dim);
-}
-.cs-hint {
+.cs-empty {
   margin: 0;
-  font-size: 13px;
   color: var(--frost-dim);
+}
+.cs-inv {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 46px);
+  align-content: start;
+  gap: 6px;
+  min-height: 150px;
+}
+.cs-inv-item.slot {
+  width: 46px;
+  height: 46px;
+}
+.cs-inv-item.is-selected {
+  box-shadow: inset 0 0 0 var(--px) var(--amber);
+}
+.cs-inv-empty {
+  width: 46px;
+  height: 46px;
+  box-sizing: border-box;
+  border: var(--px) dashed var(--night-3);
+  background: rgb(27 31 51 / 0.4);
+}
+.cs-item-detail {
+  max-width: 560px;
+  padding: 12px;
+  background: var(--night-2);
+  border: var(--px) solid var(--night-3);
+}
+.cs-item-detail .item-details {
+  font-size: 14px;
+}
+.cs-equip {
+  width: 100%;
+  margin-top: 12px;
+}
+.cs-hero-meta {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  grid-template-columns: 1fr;
+}
+.cs-hero-meta strong {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  font: 400 28px/1.1 var(--font-display);
+  color: var(--snow);
+}
+.cs-hero-meta > span:not(.cs-hand) {
+  display: block;
+  grid-column: 1;
+  grid-row: 2;
+  font: 11px var(--font-pixel);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.cs-hero-meta .cs-hand {
+  color: var(--frost-dim);
+}
+.cs-hero-meta .cs-done {
+  margin-top: 12px;
 }
 .cs-hero {
   display: grid;

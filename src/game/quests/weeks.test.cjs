@@ -56,7 +56,7 @@ test("the share text says how far and how, never what", () => {
     lines[1],
     new RegExp(`${week1.quests.length} av ${week1.quests.length} luker`),
   );
-  assert.match(lines[2], /Smia nivå 3 · ferdig torsdag · 2 hint brukt/);
+  assert.match(lines[2], /Nivå 3 · ferdig torsdag · 2 hint brukt/);
   for (const quest of week1.quests) assert.ok(!text.includes(quest.title));
   assert.doesNotMatch(text, /\p{Extended_Pictographic}/u);
 });

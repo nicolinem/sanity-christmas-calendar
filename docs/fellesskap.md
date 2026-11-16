@@ -10,13 +10,13 @@ hele inventaret kopieres.
 `playerId` er spillerens offentlige Sanity-prosjekt-ID, ikke et brukernavn.
 Dokument-ID-en er stabil (`questMilestone.<playerId>.<questId>`), så omlasting
 eller midlertidig nettfeil ikke lager duplikater. Hendelsen tidsstemples av
-Sanity når den *mottas*, ikke nødvendigvis når luka ble løst.
+Sanity når den _mottas_, ikke nødvendigvis når luka ble løst.
 
 Spillet sender lagrede fullføringer og valgt våpen automatisk ved oppstart,
 nye fullføringer og våpenbytte. Ved nettfeil forsøker det igjen neste gang
 spillet åpnes eller noe endres. Lokal fremgang avhenger ikke av opplastingen.
 Journalen → **Andre** viser alle kjente spillere, også de uten fullføringer.
-Smienivå og totalt antall fullførte luker beregnes av *alle* publiserte
+Smienivå og totalt antall fullførte luker beregnes av _alle_ publiserte
 milepæler. Feedet viser de 12 nyeste av de 100 siste hentede hendelsene.
 Spilleren velger figur og visningsnavn i spillets karakterside; begge sendes
 til spillerkortet sammen med våpenet.
@@ -32,8 +32,7 @@ Lokal «Nullstill fremgang» sletter **ikke** allerede publiserte hendelser.
    ende-til-ende-forsøk mot `production` ble gjennomført 16. november med
    uttrykkelig tillatelse; de tre testdokumentene ble slettet og fraværet
    verifisert. Ikke gjenta production-skriving uten ny tillatelse.
-   Serveren leser alltid med token og `perspective=published`: kontroll
-   16. november viste at anonyme spørringer ikke ser fellesdokumentene i
+   Serveren leser alltid med token og `perspective=published`: kontroll 16. november viste at anonyme spørringer ikke ser fellesdokumentene i
    `production`, selv om datasettet oppgis som offentlig.
 2. På arrangørserverens **test-deployment**, når `test` finnes, sett:
 
@@ -46,7 +45,7 @@ Lokal «Nullstill fremgang» sletter **ikke** allerede publiserte hendelser.
 
 3. I deltakernes `.env.local` settes bare
    `NEXT_PUBLIC_COMMUNITY_URL=https://<arrangørens-test-deployment>/api/community`.
-   Start begge serverne på nytt. Spill på to *ulike* egne Sanity-prosjekter/nettlesere.
+   Start begge serverne på nytt. Spill på to _ulike_ egne Sanity-prosjekter/nettlesere.
    Fullfør en luke, og åpne journalen → Andre i det andre spillet for å se
    hendelsen. Sanity skriver dokumenttypen uten at det felles prosjektet må
    installere spillets Studio-schema; legg til et schema der om dere vil se

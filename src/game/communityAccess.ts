@@ -8,7 +8,10 @@ export function allowedCommunityOrigin(origin: string | null, url: string) {
     new URL(url).origin,
     "http://localhost:3000",
     "http://localhost:3001",
-    ...(process.env.COMMUNITY_ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean),
+    ...(process.env.COMMUNITY_ALLOWED_ORIGINS || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
   ];
   return allowed.includes(origin);
 }

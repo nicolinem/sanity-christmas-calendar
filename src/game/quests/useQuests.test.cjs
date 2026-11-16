@@ -130,9 +130,13 @@ function harness(
       process: { env: { NODE_ENV: "production" } },
       window: { location: { search: "?dev" } },
       URLSearchParams,
-      Date: fixedNow ? class extends Date {
-        constructor(...args) { super(...(args.length ? args : [fixedNow])); }
-      } : Date,
+      Date: fixedNow
+        ? class extends Date {
+            constructor(...args) {
+              super(...(args.length ? args : [fixedNow]));
+            }
+          }
+        : Date,
     },
     { filename },
   );
@@ -375,7 +379,11 @@ test("solving code completes the quest and offers the next without a Studio visi
   assert.equal(view.board.current.result.done, true);
   view.effects.forEach((effect) => effect());
   assert.equal(h.saved.completed[STUDIO], undefined);
-  assert.deepEqual(h.events, [], "no celebration while the code window is open");
+  assert.deepEqual(
+    h.events,
+    [],
+    "no celebration while the code window is open",
+  );
 
   view = h.render({ codeQuestId: null });
   view.effects.forEach((effect) => effect());
@@ -385,7 +393,9 @@ test("solving code completes the quest and offers the next without a Studio visi
   assert.equal(h.events.at(-1)[0], "questCelebration");
   assert.equal(h.events.at(-1)[1].door, 2);
   assert.equal(h.events.at(-1)[1].title, "Ikon og preview i lista");
-  assert.deepEqual(Array.from(h.events.at(-1)[1].objectives), ["Koden er bestått"]);
+  assert.deepEqual(Array.from(h.events.at(-1)[1].objectives), [
+    "Koden er bestått",
+  ]);
   assert.equal(h.events.at(-1)[1].nextDoor, 3);
   assert.equal(h.events.at(-1)[1].lesson, "*Previews*");
 
@@ -404,7 +414,10 @@ test("finishing before the next week's calendar date does not announce a new doo
       completed: { shared: AT, tech: AT },
       briefed: { "tech-later": true },
     },
-    { engineModule: loadEngineWithCalendar("2026-12-01"), fixedNow: "2026-12-02T12:00:00Z" },
+    {
+      engineModule: loadEngineWithCalendar("2026-12-01"),
+      fixedNow: "2026-12-02T12:00:00Z",
+    },
   );
   const view = h.render({ codeChecks: { "tech-later": { done: true } } });
   assert.equal(view.board.current.quest.id, "tech-later");
@@ -413,4 +426,3 @@ test("finishing before the next week's calendar date does not announce a new doo
   assert.equal(h.events.at(-1)[1].nextDoor, undefined);
   assert.equal(h.render().board.current, null);
 });
-
