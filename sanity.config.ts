@@ -6,7 +6,7 @@ import { visionTool } from "@sanity/vision";
 import { apiVersion, dataset, projectId } from "./src/sanity/env";
 import { schema } from "./src/sanity/schemaTypes";
 import { defaultDocumentNode, structure } from "./src/sanity/studio/structure";
-import { isSolved, isTrack } from "./src/sanity/lib/solved";
+import { isSolved } from "./src/sanity/lib/solved";
 import { ForgeAction, ReadyAction } from "./src/sanity/studio/BakeryActions";
 
 // Config for the Studio embedded at /studio. This file
@@ -26,9 +26,9 @@ export default defineConfig({
   document: {
     actions: (previous, { schemaType }) => {
       if (schemaType === "item" && isSolved("baker-forge"))
-        return [ForgeAction, ...previous];
-      if (schemaType === "bakeryOrder" && isTrack("nonTechnical"))
-        return [ReadyAction, ...previous];
+        return [...previous, ForgeAction];
+      if (schemaType === "bakeryOrder")
+        return [...previous, ReadyAction];
       return previous;
     },
   },
