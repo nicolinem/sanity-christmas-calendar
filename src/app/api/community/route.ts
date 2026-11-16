@@ -32,8 +32,8 @@ export async function GET() {
       reader.fetch<CommunityEvent[]>(
         '*[_type == "questMilestone"] | order(_createdAt desc)[0...100]{playerId, questId, title, "at": _createdAt}',
       ),
-      reader.fetch<Pick<CommunityPlayer, "playerId" | "weapon">[]>(
-        '*[_type == "communityPlayer"]{playerId, weapon}',
+      reader.fetch<Pick<CommunityPlayer, "playerId" | "weapon" | "figure" | "name">[]>(
+        '*[_type == "communityPlayer"]{playerId, weapon, figure, name}',
       ),
       reader.fetch<Pick<CommunityEvent, "playerId" | "questId">[]>(
         '*[_type == "questMilestone"]{playerId, questId}',
@@ -78,7 +78,11 @@ export async function POST(request: Request) {
       transaction = transaction.createIfNotExists(milestone);
     if (character) {
       transaction = transaction.createIfNotExists(character);
-      transaction = transaction.patch(character._id, (patch) => patch.set({ weapon: character.weapon }));
+      transaction = transaction.patch(character._id, (patch) => patch.set({
+        weapon: character.weapon,
+        ...(character.figure ? { figure: character.figure } : {}),
+        ...(character.name ? { name: character.name } : {}),
+      }));
     }
     await transaction.commit();
     return Response.json({ ok: true });

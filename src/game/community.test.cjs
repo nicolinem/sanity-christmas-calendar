@@ -4,6 +4,7 @@ const { test } = require("node:test");
 require("sucrase/register");
 
 const { milestonesFor, characterFor, playersFromMilestones } = require("./community.ts");
+const { DEFAULT_FIGURE } = require("./figure.ts");
 
 test("only known quests create stable, deduplicated and server-titled events", () => {
   const input = { playerId: "abcdefgh", questIds: ["the-broken-forge", "the-broken-forge"] };
@@ -34,12 +35,11 @@ test("player snapshot accepts only published weapon identifiers and short names"
     weapon: { name: "Frostøksa", spriteId: "axe" },
   });
   assert.equal(characterFor({ playerId: "abcdefgh", character: { weapon: null } }).weapon, null);
-  for (const weapon of [
-    { name: "", spriteId: "axe" },
-    { name: "x".repeat(65), spriteId: "axe" },
-    { name: "Sword", spriteId: "dragon" },
-    { name: "Sword", spriteId: "other" },
-  ]) assert.equal(characterFor({ playerId: "abcdefgh", character: { weapon } }), null);
+  // A bad weapon is left off instead of rejecting the whole player.
+  for (const weapon of [{ name: "", spriteId: "axe" }, { name: "x".repeat(65), spriteId: "axe" }, "sword"])
+    assert.equal(characterFor({ playerId: "abcdefgh", character: { weapon } }).weapon, null);
+  for (const spriteId of ["dragon", "other", "potion"])
+    assert.deepEqual(characterFor({ playerId: "abcdefgh", character: { weapon: { name: "Sword", spriteId } } }).weapon, { name: "Sword", spriteId: null });
 });
 
 test("characters include players without milestones and count all unique milestones", () => {
@@ -49,12 +49,35 @@ test("characters include players without milestones and count all unique milesto
     { playerId: "abcdefgh", questId: "branns-ledger" },
     { playerId: "ijklmnop", questId: "the-broken-forge" },
   ], [
-    { playerId: "abcdefgh", weapon: { name: "Sverd", spriteId: "sword" } },
+    { playerId: "abcdefgh", weapon: { name: "Sverd", spriteId: "sword" }, figure: DEFAULT_FIGURE, name: "Kari" },
     { playerId: "newcomer", weapon: null },
   ]);
   assert.deepEqual(players, [
-    { playerId: "abcdefgh", completedCount: 2, forgeLevel: 2, weapon: { name: "Sverd", spriteId: "sword" } },
-    { playerId: "ijklmnop", completedCount: 1, forgeLevel: 2, weapon: null },
-    { playerId: "newcomer", completedCount: 0, forgeLevel: 1, weapon: null },
+    { playerId: "abcdefgh", completedCount: 2, forgeLevel: 2, weapon: { name: "Sverd", spriteId: "sword" }, figure: DEFAULT_FIGURE, name: "Kari" },
+    { playerId: "ijklmnop", completedCount: 1, forgeLevel: 2, weapon: null, figure: null, name: null },
+    { playerId: "newcomer", completedCount: 0, forgeLevel: 1, weapon: null, figure: null, name: null },
   ]);
+});
+test("player snapshot stores a normalized figure and rejects oversized or odd ones", () => {
+  const character = characterFor({ playerId: "abcdefgh", character: {
+    weapon: null, figure: { ...DEFAULT_FIGURE, hat: "none", skin: "no-such-skin" },
+  } });
+  assert.deepEqual(character.figure, { ...DEFAULT_FIGURE, hat: "none" });
+  assert.equal("figure" in characterFor({ playerId: "abcdefgh", character: { weapon: null, figure: null } }), false);
+  for (const figure of [
+    Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`k${i}`, "x"])),
+    { hat: "x".repeat(25) },
+    { hat: 5 },
+    ["santa"],
+    "santa",
+  ]) assert.equal(characterFor({ playerId: "abcdefgh", character: { weapon: null, figure } }), null);
+});
+
+test("player snapshot keeps a short, plain display name and omits a bad one", () => {
+  assert.equal(characterFor({ playerId: "abcdefgh", character: { weapon: null, name: "  Åse O'Neil-Berg 2 " } }).name, "Åse O'Neil-Berg 2");
+  for (const name of ["", "   ", "x".repeat(25), "<script>", 42]) {
+    const character = characterFor({ playerId: "abcdefgh", character: { weapon: null, name } });
+    assert.ok(character);
+    assert.equal("name" in character, false);
+  }
 });

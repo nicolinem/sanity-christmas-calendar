@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { FIGURE_SIZE, drawFigure, type FigureChoice } from "./figure";
 import { bridge, type DoorMarker, type WorldState, type Zone } from "./bridge";
 import { SHEETS, TILE, type SpriteDef } from "./sprites";
 import {
@@ -478,8 +479,33 @@ export class WinterQuestScene extends Phaser.Scene {
 
   // --- state from React -----------------------------------------------------
 
+  // The player's own figure, drawn from their choices into a texture once per
+  // look. Without one, the knight from Tiny Dungeon.
+  private figureKey = "";
+  private setFigure(choice: FigureChoice | null) {
+    if (!choice) {
+      if (this.figureKey) this.knightBody.setTexture("dungeon", 96);
+      this.figureKey = "";
+      return;
+    }
+    const key = `figure:${JSON.stringify(choice)}`;
+    if (key === this.figureKey) return;
+    if (!this.textures.exists(key)) {
+      const tex = this.textures.createCanvas(key, FIGURE_SIZE, FIGURE_SIZE)!;
+      tex.getContext().putImageData(
+        new ImageData(drawFigure(choice), FIGURE_SIZE, FIGURE_SIZE),
+        0,
+        0,
+      );
+      tex.refresh();
+    }
+    this.knightBody.setTexture(key);
+    this.figureKey = key;
+  }
+
   private applyWorld(w: WorldState) {
     this.setWeapon(w.weapon);
+    this.setFigure(w.figure);
     for (const [id, marker] of this.markers)
       marker.setVisible(w.npcMarker === id);
     this.syncDoors(w.doors);

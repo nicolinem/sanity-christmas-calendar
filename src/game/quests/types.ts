@@ -21,6 +21,10 @@ export type Progress = {
   // Week numbers whose summary has been shown, with how many core doors the
   // week had then (true in older saves). A week that grows shows it again.
   weeksSeen: Record<string, true | number>;
+  // The player's own figure (src/game/figure.ts). Left out: the knight.
+  figure?: Record<string, string>;
+  // The player's chosen display name, shown on the community page.
+  name?: string;
 };
 
 // A task solved in the game's code window. The Studio reads this and switches
