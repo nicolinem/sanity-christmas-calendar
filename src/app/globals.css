@@ -1523,7 +1523,7 @@ kbd {
   background: var(--night-2);
 }
 
-/* --- Hotbar --------------------------------------------------------------- */
+/* --- Player plate and hotbar --------------------------------------------- */
 .hotbar {
   display: flex;
   align-items: center;
@@ -1541,6 +1541,70 @@ kbd {
   padding: 0 10px;
   font-size: 14px;
   color: var(--frost-dim);
+}
+.hotbar-sep {
+  flex: 0 0 var(--px);
+  height: calc(var(--px) * 14);
+  background: var(--night-3);
+}
+.plate-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.plate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 2px;
+  color: var(--snow);
+  background: transparent;
+  border: 0;
+  border-right: var(--px) solid var(--night-3);
+  cursor: pointer;
+}
+.plate:hover,
+.plate:focus-visible {
+  background: var(--night-3);
+  box-shadow: inset 0 0 0 var(--px) var(--amber);
+}
+.plate-portrait {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border: var(--px) solid var(--night-3);
+}
+.plate-who {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+.plate-name {
+  max-width: 160px;
+  overflow: hidden;
+  font: 400 22px/1 var(--font-display), var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plate-level {
+  font: 500 11px/1.2 var(--font-pixel), var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber);
+  white-space: nowrap;
+}
+.plate-tooltip {
+  left: 0;
+  translate: 0 0;
+}
+.plate-wrap:hover .plate-tooltip,
+.plate-wrap:focus-within .plate-tooltip {
+  visibility: visible;
+}
+.plate-tooltip .tooltip-desc {
+  max-width: 220px;
 }
 .slot-wrap {
   position: relative;
@@ -1741,6 +1805,27 @@ kbd {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@media (max-width: 720px) {
+  .hotbar {
+    gap: var(--px);
+    padding: calc(var(--px) * 2);
+  }
+  .hotbar-slots {
+    gap: var(--px);
+  }
+  .hotbar .slot {
+    width: calc(var(--px) * 18);
+    height: calc(var(--px) * 18);
+  }
+  .plate {
+    gap: 0;
+    padding-right: 4px;
+  }
+  .plate.is-compact .plate-who {
+    display: none;
+  }
 }
 
 /* --- Brann's dialogue ------------------------------------------------------ */

@@ -80,17 +80,27 @@ type Props = {
   initialName: string;
   owned: Set<GearKey>;
   firstTime: boolean; // no figure yet: nothing to go back to, so no close
+  initialTab: "gear" | "look";
   initialShareProfile: boolean;
   onDone: (choice: FigureChoice, name: string, shareProfile: boolean) => void;
   onClose: () => void;
 };
 
-export default function CharacterSheet({ initial, initialName, owned, firstTime, initialShareProfile, onDone, onClose }: Props) {
+export default function CharacterSheet({
+  initial,
+  initialName,
+  owned,
+  firstTime,
+  initialTab,
+  initialShareProfile,
+  onDone,
+  onClose,
+}: Props) {
   const [choice, setChoice] = useState<FigureChoice>(() => wearable(initial, owned));
   const [name, setName] = useState(initialName);
   const [shareProfile, setShareProfile] = useState(initialShareProfile);
   const [history, setHistory] = useState<FigureChoice[]>([]);
-  const [mode, setMode] = useState<"look" | "gear">("look");
+  const [mode, setMode] = useState<"look" | "gear">(initialTab);
   const [catId, setCatId] = useState("hair");
   const doneRef = useRef<HTMLButtonElement>(null);
 

@@ -30,6 +30,7 @@ import {
 import { findForgedWeapon } from "@/game/quests/chapters";
 import type { CodeCheck, QuestTrack } from "@/game/quests/types";
 import Hotbar from "./hud/Hotbar";
+import PlayerPlate from "./hud/PlayerPlate";
 import QuestTracker from "./hud/QuestTracker";
 import QuestLog from "./hud/QuestLog";
 import Toasts, { pushToast } from "./hud/Toasts";
@@ -173,6 +174,11 @@ export default function GameClient() {
     [progress.figure, owned],
   );
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetTab, setSheetTab] = useState<"bag" | "gear" | "look">("gear");
+  const openSheet = useCallback((tab: "bag" | "gear" | "look") => {
+    setSheetTab(tab);
+    setSheetOpen(true);
+  }, []);
   const withdrawCommunityProfile = useCallback(() => {
     if (!communityReady || !configured || PROGRESS_PROJECT === "demo") return;
     fetch(communityEndpoint, {
@@ -600,7 +606,11 @@ export default function GameClient() {
         return;
       }
       if ((e.key === "c" || e.key === "C") && !dialogueOpen) {
-        setSheetOpen(true);
+        openSheet("gear");
+        return;
+      }
+      if ((e.key === "i" || e.key === "I") && !dialogueOpen) {
+        openSheet("bag");
         return;
       }
       if (e.key === "Escape" && dialogueOpen) {
@@ -646,6 +656,7 @@ export default function GameClient() {
     openDialogue,
     openLog,
     openMap,
+    openSheet,
     openSiteQuest,
     combat,
     items,
@@ -691,7 +702,7 @@ export default function GameClient() {
             <button
               type="button"
               className="studio-link"
-              onClick={() => setSheetOpen(true)}
+              onClick={() => openSheet("gear")}
               aria-label="Figuren din (C)"
             >
               Figur
@@ -761,9 +772,19 @@ export default function GameClient() {
             )}
 
             <Hotbar
+              plate={
+                <PlayerPlate
+                  figure={figure ?? normalizeFigure(undefined)}
+                  name={progress.name ?? ""}
+                  level={forgeLevel}
+                  compact={narrow}
+                  onOpen={() => openSheet("gear")}
+                />
+              }
               items={items}
               equippedId={equippedId}
               onEquip={handleEquip}
+              onOpenBag={() => openSheet("bag")}
               onRefresh={refresh}
               refreshing={loading}
               slots={slots}
@@ -799,6 +820,9 @@ export default function GameClient() {
             </span>
             <span>
               <kbd>C</kbd> figur
+            </span>
+            <span>
+              <kbd>I</kbd> ting
             </span>
           </p>
         </div>
@@ -870,6 +894,7 @@ export default function GameClient() {
             initialName={progress.name ?? ""}
             owned={owned}
             firstTime={entryStage === "figure"}
+            initialTab={progress.figure ? (sheetTab === "look" ? "look" : "gear") : "look"}
             initialShareProfile={progress.shareProfile}
             onDone={saveFigure}
             onClose={() => setSheetOpen(false)}
