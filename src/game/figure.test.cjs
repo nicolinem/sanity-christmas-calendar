@@ -5,6 +5,10 @@ require("sucrase/register");
 const {
   DEFAULT_FIGURE,
   FIGURE_OPTIONS,
+  SKINS,
+  HAIR_COLORS,
+  CLOTH_COLORS,
+  PANTS,
   drawFigure,
   normalizeFigure,
   randomFigure,
@@ -53,5 +57,16 @@ test("helmets cover a bald head completely: no skin above or beside them", () =>
         const i = (y * 16 + x) * 4;
         assert.ok(!SKIN.has(`${px[i]},${px[i + 1]},${px[i + 2]}`), `${hat}: skin at ${x},${y}`);
       }
+  }
+});
+
+test("colour palettes: unique ids and #rrggbb pairs", () => {
+  for (const [name, list] of Object.entries({ SKINS, HAIR_COLORS, CLOTH_COLORS, PANTS })) {
+    const ids = list.map((o) => o.id);
+    assert.equal(new Set(ids).size, ids.length, `${name}: duplicate id`);
+    for (const o of list) {
+      assert.equal(o.colors.length, 2, `${name}:${o.id}`);
+      for (const c of o.colors) assert.match(c, /^#[0-9a-f]{6}$/, `${name}:${o.id}`);
+    }
   }
 });

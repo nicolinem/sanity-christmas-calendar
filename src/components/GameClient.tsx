@@ -1,6 +1,8 @@
 "use client";
 
-import { normalizeFigure } from "@/game/figure";
+import { normalizeFigure, type FigureChoice } from "@/game/figure";
+import { ownedGear, wearable } from "@/game/wardrobe";
+import CharacterSheet from "./figure/CharacterSheet";
 import {
   useCallback,
   useEffect,
@@ -39,7 +41,7 @@ import {
 } from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
-import { PROGRESS_PROJECT } from "@/game/quests/progress";
+import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
@@ -163,6 +165,17 @@ export default function GameClient() {
       .catch(() => {}); // The shared project is optional; the game stays playable offline.
   }, []);
   const dev = useDevMode();
+  // The figure as worn: gear the player hasn't earned (yet) is left off.
+  const owned = useMemo(() => ownedGear(progress, { dev }), [progress, dev]);
+  const figure = useMemo(
+    () => (progress.figure ? wearable(normalizeFigure(progress.figure), owned) : null),
+    [progress.figure, owned],
+  );
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const saveFigure = useCallback((choice: FigureChoice, name: string) => {
+    updateProgress(PROGRESS_PROJECT, (p) => ({ ...p, figure: { ...choice }, name: name || undefined }));
+    setSheetOpen(false);
+  }, []);
   const studio = useStudioPane();
   const studioFocused = useStudioFocused() && studio.open;
   // Dev panel overrides for code checks: true/false wins over npm run quest.
@@ -279,6 +292,8 @@ export default function GameClient() {
             equipped?.source === "sanity" && equipped.kind === "weapon"
               ? { name: equipped.name, spriteId: equipped.spriteId }
               : null,
+          figure,
+          name: progress.name,
         },
       }),
     }).catch(() => {});
@@ -286,6 +301,8 @@ export default function GameClient() {
     communityReady,
     configured,
     progress.completed,
+    figure,
+    progress.name,
     equipped,
     autoEquip,
     bestWeapon,
@@ -420,6 +437,8 @@ export default function GameClient() {
   );
 
   const showOpening = !progress.introSeen;
+  // Right after the opening, everyone makes a figure before they play.
+  const sheetShown = !showOpening && (sheetOpen || !progress.figure);
 
   // A finished week gets its summary once, after the last door's celebration;
   // the journal can open it again (weekShown).
@@ -459,7 +478,7 @@ export default function GameClient() {
         : null;
     bridge.setWorld({
       weapon: hand,
-      figure: progress.figure ? normalizeFigure(progress.figure) : null,
+      figure,
       forgeLit: Boolean(forged),
       forgeLevel,
       npcMarker:
@@ -474,6 +493,7 @@ export default function GameClient() {
         logOpen ||
         codeOpen ||
         showOpening ||
+        sheetShown ||
         Boolean(celebration) ||
         Boolean(summary),
     });
@@ -491,7 +511,8 @@ export default function GameClient() {
     showOpening,
     celebration,
     summary,
-    progress.figure,
+    sheetShown,
+    figure,
   ]);
 
   const slots = narrow ? 5 : 8;
@@ -503,7 +524,7 @@ export default function GameClient() {
   // Action keys. Movement keys belong to Phaser; these belong to the HUD.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || showOpening) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || showOpening || sheetShown) return;
       if (celebrations.length > 0 && !codeOpen) return;
       if ((e.target as HTMLElement)?.closest?.(".dev")) return;
       // Typing in the code window: every key is code, except Escape.
@@ -521,6 +542,10 @@ export default function GameClient() {
       }
       if (e.key === "j" || e.key === "J") {
         openLog();
+        return;
+      }
+      if ((e.key === "c" || e.key === "C") && !dialogueOpen) {
+        setSheetOpen(true);
         return;
       }
       if (e.key === "Escape" && dialogueOpen) {
@@ -561,6 +586,7 @@ export default function GameClient() {
     logOpen,
     codeOpen,
     showOpening,
+    sheetShown,
     celebrations.length,
     openDialogue,
     openLog,
@@ -606,6 +632,14 @@ export default function GameClient() {
           </div>
 
           <div className="hud-tr">
+            <button
+              type="button"
+              className="studio-link"
+              onClick={() => setSheetOpen(true)}
+              aria-label="Figuren din (C)"
+            >
+              Figur
+            </button>
             <button
               type="button"
               className={`studio-link${studio.open ? " is-open" : ""}`}
@@ -704,6 +738,9 @@ export default function GameClient() {
             <span>
               <kbd>J</kbd> journal
             </span>
+            <span>
+              <kbd>C</kbd> figur
+            </span>
           </p>
         </div>
 
@@ -742,7 +779,18 @@ export default function GameClient() {
 
         {showOpening && <Opening onStart={markIntroSeen} />}
 
-        {dev && codeQuestId === null && (
+        {sheetShown && (
+          <CharacterSheet
+            initial={normalizeFigure(progress.figure)}
+            initialName={progress.name ?? ""}
+            owned={owned}
+            firstTime={!progress.figure}
+            onDone={saveFigure}
+            onClose={() => setSheetOpen(false)}
+          />
+        )}
+
+        {dev && codeQuestId === null && !sheetShown && (
           <DevPanel
             board={board}
             forgeLevel={forgeLevel}

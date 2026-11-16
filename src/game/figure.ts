@@ -18,34 +18,57 @@ type Option<T> = { id: string; label: string; unlock?: string } & T;
 // --- Colours: (main, shade) pairs from the same palette as the UI -------------
 
 export const SKINS: Option<{ colors: Pair }>[] = [
+  { id: "pale", label: "Blek", colors: ["#ead4aa", "#e4a672"] },
   { id: "light", label: "Lys", colors: ["#f7c282", "#e19a65"] },
   { id: "medium", label: "Middels", colors: ["#e4a672", "#b86f50"] },
+  { id: "tan", label: "Gyllen", colors: ["#c28569", "#8a4836"] },
   { id: "brown", label: "Brun", colors: ["#bd6c4a", "#8a4836"] },
   { id: "dark", label: "Mørk", colors: ["#8a4836", "#5c2f2a"] },
+  { id: "deep", label: "Dyp", colors: ["#733e39", "#4a2e2a"] },
 ];
 
+// Natural shades first, some of them muted on purpose, then the fun ones.
 export const HAIR_COLORS: Option<{ colors: Pair }>[] = [
-  { id: "brown", label: "Brun", colors: ["#b86f50", "#763b36"] },
   { id: "black", label: "Svart", colors: ["#3a4466", "#262b44"] },
+  { id: "darkbrown", label: "Mørkebrun", colors: ["#6e4a3a", "#52362c"] },
+  { id: "brown", label: "Brun", colors: ["#b86f50", "#763b36"] },
+  { id: "ashbrown", label: "Askebrun", colors: ["#9c7a5c", "#6b5040"] },
+  { id: "dirtyblond", label: "Mørkeblond", colors: ["#c4a46e", "#8c7350"] },
   { id: "blond", label: "Blond", colors: ["#fee761", "#feae34"] },
+  { id: "copper", label: "Kobber", colors: ["#b5583a", "#7d3a2a"] },
   { id: "red", label: "Rød", colors: ["#f77622", "#be4a2f"] },
+  { id: "grey", label: "Grå", colors: ["#8b9bb4", "#5a6988"] },
   { id: "white", label: "Hvit", colors: ["#ffffff", "#c0cbdc"] },
   { id: "pink", label: "Rosa", colors: ["#f6757a", "#b55088"] },
+  { id: "green", label: "Grønn", colors: ["#63c74d", "#3e8948"] },
+  { id: "blue", label: "Blå", colors: ["#0099db", "#124e89"] },
 ];
 
 export const CLOTH_COLORS: Option<{ colors: Pair }>[] = [
   { id: "red", label: "Rød", colors: ["#e43b44", "#a22633"] },
-  { id: "green", label: "Grønn", colors: ["#3e8948", "#265c42"] },
-  { id: "blue", label: "Blå", colors: ["#0099db", "#124e89"] },
-  { id: "purple", label: "Lilla", colors: ["#b55088", "#68386c"] },
-  { id: "grey", label: "Grå", colors: ["#8b9bb4", "#5a6988"] },
+  { id: "orange", label: "Oransje", colors: ["#f77622", "#be4a2f"] },
   { id: "yellow", label: "Gul", colors: ["#feae34", "#f77622"] },
+  { id: "green", label: "Grønn", colors: ["#3e8948", "#265c42"] },
+  { id: "darkgreen", label: "Mørkegrønn", colors: ["#265c42", "#193c3e"] },
+  { id: "teal", label: "Turkis", colors: ["#2ce8f5", "#0099db"] },
+  { id: "blue", label: "Blå", colors: ["#0099db", "#124e89"] },
+  { id: "navy", label: "Marineblå", colors: ["#124e89", "#262b44"] },
+  { id: "purple", label: "Lilla", colors: ["#b55088", "#68386c"] },
+  { id: "pink", label: "Rosa", colors: ["#f6757a", "#e43b44"] },
+  { id: "white", label: "Hvit", colors: ["#ffffff", "#c0cbdc"] },
+  { id: "grey", label: "Grå", colors: ["#8b9bb4", "#5a6988"] },
+  { id: "brown", label: "Brun", colors: ["#b86f50", "#733e39"] },
+  { id: "black", label: "Svart", colors: ["#3a4466", "#262b44"] },
 ];
 
+// The shade sits just above the boots (#262b44), so new trousers avoid it.
 export const PANTS: Option<{ colors: Pair }>[] = [
-  { id: "dark", label: "Mørk", colors: ["#3a4466", "#262b44"] },
-  { id: "brown", label: "Brun", colors: ["#763b36", "#5c2f2a"] },
+  { id: "green", label: "Grønn", colors: ["#3e8948", "#265c42"] },
+  { id: "blue", label: "Blå", colors: ["#124e89", "#193c3e"] },
+  { id: "beige", label: "Beige", colors: ["#c28569", "#733e39"] },
   { id: "grey", label: "Grå", colors: ["#5a6988", "#3a4466"] },
+  { id: "brown", label: "Brun", colors: ["#763b36", "#5c2f2a"] },
+  { id: "dark", label: "Mørk", colors: ["#3a4466", "#262b44"] },
 ];
 
 // Roles that never change colour: eyes, white trim, gold.
@@ -106,24 +129,31 @@ const BODY = grid(
   ".....BB..BB",
 );
 
-// Hair: H/h. Under a hat only the sides show, so styles differ most there.
+// Hair: H main, h shade. Strands of shade run down the sides and fringe.
+// Under a hat only the sides show, so styles differ most there.
 export const HAIRSTYLES: Part[] = [
-  { id: "short", label: "Kort", grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "....HH.HHH.H", "....H") },
+  { id: "short", label: "Kort", grid: grid(3, ".....hHHHHh", "....hHHHHHHh", "....HH.HhH.h", "....h") },
+  // Three small uneven tufts on top (two read as horns), sideburns on both sides.
+  { id: "spiky", label: "Bustete", grid: grid(2, ".....H.H.H", ".....hHHHHh", "....hHHHHhHh", "....HhHH.HhH", "....h......h") },
+  // A swept quiff, higher on one side, with a fringe across the forehead.
+  { id: "quiff", label: "Sveis", grid: grid(1, ".....hHH", ".....HHHHH", "....hHHHHHHh", "....HHHHHhHh", "....HhHHH..h", "....h") },
+  // Down to the chin, the same on both sides.
+  { id: "medium", label: "Halvlangt", grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HhHHHhHH", "...hHh....hHh", "...HH......HH", "...hh......hh") },
   // Like Tiny Dungeon's woman (frame 99): a fringe swept to one side, framing
   // the face down to the shoulders, thick on one side and thin on the other.
   {
     id: "long",
     label: "Langt",
-    grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HHHHHHHH", "...hHHHHH..Hh", "...HHH......H", "...HH.......h", "...HH.......H", "...HHH.....hH"),
+    grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HHHHHhHH", "...hHHHhH..Hh", "...HhH......h", "...Hh.......h", "...hH.......H", "...hHh.....hh"),
   },
   // The knot sits right on the head, like Tiny Dungeon's frame 88, so no
   // outline cuts between them.
-  { id: "bun", label: "Knute", grid: grid(1, "......hHHh", "......hHHh", ".....hHHHHh", "....hHHHHHHh", "....HH.HHH.H", "....H") },
+  { id: "bun", label: "Knute", grid: grid(1, "......hHHh", "......hHHh", ".....hHHHHh", "....hHHHHHHh", "....HH.HhH.h", "....h") },
   // Two braids in front of the shoulders, tied off at the ends.
   {
     id: "braids",
     label: "Fletter",
-    grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HHHHHHHH", "...hHHHHH..Hh", "...HH.......H", "...hH.......h", "...H........H", "...h........h", "...H........H", "...w........w"),
+    grid: grid(3, ".....hHHHHh", "....HHHHHHHH", "....HHHHHhHH", "...hHHHhH..Hh", "...HH.......H", "...hH.......h", "...H........H", "...h........h", "...H........H", "...w........w"),
     front: true,
   },
   { id: "bald", label: "Skallet", grid: BLANK },
@@ -152,8 +182,9 @@ export const TOPS: Part[] = [
   // A baker's or smith's apron over the shirt (Tiny Dungeon frame 86).
   { id: "apron", label: "Forkle", grid: grid(10, "....Cc....cC", "...CCWWWWWWCC", "....cWWWWWWc", ".....WWWWWW") },
   // A long robe to the feet, like the wizard (frame 84).
-  { id: "robe", label: "Kjortel", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCCYCCCc", "....cCCCCCCc", "....cCCCCCCc", ".....cCCCCc") },
-  { id: "dress", label: "Kjole", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCCYYCCc", "....cCCCCCCc", "....cccccccc") },
+  // Below the waist both are only as wide as the legs, so they don't bulge.
+  { id: "robe", label: "Kjortel", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCCYCCCc", ".....CCCCCc", ".....cCCCCc", ".....cCCCCc") },
+  { id: "dress", label: "Kjole", grid: grid(10, "....Cc....cC", "...CCCCCCCCCC", "....cCCYYCCc", ".....CCCCCc", ".....cccccc") },
 ];
 
 // Armour over the top. Fixed colours: L/l leather, I/i iron, O shine.
@@ -351,13 +382,18 @@ export function drawFigure(choice: FigureChoice, opts: { outline?: OutlineMode }
   ];
 
   const N = FIGURE_SIZE;
+  // Hair never pokes out above a hat that sits on the head (a bun on a helmet,
+  // tufts over a crown). A band lower down, like the bandana, leaves it be.
+  const top = find(HATS, c.hat).grid.findIndex((row) => /[^.]/.test(row));
+  const hatTop = top <= 3 ? top : -1;
   const art: (string | null)[] = new Array(N * N).fill(null);
   for (const layer of layers)
-    layer.forEach((row, y) =>
+    layer.forEach((row, y) => {
+      if (layer === hair.grid && hatTop > 0 && y < hatTop) return;
       [...row].forEach((ch, x) => {
         if (ch !== "." && roles[ch]) art[y * N + x] = roles[ch];
-      }),
-    );
+      });
+    });
 
   const placed = art;
 
