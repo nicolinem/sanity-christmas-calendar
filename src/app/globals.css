@@ -1537,11 +1537,6 @@ kbd {
   padding: 0;
   list-style: none;
 }
-.hotbar-empty {
-  padding: 0 10px;
-  font-size: 14px;
-  color: var(--frost-dim);
-}
 .hotbar-sep {
   flex: 0 0 var(--px);
   height: calc(var(--px) * 14);
@@ -1781,30 +1776,6 @@ kbd {
 }
 .tooltip-hint {
   color: var(--amber);
-}
-
-.bag {
-  position: relative;
-}
-.bag-panel {
-  position: absolute;
-  bottom: calc(100% + var(--px) * 6);
-  right: 0;
-  padding: 10px;
-  z-index: 6;
-}
-.bag-title {
-  margin: 0 0 8px;
-  font-size: 14px;
-  color: var(--frost-dim);
-}
-.bag-grid {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: calc(var(--px) * 2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
 @media (max-width: 720px) {

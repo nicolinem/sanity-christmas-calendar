@@ -19,6 +19,7 @@ Overlevering til neste økt. Les dette først, deretter `AGENTS.md` (Next 16 er 
     - spilleren eier utstyr gjennom fullførte luker (`GEAR_REWARDS`);
     - utstyr spilleren ikke eier, tegnes ikke;
     - i `?dev` eier man alt.
+  - **Spillerplate og Ting-fane** er implementert på egen arbeidsgren; nivået vises på platen, og Ting åpner inventaret.
   - **Fellesprosjektet:**
     - figur og navn sendes til fellesprosjektet og vises på «Hvem er med» (`Community.tsx`);
     - skifte av klær eller utstyr vises ikke i «Siste nytt».
