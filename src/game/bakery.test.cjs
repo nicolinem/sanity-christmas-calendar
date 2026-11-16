@@ -9,7 +9,16 @@ const moduleResult = { exports: {} };
 vm.runInNewContext(transform(readFileSync(`${__dirname}/bakery.ts`, "utf8"), {
   transforms: ["typescript", "imports"],
 }).code, { module: moduleResult, exports: moduleResult.exports, URL });
-const { isNewOrder, isReadyOrder, signHasHttpsLink, signHasStrong, signText } = moduleResult.exports;
+const { SAMPLE_ORDERS, isNewOrder, isReadyOrder, signHasHttpsLink, signHasStrong, signText } = moduleResult.exports;
+
+test("sample bakery orders have names and goods without satisfying a core door", () => {
+  assert.equal(SAMPLE_ORDERS.length, 3);
+  for (const order of SAMPLE_ORDERS) {
+    assert.ok(order.item && order.orderedBy && order.date);
+    assert.equal(isNewOrder(order), false);
+    assert.equal(isReadyOrder(order), false);
+  }
+});
 
 test("only a new, dated order with an item counts", () => {
   const order = { _id: "order-1", item: "Julekake", date: "2026-12-14", status: "ny" };

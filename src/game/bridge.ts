@@ -41,6 +41,7 @@ export type QuestCelebration = {
   bonus?: true;
   title: string;
   lesson: string;
+  outro?: string[];
   objectives?: string[];
   nextDoor?: number;
   nextGiver?: NpcId; // who hands the next door over

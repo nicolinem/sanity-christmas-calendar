@@ -78,6 +78,7 @@ export type Quest = {
   door: number; // display order for this door in the calendar
   title: string;
   intro: string[]; // what Brann says when he hands it over, one short page each
+  outro?: string[]; // optional giver's lines after completing the door
   goal: string; // one line for the tracker: what, not how
   where?: string; // where the work happens: a file or a place, not the answer
   // Optional steps to try the result in the real Studio after solving the code.

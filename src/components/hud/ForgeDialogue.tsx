@@ -194,7 +194,6 @@ function buildPages(
   const reaction =
     previous &&
     current?.status === "offered" &&
-    !current.pickup &&
     giverOf(previous.quest).id === giverOf(current.quest).id
       ? [<Reaction key="r" state={previous} />]
       : [];
@@ -268,8 +267,10 @@ function buildPages(
 function Reaction({ state }: { state: QuestState }) {
   return (
     <>
-      Bra jobbet! {lukeName(state.quest)} er krysset ut i journalen. Det du
-      lærte:
+      {state.quest.outro?.map((line) => (
+        <span key={line}>{renderText(line)} </span>
+      ))}
+      {lukeName(state.quest)} er krysset ut i journalen. Det du lærte:
       <span className="dialogue-lesson">
         <span className="dialogue-lesson-title">
           {renderText(state.quest.lesson.title)}

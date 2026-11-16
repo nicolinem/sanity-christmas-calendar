@@ -595,9 +595,12 @@ const bakerTemplate: Quest = {
   title: "Initial value: ny bestilling",
   intro: [
     "Hver ny bestilling begynner likt. Jeg skriver status og dato om igjen, selv om de allerede er kjent.",
+    "Brann vil ha lussekatter, Arkivaren pepperkaker og Kari julekake. De ligger allerede som eksempler, men nye lapper kommer hele tiden.",
     "Kan du gi meg en *initial value* som fyller dem ut når jeg lager en ny bestilling? Åpne kodevinduet.",
   ],
+  outro: ["Nå slipper jeg å skrive datoen på hver nye lapp.", "Neste gang jeg åpner en bestilling, står startverdiene der allerede."],
   goal: "Gi en ny bestilling status «ny» og dagens dato fra start.",
+  goalPreview: { before: "En ny lapp mangler dato og status.", after: "Nye lapper starter med dagens dato og «ny»." },
   where: "I kodevinduet hos Bakeren. Prøv den ferdige malen i Studio etterpå.",
   hints: [
     { text: "`initialValue` på en *document type* brukes når et nytt dokument opprettes, ikke når et gammelt redigeres.", link: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` } },
@@ -622,9 +625,12 @@ const bakerForge: Quest = {
   title: "Document action: Smi",
   intro: [
     "Brann må sette tidspunkt og publisere for hånd hver gang et våpen er klart.",
+    "Han kommer inn fra smia med sot på hendene og rekker ikke både å stemple og å trykke Publish.",
     "Lag én *document action* som stempler `forgedAt` og publiserer våpenet. Bruk kodevinduet.",
   ],
+  outro: ["Brann kan nå smi og publisere i ett trykk.", "Publish er der fortsatt når han bare skal publisere som vanlig."],
   goal: "Lag en Smi-action som stempler og publiserer et våpen i ett trykk.",
+  goalPreview: { before: "Våpenet mangler smitidspunkt.", after: "Smi stempler våpenet og publiserer det." },
   where: "I kodevinduet hos Bakeren. Prøv den ferdige Smi-knappen i Studio etterpå.",
   hints: [
     { text: "En *document action* returnerer blant annet `label` og `onHandle`.", link: { label: "Document actions", url: `${DOCS}/document-actions` } },
@@ -649,9 +655,12 @@ const bakerFunction: Quest = {
   title: "Sanity Function: skiltet",
   intro: [
     "Markedet nærmer seg. Tenk om bodskiltet kunne reagere når en bestilling publiseres?",
+    "Noen ganger kommer samme beskjed to ganger. Da skal skiltet ikke skrives om to ganger.",
     "Lag hendelseslogikken i kodevinduet. Vi simulerer publisering med en falsk klient; ingenting deployes til prosjektet ditt.",
   ],
+  outro: ["Simuleringen reagerte på riktig publisering.", "Ingen bestilling eller skilt ble endret i prosjektet ditt."],
   goal: "Oppdater skiltet ved publisering av en bestilling, men ikke ved andre hendelser eller gjentakelser.",
+  goalPreview: { before: "Hver hendelse ville skrevet om skiltet.", after: "Bare nye publiseringer endrer det – i simuleringen." },
   where: "I kodevinduet hos Bakeren – ikke i Sanity Studio.",
   hints: [
     { text: "Sjekk `event.transition` og `event.document._type` før du henter skiltet. Tom vare må ignoreres." },
@@ -674,10 +683,13 @@ const bakerFirstOrder: Quest = {
   door: 5,
   title: "Initial value template: ny bestilling",
   intro: [
-    "Hver bestilling må ha dato og status. Jeg har laget en mal som fyller inn begge deler.",
-    "Åpne *Ny bestilling* i Studio, skriv inn varen og trykk *Publish*. Hva står der allerede?",
+    "Brann har bestilt lussekatter, Arkivaren pepperkaker og Kari julekake. De tre ventelappene ligger i Studio.",
+    "Hver *ny* bestilling må ha dato og status. Jeg har laget en mal som fyller inn begge deler – ventelappene teller ikke som din nye bestilling.",
+    "Lag din egen *Ny bestilling* i Studio, skriv inn varen og trykk *Publish*. Hva står der allerede?",
   ],
+  outro: ["Der kom lappen din inn sammen med de andre!", "Dato og «ny» kom fra malen; varen valgte du selv."],
   goal: "Lag og publiser en ny bestilling med vare, status «ny» og dato.",
+  goalPreview: { before: "Eksempelbestillingene venter; din lapp er tom.", after: "Din publiserte bestilling har vare, dato og status «ny»." },
   where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
   hints: [
     { text: "Åpne *Ny bestilling* i Studio. Den ferdige malen fyller ut dato og status når du oppretter et nytt dokument.", link: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` } },
@@ -706,9 +718,12 @@ const bakerSign: Quest = {
   title: "Portable Text: bodskiltet",
   intro: [
     "Bestillingen er på plass, men boden mangler et skilt.",
+    "Folk går forbi uten å se hva som er nystekt. Et tydelig ord vil få dem til å stanse.",
     "Skriv skiltet i Studio, gjør det viktigste ordet fett og trykk *Publish*. Da kan alle se det ved bakeriet.",
   ],
+  outro: ["Nå kan folk se hva som selges før de går inn.", "Det fete ordet gjør skiltet lettere å lese fra stien."],
   goal: "Skriv og publiser et bodskilt med fremhevet tekst.",
+  goalPreview: { before: "Boden har et tomt skilt.", after: "Det publiserte skiltet har et fremhevet ord." },
   where: "I ditt eget Sanity Studio, under *Bodskilt*.",
   hints: [
     { text: "Åpne *Bodskilt* i Studio. Feltet *Skilttekst* er *Portable Text*: det kan ha tekst med formatering.", link: { label: "Portable Text", url: `${DOCS}/block-content` } },
@@ -735,12 +750,15 @@ const bakerReady: Quest = {
   title: "Document action: Klar",
   intro: [
     "Skiltet er på plass. Nå skal den første bestillingen bli ferdig.",
-    "Åpne en bestilling i Studio og trykk *Klar*. Knappen setter status og publiserer i ett trykk.",
+    "Finn bestillingen *du* publiserte i første luke, ikke de tre ventelappene.",
+    "Åpne den i Studio og velg *Klar* i menyen ved siden av *Publish*. Knappen setter status og publiserer i ett trykk.",
   ],
+  outro: ["Din bestilling er klar til å hentes!", "Vi brukte ett trykk i stedet for å endre status og publisere hver for seg."],
   goal: "Merk en bestilling som «klar» og publiser den.",
+  goalPreview: { before: "Din bestilling er publisert med status «ny».", after: "Klar publiserer den samme bestillingen med status «klar»." },
   where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
   hints: [
-    { text: "Åpne bestillingen du laget i første luke. *Klar* er en *document action* nederst i dokumentet.", link: { label: "Document actions", url: `${DOCS}/document-actions` } },
+    { text: "Åpne bestillingen du laget i første luke. *Klar* er en *document action* i menyen ved siden av *Publish*.", link: { label: "Document actions", url: `${DOCS}/document-actions` } },
     { text: "Knappen er tilgjengelig når bestillingen har en vare. Du trenger ikke skrive kode." },
     { text: "Trykk *Klar*: den oppdaterer status og publiserer. Kontroller at den publiserte bestillingen står som «klar»." },
   ],
@@ -766,9 +784,12 @@ const bakerLink: Quest = {
   title: "☆ En lenke på skiltet",
   intro: [
     "Noen gjester vil vite mer om det vi selger. Et lenket ord på skiltet kan vise dem veien.",
+    "De som spør om oppskriftene, trenger en vei videre enn selve boden.",
     "Dette er frivillig ☆: legg en relevant HTTPS-lenke på tekst i bodskiltet og publiser.",
   ],
+  outro: ["Nå kan folk følge et ord på skiltet videre.", "En lenke i et tekstspenn er noe mer enn en adresse skrevet med bokstaver."],
   goal: "Legg en HTTPS-lenke på et ord i bodskiltet og publiser. Frivillig ☆.",
+  goalPreview: { before: "Skiltet har bare vanlig tekst.", after: "Et markert ord har en publisert HTTPS-lenke." },
   where: "I ditt eget Sanity Studio, under *Bodskilt*.",
   hints: [
     { text: "Åpne skiltet i Studio, marker et ord og legg på *Lenke* (annotation).", link: { label: "Portable Text", url: `${DOCS}/block-content` } },

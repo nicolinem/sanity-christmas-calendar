@@ -14,14 +14,18 @@ export const bakeryOrder = defineType({
       : {},
   fields: [
     defineField({ name: "item", title: "Vare", type: "string", validation: (r) => r.required() }),
+    defineField({ name: "orderedBy", title: "Bestilt av", type: "string" }),
     defineField({ name: "date", title: "Dato", type: "date", validation: (r) => r.required() }),
     defineField({
       name: "status",
       title: "Status",
       type: "string",
-      options: { list: [{ title: "Ny", value: "ny" }, { title: "Klar", value: "klar" }] },
+      options: { list: [{ title: "Venter", value: "venter" }, { title: "Ny", value: "ny" }, { title: "Klar", value: "klar" }] },
       validation: (r) => r.required(),
     }),
   ],
-  preview: { select: { title: "item", subtitle: "status" } },
+  preview: {
+    select: { title: "item", orderedBy: "orderedBy", status: "status" },
+    prepare: ({ title, orderedBy, status }) => ({ title: title || "Bestilling", subtitle: `${orderedBy || "Ukjent kunde"} · ${status || "utkast"}` }),
+  },
 });

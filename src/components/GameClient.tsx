@@ -49,7 +49,7 @@ import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
-import { signText } from "@/game/bakery";
+import { SAMPLE_ORDERS, signText } from "@/game/bakery";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
@@ -550,6 +550,19 @@ export default function GameClient() {
       .then((r) => (r.ok ? refresh() : undefined))
       .catch(() => {});
   }, [needsArchive, archive, refresh]);
+
+  const bakerySeeded = useRef(false);
+  const needsBakery = board.states.some(
+    (s) => s.quest.id === "baker-first-order" && s.status === "active",
+  );
+  useEffect(() => {
+    if (!needsBakery || bakeryOrders === null || bakerySeeded.current ||
+      SAMPLE_ORDERS.every((sample) => bakeryOrders.some((order) => order._id === sample._id))) return;
+    bakerySeeded.current = true;
+    fetch("/api/bakery", { method: "POST" })
+      .then((r) => (r.ok ? refresh() : undefined))
+      .catch(() => {});
+  }, [needsBakery, bakeryOrders, refresh]);
 
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);

@@ -1,9 +1,16 @@
 export type BakeryOrder = {
   _id: string;
   item?: string | null;
+  orderedBy?: string | null;
   date?: string | null;
   status?: string | null;
 };
+
+export const SAMPLE_ORDERS: { _id: string; _type: "bakeryOrder"; item: string; orderedBy: string; date: string; status: string }[] = [
+  { _id: "bakery-sample-brann", _type: "bakeryOrder", item: "Lussekatter", orderedBy: "Brann", date: "2026-12-14", status: "venter" },
+  { _id: "bakery-sample-arkivaren", _type: "bakeryOrder", item: "Pepperkaker", orderedBy: "Arkivaren", date: "2026-12-14", status: "venter" },
+  { _id: "bakery-sample-kari", _type: "bakeryOrder", item: "Julekake", orderedBy: "Kari", date: "2026-12-14", status: "venter" },
+];
 
 export type BakerySign = {
   _id: string;

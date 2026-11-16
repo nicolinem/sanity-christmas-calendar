@@ -18,6 +18,7 @@ export default function QuestCelebration({
   bonus,
   title,
   lesson,
+  outro,
   objectives,
   level,
   nextDoor,
@@ -84,6 +85,9 @@ export default function QuestCelebration({
           <p className="quest-celebration-title">
             {unlocked ? `Neste oppgave venter hos ${giver.name}` : title}
           </p>
+          {!unlocked && outro?.map((line) => (
+            <p className="quest-celebration-note" key={line}>«{line}»</p>
+          ))}
           {unlocked && (
             <div className="quest-celebration-guide">
               <span
