@@ -28,13 +28,21 @@ export type CommunityPlayer = {
 
 export function forgeLevelFromMilestones(questIds: Iterable<string>) {
   const completed = new Set(questIds);
-  return clampForgeLevel(1 + CHAPTERS.flatMap((chapter) => chapter.quests)
-    .reduce((level, quest) => level + (completed.has(quest.id) ? quest.reward?.forgeLevel ?? 0 : 0), 0));
+  return clampForgeLevel(
+    1 +
+      CHAPTERS.flatMap((chapter) => chapter.quests).reduce(
+        (level, quest) =>
+          level +
+          (completed.has(quest.id) ? (quest.reward?.forgeLevel ?? 0) : 0),
+        0,
+      ),
+  );
 }
 
 export function playersFromMilestones(
   milestones: Pick<CommunityEvent, "playerId" | "questId">[],
-  profiles: (Pick<CommunityPlayer, "playerId" | "weapon"> & Partial<Pick<CommunityPlayer, "figure" | "name">>)[],
+  profiles: (Pick<CommunityPlayer, "playerId" | "weapon"> &
+    Partial<Pick<CommunityPlayer, "figure" | "name">>)[],
 ): CommunityPlayer[] {
   const completed = new Map<string, Set<string>>();
   for (const { playerId, questId } of milestones) {
@@ -51,33 +59,53 @@ export function playersFromMilestones(
       figure: byId.get(playerId)?.figure ?? null,
       name: byId.get(playerId)?.name ?? null,
     }))
-    .sort((a, b) => b.completedCount - a.completedCount || a.playerId.localeCompare(b.playerId));
+    .sort(
+      (a, b) =>
+        b.completedCount - a.completedCount ||
+        a.playerId.localeCompare(b.playerId),
+    );
 }
 
 export function characterFor(input: unknown) {
   if (!input || typeof input !== "object") return null;
   const { playerId, character } = input as Record<string, unknown>;
-  if (typeof playerId !== "string" || !/^[a-z0-9]{6,20}$/.test(playerId) ||
-      !character || typeof character !== "object") return null;
-  const { weapon, figure, name, visible } = character as Record<string, unknown>;
+  if (
+    typeof playerId !== "string" ||
+    !/^[a-z0-9]{6,20}$/.test(playerId) ||
+    !character ||
+    typeof character !== "object"
+  )
+    return null;
+  const { weapon, figure, name, visible } = character as Record<
+    string,
+    unknown
+  >;
   if (visible !== undefined && typeof visible !== "boolean") return null;
   if (figure != null && !isSmallStringRecord(figure)) return null;
   // A weapon the page can't show is left off (or its sprite is), so it never
   // keeps the figure, name and finished doors from being shared.
   const w = weapon as Partial<CommunityWeapon> | null | undefined;
-  const weaponName = w && typeof w === "object" && typeof w.name === "string" ? w.name.trim() : "";
-  const spriteOk = typeof w?.spriteId === "string" &&
-    hasKnownSprite(w.spriteId) && isSpriteAllowedForKind(w.spriteId, "weapon");
-  const shared: CommunityWeapon | null = weaponName && weaponName.length <= 64
-    ? { name: weaponName, spriteId: spriteOk ? w!.spriteId! : null }
-    : null;
+  const weaponName =
+    w && typeof w === "object" && typeof w.name === "string"
+      ? w.name.trim()
+      : "";
+  const spriteOk =
+    typeof w?.spriteId === "string" &&
+    hasKnownSprite(w.spriteId) &&
+    isSpriteAllowedForKind(w.spriteId, "weapon");
+  const shared: CommunityWeapon | null =
+    weaponName && weaponName.length <= 64
+      ? { name: weaponName, spriteId: spriteOk ? w!.spriteId! : null }
+      : null;
   return {
     _id: `communityPlayer.${playerId}`,
     _type: "communityPlayer" as const,
     playerId,
     visible: visible === true,
     weapon: shared,
-    ...(figure != null ? { figure: normalizeFigure(figure as Record<string, string>) } : {}),
+    ...(figure != null
+      ? { figure: normalizeFigure(figure as Record<string, string>) }
+      : {}),
     ...(displayName(name) ? { name: displayName(name)! } : {}),
   };
 }
@@ -85,10 +113,18 @@ export function characterFor(input: unknown) {
 // A stored figure: a plain object of a few short strings. Unknown ids are fine,
 // normalizeFigure turns them into defaults.
 function isSmallStringRecord(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value) ||
-      Object.getPrototypeOf(value) !== Object.prototype) return false;
+  if (
+    !value ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    Object.getPrototypeOf(value) !== Object.prototype
+  )
+    return false;
   const values = Object.values(value);
-  return values.length <= 20 && values.every((v) => typeof v === "string" && v.length <= 24);
+  return (
+    values.length <= 20 &&
+    values.every((v) => typeof v === "string" && v.length <= 24)
+  );
 }
 
 function displayName(value: unknown) {
@@ -107,7 +143,8 @@ export function milestonesFor(input: unknown) {
     !Array.isArray(questIds) ||
     questIds.length > 100 ||
     !questIds.every((id) => typeof id === "string" && questTitles.has(id))
-  ) return null;
+  )
+    return null;
   return [...new Set(questIds as string[])].map((questId) => ({
     _id: `questMilestone.${playerId}.${questId}`,
     _type: "questMilestone" as const,

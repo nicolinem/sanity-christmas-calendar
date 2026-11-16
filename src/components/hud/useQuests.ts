@@ -18,7 +18,12 @@ import {
   subscribeProgress,
   updateProgress,
 } from "@/game/quests/progress";
-import type { CodeCheck, QuestContext, QuestTrack, SolvedTask } from "@/game/quests/types";
+import type {
+  CodeCheck,
+  QuestContext,
+  QuestTrack,
+  SolvedTask,
+} from "@/game/quests/types";
 import { plainText } from "./richText";
 
 const noSubscribe = () => () => {};

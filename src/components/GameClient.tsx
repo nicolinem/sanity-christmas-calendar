@@ -163,7 +163,9 @@ export default function GameClient() {
     completeQuest,
     setTrack,
   } = useProgress();
-  const [entryStage, setEntryStage] = useState<"title" | "track" | "welcome" | "share" | "figure" | "game">("title");
+  const [entryStage, setEntryStage] = useState<
+    "title" | "track" | "welcome" | "share" | "figure" | "game"
+  >("title");
   useEffect(() => {
     fetch(communityEndpoint, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
@@ -203,7 +205,10 @@ export default function GameClient() {
     previousOwnedGear.current = new Set(owned);
   }, [owned, dev]);
   const figure = useMemo(
-    () => (progress.figure ? wearable(normalizeFigure(progress.figure), owned) : null),
+    () =>
+      progress.figure
+        ? wearable(normalizeFigure(progress.figure), owned)
+        : null,
     [progress.figure, owned],
   );
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -224,40 +229,55 @@ export default function GameClient() {
       }),
     }).catch(() => {});
   }, [communityReady, configured]);
-  const saveFigure = useCallback((choice: FigureChoice, name: string, shareProfile: boolean) => {
-    if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
-    updateProgress(PROGRESS_PROJECT, (p) => ({
-      ...p,
-      figure: { ...choice },
-      name: name || undefined,
-      shareProfile,
-      sharePrompted: true,
-      introSeen: true,
-    }));
-    setSheetOpen(false);
-    setEntryStage("game");
-  }, [progress.shareProfile, withdrawCommunityProfile]);
+  const saveFigure = useCallback(
+    (choice: FigureChoice, name: string, shareProfile: boolean) => {
+      if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
+      updateProgress(PROGRESS_PROJECT, (p) => ({
+        ...p,
+        figure: { ...choice },
+        name: name || undefined,
+        shareProfile,
+        sharePrompted: true,
+        introSeen: true,
+      }));
+      setSheetOpen(false);
+      setEntryStage("game");
+    },
+    [progress.shareProfile, withdrawCommunityProfile],
+  );
   const begin = useCallback(() => {
     setEntryStage(progress.trackChosen ? "welcome" : "track");
   }, [progress.trackChosen]);
-  const chooseShare = useCallback((shareProfile: boolean) => {
-    if (!shareProfile) withdrawCommunityProfile();
-    updateProgress(PROGRESS_PROJECT, (p) => ({
-      ...p,
-      shareProfile,
-      sharePrompted: true,
-    }));
-    setEntryStage("game");
-  }, [withdrawCommunityProfile]);
-  const chooseTrack = useCallback((track: QuestTrack) => {
-    setTrack(track);
-    setEntryStage("welcome");
-  }, [setTrack]);
+  const chooseShare = useCallback(
+    (shareProfile: boolean) => {
+      if (!shareProfile) withdrawCommunityProfile();
+      updateProgress(PROGRESS_PROJECT, (p) => ({
+        ...p,
+        shareProfile,
+        sharePrompted: true,
+      }));
+      setEntryStage("game");
+    },
+    [withdrawCommunityProfile],
+  );
+  const chooseTrack = useCallback(
+    (track: QuestTrack) => {
+      setTrack(track);
+      setEntryStage("welcome");
+    },
+    [setTrack],
+  );
   const startNewGame = useCallback(() => {
-    if (progress.shareProfile || !progress.sharePrompted) withdrawCommunityProfile();
+    if (progress.shareProfile || !progress.sharePrompted)
+      withdrawCommunityProfile();
     reset();
     setEntryStage("track");
-  }, [progress.shareProfile, progress.sharePrompted, reset, withdrawCommunityProfile]);
+  }, [
+    progress.shareProfile,
+    progress.sharePrompted,
+    reset,
+    withdrawCommunityProfile,
+  ]);
   const studio = useStudioPane();
   const studioFocused = useStudioFocused() && studio.open;
   // Dev panel overrides for code checks: true/false wins over npm run quest.
@@ -458,7 +478,9 @@ export default function GameClient() {
   // Talking to Brann is how a quest is handed over, including one that
   // unlocks while you're still talking.
   // Only the luke's own giver hands it over.
-  const currentGiver = board.current ? giverOf(board.current.quest).id : "brann";
+  const currentGiver = board.current
+    ? giverOf(board.current.quest).id
+    : "brann";
   useEffect(() => {
     if (dialogueOpen && talkTo?.id === currentGiver) metBrann(currentId);
   }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann]);
@@ -528,8 +550,13 @@ export default function GameClient() {
     [codeQuestId, solveTask],
   );
 
-  const showOpening = entryStage === "title" || entryStage === "track" || entryStage === "welcome" || entryStage === "share";
-  const sheetShown = entryStage === "figure" || (entryStage === "game" && sheetOpen);
+  const showOpening =
+    entryStage === "title" ||
+    entryStage === "track" ||
+    entryStage === "welcome" ||
+    entryStage === "share";
+  const sheetShown =
+    entryStage === "figure" || (entryStage === "game" && sheetOpen);
 
   // A finished week gets its summary once, after the last door's celebration;
   // the journal can open it again (weekShown).
@@ -615,7 +642,8 @@ export default function GameClient() {
   // Action keys. Movement keys belong to Phaser; these belong to the HUD.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || showOpening || sheetShown) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || showOpening || sheetShown)
+        return;
       if (celebrations.length > 0 && !codeOpen) return;
       if ((e.target as HTMLElement)?.closest?.(".dev")) return;
       // Typing in the code window: every key is code, except Escape.
@@ -907,13 +935,17 @@ export default function GameClient() {
             projectId={process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo"}
             sanityConfigured={configured}
             onStart={begin}
-            onContinue={() => setEntryStage(
-              !progress.introSeen && !progress.figure
-                ? (progress.trackChosen ? "welcome" : "track")
-                : !progress.sharePrompted
-                  ? "share"
-                  : "game",
-            )}
+            onContinue={() =>
+              setEntryStage(
+                !progress.introSeen && !progress.figure
+                  ? progress.trackChosen
+                    ? "welcome"
+                    : "track"
+                  : !progress.sharePrompted
+                    ? "share"
+                    : "game",
+              )
+            }
             onChooseTrack={chooseTrack}
             onWelcomeDone={() => setEntryStage("figure")}
             onChooseShare={chooseShare}
@@ -999,7 +1031,9 @@ export default function GameClient() {
         />
       )}
 
-      {!showOpening && studio.loaded && <StudioPane width={studio.width} open={studio.open} />}
+      {!showOpening && studio.loaded && (
+        <StudioPane width={studio.width} open={studio.open} />
+      )}
     </div>
   );
 }

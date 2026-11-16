@@ -67,7 +67,10 @@ export default function QuestLog({
     initialQuestId ?? board.current?.quest.id ?? board.states[0]?.quest.id,
   );
   const [confirmReset, setConfirmReset] = useState(false);
-  const initialSelected = board.states.find((s) => s.quest.id === selectedId) ?? board.current ?? board.states[0];
+  const initialSelected =
+    board.states.find((s) => s.quest.id === selectedId) ??
+    board.current ??
+    board.states[0];
   const [week, setWeek] = useState(
     initialSelected?.chapter.number ?? CHAPTERS[0].number,
   );
@@ -157,10 +160,18 @@ export default function QuestLog({
 
         <div className="log-track-switch" role="group" aria-label="Læringsspor">
           <span>Spor</span>
-          <button type="button" aria-pressed={track === "technical"} onClick={() => onTrack("technical")}>
+          <button
+            type="button"
+            aria-pressed={track === "technical"}
+            onClick={() => onTrack("technical")}
+          >
             Teknisk
           </button>
-          <button type="button" aria-pressed={track === "nonTechnical"} onClick={() => onTrack("nonTechnical")}>
+          <button
+            type="button"
+            aria-pressed={track === "nonTechnical"}
+            onClick={() => onTrack("nonTechnical")}
+          >
             Ikke-teknisk
           </button>
         </div>
@@ -196,7 +207,9 @@ export default function QuestLog({
                     shown={hintsShown[selected.quest.id] ?? 0}
                     onMoreHint={() => onRevealHint(selected.quest.id)}
                     onOpenCode={() => onOpenCode(selected.quest.id)}
-                    onGoToGiver={() => onTravelToSite(giverOf(selected.quest).site)}
+                    onGoToGiver={() =>
+                      onTravelToSite(giverOf(selected.quest).site)
+                    }
                     onTravel={onTravelToSite}
                     codePassed={Boolean(solvedTasks[selected.quest.id])}
                     onClose={onClose}
@@ -291,7 +304,8 @@ function rowStatus(
   if (state.status === "active") return "pågår";
   if (state.pickup)
     return `hentes ved ${QUEST_SITES[state.pickup].label.toLowerCase()}`;
-  if (state.status === "offered") return `venter hos ${giverOf(state.quest).name}`;
+  if (state.status === "offered")
+    return `venter hos ${giverOf(state.quest).name}`;
   if (state.opensAt) return `åpner ${dateLabel(state.opensAt)}`;
   const before = week[week.indexOf(state) - 1];
   return before ? `etter luke ${before.quest.door}` : "låst";
@@ -389,7 +403,9 @@ function WeekBody({
   detail: React.ReactNode;
 }) {
   const chapter = CHAPTERS.find((c) => c.number === week) ?? CHAPTERS[0];
-  const states = coreFirst(board.states.filter((s) => s.chapter.number === week));
+  const states = coreFirst(
+    board.states.filter((s) => s.chapter.number === week),
+  );
   const core = states.filter((s) => !s.quest.bonus);
   const done = core.filter((s) => s.status === "done").length;
   const open = states.some((s) => s.status !== "locked");
@@ -496,15 +512,17 @@ function QuestDetail({
           <span
             className="log-brann-portrait"
             role="img"
-            aria-label={giver.title ? `${giver.name}, ${giver.title}` : giver.name}
+            aria-label={
+              giver.title ? `${giver.name}, ${giver.title}` : giver.name
+            }
           >
             <SpriteIcon sprite={giver.sprite} scale={4} />
           </span>
           <div>
-            <p className="log-week-kicker">
-              {lukeName(quest)}
-            </p>
-            <h3 className="log-quest-title">{giver.name} har en ny luke til deg</h3>
+            <p className="log-week-kicker">{lukeName(quest)}</p>
+            <h3 className="log-quest-title">
+              {giver.name} har en ny luke til deg
+            </h3>
             <p className="log-locked">
               Snakk med {giver.name} {giver.at} for å høre hva du skal gjøre.
             </p>
@@ -546,9 +564,7 @@ function QuestDetail({
             ? ` ${dateLabel(finished)}`
             : ""}
         </div>
-        <p className="log-week-kicker">
-          {lukeName(quest)}
-        </p>
+        <p className="log-week-kicker">{lukeName(quest)}</p>
         <h3 className="log-quest-title">{quest.title}</h3>
         <div className="log-lesson log-lesson--inline">
           <p className="log-lesson-quest">Det du lærte</p>
