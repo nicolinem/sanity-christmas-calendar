@@ -38,6 +38,7 @@ export type WorldState = {
 export type QuestCelebration = {
   questId: string;
   door: number;
+  bonus?: true;
   title: string;
   lesson: string;
   objectives?: string[];

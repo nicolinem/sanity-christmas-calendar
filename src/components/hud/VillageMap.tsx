@@ -93,10 +93,10 @@ export default function VillageMap({
             className={`vmap-door is-${d.status}${d.bonus ? " is-bonus" : ""}`}
             style={{ left: pct(d.x, W), top: pct(d.y, H) }}
             onClick={() => onOpenQuest(d.id)}
-            aria-label={`${d.bonus ? "Frivillig luke" : `Luke ${d.door}`}, ${STATUS_LABEL[d.status]}: ${QUEST_SITES[d.site].label}`}
+            aria-label={`${d.bonus ? "☆ Frivillig" : `Luke ${d.door}`}, ${STATUS_LABEL[d.status]}: ${QUEST_SITES[d.site].label}`}
           >
             <SpriteIcon sprite={{ sheet: "town", frame: 84 }} />
-            <span className="vmap-door-n">{d.bonus ? "?" : d.door}</span>
+            <span className="vmap-door-n">{d.bonus ? "☆" : d.door}</span>
           </button>
         ))}
         {knight.x > 0 && (
@@ -141,7 +141,7 @@ export default function VillageMap({
                 </span>
                 <span className="vmap-row-text">
                   <span className="vmap-row-meta">
-                    {d.bonus ? "Frivillig" : `Luke ${d.door}`} ·{" "}
+                    {d.bonus ? "☆ Frivillig" : `Luke ${d.door}`} ·{" "}
                     {QUEST_SITES[d.site].label} ·{" "}
                     {STATUS_LABEL[d.status]}
                   </span>

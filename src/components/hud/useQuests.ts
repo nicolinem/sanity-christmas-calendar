@@ -307,6 +307,7 @@ export function useQuestBoard({
       bridge.emit("questCelebration", {
         questId: s.quest.id,
         door: s.quest.door,
+        bonus: s.quest.bonus,
         title: s.quest.title,
         lesson: plainText(s.quest.lesson.title),
         objectives: s.result.objectives

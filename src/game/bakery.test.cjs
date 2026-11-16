@@ -8,8 +8,8 @@ const { transform } = require("sucrase");
 const moduleResult = { exports: {} };
 vm.runInNewContext(transform(readFileSync(`${__dirname}/bakery.ts`, "utf8"), {
   transforms: ["typescript", "imports"],
-}).code, { module: moduleResult, exports: moduleResult.exports });
-const { isNewOrder, isReadyOrder, signHasStrong, signText } = moduleResult.exports;
+}).code, { module: moduleResult, exports: moduleResult.exports, URL });
+const { isNewOrder, isReadyOrder, signHasHttpsLink, signHasStrong, signText } = moduleResult.exports;
 
 test("only a new, dated order with an item counts", () => {
   const order = { _id: "order-1", item: "Julekake", date: "2026-12-14", status: "ny" };
@@ -35,4 +35,18 @@ test("the skilt needs readable published text with a genuinely bold span", () =>
     { _type: "span", text: "Julekaker", marks: [] },
   ] }] }), false);
   assert.equal(signHasStrong(null), false);
+});
+
+test("the optional skilt link needs an HTTPS annotation applied to text", () => {
+  const sign = { _id: "bakery-sign", text: [{ _type: "block", children: [
+    { _type: "span", text: "Julekaker", marks: ["link-a"] },
+  ], markDefs: [{ _key: "link-a", _type: "link", href: "https://example.org/kaker" }] }] };
+  assert.equal(signHasHttpsLink(sign), true);
+  for (const change of [
+    { children: [{ _type: "span", text: "https://example.org/kaker", marks: [] }] },
+    { markDefs: [{ _key: "link-a", _type: "link", href: "http://example.org/kaker" }] },
+    { markDefs: [{ _key: "link-b", _type: "link", href: "https://example.org/kaker" }] },
+    { children: [{ _type: "span", text: " ", marks: ["link-a"] }] },
+  ]) assert.equal(signHasHttpsLink({ ...sign, text: [{ ...sign.text[0], ...change }] }), false);
+  assert.equal(signHasHttpsLink(null), false);
 });

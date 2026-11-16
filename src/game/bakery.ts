@@ -25,6 +25,18 @@ export const signHasStrong = (sign: BakerySign | null) =>
     block.children?.some((span) => span.text?.trim() && span.marks?.includes("strong")),
   ));
 
+export const signHasHttpsLink = (sign: BakerySign | null) =>
+  Boolean(sign?.text?.some((block) => block._type === "block" && block.children?.some((span) =>
+    span.text?.trim() && block.markDefs?.some((mark) => {
+      if (mark._type !== "link" || !span.marks?.includes(mark._key)) return false;
+      try {
+        return new URL(mark.href ?? "").protocol === "https:";
+      } catch {
+        return false;
+      }
+    }),
+  )));
+
 export const isNewOrder = (order: BakeryOrder) =>
   order.status === "ny" && /^\d{4}-\d{2}-\d{2}$/.test(order.date ?? "") &&
   Boolean(order.item?.trim());

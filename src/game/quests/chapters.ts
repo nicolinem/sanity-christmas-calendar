@@ -1,5 +1,5 @@
 import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
-import { isNewOrder, isReadyOrder, signHasStrong } from "../bakery";
+import { isNewOrder, isReadyOrder, signHasHttpsLink, signHasStrong } from "../bakery";
 import type { GameItemView } from "../items";
 import type {
   Chapter,
@@ -762,6 +762,36 @@ const bakerReady: Quest = {
   }),
 };
 
+const bakerLink: Quest = {
+  id: "baker-link",
+  giver: "bakeren",
+  bonus: true,
+  door: 0,
+  title: "☆ En lenke på skiltet",
+  villageSite: "bakery",
+  intro: [
+    "Noen gjester vil vite mer om det vi selger. Et lenket ord på skiltet kan vise dem veien.",
+    "Dette er frivillig ☆: legg en relevant HTTPS-lenke på tekst i bodskiltet og publiser.",
+  ],
+  goal: "Legg en HTTPS-lenke på et ord i bodskiltet og publiser. Frivillig ☆.",
+  where: "I ditt eget Sanity Studio, under *Bodskilt*.",
+  hints: [
+    { text: "Åpne skiltet i Studio, marker et ord og legg på *Lenke* (annotation).", link: { label: "Portable Text", url: `${DOCS}/block-content` } },
+    { text: "Bruk en relevant adresse som begynner med `https://`. En URL skrevet som vanlig tekst teller ikke." },
+    { text: "Publiser skiltet etter endringen. Bare publiserte lenker kan sjekkes." },
+  ],
+  learn: { label: "Portable Text annotations", url: `${DOCS}/block-content` },
+  lesson: {
+    title: "☆ En annotert lenke",
+    text: "En *annotation* knytter lenke-data til et markert tekstspenn. Spillet sjekket den publiserte lenken; om målet er nyttig for gjestene må du vurdere selv.",
+  },
+  checkedBy: "game",
+  check: ({ bakerySign }) => ({
+    done: signHasHttpsLink(bakerySign ?? null),
+    message: "Publiser skiltet med en HTTPS-lenke på et markert ord. Ren URL i teksten teller ikke.",
+  }),
+};
+
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
@@ -789,7 +819,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 3,
     title: "Automatisere",
-    quests: [bakerTemplate, bakerForge, bakerFunction, bakerFirstOrder, bakerSign, bakerReady],
+    quests: [bakerTemplate, bakerForge, bakerFunction, bakerFirstOrder, bakerSign, bakerReady, bakerLink],
     teaser: [
       "Singleton",
       "Portable Text",

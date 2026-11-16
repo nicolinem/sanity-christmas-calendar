@@ -88,7 +88,7 @@ export default function DevPanel({
       {current && (
         <div className="dev-actions">
           <button type="button" onClick={() => onComplete(current.quest.id)}>
-            Fullfør luke {current.quest.door}
+            Fullfør {current.quest.bonus ? "☆ Frivillig" : `luke ${current.quest.door}`}
           </button>
         </div>
       )}
@@ -103,7 +103,7 @@ export default function DevPanel({
               <details>
                 <summary>
                   <span className="dev-quest-title">
-                    Luke {s.quest.door}: {s.quest.title}
+                    {s.quest.bonus ? "☆ Frivillig" : `Luke ${s.quest.door}`}: {s.quest.title}
                   </span>
                   <span className={`dev-status is-${s.status}`}>{STATUS[s.status]}</span>
                 </summary>
