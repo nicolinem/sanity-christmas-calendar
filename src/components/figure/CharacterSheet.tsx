@@ -22,8 +22,10 @@ import SpriteIcon from "../hud/SpriteIcon";
 // have earned. The figure is always on the right; each category shows its
 // styles with the colour that belongs to them right underneath.
 
-type PartKey = "hair" | "facialHair" | "top" | "hat" | "armour" | "scarf" | "extra";
-type ColorKey = "skin" | "hairColor" | "topColor" | "pants" | "hatColor" | "scarfColor";
+type PartKey =
+  "hair" | "facialHair" | "top" | "hat" | "armour" | "scarf" | "extra";
+type ColorKey =
+  "skin" | "hairColor" | "topColor" | "pants" | "hatColor" | "scarfColor";
 type Swatch = { id: string; label: string; colors: readonly [string, string] };
 type Category = {
   id: string;
@@ -147,7 +149,9 @@ export default function CharacterSheet({
   onDone,
   onClose,
 }: Props) {
-  const [choice, setChoice] = useState<FigureChoice>(() => wearable(initial, owned));
+  const [choice, setChoice] = useState<FigureChoice>(() =>
+    wearable(initial, owned),
+  );
   const [name, setName] = useState(initialName);
   const [shareProfile, setShareProfile] = useState(initialShareProfile);
   const [history, setHistory] = useState<FigureChoice[]>([]);
@@ -167,8 +171,9 @@ export default function CharacterSheet({
   const isOwned = (part: PartKey, id: string) =>
     !isGear(part, id) || owned.has(`${part}:${id}`);
   const usable = options.filter((o) => isOwned(cat.part!, o.id));
-  const current = cat.part ? options.find((o) => o.id === choice[cat.part!]) : undefined;
-  // Gear colours belong to the gear: no hat colour while wearing a look hat.
+  const current = cat.part
+    ? options.find((o) => o.id === choice[cat.part!])
+    : undefined;
   const showColor =
     cat.color &&
     categoryUsesColor(choice, cat.part, cat.color.key, cat.color.options);
@@ -424,36 +429,31 @@ export default function CharacterSheet({
                 </>
               ))}
             {mode !== "bag" && <>
-            {mode === "gear" && (
-              <div>
-                <p className="cs-label">På deg nå</p>
-                <div className="cs-slots">
-                  {SLOTS.map((s) => {
-                    const id = choice[s.part];
-                    const worn = id !== "none" && (s.part !== "hat" || isGear("hat", id));
-                    const label = (FIGURE_OPTIONS[s.part] as readonly Option[]).find((o) => o.id === id)?.label;
-                    return (
-                      <div key={s.part} className={`cs-slot${worn ? " is-on" : ""}`}>
-                        <b>{s.label}</b>
-                        <span>{worn ? label : "Tom"}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {cat.part && current && (
               <div className="cs-stepper">
-                <button type="button" className="cs-arrow" onClick={() => step(-1)} aria-label="Forrige">
+                <button
+                  type="button"
+                  className="cs-arrow"
+                  onClick={() => step(-1)}
+                  aria-label="Forrige"
+                >
                   ‹
                 </button>
                 <strong>{current.label}</strong>
-                <button type="button" className="cs-arrow" onClick={() => step(1)} aria-label="Neste">
+                <button
+                  type="button"
+                  className="cs-arrow"
+                  onClick={() => step(1)}
+                  aria-label="Neste"
+                >
                   ›
                 </button>
                 <span>
-                  {Math.max(1, usable.findIndex((o) => o.id === current.id) + 1)} av {usable.length}
+                  {Math.max(
+                    1,
+                    usable.findIndex((o) => o.id === current.id) + 1,
+                  )}{" "}
+                  av {usable.length}
                 </span>
               </div>
             )}
@@ -471,12 +471,20 @@ export default function CharacterSheet({
                       data-new-gear={newGearKeys.includes(`${cat.part}:${o.id}`) ? `${cat.part}:${o.id}` : undefined}
                       aria-pressed={choice[cat.part!] === o.id}
                       disabled={!mine}
-                      title={mine ? o.label : `${o.label}: ${source ?? "ikke funnet ennå"}`}
+                      title={
+                        mine
+                          ? o.label
+                          : `${o.label}: ${source ?? "ikke funnet ennå"}`
+                      }
                       onClick={() => set({ ...choice, [cat.part!]: o.id })}
                     >
                       <FigureCanvas
                         // Hairstyles are hidden under most hats, so show them bare.
-                        choice={{ ...choice, ...(cat.part === "hair" ? { hat: "none" } : {}), [cat.part!]: o.id }}
+                        choice={{
+                          ...choice,
+                          ...(cat.part === "hair" ? { hat: "none" } : {}),
+                          [cat.part!]: o.id,
+                        }}
                         scale={4}
                       />
                       <span>{o.label}</span>
@@ -503,7 +511,9 @@ export default function CharacterSheet({
                       aria-label={`${cat.color!.label}: ${o.label}`}
                       title={o.label}
                       onClick={() => set({ ...choice, [cat.color!.key]: o.id })}
-                      style={{ background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)` }}
+                      style={{
+                        background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)`,
+                      }}
                     />
                   ))}
                 </div>
@@ -600,7 +610,11 @@ export default function CharacterSheet({
 
 // «Tilfeldig» changes your looks, not the gear you are wearing.
 function pickGear(choice: FigureChoice): Partial<FigureChoice> {
-  const keep: Partial<FigureChoice> = { armour: choice.armour, scarf: choice.scarf, extra: choice.extra };
+  const keep: Partial<FigureChoice> = {
+    armour: choice.armour,
+    scarf: choice.scarf,
+    extra: choice.extra,
+  };
   if (isGear("hat", choice.hat)) keep.hat = choice.hat;
   return keep;
 }
