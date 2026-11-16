@@ -433,7 +433,7 @@ const STUDIO_STEPS = [
   {
     id: "baker-forge",
     before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists", "who-points-here", "baker-template"],
-    next: null,
+    next: "baker-function",
   },
 ];
 function studioBoard(
@@ -456,6 +456,17 @@ function studioBoard(
 
 const stateOf = (board, id) =>
   board.states.find(({ quest }) => quest.id === id);
+
+test("the Function simulation is the final technical door, without a Studio step", () => {
+  const step = {
+    id: "baker-function",
+    before: [...STUDIO_STEPS.at(-1).before, "baker-forge"],
+  };
+  const board = studioBoard(step, { done: true });
+  assert.equal(stateOf(board, step.id).status, "done");
+  assert.ok(board.current === null || board.current.quest.bonus);
+  assert.equal(stateOf(board, step.id).quest.studioPractice, undefined);
+});
 
 test("Bakeren's ready door accepts only a published ready order with an item", () => {
   const ready = CHAPTERS.flatMap(({ quests }) => quests).find(({ id }) => id === "baker-ready");

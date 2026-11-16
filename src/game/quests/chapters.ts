@@ -643,6 +643,33 @@ const bakerForge: Quest = {
   check: fromWindow("baker-forge"),
 };
 
+const bakerFunction: Quest = {
+  id: "baker-function",
+  giver: "bakeren",
+  track: "technical",
+  door: 11,
+  title: "Sanity Function: skiltet",
+  villageSite: "bakery",
+  intro: [
+    "Markedet nærmer seg. Tenk om bodskiltet kunne reagere når en bestilling publiseres?",
+    "Lag hendelseslogikken i kodevinduet. Vi simulerer publisering med en falsk klient; ingenting deployes til prosjektet ditt.",
+  ],
+  goal: "Oppdater skiltet ved publisering av en bestilling, men ikke ved andre hendelser eller gjentakelser.",
+  where: "I kodevinduet hos Bakeren – ikke i Sanity Studio.",
+  hints: [
+    { text: "Sjekk `event.transition` og `event.document._type` før du henter skiltet. Tom vare må ignoreres." },
+    { text: "`getDocument(\"bakery-sign\")` returnerer skiltet. Sammenlign tekstspennet der med den nye `text`-verdien." },
+    { text: "Legg inn `return` når hendelsen er feil, og når `sign?.text?.[0]?.children?.[0]?.text === text`. Resten av oppdateringen er klar." },
+  ],
+  learn: { label: "Sanity Functions", url: `${DOCS}/functions` },
+  lesson: {
+    title: "Hendelser uten dobbeltarbeid",
+    text: "Dette var en simulering av hvordan en ekte Sanity Function ville reagert på en publisering. Ingen Function ble deployet eller kjørt i prosjektet ditt. Sanity Functions finnes også på Free-planen, men skiltet i bygda endres bare når du publiserer et ekte bodskilt i Studio.",
+  },
+  checkedBy: "window",
+  check: fromWindow("baker-function"),
+};
+
 const bakerFirstOrder: Quest = {
   id: "baker-first-order",
   giver: "bakeren",
@@ -762,7 +789,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 3,
     title: "Automatisere",
-    quests: [bakerTemplate, bakerForge, bakerFirstOrder, bakerSign, bakerReady],
+    quests: [bakerTemplate, bakerForge, bakerFunction, bakerFirstOrder, bakerSign, bakerReady],
     teaser: [
       "Singleton",
       "Portable Text",
