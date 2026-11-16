@@ -6,6 +6,7 @@ import { structureTask } from "./structureLists";
 import { questionsTask } from "./archiveQuestions";
 import { whoPointsHereTask } from "./whoPointsHere";
 import { bakerTemplateTask } from "./bakerTemplate";
+import { bakerForgeTask } from "./bakerForge";
 import type { WindowTask } from "./types";
 
 // The code window's tasks, by quest id. A quest with `checkedBy: "window"`
@@ -19,6 +20,7 @@ export const WINDOW_TASKS: Record<string, WindowTask> = {
   [questionsTask.id]: questionsTask,
   [whoPointsHereTask.id]: whoPointsHereTask,
   [bakerTemplateTask.id]: bakerTemplateTask,
+  [bakerForgeTask.id]: bakerForgeTask,
 };
 
 export type { Reference, Requirement, Verdict, WindowTask } from "./types";

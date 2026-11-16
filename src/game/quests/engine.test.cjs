@@ -428,6 +428,11 @@ const STUDIO_STEPS = [
   {
     id: "baker-template",
     before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists", "who-points-here"],
+    next: "baker-forge",
+  },
+  {
+    id: "baker-forge",
+    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists", "who-points-here", "baker-template"],
     next: null,
   },
 ];

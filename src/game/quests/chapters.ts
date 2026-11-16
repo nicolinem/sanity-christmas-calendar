@@ -615,6 +615,34 @@ const bakerTemplate: Quest = {
   check: fromWindow("baker-template"),
 };
 
+const bakerForge: Quest = {
+  id: "baker-forge",
+  giver: "bakeren",
+  track: "technical",
+  door: 10,
+  title: "Document action: Smi",
+  villageSite: "bakery",
+  intro: [
+    "Brann må sette tidspunkt og publisere for hånd hver gang et våpen er klart.",
+    "Lag én *document action* som stempler `forgedAt` og publiserer våpenet. Bruk kodevinduet.",
+  ],
+  goal: "Lag en Smi-action som stempler og publiserer et våpen i ett trykk.",
+  where: "I kodevinduet hos Bakeren. Prøv den ferdige Smi-knappen i Studio etterpå.",
+  hints: [
+    { text: "En *document action* returnerer blant annet `label` og `onHandle`.", link: { label: "Document actions", url: `${DOCS}/document-actions` } },
+    { text: "`useDocumentOperation(props.id, props.type)` gir `patch` og `publish`." },
+    { text: "Kall `patch.execute([{ set: { forgedAt: new Date().toISOString() } }])` før `publish.execute()`." },
+  ],
+  learn: { label: "Document actions", url: `${DOCS}/document-actions` },
+  lesson: {
+    title: "*Document action*",
+    text: "En *document action* legger et nytt arbeidssteg i Studio. Kodevinduet sjekket både stempel og publisering; spillet kan ikke se hvilket knappetrykk som skapte feltet. Studio bruker vår trygge Smi-versjon.",
+  },
+  checkedBy: "window",
+  studioPractice: "Åpne et våpen i Studio og prøv Smi. Et materiale skal ikke kunne smis.",
+  check: fromWindow("baker-forge"),
+};
+
 const bakerFirstOrder: Quest = {
   id: "baker-first-order",
   giver: "bakeren",
@@ -704,7 +732,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 3,
     title: "Automatisere",
-    quests: [bakerTemplate, bakerFirstOrder, bakerSign],
+    quests: [bakerTemplate, bakerForge, bakerFirstOrder, bakerSign],
     teaser: [
       "Singleton",
       "Portable Text",
