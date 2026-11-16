@@ -12,6 +12,7 @@ import {
   type FigureChoice,
 } from "@/game/figure";
 import { gearSource, isGear, wearable, type GearKey } from "@/game/wardrobe";
+import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { GameItemView } from "@/game/items";
 import FigureCanvas from "./FigureCanvas";
 import ItemDetails from "../hud/ItemDetails";
@@ -32,29 +33,51 @@ type Category = {
 };
 
 const LOOK: Category[] = [
-  { id: "skin", label: "Hud", color: { key: "skin", label: "Hudfarge", options: SKINS } },
-  { id: "hair", label: "Hår", part: "hair", color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS } },
-  { id: "facial", label: "Skjegg", part: "facialHair", color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS } },
-  { id: "top", label: "Overdel", part: "top", color: { key: "topColor", label: "Farge", options: CLOTH_COLORS } },
-  { id: "pants", label: "Bukse", color: { key: "pants", label: "Buksefarge", options: PANTS } },
-  { id: "hat", label: "Lue", part: "hat", color: { key: "hatColor", label: "Luefarge", options: CLOTH_COLORS } },
-];
-
-const GEAR: Category[] = [
-  { id: "head", label: "Hode", part: "hat", color: { key: "hatColor", label: "Farge", options: CLOTH_COLORS } },
-  { id: "body", label: "Kropp", part: "armour" },
-  { id: "neck", label: "Hals", part: "scarf", color: { key: "scarfColor", label: "Skjerffarge", options: CLOTH_COLORS } },
+  {
+    id: "skin",
+    label: "Hud",
+    color: { key: "skin", label: "Hudfarge", options: SKINS },
+  },
+  {
+    id: "hair",
+    label: "Hår",
+    part: "hair",
+    color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS },
+  },
+  {
+    id: "facial",
+    label: "Skjegg",
+    part: "facialHair",
+    color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS },
+  },
+  {
+    id: "top",
+    label: "Overdel",
+    part: "top",
+    color: { key: "topColor", label: "Farge", options: CLOTH_COLORS },
+  },
+  { id: "armour", label: "Rustning", part: "armour" },
+  {
+    id: "pants",
+    label: "Bukse",
+    color: { key: "pants", label: "Buksefarge", options: PANTS },
+  },
+  {
+    id: "hat",
+    label: "Hodeplagg",
+    part: "hat",
+    color: { key: "hatColor", label: "Luefarge", options: CLOTH_COLORS },
+  },
+  {
+    id: "scarf",
+    label: "Hals",
+    part: "scarf",
+    color: { key: "scarfColor", label: "Skjerffarge", options: CLOTH_COLORS },
+  },
   { id: "extra", label: "Ekstra", part: "extra" },
 ];
 
-const SLOTS: { part: PartKey; label: string }[] = [
-  { part: "hat", label: "Hode" },
-  { part: "armour", label: "Kropp" },
-  { part: "scarf", label: "Hals" },
-  { part: "extra", label: "Ekstra" },
-];
-
-type Mode = "bag" | "gear" | "look";
+type Mode = "bag" | "look";
 type InventoryFilter = "all" | "weapon" | "material" | "potion";
 const INVENTORY_FILTERS: { id: InventoryFilter; label: string }[] = [
   { id: "all", label: "Alt" },
@@ -64,16 +87,6 @@ const INVENTORY_FILTERS: { id: InventoryFilter; label: string }[] = [
 ];
 
 type Option = { id: string; label: string };
-
-// Looks hold what you choose freely; gear holds what you earn, plus "none".
-function optionsFor(cat: Category, gear: boolean): Option[] {
-  if (!cat.part) return [];
-  const all = FIGURE_OPTIONS[cat.part] as readonly Option[];
-  if (!gear) return all.filter((o) => !isGear(cat.part!, o.id));
-  // Hats are both: the gear tab shows only the earned ones.
-  if (cat.part === "hat") return all.filter((o) => o.id === "none" || isGear("hat", o.id));
-  return [...all];
-}
 
 // Only show a colour when the chosen style actually uses it (no hair colour
 // for a bald head without a beard, no hat colour for a helmet).
@@ -85,7 +98,23 @@ function usesColor(choice: FigureChoice, key: ColorKey, options: Swatch[]) {
   return false;
 }
 
-const cleanName = (s: string) => s.replace(/[^\p{L}\p{N} '-]/gu, "").slice(0, 24);
+function categoryUsesColor(
+  choice: FigureChoice,
+  part: PartKey | undefined,
+  key: ColorKey,
+  options: Swatch[],
+) {
+  const isolated = { ...choice };
+  if (key === "hairColor") {
+    if (part === "hair") isolated.facialHair = "none";
+    if (part === "facialHair") isolated.hair = "bald";
+  }
+  if (key === "scarfColor" && part === "scarf") isolated.extra = "none";
+  return usesColor(isolated, key, options);
+}
+
+const cleanName = (s: string) =>
+  s.replace(/[^\p{L}\p{N} '-]/gu, "").slice(0, 24);
 
 type Props = {
   initial: FigureChoice;
@@ -94,6 +123,7 @@ type Props = {
   firstTime: boolean; // no figure yet: nothing to go back to, so no close
   initialTab: Mode;
   initialShareProfile: boolean;
+  seenGear: Record<string, true>;
   items: GameItemView[];
   equippedId: string | null;
   onEquip: (item: GameItemView) => void;
@@ -109,6 +139,7 @@ export default function CharacterSheet({
   firstTime,
   initialTab,
   initialShareProfile,
+  seenGear,
   items,
   equippedId,
   onEquip,
@@ -121,23 +152,26 @@ export default function CharacterSheet({
   const [shareProfile, setShareProfile] = useState(initialShareProfile);
   const [history, setHistory] = useState<FigureChoice[]>([]);
   const [mode, setMode] = useState<Mode>(firstTime ? "look" : initialTab);
-  const [catId, setCatId] = useState("hair");
+  const [catId, setCatId] = useState("skin");
   const [inventoryFilter, setInventoryFilter] =
     useState<InventoryFilter>("all");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const doneRef = useRef<HTMLButtonElement>(null);
 
-  const cats = mode === "look" ? LOOK : GEAR;
+  const cats = LOOK;
   const cat = cats.find((c) => c.id === catId) ?? cats[0];
-  const options = useMemo(() => optionsFor(cat, mode === "gear"), [cat, mode]);
-  const isOwned = (part: PartKey, id: string) => !isGear(part, id) || owned.has(`${part}:${id}`);
+  const options = useMemo(
+    () => (cat.part ? (FIGURE_OPTIONS[cat.part] as readonly Option[]) : []),
+    [cat],
+  );
+  const isOwned = (part: PartKey, id: string) =>
+    !isGear(part, id) || owned.has(`${part}:${id}`);
   const usable = options.filter((o) => isOwned(cat.part!, o.id));
   const current = cat.part ? options.find((o) => o.id === choice[cat.part!]) : undefined;
   // Gear colours belong to the gear: no hat colour while wearing a look hat.
   const showColor =
     cat.color &&
-    (mode === "look" || (current && current.id !== "none")) &&
-    usesColor(choice, cat.color.key, cat.color.options);
+    categoryUsesColor(choice, cat.part, cat.color.key, cat.color.options);
   const inventory = items.filter((item) => item.id !== "builtin-fists");
   const filteredItems = inventory.filter(
     (item) => inventoryFilter === "all" || item.kind === inventoryFilter,
@@ -145,6 +179,21 @@ export default function CharacterSheet({
   const selectedItem =
     filteredItems.find((item) => item.id === selectedItemId) ?? null;
   const equippedItem = items.find((item) => item.id === equippedId) ?? null;
+  const part = cat.part;
+  const newGearKeys = useMemo(
+    () =>
+      part
+        ? options
+            .filter(
+              (option) =>
+                isGear(part, option.id) &&
+                owned.has(`${part}:${option.id}`) &&
+                !seenGear[`${part}:${option.id}`],
+            )
+            .map((option) => `${part}:${option.id}`)
+        : [],
+    [part, options, owned, seenGear],
+  );
 
   const set = (next: FigureChoice) => {
     setHistory((h) => [...h.slice(-30), choice]);
@@ -153,7 +202,8 @@ export default function CharacterSheet({
   const step = (by: number) => {
     if (mode === "bag" || !cat.part || usable.length === 0) return;
     const at = usable.findIndex((o) => o.id === choice[cat.part!]);
-    const next = usable[(at + by + usable.length) % usable.length];
+    const nextIndex = at < 0 ? (by > 0 ? 0 : usable.length - 1) : at + by;
+    const next = usable[(nextIndex + usable.length) % usable.length];
     set({ ...choice, [cat.part]: next.id });
   };
   const undo = () => {
@@ -167,6 +217,37 @@ export default function CharacterSheet({
   useEffect(() => {
     doneRef.current?.focus({ preventScroll: true });
   }, []);
+
+  useEffect(() => {
+    if (mode !== "look" || newGearKeys.length === 0) return;
+    const root = document.querySelector<HTMLElement>(".cs-pick");
+    if (!root || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => (entry.target as HTMLElement).dataset.newGear)
+          .filter((key): key is string => Boolean(key));
+        if (visible.length === 0) return;
+        updateProgress(PROGRESS_PROJECT, (progress) => {
+          const next = { ...progress.seenGear };
+          let changed = false;
+          for (const key of visible) {
+            if (!next[key]) {
+              next[key] = true;
+              changed = true;
+            }
+          }
+          return changed ? { ...progress, seenGear: next } : progress;
+        });
+      },
+      { root, threshold: 0.1 },
+    );
+    root
+      .querySelectorAll<HTMLElement>("[data-new-gear]")
+      .forEach((option) => observer.observe(option));
+    return () => observer.disconnect();
+  }, [mode, newGearKeys, seenGear]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -187,7 +268,7 @@ export default function CharacterSheet({
 
   const switchMode = (m: Mode) => {
     setMode(m);
-    setCatId(m === "look" ? "hair" : "head");
+    setCatId("skin");
     setInventoryFilter("all");
     setSelectedItemId(null);
   };
@@ -212,7 +293,6 @@ export default function CharacterSheet({
               ? [{ id: "look" as const, label: "Utseende" }]
               : [
                   { id: "bag" as const, label: "Ting" },
-                  { id: "gear" as const, label: "Utstyr" },
                   { id: "look" as const, label: "Utseende" },
                 ]
             ).map(({ id: m, label }) => (
@@ -241,7 +321,7 @@ export default function CharacterSheet({
         </header>
 
         <div className="cs-body">
-          <nav className="cs-cats" aria-label={mode === "bag" ? "Ting" : mode === "look" ? "Utseende" : "Utstyr"}>
+          <nav className="cs-cats" aria-label={mode === "bag" ? "Ting" : "Utseende"}>
             {mode === "bag"
               ? INVENTORY_FILTERS.map(({ id, label }) => {
                   const count =
@@ -261,17 +341,29 @@ export default function CharacterSheet({
                     </button>
                   );
                 })
-              : cats.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className="cs-cat"
-                    aria-current={c.id === cat.id}
-                    onClick={() => setCatId(c.id)}
-                  >
-                    {c.label}
-                  </button>
-                ))}
+              : cats.map((c) => {
+                    const part = c.part;
+                    const hasNew = part
+                      ? (FIGURE_OPTIONS[part] as readonly Option[]).some(
+                        (option) =>
+                            isGear(part, option.id) &&
+                            owned.has(`${part}:${option.id}`) &&
+                            !seenGear[`${part}:${option.id}`],
+                      )
+                    : false;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="cs-cat"
+                      aria-current={c.id === cat.id}
+                      onClick={() => setCatId(c.id)}
+                    >
+                      <span>{c.label}</span>
+                      {hasNew && <span className="cs-new-badge">Ny</span>}
+                    </button>
+                  );
+                })}
           </nav>
 
           <div className="cs-pick">
@@ -376,6 +468,7 @@ export default function CharacterSheet({
                       key={o.id}
                       type="button"
                       className={`cs-option${mine ? "" : " is-locked"}`}
+                      data-new-gear={newGearKeys.includes(`${cat.part}:${o.id}`) ? `${cat.part}:${o.id}` : undefined}
                       aria-pressed={choice[cat.part!] === o.id}
                       disabled={!mine}
                       title={mine ? o.label : `${o.label}: ${source ?? "ikke funnet ennå"}`}
@@ -387,6 +480,9 @@ export default function CharacterSheet({
                         scale={4}
                       />
                       <span>{o.label}</span>
+                      {newGearKeys.includes(`${cat.part}:${o.id}`) && (
+                        <span className="cs-new-badge">Ny</span>
+                      )}
                       {!mine && <small>{source ?? "Ikke funnet ennå"}</small>}
                     </button>
                   );
@@ -414,9 +510,6 @@ export default function CharacterSheet({
               </div>
             )}
 
-            {mode === "gear" && owned.size === 0 && (
-              <p className="cs-hint">Utstyr finner du i bygda og får for oppgaver. Det dukker opp her.</p>
-            )}
             </>}
           </div>
 
@@ -495,16 +588,6 @@ export default function CharacterSheet({
                   <span className="cs-hand">
                     I hånda: {equippedItem?.name ?? ""}
                   </span>
-                )}
-                {mode === "gear" && (
-                  <button
-                    ref={doneRef}
-                    type="button"
-                    className="btn btn--amber cs-done"
-                    onClick={done}
-                  >
-                    Ferdig
-                  </button>
                 )}
               </div>
             )}

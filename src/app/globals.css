@@ -4853,6 +4853,13 @@ kbd {
   font-size: 12px;
   color: var(--frost-dim);
 }
+.cs-new-badge {
+  padding: 2px 5px;
+  font: 500 9px var(--font-pixel);
+  letter-spacing: 0.04em;
+  color: var(--night-2);
+  background: var(--amber);
+}
 .cs-pick {
   display: grid;
   align-content: start;
@@ -4907,6 +4914,7 @@ kbd {
   gap: 10px;
 }
 .cs-option {
+  position: relative;
   display: grid;
   justify-items: center;
   align-content: start;
@@ -4917,6 +4925,11 @@ kbd {
   background: var(--night-2);
   border: var(--px) solid transparent;
   cursor: pointer;
+}
+.cs-option .cs-new-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
 }
 .cs-option:hover:not(:disabled) {
   border-color: var(--night-3);
@@ -4954,39 +4967,6 @@ kbd {
   box-shadow:
     0 0 0 2px var(--night-2),
     0 0 0 4px var(--amber);
-}
-.cs-slots {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-.cs-slot {
-  display: grid;
-  gap: 2px;
-  padding: 8px;
-  font-size: 13px;
-  text-align: center;
-  color: var(--frost-dim);
-  background: var(--night-2);
-  border: var(--px) dashed var(--night-3);
-}
-.cs-slot.is-on {
-  color: var(--snow);
-  border-style: solid;
-  border-color: var(--glacier);
-}
-.cs-slot b {
-  font:
-    500 11px var(--font-pixel),
-    var(--font-body);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--frost-dim);
-}
-.cs-hint {
-  margin: 0;
-  font-size: 13px;
-  color: var(--frost-dim);
 }
 .cs-empty {
   margin: 0;
@@ -5031,12 +5011,19 @@ kbd {
   justify-items: center;
   gap: 8px;
   text-align: center;
+  grid-template-columns: 1fr;
 }
 .cs-hero-meta strong {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
   font: 400 28px/1.1 var(--font-display);
   color: var(--snow);
 }
 .cs-hero-meta > span:not(.cs-hand) {
+  display: block;
+  grid-column: 1;
+  grid-row: 2;
   font: 11px var(--font-pixel);
   letter-spacing: 0.06em;
   text-transform: uppercase;

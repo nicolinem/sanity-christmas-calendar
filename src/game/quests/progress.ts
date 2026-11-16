@@ -19,6 +19,7 @@ export const EMPTY_PROGRESS: Progress = {
   introSeen: false,
   solved: {},
   weeksSeen: {},
+  seenGear: {},
 };
 
 // One record per Sanity project, so a fresh project is a fresh start.
@@ -49,16 +50,27 @@ export function readProgress(project: string): Progress {
         (Partial<Progress> & { skipped?: unknown }) | null;
       if (saved && typeof saved === "object") {
         delete saved.skipped;
-        delete (saved as Partial<Progress> & { studioConfirmed?: unknown }).studioConfirmed;
+        delete (saved as Partial<Progress> & { studioConfirmed?: unknown })
+          .studioConfirmed;
         value = {
           ...EMPTY_PROGRESS,
           ...saved,
           track: saved.track === "nonTechnical" ? "nonTechnical" : "technical",
           // Existing records belonged to players who had already entered the game.
           // Keep them out of first-run onboarding, but never infer sharing consent.
-          trackChosen: typeof saved.trackChosen === "boolean" ? saved.trackChosen : true,
+          trackChosen:
+            typeof saved.trackChosen === "boolean" ? saved.trackChosen : true,
           shareProfile: saved.shareProfile === true,
-          sharePrompted: typeof saved.sharePrompted === "boolean" ? saved.sharePrompted : false,
+          sharePrompted:
+            typeof saved.sharePrompted === "boolean"
+              ? saved.sharePrompted
+              : false,
+          seenGear:
+            saved.seenGear &&
+            typeof saved.seenGear === "object" &&
+            !Array.isArray(saved.seenGear)
+              ? (saved.seenGear as Record<string, true>)
+              : {},
         };
       }
     }
@@ -91,7 +103,9 @@ export function resetProgress(project: string) {
     const storage = window.localStorage;
     const drafts = Array.from({ length: storage.length }, (_, index) =>
       storage.key(index),
-    ).filter((key): key is string => key?.startsWith("winter-quest:code:") ?? false);
+    ).filter(
+      (key): key is string => key?.startsWith("winter-quest:code:") ?? false,
+    );
     drafts.forEach((key) => storage.removeItem(key));
   } catch {
     // Reset progress even when browser storage is unavailable.

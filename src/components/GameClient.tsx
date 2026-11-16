@@ -1,6 +1,10 @@
 "use client";
 
-import { normalizeFigure, type FigureChoice } from "@/game/figure";
+import {
+  FIGURE_OPTIONS,
+  normalizeFigure,
+  type FigureChoice,
+} from "@/game/figure";
 import { communityEndpoint } from "@/game/communityEndpoint";
 import { ownedGear, wearable } from "@/game/wardrobe";
 import CharacterSheet from "./figure/CharacterSheet";
@@ -169,13 +173,42 @@ export default function GameClient() {
   const dev = useDevMode();
   // The figure as worn: gear the player hasn't earned (yet) is left off.
   const owned = useMemo(() => ownedGear(progress, { dev }), [progress, dev]);
+  const previousOwnedGear = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const previous = previousOwnedGear.current;
+    if (previous && !dev) {
+      let delay = 0;
+      const categories: Partial<Record<keyof FigureChoice, string>> = {
+        armour: "Rustning",
+        hat: "Hodeplagg",
+        scarf: "Hals",
+        extra: "Ekstra",
+      };
+      for (const gearKey of owned) {
+        if (previous.has(gearKey)) continue;
+        const [part, id] = gearKey.split(":") as [keyof FigureChoice, string];
+        const category = categories[part];
+        const option = FIGURE_OPTIONS[part].find((item) => item.id === id);
+        if (category && option) {
+          const toast = {
+            title: `Ny ${category}: ${option.label}.`,
+            body: "Trykk C for å ta den på.",
+            tone: "lesson",
+          } as const;
+          window.setTimeout(() => pushToast(toast), delay);
+          delay += 1800;
+        }
+      }
+    }
+    previousOwnedGear.current = new Set(owned);
+  }, [owned, dev]);
   const figure = useMemo(
     () => (progress.figure ? wearable(normalizeFigure(progress.figure), owned) : null),
     [progress.figure, owned],
   );
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [sheetTab, setSheetTab] = useState<"bag" | "gear" | "look">("gear");
-  const openSheet = useCallback((tab: "bag" | "gear" | "look") => {
+  const [sheetTab, setSheetTab] = useState<"bag" | "look">("look");
+  const openSheet = useCallback((tab: "bag" | "look") => {
     setSheetTab(tab);
     setSheetOpen(true);
   }, []);
@@ -606,7 +639,7 @@ export default function GameClient() {
         return;
       }
       if ((e.key === "c" || e.key === "C") && !dialogueOpen) {
-        openSheet("gear");
+        openSheet("look");
         return;
       }
       if ((e.key === "i" || e.key === "I") && !dialogueOpen) {
@@ -702,7 +735,7 @@ export default function GameClient() {
             <button
               type="button"
               className="studio-link"
-              onClick={() => openSheet("gear")}
+              onClick={() => openSheet("look")}
               aria-label="Figuren din (C)"
             >
               Figur
@@ -778,7 +811,7 @@ export default function GameClient() {
                   name={progress.name ?? ""}
                   level={forgeLevel}
                   compact={narrow}
-                  onOpen={() => openSheet("gear")}
+                  onOpen={() => openSheet("look")}
                 />
               }
               items={items}
@@ -896,6 +929,7 @@ export default function GameClient() {
             firstTime={entryStage === "figure"}
             initialTab={progress.figure ? sheetTab : "look"}
             initialShareProfile={progress.shareProfile}
+            seenGear={progress.seenGear}
             items={items}
             equippedId={equippedId}
             onEquip={handleEquip}

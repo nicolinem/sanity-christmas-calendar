@@ -24,8 +24,8 @@ export default function PlayerPlate({
         type="button"
         className={`plate${compact ? " is-compact" : ""}`}
         onClick={onOpen}
-        aria-label="Figur og utstyr (C)"
-        title="Figur og utstyr (C)"
+        aria-label="Figur og utseende (C)"
+        title="Figur og utseende (C)"
       >
         <span className="plate-portrait">
           <FigureCanvas choice={figure} scale={3} />
@@ -36,7 +36,7 @@ export default function PlayerPlate({
         </span>
       </button>
       <div className="tooltip frame frame--slate plate-tooltip" role="tooltip">
-        <p className="tooltip-name">Figur og utstyr</p>
+        <p className="tooltip-name">Figur og utseende</p>
         <p className="tooltip-desc">
           Bytt utseende og ta på det du har funnet
         </p>
