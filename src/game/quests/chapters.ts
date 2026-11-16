@@ -1,4 +1,5 @@
 import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
+import { isNewOrder } from "../bakery";
 import type { GameItemView } from "../items";
 import type {
   Chapter,
@@ -614,6 +615,38 @@ const bakerTemplate: Quest = {
   check: fromWindow("baker-template"),
 };
 
+const bakerFirstOrder: Quest = {
+  id: "baker-first-order",
+  giver: "bakeren",
+  track: "nonTechnical",
+  door: 5,
+  title: "Initial value template: ny bestilling",
+  villageSite: "bakery",
+  intro: [
+    "Hver bestilling må ha dato og status. Jeg har laget en mal som fyller inn begge deler.",
+    "Åpne *Ny bestilling* i Studio, skriv inn varen og trykk *Publish*. Hva står der allerede?",
+  ],
+  goal: "Lag og publiser en ny bestilling med vare, status «ny» og dato.",
+  where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
+  hints: [
+    { text: "Åpne *Ny bestilling* i Studio. Den ferdige malen fyller ut dato og status når du oppretter et nytt dokument.", link: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` } },
+    { text: "Skriv en vare i feltet *Vare*. Du kan beholde malens status «ny» og datoen." },
+    { text: "Trykk *Publish*; utkast er ikke synlige for spillet." },
+  ],
+  learn: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` },
+  lesson: {
+    title: "En mal starter dokumentet",
+    text: "En *initial value template* gir nye dokumenter startverdier, men du kan endre dem før publisering. Spillet sjekket den publiserte bestillingen; det kan ikke vite hvilken mal du brukte.",
+  },
+  checkedBy: "game",
+  check: ({ bakeryOrders }) => ({
+    done: Boolean(bakeryOrders?.some(isNewOrder)),
+    message: bakeryOrders === null
+      ? "Henter publiserte bestillinger fra prosjektet ditt…"
+      : "Publiser en ny bestilling med vare, dato og status «ny».",
+  }),
+};
+
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
@@ -641,7 +674,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 3,
     title: "Automatisere",
-    quests: [bakerTemplate],
+    quests: [bakerTemplate, bakerFirstOrder],
     teaser: [
       "Singleton",
       "Portable Text",

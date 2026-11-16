@@ -1,4 +1,5 @@
 import type { OwnArchiveDoc, OwnCase } from "../archive";
+import type { BakeryOrder } from "../bakery";
 import type { GameItemView } from "../items";
 import type { Element } from "../magic";
 import type { NpcId, QuestSiteId } from "../village";
@@ -49,6 +50,7 @@ export type QuestContext = {
   // track), published versions only. null until the game has asked.
   archive?: OwnArchiveDoc[] | null;
   archiveCases?: OwnCase[] | null; // published `case` documents, same source
+  bakeryOrders?: BakeryOrder[] | null; // published orders from the player's project
 };
 
 export type Objective = { label: string; done: boolean };

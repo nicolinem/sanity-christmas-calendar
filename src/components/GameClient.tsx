@@ -119,6 +119,7 @@ export default function GameClient() {
   // Arkivarens observasjoner in the player's project (uke 2, non-technical).
   const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
   const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
+  const [bakeryOrders, setBakeryOrders] = useState<import("@/game/bakery").BakeryOrder[] | null>(null);
   const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
   const [communityReady, setCommunityReady] = useState(false);
   const [equippedId, setEquippedId] = useState<string | null>(null);
@@ -286,7 +287,7 @@ export default function GameClient() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, checks, own] = await Promise.all([
+      const [res, checks, own, bakery] = await Promise.all([
         fetch("/api/items", { cache: "no-store" }),
         fetch("/api/quest-checks", { cache: "no-store" })
           .then((r) => r.json())
@@ -294,9 +295,13 @@ export default function GameClient() {
         fetch("/api/archive", { cache: "no-store" })
           .then((r) => r.json())
           .catch(() => null),
+        fetch("/api/bakery", { cache: "no-store" })
+          .then((r) => r.json())
+          .catch(() => null),
       ]);
       setArchive(own?.error ? null : (own?.docs ?? null));
       setArchiveCases(own?.error ? null : (own?.cases ?? null));
+      setBakeryOrders(bakery?.error ? null : (bakery?.orders ?? null));
       const data: {
         configured: boolean;
         unclaimed?: boolean;
@@ -446,6 +451,7 @@ export default function GameClient() {
     unpublishedDrafts,
     archive,
     archiveCases,
+    bakeryOrders,
     wraithDefeatedNow: combat.defeated,
     progress,
   });
