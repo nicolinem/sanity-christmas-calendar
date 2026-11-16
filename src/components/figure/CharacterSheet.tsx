@@ -12,7 +12,10 @@ import {
   type FigureChoice,
 } from "@/game/figure";
 import { gearSource, isGear, wearable, type GearKey } from "@/game/wardrobe";
+import type { GameItemView } from "@/game/items";
 import FigureCanvas from "./FigureCanvas";
+import ItemDetails from "../hud/ItemDetails";
+import SpriteIcon from "../hud/SpriteIcon";
 
 // The character sheet (C): pick how your figure looks, and wear the gear you
 // have earned. The figure is always on the right; each category shows its
@@ -51,6 +54,15 @@ const SLOTS: { part: PartKey; label: string }[] = [
   { part: "extra", label: "Ekstra" },
 ];
 
+type Mode = "bag" | "gear" | "look";
+type InventoryFilter = "all" | "weapon" | "material" | "potion";
+const INVENTORY_FILTERS: { id: InventoryFilter; label: string }[] = [
+  { id: "all", label: "Alt" },
+  { id: "weapon", label: "Våpen" },
+  { id: "material", label: "Materialer" },
+  { id: "potion", label: "Drikker" },
+];
+
 type Option = { id: string; label: string };
 
 // Looks hold what you choose freely; gear holds what you earn, plus "none".
@@ -80,8 +92,12 @@ type Props = {
   initialName: string;
   owned: Set<GearKey>;
   firstTime: boolean; // no figure yet: nothing to go back to, so no close
-  initialTab: "gear" | "look";
+  initialTab: Mode;
   initialShareProfile: boolean;
+  items: GameItemView[];
+  equippedId: string | null;
+  onEquip: (item: GameItemView) => void;
+  level: number;
   onDone: (choice: FigureChoice, name: string, shareProfile: boolean) => void;
   onClose: () => void;
 };
@@ -93,6 +109,10 @@ export default function CharacterSheet({
   firstTime,
   initialTab,
   initialShareProfile,
+  items,
+  equippedId,
+  onEquip,
+  level,
   onDone,
   onClose,
 }: Props) {
@@ -100,8 +120,11 @@ export default function CharacterSheet({
   const [name, setName] = useState(initialName);
   const [shareProfile, setShareProfile] = useState(initialShareProfile);
   const [history, setHistory] = useState<FigureChoice[]>([]);
-  const [mode, setMode] = useState<"look" | "gear">(initialTab);
+  const [mode, setMode] = useState<Mode>(firstTime ? "look" : initialTab);
   const [catId, setCatId] = useState("hair");
+  const [inventoryFilter, setInventoryFilter] =
+    useState<InventoryFilter>("all");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const doneRef = useRef<HTMLButtonElement>(null);
 
   const cats = mode === "look" ? LOOK : GEAR;
@@ -115,13 +138,20 @@ export default function CharacterSheet({
     cat.color &&
     (mode === "look" || (current && current.id !== "none")) &&
     usesColor(choice, cat.color.key, cat.color.options);
+  const inventory = items.filter((item) => item.id !== "builtin-fists");
+  const filteredItems = inventory.filter(
+    (item) => inventoryFilter === "all" || item.kind === inventoryFilter,
+  );
+  const selectedItem =
+    filteredItems.find((item) => item.id === selectedItemId) ?? null;
+  const equippedItem = items.find((item) => item.id === equippedId) ?? null;
 
   const set = (next: FigureChoice) => {
     setHistory((h) => [...h.slice(-30), choice]);
     setChoice(next);
   };
   const step = (by: number) => {
-    if (!cat.part || usable.length === 0) return;
+    if (mode === "bag" || !cat.part || usable.length === 0) return;
     const at = usable.findIndex((o) => o.id === choice[cat.part!]);
     const next = usable[(at + by + usable.length) % usable.length];
     set({ ...choice, [cat.part]: next.id });
@@ -140,21 +170,26 @@ export default function CharacterSheet({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !firstTime) {
+        onClose();
+        return;
+      }
       if ((e.target as HTMLElement)?.closest?.("input")) {
         if (e.key === "Escape") (e.target as HTMLElement).blur();
         return;
       }
-      if (e.key === "Escape" && !firstTime) onClose();
-      if (e.key === "ArrowLeft") step(-1);
-      if (e.key === "ArrowRight") step(1);
+      if (mode !== "bag" && e.key === "ArrowLeft") step(-1);
+      if (mode !== "bag" && e.key === "ArrowRight") step(1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const switchMode = (m: "look" | "gear") => {
+  const switchMode = (m: Mode) => {
     setMode(m);
     setCatId(m === "look" ? "hair" : "head");
+    setInventoryFilter("all");
+    setSelectedItemId(null);
   };
 
   return (
@@ -167,9 +202,20 @@ export default function CharacterSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="cs-head">
-          <h2 className="log-title">{firstTime ? "Lag figuren din" : "Figuren din"}</h2>
+          <h2 className="log-title">
+            {firstTime
+              ? "Lag figuren din"
+              : initialName.trim() || "Figuren din"}
+          </h2>
           <div className="log-tabs" role="tablist">
-            {(["look", "gear"] as const).map((m) => (
+            {(firstTime
+              ? [{ id: "look" as const, label: "Utseende" }]
+              : [
+                  { id: "bag" as const, label: "Ting" },
+                  { id: "gear" as const, label: "Utstyr" },
+                  { id: "look" as const, label: "Utseende" },
+                ]
+            ).map(({ id: m, label }) => (
               <button
                 key={m}
                 type="button"
@@ -178,33 +224,114 @@ export default function CharacterSheet({
                 className={`log-tab${mode === m ? " is-on" : ""}`}
                 onClick={() => switchMode(m)}
               >
-                {m === "look" ? "Utseende" : "Utstyr"}
+                {label}
               </button>
             ))}
           </div>
           {!firstTime && (
-            <button type="button" className="cs-close" onClick={onClose}>
+            <button
+              ref={mode === "bag" ? doneRef : undefined}
+              type="button"
+              className="cs-close"
+              onClick={onClose}
+            >
               <kbd>Esc</kbd> lukk
             </button>
           )}
         </header>
 
         <div className="cs-body">
-          <nav className="cs-cats" aria-label={mode === "look" ? "Utseende" : "Utstyr"}>
-            {cats.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className="cs-cat"
-                aria-current={c.id === cat.id}
-                onClick={() => setCatId(c.id)}
-              >
-                {c.label}
-              </button>
-            ))}
+          <nav className="cs-cats" aria-label={mode === "bag" ? "Ting" : mode === "look" ? "Utseende" : "Utstyr"}>
+            {mode === "bag"
+              ? INVENTORY_FILTERS.map(({ id, label }) => {
+                  const count =
+                    id === "all"
+                      ? inventory.length
+                      : inventory.filter((item) => item.kind === id).length;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className="cs-cat"
+                      aria-current={inventoryFilter === id}
+                      onClick={() => setInventoryFilter(id)}
+                    >
+                      <span>{label}</span>
+                      <span className="cs-cat-count">{count}</span>
+                    </button>
+                  );
+                })
+              : cats.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="cs-cat"
+                    aria-current={c.id === cat.id}
+                    onClick={() => setCatId(c.id)}
+                  >
+                    {c.label}
+                  </button>
+                ))}
           </nav>
 
           <div className="cs-pick">
+            {mode === "bag" &&
+              (inventory.length === 0 ? (
+                <p className="cs-empty">
+                  Du har ingen ting ennå. Det du smir i Sanity havner her.
+                </p>
+              ) : (
+                <>
+                  <div className="cs-inv" role="group" aria-label="Ting">
+                    {filteredItems.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`slot cs-inv-item${item.id === selectedItemId ? " is-selected" : ""}${item.id === equippedId ? " is-equipped" : ""}`}
+                        aria-label={item.name}
+                        aria-pressed={item.id === selectedItemId}
+                        onClick={() => setSelectedItemId(item.id)}
+                      >
+                        <SpriteIcon sprite={item.sprite} />
+                        {item.source === "sanity" && <span className="slot-mark" />}
+                        {item.spriteId &&
+                          (!item.knownSprite || !item.spriteMatchesKind) && (
+                            <span className="slot-fallback" />
+                          )}
+                      </button>
+                    ))}
+                    {Array.from(
+                      { length: Math.max(0, 18 - filteredItems.length) },
+                      (_, index) => (
+                        <span
+                          key={`empty-${index}`}
+                          className="cs-inv-empty"
+                          aria-hidden="true"
+                        />
+                      ),
+                    )}
+                  </div>
+                  {selectedItem && (
+                    <div className="cs-item-detail">
+                      <ItemDetails
+                        item={selectedItem}
+                        equipped={selectedItem.id === equippedId}
+                      />
+                      {selectedItem.kind === "weapon" && (
+                        <button
+                          type="button"
+                          className="btn btn--amber cs-equip"
+                          disabled={selectedItem.id === equippedId}
+                          onClick={() => onEquip(selectedItem)}
+                        >
+                          {selectedItem.id === equippedId ? "I hånda" : "Ta i hånda"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              ))}
+            {mode !== "bag" && <>
             {mode === "gear" && (
               <div>
                 <p className="cs-label">På deg nå</p>
@@ -290,48 +417,97 @@ export default function CharacterSheet({
             {mode === "gear" && owned.size === 0 && (
               <p className="cs-hint">Utstyr finner du i bygda og får for oppgaver. Det dukker opp her.</p>
             )}
+            </>}
           </div>
 
-          <aside className="cs-hero">
+          <aside className={`cs-hero cs-hero--${mode}`}>
             <div className="cs-stage">
-              <FigureCanvas choice={choice} scale={13} label="Figuren din" />
-            </div>
-            <label className="cs-name">
-              <span className="cs-label">Navn</span>
-              <input
-                value={name}
-                maxLength={24}
-                placeholder="Hva heter du?"
-                onChange={(e) => setName(cleanName(e.target.value))}
-                onKeyDown={(e) => e.key === "Enter" && done()}
+              <FigureCanvas
+                choice={choice}
+                scale={mode === "look" ? 13 : 10}
+                label="Figuren din"
               />
-            </label>
-            <label className="cs-share">
-              <input
-                type="checkbox"
-                checked={shareProfile}
-                onChange={(e) => setShareProfile(e.target.checked)}
-              />
-              <span>
-                <strong>Vis for andre</strong>
-                <small>Navnet og figuren din vises for de andre deltakerne. Fremgangen din vises også.</small>
-              </span>
-            </label>
-            <div className="cs-actions">
-              <button
-                type="button"
-                className="btn btn--quiet"
-                onClick={() => set(wearable({ ...randomFigure(), ...pickGear(choice) }, owned))}
-              >
-                Tilfeldig
-              </button>
-              <button type="button" className="btn btn--quiet" onClick={undo} disabled={history.length === 0}>
-                Angre
-              </button>
             </div>
-            <button ref={doneRef} type="button" className="btn btn--amber cs-done" onClick={done}>
-              Ferdig
-            </button>
+            {mode === "look" ? (
+              <>
+                <label className="cs-name">
+                  <span className="cs-label">Navn</span>
+                  <input
+                    value={name}
+                    maxLength={24}
+                    placeholder="Hva heter du?"
+                    onChange={(e) => setName(cleanName(e.target.value))}
+                    onKeyDown={(e) => e.key === "Enter" && done()}
+                  />
+                </label>
+                <label className="cs-share">
+                  <input
+                    type="checkbox"
+                    checked={shareProfile}
+                    onChange={(e) => setShareProfile(e.target.checked)}
+                  />
+                  <span>
+                    <strong>Vis for andre</strong>
+                    <small>
+                      Navnet og figuren din vises for de andre deltakerne.
+                      Fremgangen din vises også.
+                    </small>
+                  </span>
+                </label>
+                <div className="cs-actions">
+                  <button
+                    type="button"
+                    className="btn btn--quiet"
+                    onClick={() =>
+                      set(
+                        wearable(
+                          { ...randomFigure(), ...pickGear(choice) },
+                          owned,
+                        ),
+                      )
+                    }
+                  >
+                    Tilfeldig
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--quiet"
+                    onClick={undo}
+                    disabled={history.length === 0}
+                  >
+                    Angre
+                  </button>
+                </div>
+                <button
+                  ref={doneRef}
+                  type="button"
+                  className="btn btn--amber cs-done"
+                  onClick={done}
+                >
+                  Ferdig
+                </button>
+              </>
+            ) : (
+              <div className="cs-hero-meta">
+                <strong>{initialName.trim() || "Figuren din"}</strong>
+                <span>Nivå {level}</span>
+                {mode === "bag" && (
+                  <span className="cs-hand">
+                    I hånda: {equippedItem?.name ?? ""}
+                  </span>
+                )}
+                {mode === "gear" && (
+                  <button
+                    ref={doneRef}
+                    type="button"
+                    className="btn btn--amber cs-done"
+                    onClick={done}
+                  >
+                    Ferdig
+                  </button>
+                )}
+              </div>
+            )}
           </aside>
         </div>
       </section>

@@ -894,8 +894,12 @@ export default function GameClient() {
             initialName={progress.name ?? ""}
             owned={owned}
             firstTime={entryStage === "figure"}
-            initialTab={progress.figure ? (sheetTab === "look" ? "look" : "gear") : "look"}
+            initialTab={progress.figure ? sheetTab : "look"}
             initialShareProfile={progress.shareProfile}
+            items={items}
+            equippedId={equippedId}
+            onEquip={handleEquip}
+            level={forgeLevel}
             onDone={saveFigure}
             onClose={() => setSheetOpen(false)}
           />
