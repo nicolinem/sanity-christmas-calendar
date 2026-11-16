@@ -132,7 +132,7 @@ export default function QuestLog({
             className="log-forge"
             title="Smia blir sterkere når du fullfører luker"
           >
-            <span className="log-forge-label">Smia nivå {forgeLevel}</span>
+            <span className="log-forge-label">Nivå {forgeLevel}</span>
             <span className="log-forge-pips" aria-hidden="true">
               {Array.from({ length: MAX_FORGE_LEVEL }, (_, i) => (
                 <span

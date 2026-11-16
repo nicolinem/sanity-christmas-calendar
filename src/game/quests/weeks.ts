@@ -112,6 +112,6 @@ export function shareText(summary: WeekSummary, forgeLevel: number): string {
   return [
     `Julekalenderen · Uke ${summary.number} · ${summary.title}`,
     `${lights}  ${summary.doors} av ${summary.doors} luker`,
-    `Smia nivå ${forgeLevel}${day ? ` · ferdig ${day}` : ""} · ${hints}`,
+    `Nivå ${forgeLevel}${day ? ` · ferdig ${day}` : ""} · ${hints}`,
   ].join("\n");
 }

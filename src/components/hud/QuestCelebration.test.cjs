@@ -52,7 +52,7 @@ test("quest completion shows the finished task and reward before opening the nex
   assert.match(html, /Validation: regler for våpen/);
   assert.match(html, /Krysset av i journalen/);
   assert.match(html, /Koden er bestått/);
-  assert.match(html, /Smia nivå 2! Våpnene dine gjør nå 6 skade/);
+  assert.match(html, /Nivå 2! Våpnene dine gjør nå 6 skade/);
   assert.match(html, /Luke 3 lyser i journalen/);
   assert.match(html, /Ny side i boka: Validation/);
   assert.match(html, />Se neste luke<\/button>/);
