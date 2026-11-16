@@ -489,10 +489,12 @@ test("the skilt link is a shared optional door and does not change core totals",
 test("Bakeren's ready door accepts only a published ready order with an item", () => {
   const ready = CHAPTERS.flatMap(({ quests }) => quests).find(({ id }) => id === "baker-ready");
   assert.ok(ready);
-  const ctx = { ...context(), bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }] };
+  const ctx = { ...context({ bakeryOrderId: "order" }), bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }] };
   assert.equal(ready.check(ctx).done, false);
   ctx.bakeryOrders[0].status = "klar";
   assert.equal(ready.check(ctx).done, true);
+  ctx.bakeryOrders[0]._id = "another-order";
+  assert.equal(ready.check(ctx).done, false);
 });
 
 test("Studio-practice quests name their real Studio step and are technical", () => {

@@ -16,6 +16,7 @@ export type Progress = {
   metBlacksmith: boolean;
   wraithDefeated: boolean;
   completed: Record<string, string>; // quest id → ISO time it was completed
+  bakeryOrderId?: string; // published order that completed the first Bakery door
   briefed: Record<string, true>; // quests Brann has already explained
   fetched: Record<string, true>; // quests picked up at their place in the village
   hints: Record<string, number>; // how many hints the player has revealed per quest

@@ -756,9 +756,11 @@ const bakerReady: Quest = {
     text: "Ett trykk kan både endre et felt og publisere dokumentet. Spillet leste den publiserte statusen «klar»; det kan ikke vite hvilken knapp som ble brukt.",
   },
   checkedBy: "game",
-  check: ({ bakeryOrders }) => ({
-    done: Boolean(bakeryOrders?.some(isReadyOrder)),
-    message: "Bruk Klar på en bestilling med vare; den må være publisert med status «klar».",
+  check: ({ bakeryOrders, progress }) => ({
+    done: Boolean(progress.bakeryOrderId && bakeryOrders?.some((order) =>
+      order._id === progress.bakeryOrderId && isReadyOrder(order),
+    )),
+    message: "Bruk Klar på den samme bestillingen som i første luke; den må være publisert med status «klar».",
   }),
 };
 
