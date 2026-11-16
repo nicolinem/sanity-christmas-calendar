@@ -457,6 +457,15 @@ function studioBoard(
 const stateOf = (board, id) =>
   board.states.find(({ quest }) => quest.id === id);
 
+test("Bakeren's ready door accepts only a published ready order with an item", () => {
+  const ready = CHAPTERS.flatMap(({ quests }) => quests).find(({ id }) => id === "baker-ready");
+  assert.ok(ready);
+  const ctx = { ...context(), bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }] };
+  assert.equal(ready.check(ctx).done, false);
+  ctx.bakeryOrders[0].status = "klar";
+  assert.equal(ready.check(ctx).done, true);
+});
+
 test("Studio-practice quests name their real Studio step and are technical", () => {
   const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];
   const named = all.filter(

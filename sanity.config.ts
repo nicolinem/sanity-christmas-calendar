@@ -6,8 +6,8 @@ import { visionTool } from "@sanity/vision";
 import { apiVersion, dataset, projectId } from "./src/sanity/env";
 import { schema } from "./src/sanity/schemaTypes";
 import { defaultDocumentNode, structure } from "./src/sanity/studio/structure";
-import { isSolved } from "./src/sanity/lib/solved";
-import { ForgeAction } from "./src/sanity/studio/BakeryActions";
+import { isSolved, isTrack } from "./src/sanity/lib/solved";
+import { ForgeAction, ReadyAction } from "./src/sanity/studio/BakeryActions";
 
 // Config for the Studio embedded at /studio. This file
 // is yours; the later chapter 1 quests happen here.
@@ -24,9 +24,12 @@ export default defineConfig({
   ],
   // QUEST: Luke 10. Our Smi action switches on after the code challenge.
   document: {
-    actions: (previous, { schemaType }) =>
-      schemaType === "item" && isSolved("baker-forge")
-        ? [ForgeAction, ...previous]
-        : previous,
+    actions: (previous, { schemaType }) => {
+      if (schemaType === "item" && isSolved("baker-forge"))
+        return [ForgeAction, ...previous];
+      if (schemaType === "bakeryOrder" && isTrack("nonTechnical"))
+        return [ReadyAction, ...previous];
+      return previous;
+    },
   },
 });

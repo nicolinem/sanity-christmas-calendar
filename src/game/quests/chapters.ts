@@ -1,5 +1,5 @@
 import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
-import { isNewOrder, signHasStrong } from "../bakery";
+import { isNewOrder, isReadyOrder, signHasStrong } from "../bakery";
 import type { GameItemView } from "../items";
 import type {
   Chapter,
@@ -705,6 +705,36 @@ const bakerSign: Quest = {
   }),
 };
 
+const bakerReady: Quest = {
+  id: "baker-ready",
+  giver: "bakeren",
+  track: "nonTechnical",
+  door: 7,
+  title: "Document action: Klar",
+  villageSite: "bakery",
+  intro: [
+    "Skiltet er på plass. Nå skal den første bestillingen bli ferdig.",
+    "Åpne en bestilling i Studio og trykk *Klar*. Knappen setter status og publiserer i ett trykk.",
+  ],
+  goal: "Merk en bestilling som «klar» og publiser den.",
+  where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
+  hints: [
+    { text: "Åpne bestillingen du laget i første luke. *Klar* er en *document action* nederst i dokumentet.", link: { label: "Document actions", url: `${DOCS}/document-actions` } },
+    { text: "Knappen er tilgjengelig når bestillingen har en vare. Du trenger ikke skrive kode." },
+    { text: "Trykk *Klar*: den oppdaterer status og publiserer. Kontroller at den publiserte bestillingen står som «klar»." },
+  ],
+  learn: { label: "Document actions", url: `${DOCS}/document-actions` },
+  lesson: {
+    title: "*Document action* i praksis",
+    text: "Ett trykk kan både endre et felt og publisere dokumentet. Spillet leste den publiserte statusen «klar»; det kan ikke vite hvilken knapp som ble brukt.",
+  },
+  checkedBy: "game",
+  check: ({ bakeryOrders }) => ({
+    done: Boolean(bakeryOrders?.some(isReadyOrder)),
+    message: "Bruk Klar på en bestilling med vare; den må være publisert med status «klar».",
+  }),
+};
+
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
@@ -732,7 +762,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 3,
     title: "Automatisere",
-    quests: [bakerTemplate, bakerForge, bakerFirstOrder, bakerSign],
+    quests: [bakerTemplate, bakerForge, bakerFirstOrder, bakerSign, bakerReady],
     teaser: [
       "Singleton",
       "Portable Text",
