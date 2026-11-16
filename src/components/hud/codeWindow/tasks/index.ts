@@ -5,6 +5,7 @@ import { trailTask } from "./groqTrail";
 import { structureTask } from "./structureLists";
 import { questionsTask } from "./archiveQuestions";
 import { whoPointsHereTask } from "./whoPointsHere";
+import { bakerTemplateTask } from "./bakerTemplate";
 import type { WindowTask } from "./types";
 
 // The code window's tasks, by quest id. A quest with `checkedBy: "window"`
@@ -17,6 +18,7 @@ export const WINDOW_TASKS: Record<string, WindowTask> = {
   [structureTask.id]: structureTask,
   [questionsTask.id]: questionsTask,
   [whoPointsHereTask.id]: whoPointsHereTask,
+  [bakerTemplateTask.id]: bakerTemplateTask,
 };
 
 export type { Reference, Requirement, Verdict, WindowTask } from "./types";

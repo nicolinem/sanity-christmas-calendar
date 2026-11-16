@@ -586,6 +586,34 @@ const caseFile: Quest = {
   },
 };
 
+const bakerTemplate: Quest = {
+  id: "baker-template",
+  giver: "bakeren",
+  track: "technical",
+  door: 9,
+  title: "Initial value: ny bestilling",
+  villageSite: "bakery",
+  intro: [
+    "Hver ny bestilling begynner likt. Jeg skriver status og dato om igjen, selv om de allerede er kjent.",
+    "Kan du gi meg en *initial value* som fyller dem ut når jeg lager en ny bestilling? Åpne kodevinduet.",
+  ],
+  goal: "Gi en ny bestilling status «ny» og dagens dato fra start.",
+  where: "I kodevinduet hos Bakeren. Prøv den ferdige malen i Studio etterpå.",
+  hints: [
+    { text: "`initialValue` på en *document type* brukes når et nytt dokument opprettes, ikke når et gammelt redigeres.", link: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` } },
+    { text: "Returner et objekt med `status` og `date` fra funksjonen. Statusen skal være `\"ny\"`." },
+    { text: "Kall `bakeryToday()` inne i `initialValue`-funksjonen, så datoen ikke låses til dagen du skrev koden." },
+  ],
+  learn: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` },
+  lesson: {
+    title: "*Initial value*",
+    text: "En *initial value* fyller ut nye dokumenter når de opprettes. Endrer du et eksisterende dokument, beholder det verdiene sine. Kodevinduet testet malen din; Studio bruker vår ferdige versjon.",
+  },
+  checkedBy: "window",
+  studioPractice: "Åpne en ny bestilling i Studio. Status og dagens dato skal allerede stå der; fyll inn en vare hvis du vil.",
+  check: fromWindow("baker-template"),
+};
+
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
@@ -612,8 +640,8 @@ export const CHAPTERS: Chapter[] = [
   },
   {
     number: 3,
-    title: "Utover skjemaet",
-    quests: [],
+    title: "Automatisere",
+    quests: [bakerTemplate],
     teaser: [
       "Singleton",
       "Portable Text",
