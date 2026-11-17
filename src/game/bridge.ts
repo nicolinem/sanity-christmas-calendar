@@ -31,7 +31,6 @@ export type WorldState = {
   doors: DoorMarker[]; // this week's doors, in calendar order
   goal: { x: number; y: number } | null; // the next step, in world px
   wraithDefeated: boolean;
-  signText: string; // published bakery sign, or blank before it exists
   frozen: boolean; // a dialogue is open: the knight stands still
 };
 
@@ -64,6 +63,7 @@ type EventMap = {
   forgeFlare: void; // a blade was stamped by the Forge button
   moved: void; // the knight took its first steps (scene → HUD)
   travelToSite: QuestSiteId; // the player chose a destination on the village map
+  readSign: void; // the player clicked the bakery sign while standing beside it
 };
 
 type Listener<T> = (payload: T) => void;
@@ -81,7 +81,6 @@ class Bridge {
     doors: [],
     goal: null,
     wraithDefeated: false,
-    signText: "",
     frozen: false,
   };
 

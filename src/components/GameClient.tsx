@@ -49,7 +49,8 @@ import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
-import { SAMPLE_ORDERS, signText } from "@/game/bakery";
+import { SAMPLE_ORDERS } from "@/game/bakery";
+import BakerySign from "./hud/BakerySign";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
@@ -133,6 +134,7 @@ export default function GameClient() {
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const [signOpen, setSignOpen] = useState(false);
   const [celebrations, setCelebrations] = useState<QuestCelebrationData[]>([]);
   const celebration = celebrations[0];
   const [logInitialTab, setLogInitialTab] = useState<"quests" | "map" | "book">(
@@ -471,7 +473,7 @@ export default function GameClient() {
       ? board.states.find(
           (state) =>
             state.quest.villageSite === zone &&
-            (state.status === "active" || state.pickup === zone),
+            (state.pickup === zone || (zone !== "bakerySign" && state.status === "active")),
         )
       : undefined;
 
@@ -533,6 +535,11 @@ export default function GameClient() {
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
   }, [siteQuest, openCode, openQuestLog, fetchQuest]);
+  const readSign = useCallback(() => {
+    if (siteQuest?.pickup) openSiteQuest();
+    else setSignOpen(true);
+  }, [siteQuest, openSiteQuest]);
+  useEffect(() => bridge.on("readSign", readSign), [readSign]);
   // The non-technical uke 2 tasks work on observations in the player's own
   // project. Once Brann has handed one over, the game writes the starting
   // documents (existing ones are left alone) and reads them back.
@@ -596,6 +603,7 @@ export default function GameClient() {
     codeQuestId === null &&
     !studio.open &&
     !logOpen &&
+    !signOpen &&
     !dialogueOpen &&
     !showOpening;
   const summaryWeek = weekShown ?? (quiet ? pendingWeek : undefined);
@@ -629,10 +637,10 @@ export default function GameClient() {
       doors: villageDoors,
       goal: nextStep,
       wraithDefeated: combat.defeated,
-      signText: signText(bakerySign),
       frozen:
         dialogueOpen ||
         logOpen ||
+        signOpen ||
         codeOpen ||
         showOpening ||
         sheetShown ||
@@ -649,13 +657,13 @@ export default function GameClient() {
     combat.defeated,
     dialogueOpen,
     logOpen,
+    signOpen,
     codeOpen,
     showOpening,
     celebration,
     summary,
     sheetShown,
     figure,
-    bakerySign,
   ]);
 
   const slots = narrow ? 5 : 8;
@@ -674,6 +682,10 @@ export default function GameClient() {
       // Typing in the code window: every key is code, except Escape.
       if (codeOpen) {
         if (e.key === "Escape") setCodeQuestId(null);
+        return;
+      }
+      if (signOpen) {
+        if (e.key === "Escape") setSignOpen(false);
         return;
       }
       const onControl = (e.target as HTMLElement)?.closest?.(
@@ -715,6 +727,11 @@ export default function GameClient() {
         openSiteQuest();
         return;
       }
+      if ((e.key === "e" || e.key === "E") && zone === "bakerySign") {
+        e.preventDefault();
+        readSign();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -734,6 +751,7 @@ export default function GameClient() {
     siteQuest,
     dialogueOpen,
     logOpen,
+    signOpen,
     codeOpen,
     showOpening,
     sheetShown,
@@ -743,6 +761,7 @@ export default function GameClient() {
     openMap,
     openSheet,
     openSiteQuest,
+    readSign,
     combat,
     items,
     slots,
@@ -843,6 +862,11 @@ export default function GameClient() {
                       : "Åpne luka her"}
                 </button>
               )}
+            {zone === "bakerySign" && !siteQuest && !logOpen && !signOpen && (
+              <button type="button" className="prompt" onClick={readSign}>
+                <kbd>E</kbd> Les bodskiltet
+              </button>
+            )}
             {!hasMoved &&
               !progress.metBlacksmith &&
               !showOpening &&
@@ -936,6 +960,10 @@ export default function GameClient() {
               setWeekShown(week);
             }}
           />
+        )}
+
+        {!showOpening && signOpen && (
+          <BakerySign sign={bakerySign} onClose={() => setSignOpen(false)} />
         )}
 
         {!showOpening && codeState && (

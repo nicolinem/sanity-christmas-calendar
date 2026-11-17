@@ -48,7 +48,6 @@ export class WinterQuestScene extends Phaser.Scene {
   private goalPointer!: Phaser.GameObjects.Graphics;
   private wraith!: Phaser.GameObjects.Image;
   private forgeGlow!: Phaser.GameObjects.Image;
-  private bakerySignLabel!: Phaser.GameObjects.Text;
   private sparks!: Phaser.GameObjects.Particles.ParticleEmitter;
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -204,12 +203,20 @@ export class WinterQuestScene extends Phaser.Scene {
     }
 
     const sign = QUEST_SITES.bakerySign;
-    const board = this.add.rectangle(0, 0, 116, 35, 0x443020).setStrokeStyle(2, 0xfdbe53);
-    this.bakerySignLabel = this.add.text(0, 0, "", {
-      fontFamily: this.font, fontSize: "9px", color: "#ffe2a0",
-      align: "center", wordWrap: { width: 108 },
+    const post = this.add.rectangle(0, 0, 3, 10, 0x705038).setPosition(0, -3);
+    const board = this.add.rectangle(0, 0, 30, 16, 0x443020)
+      .setStrokeStyle(1, 0xfdbe53).setPosition(0, -12).setInteractive({ useHandCursor: true });
+    board.on("pointerdown", (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+      if (bridge.world.frozen || Phaser.Math.Distance.Between(
+        bridge.knight.x, bridge.knight.y, sign.x, sign.y,
+      ) >= FORGE_RANGE) return;
+      event.stopPropagation();
+      bridge.emit("readSign", undefined);
+    });
+    const label = this.add.text(0, -12, "BOD", {
+      fontFamily: this.font, fontSize: "6px", color: "#ffe2a0",
     }).setOrigin(0.5).setResolution(6);
-    this.add.container(sign.x, sign.y - 44, [board, this.bakerySignLabel]).setDepth(9001);
+    this.add.container(sign.x, sign.y, [post, board, label]).setDepth(sign.y);
 
     for (const t of TREES) {
       this.add.image(t.x, t.y, "town", t.frame).setOrigin(0.5, 1).setDepth(t.y);
@@ -513,7 +520,6 @@ export class WinterQuestScene extends Phaser.Scene {
   }
 
   private applyWorld(w: WorldState) {
-    this.bakerySignLabel.setText(w.signText.slice(0, 80) || "Bodskilt");
     this.setWeapon(w.weapon);
     this.setFigure(w.figure);
     for (const [id, marker] of this.markers)
