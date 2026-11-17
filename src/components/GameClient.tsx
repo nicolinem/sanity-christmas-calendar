@@ -121,8 +121,12 @@ export default function GameClient() {
   // Arkivarens observasjoner in the player's project (uke 2, non-technical).
   const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
   const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
-  const [bakeryOrders, setBakeryOrders] = useState<import("@/game/bakery").BakeryOrder[] | null>(null);
-  const [bakerySign, setBakerySign] = useState<import("@/game/bakery").BakerySign | null>(null);
+  const [bakeryOrders, setBakeryOrders] = useState<
+    import("@/game/bakery").BakeryOrder[] | null
+  >(null);
+  const [bakerySign, setBakerySign] = useState<
+    import("@/game/bakery").BakerySign | null
+  >(null);
   const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
   const [communityReady, setCommunityReady] = useState(false);
   const [equippedId, setEquippedId] = useState<string | null>(null);
@@ -473,7 +477,8 @@ export default function GameClient() {
       ? board.states.find(
           (state) =>
             state.quest.villageSite === zone &&
-            (state.pickup === zone || (zone !== "bakerySign" && state.status === "active")),
+            (state.pickup === zone ||
+              (zone !== "bakerySign" && state.status === "active")),
         )
       : undefined;
 
@@ -563,8 +568,15 @@ export default function GameClient() {
     (s) => s.quest.id === "baker-first-order" && s.status === "active",
   );
   useEffect(() => {
-    if (!needsBakery || bakeryOrders === null || bakerySeeded.current ||
-      SAMPLE_ORDERS.every((sample) => bakeryOrders.some((order) => order._id === sample._id))) return;
+    if (
+      !needsBakery ||
+      bakeryOrders === null ||
+      bakerySeeded.current ||
+      SAMPLE_ORDERS.every((sample) =>
+        bakeryOrders.some((order) => order._id === sample._id),
+      )
+    )
+      return;
     bakerySeeded.current = true;
     fetch("/api/bakery", { method: "POST" })
       .then((r) => (r.ok ? refresh() : undefined))
@@ -719,10 +731,7 @@ export default function GameClient() {
         if (!dialogueOpen) openDialogue();
         return;
       }
-      if (
-        (e.key === "e" || e.key === "E") &&
-        siteQuest
-      ) {
+      if ((e.key === "e" || e.key === "E") && siteQuest) {
         e.preventDefault();
         openSiteQuest();
         return;
@@ -845,23 +854,20 @@ export default function GameClient() {
                 <kbd>E</kbd> Snakk med {talkTo.name}
               </button>
             )}
-            {siteQuest &&
-              !logOpen && (
-                <button
-                  type="button"
-                  className="prompt"
-                  onClick={openSiteQuest}
-                >
-                  <kbd>E</kbd>{" "}
-                  {siteQuest.pickup
-                    ? siteQuest.quest.bonus
-                      ? siteQuest.quest.villageSite === "bakerySign" ? "Les bodskiltet" : "Les oppslaget"
-                      : `Hent luke ${siteQuest.quest.door}`
-                    : siteQuest.quest.checkedBy === "window"
-                      ? "Åpne kodevinduet"
-                      : "Åpne luka her"}
-                </button>
-              )}
+            {siteQuest && !logOpen && (
+              <button type="button" className="prompt" onClick={openSiteQuest}>
+                <kbd>E</kbd>{" "}
+                {siteQuest.pickup
+                  ? siteQuest.quest.bonus
+                    ? siteQuest.quest.villageSite === "bakerySign"
+                      ? "Les bodskiltet"
+                      : "Les oppslaget"
+                    : `Hent luke ${siteQuest.quest.door}`
+                  : siteQuest.quest.checkedBy === "window"
+                    ? "Åpne kodevinduet"
+                    : "Åpne luka her"}
+              </button>
+            )}
             {zone === "bakerySign" && !siteQuest && !logOpen && !signOpen && (
               <button type="button" className="prompt" onClick={readSign}>
                 <kbd>E</kbd> Les bodskiltet

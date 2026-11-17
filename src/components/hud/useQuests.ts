@@ -284,7 +284,9 @@ export function useQuestBoard({
     updateProgress(PROJECT, (p) => {
       const completed = { ...p.completed };
       for (const s of finished) completed[s.quest.id] = now;
-      const bakeryOrderId = finished.some((s) => s.quest.id === "baker-first-order")
+      const bakeryOrderId = finished.some(
+        (s) => s.quest.id === "baker-first-order",
+      )
         ? bakeryOrders?.find(isNewOrder)?._id
         : p.bakeryOrderId;
       return { ...p, completed, bakeryOrderId };

@@ -37,7 +37,11 @@ test("facial hair is its own choice, drawn in the hair colour", () => {
   const plain = drawFigure({ ...DEFAULT_FIGURE, facialHair: "none" });
   const beard = drawFigure({ ...DEFAULT_FIGURE, facialHair: "beard" });
   assert.notDeepEqual([...plain], [...beard]);
-  assert.equal(normalizeFigure({ hair: "beard" }).hair, DEFAULT_FIGURE.hair, "beard is no longer a hairstyle");
+  assert.equal(
+    normalizeFigure({ hair: "beard" }).hair,
+    DEFAULT_FIGURE.hair,
+    "beard is no longer a hairstyle",
+  );
 });
 
 test("random figures are always valid", () => {
@@ -55,18 +59,27 @@ test("helmets cover a bald head completely: no skin above or beside them", () =>
     for (let y = 0; y < 5; y++)
       for (let x = 0; x < 16; x++) {
         const i = (y * 16 + x) * 4;
-        assert.ok(!SKIN.has(`${px[i]},${px[i + 1]},${px[i + 2]}`), `${hat}: skin at ${x},${y}`);
+        assert.ok(
+          !SKIN.has(`${px[i]},${px[i + 1]},${px[i + 2]}`),
+          `${hat}: skin at ${x},${y}`,
+        );
       }
   }
 });
 
 test("colour palettes: unique ids and #rrggbb pairs", () => {
-  for (const [name, list] of Object.entries({ SKINS, HAIR_COLORS, CLOTH_COLORS, PANTS })) {
+  for (const [name, list] of Object.entries({
+    SKINS,
+    HAIR_COLORS,
+    CLOTH_COLORS,
+    PANTS,
+  })) {
     const ids = list.map((o) => o.id);
     assert.equal(new Set(ids).size, ids.length, `${name}: duplicate id`);
     for (const o of list) {
       assert.equal(o.colors.length, 2, `${name}:${o.id}`);
-      for (const c of o.colors) assert.match(c, /^#[0-9a-f]{6}$/, `${name}:${o.id}`);
+      for (const c of o.colors)
+        assert.match(c, /^#[0-9a-f]{6}$/, `${name}:${o.id}`);
     }
   }
 });

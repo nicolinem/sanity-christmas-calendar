@@ -7,7 +7,9 @@ let calls: Call[] = [];
 const modules: Modules = {
   sanity: {
     useDocumentOperation: () => ({
-      patch: { execute: (value: unknown) => calls.push({ op: "patch", value }) },
+      patch: {
+        execute: (value: unknown) => calls.push({ op: "patch", value }),
+      },
       publish: { execute: () => calls.push({ op: "publish" }) },
     }),
   },
@@ -28,7 +30,13 @@ export function ForgeAction(props) {
 `;
 
 function result({ verdict }: { verdict: Verdict | null }) {
-  return <p>{verdict?.done ? "Ett trykk: smidd og publisert." : "Trykk Smi: hva skjer med våpenet?"}</p>;
+  return (
+    <p>
+      {verdict?.done
+        ? "Ett trykk: smidd og publisert."
+        : "Trykk Smi: hva skjer med våpenet?"}
+    </p>
+  );
 }
 
 export function judgeBakerForge(exports: Record<string, unknown>): Verdict {
@@ -38,21 +46,32 @@ export function judgeBakerForge(exports: Record<string, unknown>): Verdict {
   let error: string | undefined;
   if (typeof action === "function") {
     try {
-      const description = (action as (props: object) => { label: string; onHandle: () => void })(
-        { id: "test-weapon", type: "item", draft: { kind: "weapon" } },
-      );
+      const description = (
+        action as (props: object) => { label: string; onHandle: () => void }
+      )({ id: "test-weapon", type: "item", draft: { kind: "weapon" } });
       label = description?.label;
       description?.onHandle?.();
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
     }
   }
-  const stamp = (calls[0]?.value as { set?: { forgedAt?: unknown } }[] | undefined)?.[0]?.set?.forgedAt;
+  const stamp = (
+    calls[0]?.value as { set?: { forgedAt?: unknown } }[] | undefined
+  )?.[0]?.set?.forgedAt;
   const timestamp = typeof stamp === "string" ? Date.parse(stamp) : NaN;
   const requirements = [
     { label: "En action som heter Smi", done: label === "Smi" },
-    { label: "Sett forgedAt til nå", done: calls[0]?.op === "patch" && Number.isFinite(timestamp) && Math.abs(Date.now() - timestamp) < 60_000 },
-    { label: "Publiser etter stemplingen", done: calls.length === 2 && calls[1]?.op === "publish" },
+    {
+      label: "Sett forgedAt til nå",
+      done:
+        calls[0]?.op === "patch" &&
+        Number.isFinite(timestamp) &&
+        Math.abs(Date.now() - timestamp) < 60_000,
+    },
+    {
+      label: "Publiser etter stemplingen",
+      done: calls.length === 2 && calls[1]?.op === "publish",
+    },
   ];
   return { done: requirements.every((r) => r.done), requirements, error };
 }
@@ -67,5 +86,9 @@ export const bakerForgeTask: WindowTask = {
   Result: result,
   ours: `patch.execute([{ set: { forgedAt: new Date().toISOString() } }]);\npublish.execute();`,
   references: [],
-  extend: { file: "src/sanity/studio/BakeryActions.ts", marker: "QUEST: Luke 10", idea: "Prøv Smi på et våpen i Studio." },
+  extend: {
+    file: "src/sanity/studio/BakeryActions.ts",
+    marker: "QUEST: Luke 10",
+    idea: "Prøv Smi på et våpen i Studio.",
+  },
 };

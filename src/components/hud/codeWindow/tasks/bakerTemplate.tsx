@@ -26,7 +26,8 @@ export const bakeryOrder = defineType({
 type InitialValue = { status?: unknown; date?: unknown };
 
 export function judgeBakerTemplate(exports: Record<string, unknown>): Verdict {
-  const schema = exports.bakeryOrder as { name?: unknown; initialValue?: unknown } | undefined;
+  const schema = exports.bakeryOrder as
+    { name?: unknown; initialValue?: unknown } | undefined;
   const create = schema?.initialValue;
   let first: InitialValue = {};
   let second: InitialValue = {};
@@ -44,9 +45,18 @@ export function judgeBakerTemplate(exports: Record<string, unknown>): Verdict {
     }
   }
   const requirements = [
-    { label: "En initialValue for bakeryOrder", done: schema?.name === "bakeryOrder" && typeof create === "function" },
-    { label: "Nye bestillinger starter som «ny»", done: first.status === "ny" && second.status === "ny" },
-    { label: "Datoen hentes når bestillingen opprettes", done: first.date === "2026-12-14" && second.date === "2026-12-15" },
+    {
+      label: "En initialValue for bakeryOrder",
+      done: schema?.name === "bakeryOrder" && typeof create === "function",
+    },
+    {
+      label: "Nye bestillinger starter som «ny»",
+      done: first.status === "ny" && second.status === "ny",
+    },
+    {
+      label: "Datoen hentes når bestillingen opprettes",
+      done: first.date === "2026-12-14" && second.date === "2026-12-15",
+    },
   ];
   return {
     done: requirements.every((r) => r.done),
@@ -76,13 +86,16 @@ export const bakerTemplateTask: WindowTask = {
   resultTitle: "En ny bestilling i Studio",
   Result,
   ours: `initialValue: () => ({ status: "ny", date: bakeryToday() })`,
-  references: [{
-    file: "bakeryDate.ts",
-    path: "src/sanity/lib/bakeryDate.ts",
-    source: bakeryDateSource,
-    about: "bakeryToday() gir dagens dato som YYYY-MM-DD. Bruk den når en ny bestilling lages.",
-    examples: [{ code: "bakeryToday()", shows: "2026-12-14 (eksempel)" }],
-  }],
+  references: [
+    {
+      file: "bakeryDate.ts",
+      path: "src/sanity/lib/bakeryDate.ts",
+      source: bakeryDateSource,
+      about:
+        "bakeryToday() gir dagens dato som YYYY-MM-DD. Bruk den når en ny bestilling lages.",
+      examples: [{ code: "bakeryToday()", shows: "2026-12-14 (eksempel)" }],
+    },
+  ],
   extend: {
     file: "src/sanity/schemaTypes/bakeryOrder.ts",
     marker: "QUEST: Luke 9",

@@ -529,21 +529,21 @@ export default function CodeWindow({
                     <pre className="cw-ours">{task.ours}</pre>
                   </details>
                   {task.extend && (
-                  <details className="cw-extend">
-                    <summary>
-                      Vil du prøve mer i din egen editor? (valgfritt)
-                    </summary>
-                    <p>
-                      Dette trengs ikke for å fullføre luka. Kodevinduet endrer
-                      ingen filer i repoet.
-                    </p>
-                    <p>
-                      Vil du eksperimentere videre, åpne{" "}
-                      <code>{task.extend.file}</code> i editoren din. Finn
-                      kommentaren <code>{task.extend.marker}</code>.
-                    </p>
-                    <p>{renderText(task.extend.idea)}</p>
-                  </details>
+                    <details className="cw-extend">
+                      <summary>
+                        Vil du prøve mer i din egen editor? (valgfritt)
+                      </summary>
+                      <p>
+                        Dette trengs ikke for å fullføre luka. Kodevinduet
+                        endrer ingen filer i repoet.
+                      </p>
+                      <p>
+                        Vil du eksperimentere videre, åpne{" "}
+                        <code>{task.extend.file}</code> i editoren din. Finn
+                        kommentaren <code>{task.extend.marker}</code>.
+                      </p>
+                      <p>{renderText(task.extend.idea)}</p>
+                    </details>
                   )}
                 </section>
               )}

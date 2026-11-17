@@ -10,12 +10,24 @@ export const bakerySign = defineType({
       name: "text",
       title: "Skilttekst",
       type: "array",
-      of: [{ type: "block", marks: {
-        decorators: [{ title: "Fet", value: "strong" }],
-        annotations: [{ name: "link", title: "Lenke", type: "object", fields: [
-          { name: "href", title: "Adresse (https://)", type: "url" },
-        ] }],
-      } }],
+      of: [
+        {
+          type: "block",
+          marks: {
+            decorators: [{ title: "Fet", value: "strong" }],
+            annotations: [
+              {
+                name: "link",
+                title: "Lenke",
+                type: "object",
+                fields: [
+                  { name: "href", title: "Adresse (https://)", type: "url" },
+                ],
+              },
+            ],
+          },
+        },
+      ],
     }),
   ],
   preview: { prepare: () => ({ title: "Bodskilt" }) },

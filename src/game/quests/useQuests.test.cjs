@@ -174,11 +174,27 @@ function harness(
 test("finishing the first Bakery order remembers its published ID", () => {
   const h = harness(
     { track: "nonTechnical", briefed: { "baker-first-order": true } },
-    { chapters: [{ number: 3, title: "Bakeren", quests: [quest("baker-first-order", 5, {
-      track: "nonTechnical", checkedBy: "game", check: ({ bakeryOrders }) => ({ done: Boolean(bakeryOrders?.length) }),
-    })] }] },
+    {
+      chapters: [
+        {
+          number: 3,
+          title: "Bakeren",
+          quests: [
+            quest("baker-first-order", 5, {
+              track: "nonTechnical",
+              checkedBy: "game",
+              check: ({ bakeryOrders }) => ({
+                done: Boolean(bakeryOrders?.length),
+              }),
+            }),
+          ],
+        },
+      ],
+    },
   );
-  const orders = [{ _id: "order-1", item: "Julekake", date: "2026-12-14", status: "ny" }];
+  const orders = [
+    { _id: "order-1", item: "Julekake", date: "2026-12-14", status: "ny" },
+  ];
   const { effects } = h.render({ bakeryOrders: orders });
   effects.forEach((effect) => effect());
   assert.equal(h.saved.bakeryOrderId, "order-1");

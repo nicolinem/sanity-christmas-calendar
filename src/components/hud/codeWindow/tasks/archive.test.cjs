@@ -29,7 +29,11 @@ function load(file) {
       if (name === "@/game/archive") return load("src/game/archive.ts");
       if (name.endsWith("?raw")) return { __esModule: true, default: "" };
       if (name.endsWith("villageCanvas"))
-        return { useVillageCanvas: () => ({ current: null }), VILLAGE_W: 864, VILLAGE_H: 480 };
+        return {
+          useVillageCanvas: () => ({ current: null }),
+          VILLAGE_W: 864,
+          VILLAGE_H: 480,
+        };
       if (name.startsWith("./")) {
         const base = path.join(path.dirname(file), name);
         for (const ext of [".ts", ".tsx"])
@@ -52,7 +56,9 @@ const { questionsTask, judgeQuestions } = load(`${dir}/archiveQuestions.tsx`);
 const archive = load("src/game/archive.ts");
 
 const queryOf = (q) => ({ query: q });
-const labels = (v) => ({ ...Object.fromEntries(v.requirements.map((r) => [r.label, r.done])) });
+const labels = (v) => ({
+  ...Object.fromEntries(v.requirements.map((r) => [r.label, r.done])),
+});
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
 test("the trail: our query passes and ends at the bakery", async () => {
@@ -78,7 +84,12 @@ test("the trail: without a filter the rumours pull it to the square", async () =
 
 test("the trail: the starter runs but passes nothing", async () => {
   const exports = {};
-  new Function("exports", trailTask.starter.replace("export const", "exports.query =").replace(/^\/\/.*$/gm, ""))(exports);
+  new Function(
+    "exports",
+    trailTask.starter
+      .replace("export const", "exports.query =")
+      .replace(/^\/\/.*$/gm, ""),
+  )(exports);
   const v = await judgeTrail(exports);
   assert.equal(v.done, false);
   assert.equal(v.data.points.length, 0);
@@ -117,7 +128,10 @@ test("structure: the starter keeps the standard types and nothing else", async (
 });
 
 test("structure: a fixed place instead of the parameter is caught", async () => {
-  const wrong = structureTask.ours.replace("references($placeId)", 'references("place-torget")');
+  const wrong = structureTask.ours.replace(
+    "references($placeId)",
+    'references("place-torget")',
+  );
   const v = await judgeStructure(structureFrom(wrong));
   assert.equal(labels(v)["«Per sted» viser observasjonene der"], false);
 });
@@ -125,7 +139,10 @@ test("structure: a fixed place instead of the parameter is caught", async () => 
 // Runs a starter or answer file the way the window does, minus the imports.
 function exportsOf(source) {
   const exports = {};
-  new Function("exports", source.replace(/export const (\w+) =/g, "exports.$1 ="))(exports);
+  new Function(
+    "exports",
+    source.replace(/export const (\w+) =/g, "exports.$1 ="),
+  )(exports);
   return exports;
 }
 
@@ -138,7 +155,9 @@ test("Arkivarens questions: one luke, five answers, the starter solves none", as
 
 test("Arkivarens questions: our five answers pass", async () => {
   const answers = {};
-  for (const [i, block] of questionsTask.ours.split(/\n\n(?=\/\/ \d\.)/).entries())
+  for (const [i, block] of questionsTask.ours
+    .split(/\n\n(?=\/\/ \d\.)/)
+    .entries())
     answers[`svar${i + 1}`] = block.replace(/^\/\/.*\n/, "");
   const v = await judgeQuestions(answers);
   assert.equal(v.done, true, JSON.stringify(v.requirements));
@@ -147,7 +166,8 @@ test("Arkivarens questions: our five answers pass", async () => {
 test("Arkivarens questions: partial answers count, and the rule may not use status", async () => {
   const v = await judgeQuestions({
     svar1: 'count(*[_type == "observation" && status == "rumor"])',
-    svar5: '*[_type == "observation" && status == "confirmed"] | order(time asc) { time, what }',
+    svar5:
+      '*[_type == "observation" && status == "confirmed"] | order(time asc) { time, what }',
   });
   const done = v.requirements.map((r) => r.done);
   assert.deepEqual([...done], [true, false, false, false, false]);
@@ -155,12 +175,26 @@ test("Arkivarens questions: partial answers count, and the rule may not use stat
 });
 
 test("the non-technical checks count right answers, never more", () => {
-  const right = archive.SOURCE_CHECK.map((s) => ({ _id: s._id, status: s.expected }));
-  assert.deepEqual(plain(archive.sourceCheckScore(right)), { right: 9, total: 9 });
-  const trap = right.map((d) => (d._id === "archive-e1" ? { ...d, status: "confirmed" } : d));
-  assert.deepEqual(plain(archive.sourceCheckScore(trap)), { right: 8, total: 9 });
+  const right = archive.SOURCE_CHECK.map((s) => ({
+    _id: s._id,
+    status: s.expected,
+  }));
+  assert.deepEqual(plain(archive.sourceCheckScore(right)), {
+    right: 9,
+    total: 9,
+  });
+  const trap = right.map((d) =>
+    d._id === "archive-e1" ? { ...d, status: "confirmed" } : d,
+  );
+  assert.deepEqual(plain(archive.sourceCheckScore(trap)), {
+    right: 8,
+    total: 9,
+  });
   assert.deepEqual(plain(archive.sourceCheckScore([])), { right: 0, total: 9 });
-  const linked = archive.LINK_THE_PLACE.map((s) => ({ _id: s._id, place: s.expected }));
+  const linked = archive.LINK_THE_PLACE.map((s) => ({
+    _id: s._id,
+    place: s.expected,
+  }));
   assert.deepEqual(plain(archive.linkScore(linked)), { right: 3, total: 3 });
 });
 

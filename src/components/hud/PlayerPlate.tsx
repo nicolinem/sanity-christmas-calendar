@@ -37,9 +37,7 @@ export default function PlayerPlate({
       </button>
       <div className="tooltip frame frame--slate plate-tooltip" role="tooltip">
         <p className="tooltip-name">Figur og utseende</p>
-        <p className="tooltip-desc">
-          Bytt utseende og ta på det du har funnet
-        </p>
+        <p className="tooltip-desc">Bytt utseende og ta på det du har funnet</p>
       </div>
     </div>
   );

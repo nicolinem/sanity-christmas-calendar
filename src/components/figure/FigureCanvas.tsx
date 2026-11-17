@@ -18,7 +18,12 @@ type Props = {
 // The player's figure, drawn pixel by pixel from src/game/figure.ts and
 // scaled up without smoothing, so it shares the Kenney sheets' pixel grid.
 // Still, like the Kenney figures; the game adds its own step when walking.
-export default function FigureCanvas({ choice, scale = 4, outline = "kenney", label }: Props) {
+export default function FigureCanvas({
+  choice,
+  scale = 4,
+  outline = "kenney",
+  label,
+}: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -37,7 +42,12 @@ export default function FigureCanvas({ choice, scale = 4, outline = "kenney", la
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
-      style={{ width: px, height: px, imageRendering: "pixelated", display: "block" }}
+      style={{
+        width: px,
+        height: px,
+        imageRendering: "pixelated",
+        display: "block",
+      }}
     />
   );
 }

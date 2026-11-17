@@ -27,10 +27,16 @@ import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 // crowd of random figures. Not the real creator: that will be a custom input
 // in the Studio, using the same parts and drawing code.
 
-type PartKey = "hair" | "facialHair" | "top" | "armour" | "hat" | "scarf" | "extra";
-type ColorKey = "skin" | "hairColor" | "topColor" | "pants" | "hatColor" | "scarfColor";
+type PartKey =
+  "hair" | "facialHair" | "top" | "armour" | "hat" | "scarf" | "extra";
+type ColorKey =
+  "skin" | "hairColor" | "topColor" | "pants" | "hatColor" | "scarfColor";
 
-const PARTS: { key: PartKey; title: string; options: { id: string; label: string; unlock?: string }[] }[] = [
+const PARTS: {
+  key: PartKey;
+  title: string;
+  options: { id: string; label: string; unlock?: string }[];
+}[] = [
   { key: "hair", title: "Hår", options: HAIRSTYLES },
   { key: "facialHair", title: "Skjegg og bart", options: FACIAL_HAIR },
   { key: "top", title: "Overdel", options: TOPS },
@@ -40,7 +46,11 @@ const PARTS: { key: PartKey; title: string; options: { id: string; label: string
   { key: "extra", title: "Ekstra", options: EXTRAS },
 ];
 
-const COLORS: { key: ColorKey; title: string; options: { id: string; label: string; colors: readonly [string, string] }[] }[] = [
+const COLORS: {
+  key: ColorKey;
+  title: string;
+  options: { id: string; label: string; colors: readonly [string, string] }[];
+}[] = [
   { key: "skin", title: "Hud", options: SKINS },
   { key: "hairColor", title: "Hårfarge", options: HAIR_COLORS },
   { key: "topColor", title: "Klesfarge", options: CLOTH_COLORS },
@@ -51,16 +61,93 @@ const COLORS: { key: ColorKey; title: string; options: { id: string; label: stri
 
 // Our take on each Tiny Dungeon person, to compare part by part.
 const TWINS: { frame: number; choice: FigureChoice }[] = [
-  { frame: 84, choice: { ...DEFAULT_FIGURE, hairColor: "white", facialHair: "wizard", top: "robe", topColor: "purple", hat: "wizard", hatColor: "purple" } },
+  {
+    frame: 84,
+    choice: {
+      ...DEFAULT_FIGURE,
+      hairColor: "white",
+      facialHair: "wizard",
+      top: "robe",
+      topColor: "purple",
+      hat: "wizard",
+      hatColor: "purple",
+    },
+  },
   { frame: 85, choice: { ...DEFAULT_FIGURE, hat: "none", topColor: "grey" } },
-  { frame: 86, choice: { ...DEFAULT_FIGURE, hair: "bald", facialHair: "beard", hairColor: "brown", top: "apron", topColor: "grey", hat: "none" } },
-  { frame: 87, choice: { ...DEFAULT_FIGURE, facialHair: "beard", hairColor: "white", topColor: "grey", hat: "viking" } },
-  { frame: 88, choice: { ...DEFAULT_FIGURE, hair: "bun", topColor: "yellow", hat: "none" } },
-  { frame: 96, choice: { ...DEFAULT_FIGURE, top: "sweater", topColor: "grey", armour: "plate", hat: "knight" } },
-  { frame: 97, choice: { ...DEFAULT_FIGURE, topColor: "grey", armour: "plate", hat: "helmet" } },
-  { frame: 99, choice: { ...DEFAULT_FIGURE, hair: "long", top: "dress", topColor: "purple", hat: "none" } },
-  { frame: 100, choice: { ...DEFAULT_FIGURE, hair: "bun", hairColor: "white", topColor: "purple", hat: "none" } },
-  { frame: 112, choice: { ...DEFAULT_FIGURE, topColor: "green", hat: "bandana", hatColor: "green" } },
+  {
+    frame: 86,
+    choice: {
+      ...DEFAULT_FIGURE,
+      hair: "bald",
+      facialHair: "beard",
+      hairColor: "brown",
+      top: "apron",
+      topColor: "grey",
+      hat: "none",
+    },
+  },
+  {
+    frame: 87,
+    choice: {
+      ...DEFAULT_FIGURE,
+      facialHair: "beard",
+      hairColor: "white",
+      topColor: "grey",
+      hat: "viking",
+    },
+  },
+  {
+    frame: 88,
+    choice: { ...DEFAULT_FIGURE, hair: "bun", topColor: "yellow", hat: "none" },
+  },
+  {
+    frame: 96,
+    choice: {
+      ...DEFAULT_FIGURE,
+      top: "sweater",
+      topColor: "grey",
+      armour: "plate",
+      hat: "knight",
+    },
+  },
+  {
+    frame: 97,
+    choice: {
+      ...DEFAULT_FIGURE,
+      topColor: "grey",
+      armour: "plate",
+      hat: "helmet",
+    },
+  },
+  {
+    frame: 99,
+    choice: {
+      ...DEFAULT_FIGURE,
+      hair: "long",
+      top: "dress",
+      topColor: "purple",
+      hat: "none",
+    },
+  },
+  {
+    frame: 100,
+    choice: {
+      ...DEFAULT_FIGURE,
+      hair: "bun",
+      hairColor: "white",
+      topColor: "purple",
+      hat: "none",
+    },
+  },
+  {
+    frame: 112,
+    choice: {
+      ...DEFAULT_FIGURE,
+      topColor: "green",
+      hat: "bandana",
+      hatColor: "green",
+    },
+  },
 ];
 
 // The Tiny Dungeon people, for comparison at the same scale.
@@ -103,34 +190,54 @@ export default function FigureLab() {
       <header className="flab-head">
         <h1>Figurverksted</h1>
         <p>
-          Deler i Tiny Dungeon-stil, tegnet i kode (<code>src/game/figure.ts</code>). Bare for utvikling.
+          Deler i Tiny Dungeon-stil, tegnet i kode (
+          <code>src/game/figure.ts</code>). Bare for utvikling.
         </p>
       </header>
 
       <section className="flab-stage" aria-label="Figuren din">
         <div className="flab-hero">
-          <FigureCanvas choice={choice} scale={12} outline={outline} label="Figuren din" />
+          <FigureCanvas
+            choice={choice}
+            scale={12}
+            outline={outline}
+            label="Figuren din"
+          />
           <div className="flab-actions">
-            <button type="button" className="btn btn--amber" onClick={() => set(randomFigure())}>
+            <button
+              type="button"
+              className="btn btn--amber"
+              onClick={() => set(randomFigure())}
+            >
               Tilfeldig
             </button>
             <button
               type="button"
               className="btn btn--quiet"
               onClick={() => {
-                updateProgress(PROGRESS_PROJECT, (p) => ({ ...p, figure: { ...choice } }));
+                updateProgress(PROGRESS_PROJECT, (p) => ({
+                  ...p,
+                  figure: { ...choice },
+                }));
                 setSaved(true);
               }}
             >
               {saved ? "Brukes i spillet" : "Bruk i spillet"}
             </button>
-            <button type="button" className="btn btn--quiet" onClick={undo} disabled={history.length === 0}>
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={undo}
+              disabled={history.length === 0}
+            >
               Angre
             </button>
             <button
               type="button"
               className="btn btn--quiet"
-              onClick={() => setOutline((o) => (o === "kenney" ? "thin" : "kenney"))}
+              onClick={() =>
+                setOutline((o) => (o === "kenney" ? "thin" : "kenney"))
+              }
               aria-pressed={outline === "thin"}
             >
               Kant: {outline === "kenney" ? "to piksler (Kenney)" : "én piksel"}
@@ -143,7 +250,11 @@ export default function FigureLab() {
           <div className="flab-row">
             <FigureCanvas choice={choice} scale={5} outline={outline} />
             {KENNEY.map((frame) => (
-              <SpriteIcon key={frame} sprite={{ sheet: "dungeon", frame }} scale={5} />
+              <SpriteIcon
+                key={frame}
+                sprite={{ sheet: "dungeon", frame }}
+                scale={5}
+              />
             ))}
           </div>
           <p className="flab-label">Lagret som</p>
@@ -152,14 +263,25 @@ export default function FigureLab() {
       </section>
 
       <section className="flab-crowd" aria-label="Tvillinger">
-        <p className="flab-label">Tvillinger: vår versjon av hver Kenney-figur (vår til venstre i hvert par)</p>
+        <p className="flab-label">
+          Tvillinger: vår versjon av hver Kenney-figur (vår til venstre i hvert
+          par)
+        </p>
         <div className="flab-row flab-row--wrap">
           {TWINS.map((t) => (
             <span key={t.frame} className="flab-twin">
-              <button type="button" className="flab-pick" onClick={() => set(t.choice)} aria-label={`Bruk tvillingen til figur ${t.frame}`}>
+              <button
+                type="button"
+                className="flab-pick"
+                onClick={() => set(t.choice)}
+                aria-label={`Bruk tvillingen til figur ${t.frame}`}
+              >
                 <FigureCanvas choice={t.choice} scale={5} outline={outline} />
               </button>
-              <SpriteIcon sprite={{ sheet: "dungeon", frame: t.frame }} scale={5} />
+              <SpriteIcon
+                sprite={{ sheet: "dungeon", frame: t.frame }}
+                scale={5}
+              />
             </span>
           ))}
         </div>
@@ -178,7 +300,11 @@ export default function FigureLab() {
                   aria-pressed={choice[part.key] === o.id}
                   onClick={() => set({ ...choice, [part.key]: o.id })}
                 >
-                  <FigureCanvas choice={{ ...choice, [part.key]: o.id }} scale={4} outline={outline} />
+                  <FigureCanvas
+                    choice={{ ...choice, [part.key]: o.id }}
+                    scale={4}
+                    outline={outline}
+                  />
                   <span>{o.label}</span>
                   {o.unlock && <small className="flab-lock">{o.unlock}</small>}
                 </button>
@@ -199,7 +325,9 @@ export default function FigureLab() {
                   aria-label={`${group.title}: ${o.label}`}
                   title={o.label}
                   onClick={() => set({ ...choice, [group.key]: o.id })}
-                  style={{ background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)` }}
+                  style={{
+                    background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)`,
+                  }}
                 />
               ))}
             </div>
@@ -209,14 +337,26 @@ export default function FigureLab() {
 
       <section className="flab-crowd" aria-label="Tilfeldige figurer">
         <div className="flab-crowd-head">
-          <p className="flab-label">En tilfeldig gjeng: slik ser bygda ut med mange spillere</p>
-          <button type="button" className="btn btn--quiet" onClick={() => setSeed((s) => s + 1)}>
+          <p className="flab-label">
+            En tilfeldig gjeng: slik ser bygda ut med mange spillere
+          </p>
+          <button
+            type="button"
+            className="btn btn--quiet"
+            onClick={() => setSeed((s) => s + 1)}
+          >
             Ny gjeng
           </button>
         </div>
         <div className="flab-row flab-row--wrap">
           {crowd.map((c, i) => (
-            <button key={i} type="button" className="flab-pick" onClick={() => set(c)} aria-label="Bruk denne figuren">
+            <button
+              key={i}
+              type="button"
+              className="flab-pick"
+              onClick={() => set(c)}
+              aria-label="Bruk denne figuren"
+            >
               <FigureCanvas choice={c} scale={5} outline={outline} />
             </button>
           ))}

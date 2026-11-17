@@ -21,7 +21,16 @@ vm.runInNewContext(
     exports: moduleResult.exports,
     require(name) {
       if (name === "@/game/village")
-        return { NPCS: { brann: { name: "Brann", title: "smeden", at: "ved smia", sprite: {} } } };
+        return {
+          NPCS: {
+            brann: {
+              name: "Brann",
+              title: "smeden",
+              at: "ved smia",
+              sprite: {},
+            },
+          },
+        };
       if (name === "./SpriteIcon")
         return () => React.createElement("span", { className: "brann-sprite" });
       return name === "./icons"
@@ -72,12 +81,22 @@ test("the second beat opens the new door and directs the player to Brann", () =>
       module: stage,
       exports: stage.exports,
       require(name) {
-          if (name === "@/game/village")
-          return { NPCS: { brann: { name: "Brann", title: "smeden", at: "ved smia", sprite: {} } } };
+        if (name === "@/game/village")
+          return {
+            NPCS: {
+              brann: {
+                name: "Brann",
+                title: "smeden",
+                at: "ved smia",
+                sprite: {},
+              },
+            },
+          };
         if (name === "./icons")
           return { IconCheck: () => React.createElement("span", null, "✓") };
         if (name === "./SpriteIcon")
-          return () => React.createElement("span", { className: "brann-sprite" });
+          return () =>
+            React.createElement("span", { className: "brann-sprite" });
         return name === "react"
           ? { ...React, useState: () => [true, () => {}] }
           : require(name);

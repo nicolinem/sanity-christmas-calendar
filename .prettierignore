@@ -1,0 +1,11 @@
+# Only code is formatted. Docs, sketches and agent files keep their own layout.
+*.md
+*.html
+design/
+docs/
+public/
+.agents/
+.claude/
+.taste-skill/
+.vscode/
+package-lock.json

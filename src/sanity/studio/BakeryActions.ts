@@ -8,7 +8,10 @@ export const ForgeAction: DocumentActionComponent = (props) => {
   const kind = (props.draft ?? props.published)?.kind;
   return {
     label: "Smi",
-    disabled: !props.ready || kind !== "weapon" || Boolean(patch.disabled || publish.disabled),
+    disabled:
+      !props.ready ||
+      kind !== "weapon" ||
+      Boolean(patch.disabled || publish.disabled),
     onHandle: () => {
       patch.execute([{ set: { forgedAt: new Date().toISOString() } }]);
       publish.execute();
@@ -25,7 +28,12 @@ export const ReadyAction: DocumentActionComponent = (props) => {
   if (!enabled) return null;
   return {
     label: "Klar",
-    disabled: !props.ready || typeof current?.item !== "string" || !current.item.trim() || current.status === "klar" || Boolean(patch.disabled || publish.disabled),
+    disabled:
+      !props.ready ||
+      typeof current?.item !== "string" ||
+      !current.item.trim() ||
+      current.status === "klar" ||
+      Boolean(patch.disabled || publish.disabled),
     onHandle: () => {
       patch.execute([{ set: { status: "klar" } }]);
       publish.execute();

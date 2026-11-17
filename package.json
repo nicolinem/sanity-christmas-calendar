@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test src/game/*.test.cjs src/game/quests/*.test.cjs src/components/hud/*.test.cjs src/components/hud/codeWindow/tasks/*.test.cjs",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@codemirror/commands": "6.11.1",

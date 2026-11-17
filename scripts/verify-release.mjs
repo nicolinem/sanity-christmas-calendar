@@ -12,7 +12,14 @@
 // also gets a clean `npm ci` and `next build`, like a fresh clone (slower). Uses your .env.local so the Guild's Law check can query the dataset.
 
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -28,7 +35,12 @@ const red = (s) => `\x1b[31m${s}\x1b[0m`;
 const dim = (s) => `\x1b[2m${s}\x1b[0m`;
 
 const run = (cmd, args, cwd) =>
-  execFileSync(cmd, args, { cwd, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env: process.env });
+  execFileSync(cmd, args, {
+    cwd,
+    stdio: ["ignore", "pipe", "pipe"],
+    encoding: "utf8",
+    env: process.env,
+  });
 
 const git = (...args) => run("git", args, ROOT).trim();
 
@@ -45,7 +57,13 @@ function step(name, cwd, cmd, args) {
     pass(name);
     return true;
   } catch (err) {
-    fail(`${name}\n${dim(String(err.stdout || "") + String(err.stderr || "")).trim().split("\n").slice(-15).join("\n")}`);
+    fail(
+      `${name}\n${dim(String(err.stdout || "") + String(err.stderr || ""))
+        .trim()
+        .split("\n")
+        .slice(-15)
+        .join("\n")}`,
+    );
     return false;
   }
 }
@@ -65,21 +83,36 @@ for (const target of TARGETS) {
     // Quick checks borrow your node_modules. A build needs a real install
     // (Turbopack won't compile through a symlink outside the project), which
     // is also exactly what a player's fresh clone goes through.
-    if (BUILD) step("npm ci", dir, "npm", ["ci", "--prefer-offline", "--no-audit", "--no-fund"]);
-    else symlinkSync(join(ROOT, "node_modules"), join(dir, "node_modules"), "dir");
-    if (existsSync(join(ROOT, ".env.local"))) cpSync(join(ROOT, ".env.local"), join(dir, ".env.local"));
+    if (BUILD)
+      step("npm ci", dir, "npm", [
+        "ci",
+        "--prefer-offline",
+        "--no-audit",
+        "--no-fund",
+      ]);
+    else
+      symlinkSync(join(ROOT, "node_modules"), join(dir, "node_modules"), "dir");
+    if (existsSync(join(ROOT, ".env.local")))
+      cpSync(join(ROOT, ".env.local"), join(dir, ".env.local"));
 
     // A fresh checkout has no .next/, where Next keeps its generated route types.
     step("generate Next route types", dir, "npx", ["next", "typegen"]);
     step("typecheck", dir, "npx", ["tsc", "--noEmit"]);
     step("Sanity schema check", dir, "npx", ["sanity", "schema", "validate"]);
 
-    if (step("npm run quest", dir, "npx", ["sanity", "exec", "scripts/quest.ts"])) {
-      const { checks } = JSON.parse(readFileSync(join(dir, ".quest", "results.json"), "utf8"));
+    if (
+      step("npm run quest", dir, "npx", ["sanity", "exec", "scripts/quest.ts"])
+    ) {
+      const { checks } = JSON.parse(
+        readFileSync(join(dir, ".quest", "results.json"), "utf8"),
+      );
       for (const [id, check] of Object.entries(checks)) {
-        if (target.expect === "none" && check.done) fail(`${id} already passes: a solution leaked into ${target.ref}`);
-        else if (target.expect === "all" && !check.done) fail(`${id} doesn't pass: ${check.message}`);
-        else pass(`${id} ${dim(target.expect === "none" ? "is open" : "passes")}`);
+        if (target.expect === "none" && check.done)
+          fail(`${id} already passes: a solution leaked into ${target.ref}`);
+        else if (target.expect === "all" && !check.done)
+          fail(`${id} doesn't pass: ${check.message}`);
+        else
+          pass(`${id} ${dim(target.expect === "none" ? "is open" : "passes")}`);
       }
     }
 
@@ -95,5 +128,9 @@ for (const target of TARGETS) {
   }
 }
 
-console.log(failures ? `\n${red(`${failures} problem(s). Don't release yet.`)}\n` : `\n${green("Ready to release.")}\n`);
+console.log(
+  failures
+    ? `\n${red(`${failures} problem(s). Don't release yet.`)}\n`
+    : `\n${green("Ready to release.")}\n`,
+);
 process.exit(failures ? 1 : 0);

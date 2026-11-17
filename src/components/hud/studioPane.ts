@@ -25,7 +25,11 @@ function load() {
   try {
     const saved = JSON.parse(window.localStorage.getItem(KEY) ?? "null");
     if (saved && typeof saved.width === "number")
-      pane = { open: Boolean(saved.open), width: saved.width, loaded: Boolean(saved.open) };
+      pane = {
+        open: Boolean(saved.open),
+        width: saved.width,
+        loaded: Boolean(saved.open),
+      };
   } catch {
     // Storage blocked or corrupt: start closed.
   }
@@ -35,7 +39,10 @@ function set(next: Partial<Pane>) {
   load();
   pane = { ...pane, ...next, loaded: pane.loaded || Boolean(next.open) };
   try {
-    window.localStorage.setItem(KEY, JSON.stringify({ open: pane.open, width: pane.width }));
+    window.localStorage.setItem(
+      KEY,
+      JSON.stringify({ open: pane.open, width: pane.width }),
+    );
   } catch {
     // Not remembered, still works.
   }
@@ -71,7 +78,8 @@ export function useStudioFocused(): boolean {
         window.removeEventListener(FOCUS_GAME, check);
       };
     },
-    () => document.activeElement?.classList.contains("studio-pane-frame") ?? false,
+    () =>
+      document.activeElement?.classList.contains("studio-pane-frame") ?? false,
     () => false,
   );
 }

@@ -27,8 +27,7 @@ export default defineConfig({
     actions: (previous, { schemaType }) => {
       if (schemaType === "item" && isSolved("baker-forge"))
         return [...previous, ForgeAction];
-      if (schemaType === "bakeryOrder")
-        return [...previous, ReadyAction];
+      if (schemaType === "bakeryOrder") return [...previous, ReadyAction];
       return previous;
     },
   },

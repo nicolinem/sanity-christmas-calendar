@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
-import { closeStudio, MIN_WIDTH, setStudioWidth, STUDIO_URL } from "./hud/studioPane";
+import {
+  closeStudio,
+  MIN_WIDTH,
+  setStudioWidth,
+  STUDIO_URL,
+} from "./hud/studioPane";
 import { IconClose, IconQuill } from "./hud/icons";
 
 type Props = { width: number; open: boolean };
@@ -36,14 +41,18 @@ export default function StudioPane({ width, open }: Props) {
     setDragging(true);
     const move = (ev: PointerEvent) => {
       const max = Math.max(MIN_WIDTH, window.innerWidth - 320);
-      const next = Math.min(max, Math.max(MIN_WIDTH, window.innerWidth - ev.clientX));
+      const next = Math.min(
+        max,
+        Math.max(MIN_WIDTH, window.innerWidth - ev.clientX),
+      );
       if (paneRef.current) paneRef.current.style.width = `${next}px`;
     };
     const up = () => {
       handle.removeEventListener("pointermove", move);
       handle.removeEventListener("pointerup", up);
       setDragging(false);
-      if (paneRef.current) setStudioWidth(paneRef.current.getBoundingClientRect().width);
+      if (paneRef.current)
+        setStudioWidth(paneRef.current.getBoundingClientRect().width);
     };
     handle.addEventListener("pointermove", move);
     handle.addEventListener("pointerup", up);
@@ -71,15 +80,29 @@ export default function StudioPane({ width, open }: Props) {
           <IconQuill size={12} />
           Sanity Studio
         </span>
-        <a className="studio-pane-btn" href={STUDIO_URL} target="_blank" rel="noreferrer" onClick={closeStudio}>
+        <a
+          className="studio-pane-btn"
+          href={STUDIO_URL}
+          target="_blank"
+          rel="noreferrer"
+          onClick={closeStudio}
+        >
           Egen fane
         </a>
-        <button type="button" className="btn studio-pane-close" onClick={closeStudio}>
+        <button
+          type="button"
+          className="btn studio-pane-close"
+          onClick={closeStudio}
+        >
           <IconClose size={12} />
           {narrow ? "Tilbake til spillet" : "Lukk Studio"}
         </button>
       </div>
-      <iframe className="studio-pane-frame" src={STUDIO_URL} title="Sanity Studio" />
+      <iframe
+        className="studio-pane-frame"
+        src={STUDIO_URL}
+        title="Sanity Studio"
+      />
     </aside>
   );
 }

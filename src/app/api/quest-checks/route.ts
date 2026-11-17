@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const raw = await readFile(join(process.cwd(), ".quest", "results.json"), "utf8");
+    const raw = await readFile(
+      join(process.cwd(), ".quest", "results.json"),
+      "utf8",
+    );
     const parsed = JSON.parse(raw);
     return NextResponse.json({ checks: parsed?.checks ?? {} });
   } catch {

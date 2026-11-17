@@ -15,7 +15,11 @@ function Pixels({ rows, size = 24, className }: PixelProps) {
       fill="currentColor"
     >
       {rows.flatMap((row, y) =>
-        [...row].map((c, x) => (c === "#" ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} /> : null)),
+        [...row].map((c, x) =>
+          c === "#" ? (
+            <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} />
+          ) : null,
+        ),
       )}
     </svg>
   );

@@ -73,7 +73,8 @@ export function weekSummary(
     optional: open
       ? {
           title: open.quest.title,
-          place: QUEST_SITES[open.quest.villageSite ?? "forge"].label.toLowerCase(),
+          place:
+            QUEST_SITES[open.quest.villageSite ?? "forge"].label.toLowerCase(),
         }
       : null,
     number: week,

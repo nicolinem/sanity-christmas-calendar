@@ -6,46 +6,98 @@ export type BakeryOrder = {
   status?: string | null;
 };
 
-export const SAMPLE_ORDERS: { _id: string; _type: "bakeryOrder"; item: string; orderedBy: string; date: string; status: string }[] = [
-  { _id: "bakery-sample-brann", _type: "bakeryOrder", item: "Lussekatter", orderedBy: "Brann", date: "2026-12-14", status: "venter" },
-  { _id: "bakery-sample-arkivaren", _type: "bakeryOrder", item: "Pepperkaker", orderedBy: "Arkivaren", date: "2026-12-14", status: "venter" },
-  { _id: "bakery-sample-kari", _type: "bakeryOrder", item: "Julekake", orderedBy: "Kari", date: "2026-12-14", status: "venter" },
+export const SAMPLE_ORDERS: {
+  _id: string;
+  _type: "bakeryOrder";
+  item: string;
+  orderedBy: string;
+  date: string;
+  status: string;
+}[] = [
+  {
+    _id: "bakery-sample-brann",
+    _type: "bakeryOrder",
+    item: "Lussekatter",
+    orderedBy: "Brann",
+    date: "2026-12-14",
+    status: "venter",
+  },
+  {
+    _id: "bakery-sample-arkivaren",
+    _type: "bakeryOrder",
+    item: "Pepperkaker",
+    orderedBy: "Arkivaren",
+    date: "2026-12-14",
+    status: "venter",
+  },
+  {
+    _id: "bakery-sample-kari",
+    _type: "bakeryOrder",
+    item: "Julekake",
+    orderedBy: "Kari",
+    date: "2026-12-14",
+    status: "venter",
+  },
 ];
 
 export type BakerySign = {
   _id: string;
-  text?: {
-    _type?: string;
-    children?: { _type?: string; text?: string; marks?: string[] }[];
-    markDefs?: { _key: string; _type: string; href?: string }[];
-  }[] | null;
+  text?:
+    | {
+        _type?: string;
+        children?: { _type?: string; text?: string; marks?: string[] }[];
+        markDefs?: { _key: string; _type: string; href?: string }[];
+      }[]
+    | null;
 };
 
 export function signText(sign: BakerySign | null): string {
-  return sign?.text?.flatMap((block) =>
-    block._type === "block" ? (block.children ?? []).map((span) => span.text ?? "") : [],
-  ).join(" ").trim() ?? "";
+  return (
+    sign?.text
+      ?.flatMap((block) =>
+        block._type === "block"
+          ? (block.children ?? []).map((span) => span.text ?? "")
+          : [],
+      )
+      .join(" ")
+      .trim() ?? ""
+  );
 }
 
 export const signHasStrong = (sign: BakerySign | null) =>
-  Boolean(signText(sign) && sign?.text?.some((block) =>
-    block.children?.some((span) => span.text?.trim() && span.marks?.includes("strong")),
-  ));
+  Boolean(
+    signText(sign) &&
+    sign?.text?.some((block) =>
+      block.children?.some(
+        (span) => span.text?.trim() && span.marks?.includes("strong"),
+      ),
+    ),
+  );
 
 export const signHasHttpsLink = (sign: BakerySign | null) =>
-  Boolean(sign?.text?.some((block) => block._type === "block" && block.children?.some((span) =>
-    span.text?.trim() && block.markDefs?.some((mark) => {
-      if (mark._type !== "link" || !span.marks?.includes(mark._key)) return false;
-      try {
-        return new URL(mark.href ?? "").protocol === "https:";
-      } catch {
-        return false;
-      }
-    }),
-  )));
+  Boolean(
+    sign?.text?.some(
+      (block) =>
+        block._type === "block" &&
+        block.children?.some(
+          (span) =>
+            span.text?.trim() &&
+            block.markDefs?.some((mark) => {
+              if (mark._type !== "link" || !span.marks?.includes(mark._key))
+                return false;
+              try {
+                return new URL(mark.href ?? "").protocol === "https:";
+              } catch {
+                return false;
+              }
+            }),
+        ),
+    ),
+  );
 
 export const isNewOrder = (order: BakeryOrder) =>
-  order.status === "ny" && /^\d{4}-\d{2}-\d{2}$/.test(order.date ?? "") &&
+  order.status === "ny" &&
+  /^\d{4}-\d{2}-\d{2}$/.test(order.date ?? "") &&
   Boolean(order.item?.trim());
 
 export const isReadyOrder = (order: BakeryOrder) =>

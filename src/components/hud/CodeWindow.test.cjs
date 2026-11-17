@@ -10,7 +10,11 @@ const { transform } = require("sucrase");
 
 const source = transform(
   readFileSync(path.resolve(__dirname, "codeWindow/CodeWindow.tsx"), "utf8"),
-  { transforms: ["typescript", "jsx", "imports"], jsxRuntime: "automatic", production: true },
+  {
+    transforms: ["typescript", "jsx", "imports"],
+    jsxRuntime: "automatic",
+    production: true,
+  },
 ).code;
 
 function renderCodeWindow(initiallySolved) {
@@ -23,7 +27,10 @@ function renderCodeWindow(initiallySolved) {
         return {
           ...React,
           useEffect() {},
-          useState: (initial) => [typeof initial === "function" ? initiallySolved : initial, () => {}],
+          useState: (initial) => [
+            typeof initial === "function" ? initiallySolved : initial,
+            () => {},
+          ],
           useRef: (initial) => ({ current: initial }),
         };
       if (name === "./tasks")
@@ -44,16 +51,32 @@ function renderCodeWindow(initiallySolved) {
         return { IconCheck: () => React.createElement("span", null, "✓") };
       if (name === "../richText") return { renderText: (text) => text };
       if (name === "@/game/quests/label")
-        return { lukeName: (q) => (q.bonus ? "☆ Frivillig" : `Luke ${q.door}`) };
-      if (name === "../StudioPractice" || name === "../QuestHint") return () => null;
-      if (name === "codemirror" || name.startsWith("@codemirror/") || name === "./runCode")
+        return {
+          lukeName: (q) => (q.bonus ? "☆ Frivillig" : `Luke ${q.door}`),
+        };
+      if (name === "../StudioPractice" || name === "../QuestHint")
+        return () => null;
+      if (
+        name === "codemirror" ||
+        name.startsWith("@codemirror/") ||
+        name === "./runCode"
+      )
         return {};
       return require(name);
     },
   });
   return renderToStaticMarkup(
     React.createElement(moduleResult.exports.default, {
-      state: { status: "done", quest: { id: "test", door: 3, title: "Oppgave", goal: "Mål", hints: [] } },
+      state: {
+        status: "done",
+        quest: {
+          id: "test",
+          door: 3,
+          title: "Oppgave",
+          goal: "Mål",
+          hints: [],
+        },
+      },
       solved: true,
       onSolved() {},
       hintsShown: 0,

@@ -64,6 +64,10 @@ test("the share text says how far and how, never what", () => {
 test("a week's summary shows once, and again if the week gets more doors", () => {
   assert.equal(weekNeedsSummary(undefined, 3), true);
   assert.equal(weekNeedsSummary(3, 3), false);
-  assert.equal(weekNeedsSummary(2, 3), true, "a door was added after it was seen");
+  assert.equal(
+    weekNeedsSummary(2, 3),
+    true,
+    "a door was added after it was seen",
+  );
   assert.equal(weekNeedsSummary(true, 3), false, "older saves count as seen");
 });

@@ -8,15 +8,20 @@ export type Answer = {
   answer: (params: Record<string, unknown>) => unknown;
 };
 
-const MISSING_API_VERSION = "`getClient` må få en `apiVersion`, for eksempel `getClient({ apiVersion: \"2024-01-01\" })`.";
+const MISSING_API_VERSION =
+  '`getClient` må få en `apiVersion`, for eksempel `getClient({ apiVersion: "2024-01-01" })`.';
 
 const ONLY_PREPARED = (queries: string[]) =>
   `Kodevinduet har ikke et ekte *dataset*, så det kan bare svare på den ferdige spørringen fra \`guild.ts\` (${queries.join(", ")}). Bruk den ferdige i stedet for å skrive din egen.`;
 
 // The `$params` a query refers to; Sanity refuses a query that uses one it wasn't given.
-const paramsIn = (query: string) => [...new Set([...query.matchAll(/\$(\w+)/g)].map((m) => m[1]))];
+const paramsIn = (query: string) => [
+  ...new Set([...query.matchAll(/\$(\w+)/g)].map((m) => m[1])),
+];
 
-export type FakeClient = { fetch: (query: string, params?: Record<string, unknown>) => Promise<unknown> };
+export type FakeClient = {
+  fetch: (query: string, params?: Record<string, unknown>) => Promise<unknown>;
+};
 
 // Returns a `getClient` like the Studio's: it insists on an `apiVersion`.
 export function createFakeGetClient(answers: Answer[], prepared: string[]) {
@@ -25,16 +30,22 @@ export function createFakeGetClient(answers: Answer[], prepared: string[]) {
       const found = answers.find((a) => a.query === query);
       if (!found) throw new Error(ONLY_PREPARED(prepared));
       const missing = paramsIn(query).filter((p) => !(p in params));
-      if (missing.length) throw new Error(`Spørringen bruker ${missing.map((p) => `$${p}`).join(", ")}, men du ga den ikke med i parametrene.`);
+      if (missing.length)
+        throw new Error(
+          `Spørringen bruker ${missing.map((p) => `$${p}`).join(", ")}, men du ga den ikke med i parametrene.`,
+        );
       return found.answer(params);
     },
   };
   // Calling anything but `fetch` is a mistake worth explaining too.
   const guarded = new Proxy(client, {
     get(target, prop) {
-      if (prop in target || typeof prop === "symbol" || prop === "then") return Reflect.get(target, prop);
+      if (prop in target || typeof prop === "symbol" || prop === "then")
+        return Reflect.get(target, prop);
       return () => {
-        throw new Error(`Klienten i kodevinduet kan bare \`fetch\`, ikke \`${String(prop)}\`.`);
+        throw new Error(
+          `Klienten i kodevinduet kan bare \`fetch\`, ikke \`${String(prop)}\`.`,
+        );
       };
     },
   });

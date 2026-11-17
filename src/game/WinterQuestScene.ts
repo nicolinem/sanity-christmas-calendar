@@ -204,18 +204,41 @@ export class WinterQuestScene extends Phaser.Scene {
 
     const sign = QUEST_SITES.bakerySign;
     const post = this.add.rectangle(0, 0, 3, 10, 0x705038).setPosition(0, -3);
-    const board = this.add.rectangle(0, 0, 30, 16, 0x443020)
-      .setStrokeStyle(1, 0xfdbe53).setPosition(0, -12).setInteractive({ useHandCursor: true });
-    board.on("pointerdown", (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
-      if (bridge.world.frozen || Phaser.Math.Distance.Between(
-        bridge.knight.x, bridge.knight.y, sign.x, sign.y,
-      ) >= FORGE_RANGE) return;
-      event.stopPropagation();
-      bridge.emit("readSign", undefined);
-    });
-    const label = this.add.text(0, -12, "BOD", {
-      fontFamily: this.font, fontSize: "6px", color: "#ffe2a0",
-    }).setOrigin(0.5).setResolution(6);
+    const board = this.add
+      .rectangle(0, 0, 30, 16, 0x443020)
+      .setStrokeStyle(1, 0xfdbe53)
+      .setPosition(0, -12)
+      .setInteractive({ useHandCursor: true });
+    board.on(
+      "pointerdown",
+      (
+        _pointer: Phaser.Input.Pointer,
+        _x: number,
+        _y: number,
+        event: Phaser.Types.Input.EventData,
+      ) => {
+        if (
+          bridge.world.frozen ||
+          Phaser.Math.Distance.Between(
+            bridge.knight.x,
+            bridge.knight.y,
+            sign.x,
+            sign.y,
+          ) >= FORGE_RANGE
+        )
+          return;
+        event.stopPropagation();
+        bridge.emit("readSign", undefined);
+      },
+    );
+    const label = this.add
+      .text(0, -12, "BOD", {
+        fontFamily: this.font,
+        fontSize: "6px",
+        color: "#ffe2a0",
+      })
+      .setOrigin(0.5)
+      .setResolution(6);
     this.add.container(sign.x, sign.y, [post, board, label]).setDepth(sign.y);
 
     for (const t of TREES) {
@@ -508,11 +531,13 @@ export class WinterQuestScene extends Phaser.Scene {
     if (key === this.figureKey) return;
     if (!this.textures.exists(key)) {
       const tex = this.textures.createCanvas(key, FIGURE_SIZE, FIGURE_SIZE)!;
-      tex.getContext().putImageData(
-        new ImageData(drawFigure(choice), FIGURE_SIZE, FIGURE_SIZE),
-        0,
-        0,
-      );
+      tex
+        .getContext()
+        .putImageData(
+          new ImageData(drawFigure(choice), FIGURE_SIZE, FIGURE_SIZE),
+          0,
+          0,
+        );
       tex.refresh();
     }
     this.knightBody.setTexture(key);

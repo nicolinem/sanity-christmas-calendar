@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Chakra_Petch, Geist_Mono, Jersey_10, Pixelify_Sans } from "next/font/google";
+import {
+  Chakra_Petch,
+  Geist_Mono,
+  Jersey_10,
+  Pixelify_Sans,
+} from "next/font/google";
 import "./globals.css";
 
 // Keep the pixel faces for game identity. UI text uses Chakra Petch: angular

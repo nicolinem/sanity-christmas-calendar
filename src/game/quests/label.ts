@@ -7,7 +7,9 @@ export function lukeName(quest: { door: number; bonus?: true }): string {
 }
 
 // The week's numbered lukes first, the optional ones after.
-export function coreFirst<T extends { quest: { bonus?: true } }>(states: T[]): T[] {
+export function coreFirst<T extends { quest: { bonus?: true } }>(
+  states: T[],
+): T[] {
   return [...states].sort(
     (a, b) => Number(Boolean(a.quest.bonus)) - Number(Boolean(b.quest.bonus)),
   );

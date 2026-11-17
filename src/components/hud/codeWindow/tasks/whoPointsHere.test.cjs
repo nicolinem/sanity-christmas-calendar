@@ -45,10 +45,13 @@ function load(file) {
 }
 
 const dir = "src/components/hud/codeWindow/tasks";
-const { judgeWhoPointsHere, whoPointsHereTask: task } = load(`${dir}/whoPointsHere.tsx`);
+const { judgeWhoPointsHere, whoPointsHereTask: task } = load(
+  `${dir}/whoPointsHere.tsx`,
+);
 const { runModule } = load("src/components/hud/codeWindow/runCode.ts");
 
-const FETCH_COMMENT = /    \/\/ Hent observasjonene[^\n]*\n    \/\/ props\.documentId[^\n]*\n/;
+const FETCH_COMMENT =
+  /    \/\/ Hent observasjonene[^\n]*\n    \/\/ props\.documentId[^\n]*\n/;
 
 // The starter with the effect body replaced by `body`.
 function withBody(body) {
@@ -62,7 +65,8 @@ async function judge(source) {
   return judgeWhoPointsHere(loaded.exports);
 }
 
-const labels = (v) => Object.fromEntries(v.requirements.map((r) => [r.label, r.done]));
+const labels = (v) =>
+  Object.fromEntries(v.requirements.map((r) => [r.label, r.done]));
 const BAKERY = "Bakeriet viser observasjonene der";
 const OWN = "Hvert sted viser sine egne";
 const PARAM = "Id-en sendes som parameter";
@@ -82,7 +86,9 @@ test("the starter passes nothing", async () => {
 
 test("a hard-coded place shows the bakery everywhere", async () => {
   const v = await judge(
-    withBody(`client.fetch('*[_type == "observation" && references("place-bakeriet")] | order(time asc)').then(setRows)`),
+    withBody(
+      `client.fetch('*[_type == "observation" && references("place-bakeriet")] | order(time asc)').then(setRows)`,
+    ),
   );
   assert.equal(v.done, false);
   assert.deepEqual(labels(v), { [BAKERY]: true, [OWN]: false, [PARAM]: false });
@@ -91,7 +97,7 @@ test("a hard-coded place shows the bakery everywhere", async () => {
 test("the id pasted into the query string fails the parameter check", async () => {
   const v = await judge(
     withBody(
-      "client.fetch(`*[_type == \"observation\" && references(\"${props.documentId}\")]`).then(setRows)",
+      'client.fetch(`*[_type == "observation" && references("${props.documentId}")]`).then(setRows)',
     ),
   );
   assert.deepEqual(labels(v), { [BAKERY]: true, [OWN]: true, [PARAM]: false });
@@ -111,9 +117,16 @@ test("the displayed id can be a draft id, and the message says so", async () => 
 });
 
 test("a missing $param is explained, a missing apiVersion too", async () => {
-  const v = await judge(withBody(`client.fetch('*[references($id)]', {}).then(setRows).catch(() => {})`));
+  const v = await judge(
+    withBody(
+      `client.fetch('*[references($id)]', {}).then(setRows).catch(() => {})`,
+    ),
+  );
   assert.match(v.requirements[0].message, /\$id/);
-  const loaded = runModule(withBody("").replace('{ apiVersion: "2024-01-01" }', "{}"), task.modules);
+  const loaded = runModule(
+    withBody("").replace('{ apiVersion: "2024-01-01" }', "{}"),
+    task.modules,
+  );
   const w = await judgeWhoPointsHere(loaded.exports);
   assert.match(w.requirements[0].message, /apiVersion/);
 });

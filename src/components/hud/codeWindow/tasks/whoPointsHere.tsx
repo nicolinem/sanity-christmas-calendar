@@ -61,7 +61,9 @@ const MISSING_API_VERSION =
   '`useClient` må få en `apiVersion`, for eksempel `useClient({ apiVersion: "2024-01-01" })`.';
 
 // The `$params` a query uses; Sanity refuses a query that uses one it wasn't given.
-const paramsIn = (query: string) => [...new Set([...query.matchAll(/\$(\w+)/g)].map((m) => m[1]))];
+const paramsIn = (query: string) => [
+  ...new Set([...query.matchAll(/\$(\w+)/g)].map((m) => m[1])),
+];
 
 function makeClient(log: Log | null) {
   const client = {
@@ -86,9 +88,12 @@ function makeClient(log: Log | null) {
   };
   return new Proxy(client, {
     get(target, prop) {
-      if (prop in target || typeof prop === "symbol" || prop === "then") return Reflect.get(target, prop);
+      if (prop in target || typeof prop === "symbol" || prop === "then")
+        return Reflect.get(target, prop);
       return () => {
-        throw new Error(`Klienten i kodevinduet kan bare \`fetch\`, ikke \`${String(prop)}\`.`);
+        throw new Error(
+          `Klienten i kodevinduet kan bare \`fetch\`, ikke \`${String(prop)}\`.`,
+        );
       };
     },
   });
@@ -99,7 +104,13 @@ function makeClient(log: Log | null) {
 // `useEffect` come from here while a render is running, and from React the
 // rest of the time (the live preview), so the same code runs in both.
 
-type Slot = { value?: unknown; deps?: unknown[]; cleanup?: unknown; fn?: () => unknown; ref?: { current: unknown } };
+type Slot = {
+  value?: unknown;
+  deps?: unknown[];
+  cleanup?: unknown;
+  fn?: () => unknown;
+  ref?: { current: unknown };
+};
 type Harness = {
   slots: Slot[];
   i: number;
@@ -113,16 +124,25 @@ let active: Harness | null = null;
 const liveClient = makeClient(null);
 
 function sameDeps(a?: unknown[], b?: unknown[]) {
-  return Boolean(a && b) && a!.length === b!.length && a!.every((x, i) => Object.is(x, b![i]));
+  return (
+    Boolean(a && b) &&
+    a!.length === b!.length &&
+    a!.every((x, i) => Object.is(x, b![i]))
+  );
 }
 
 function useState<T>(initial: T | (() => T)) {
   const h = active;
   if (!h) return reactUseState(initial);
-  const slot = (h.slots[h.i] ??= { value: typeof initial === "function" ? (initial as () => T)() : initial });
+  const slot = (h.slots[h.i] ??= {
+    value: typeof initial === "function" ? (initial as () => T)() : initial,
+  });
   h.i += 1;
   const set = (next: unknown) => {
-    const value = typeof next === "function" ? (next as (v: unknown) => unknown)(slot.value) : next;
+    const value =
+      typeof next === "function"
+        ? (next as (v: unknown) => unknown)(slot.value)
+        : next;
     if (!Object.is(value, slot.value)) {
       slot.value = value;
       h.dirty = true;
@@ -163,7 +183,10 @@ function useRef<T>(initial: T) {
   return slot.ref as { current: T };
 }
 
-function useCallback<T extends (...a: never[]) => unknown>(fn: T, deps: unknown[]) {
+function useCallback<T extends (...a: never[]) => unknown>(
+  fn: T,
+  deps: unknown[],
+) {
   return useMemo(() => fn, deps);
 }
 
@@ -187,7 +210,11 @@ type UiProps = {
 const px = (n?: number) => (n === undefined ? undefined : `${n * 4}px`);
 
 function Card({ children, padding }: UiProps) {
-  return createElement("div", { className: "cw-wph-card", style: { padding: px(padding) } }, children);
+  return createElement(
+    "div",
+    { className: "cw-wph-card", style: { padding: px(padding) } },
+    children,
+  );
 }
 function Box({ children, padding }: UiProps) {
   return createElement("div", { style: { padding: px(padding) } }, children);
@@ -202,7 +229,14 @@ function Stack({ children, padding, gap, space = 2 }: UiProps) {
 function Flex({ children, padding, gap, space = 2 }: UiProps) {
   return createElement(
     "div",
-    { style: { display: "flex", gap: px(gap ?? space), padding: px(padding), alignItems: "center" } },
+    {
+      style: {
+        display: "flex",
+        gap: px(gap ?? space),
+        padding: px(padding),
+        alignItems: "center",
+      },
+    },
     children,
   );
 }
@@ -210,7 +244,11 @@ function Text({ children, size }: UiProps) {
   return createElement("span", { "data-size": size }, children);
 }
 function Badge({ children, tone }: UiProps) {
-  return createElement("span", { className: "cw-wph-badge", "data-tone": tone }, children);
+  return createElement(
+    "span",
+    { className: "cw-wph-badge", "data-tone": tone },
+    children,
+  );
 }
 
 const STAND_INS = new Set<unknown>([Card, Box, Stack, Flex, Text, Badge]);
@@ -231,7 +269,9 @@ type ViewProps = {
 
 const propsFor = (place: { _id: string; name: string }): ViewProps => ({
   documentId: place._id,
-  document: { displayed: { _id: `drafts.${place._id}`, _type: "place", name: place.name } },
+  document: {
+    displayed: { _id: `drafts.${place._id}`, _type: "place", name: place.name },
+  },
   schemaType: { name: "place" },
 });
 
@@ -264,7 +304,8 @@ function runEffects(h: Harness) {
 // All the text a tree would show. Stand-ins are looked through; the player's
 // own helper components are called in the same render.
 function textOf(node: ReactNode, out: string[] = []): string[] {
-  if (typeof node === "string" || typeof node === "number") out.push(String(node));
+  if (typeof node === "string" || typeof node === "number")
+    out.push(String(node));
   else if (Array.isArray(node)) node.forEach((n) => textOf(n, out));
   else if (isValidElement<{ children?: ReactNode }>(node)) {
     const { type, props } = node;
@@ -275,11 +316,27 @@ function textOf(node: ReactNode, out: string[] = []): string[] {
   return out;
 }
 
-type Page = { id: string; name: string; text: string; calls: Call[]; error?: string };
+type Page = {
+  id: string;
+  name: string;
+  text: string;
+  calls: Call[];
+  error?: string;
+};
 
-async function renderPage(view: ViewFn, place: { _id: string; name: string }): Promise<Page> {
+async function renderPage(
+  view: ViewFn,
+  place: { _id: string; name: string },
+): Promise<Page> {
   const log: Log = { calls: [], inflight: 0 };
-  const h: Harness = { slots: [], i: 0, dirty: false, queued: [], log, client: makeClient(log) };
+  const h: Harness = {
+    slots: [],
+    i: 0,
+    dirty: false,
+    queued: [],
+    log,
+    client: makeClient(log),
+  };
   const props = propsFor(place);
   let tree: ReactNode = null;
   try {
@@ -294,16 +351,30 @@ async function renderPage(view: ViewFn, place: { _id: string; name: string }): P
       if (!h.dirty) break;
     }
   } catch (err) {
-    return { id: place._id, name: place.name, text: "", calls: log.calls, error: err instanceof Error ? err.message : String(err) };
+    return {
+      id: place._id,
+      name: place.name,
+      text: "",
+      calls: log.calls,
+      error: err instanceof Error ? err.message : String(err),
+    };
   }
-  return { id: place._id, name: place.name, text: textOf(tree).join(" "), calls: log.calls };
+  return {
+    id: place._id,
+    name: place.name,
+    text: textOf(tree).join(" "),
+    calls: log.calls,
+  };
 }
 
 // --- The judge ----------------------------------------------------------------
 
-const idsAt = (placeId: string) => OBSERVATIONS.filter((o) => o.place._ref === placeId).map((o) => o._id);
-const shownIds = (page: Page) => OBSERVATIONS.filter((o) => page.text.includes(o.what)).map((o) => o._id);
-const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
+const idsAt = (placeId: string) =>
+  OBSERVATIONS.filter((o) => o.place._ref === placeId).map((o) => o._id);
+const shownIds = (page: Page) =>
+  OBSERVATIONS.filter((o) => page.text.includes(o.what)).map((o) => o._id);
+const sameSet = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((x) => b.includes(x));
 
 const DRAFT_HINT =
   "`props.document.displayed._id` kan være en *draft*-id (`drafts.place-…`), og ingen observasjoner peker på den. Bruk `props.documentId`, som alltid er id-en til selve stedet.";
@@ -311,7 +382,9 @@ const usedDraftId = (page: Page) =>
   page.calls.some(
     (c) =>
       c.query.includes("drafts.") ||
-      Object.values(c.params).some((v) => typeof v === "string" && v.startsWith("drafts.")),
+      Object.values(c.params).some(
+        (v) => typeof v === "string" && v.startsWith("drafts."),
+      ),
   );
 
 function whyWrong(page: Page): string {
@@ -328,7 +401,9 @@ function whyWrong(page: Page): string {
   return `${page.name} viser ${shown.length} observasjoner, men ${want.length} peker dit.`;
 }
 
-export async function judgeWhoPointsHere(exports: Record<string, unknown>): Promise<Verdict<{ component?: ViewFn }>> {
+export async function judgeWhoPointsHere(
+  exports: Record<string, unknown>,
+): Promise<Verdict<{ component?: ViewFn }>> {
   const labels = [
     "Bakeriet viser observasjonene der",
     "Hvert sted viser sine egne",
@@ -341,22 +416,32 @@ export async function judgeWhoPointsHere(exports: Record<string, unknown>): Prom
       requirements: labels.map((label, i) => ({
         label,
         done: false,
-        message: i === 0 ? "Behold `export function ObservationsHere(props) { … }`." : undefined,
+        message:
+          i === 0
+            ? "Behold `export function ObservationsHere(props) { … }`."
+            : undefined,
       })),
     };
   }
 
   const bakery = PLACES.find((p) => p._id === "place-bakeriet")!;
   const square = PLACES.find((p) => p._id === "place-torget")!;
-  const pages = [await renderPage(view as ViewFn, bakery), await renderPage(view as ViewFn, square)];
+  const pages = [
+    await renderPage(view as ViewFn, bakery),
+    await renderPage(view as ViewFn, square),
+  ];
   const right = pages.map((p) => !p.error && sameSet(shownIds(p), idsAt(p.id)));
 
   const stuck = pages.find((_, i) => !right[i]);
   const calls = pages.flatMap((p) => p.calls);
-  const literal = pages.some((p) => p.calls.some((c) => c.query.includes(p.id)));
+  const literal = pages.some((p) =>
+    p.calls.some((c) => c.query.includes(p.id)),
+  );
   const noParam = calls.some((c) => !/\$\w+/.test(c.query));
   const wrongId = pages.some(
-    (p) => p.calls.length > 0 && !p.calls.some((c) => Object.values(c.params).includes(p.id)),
+    (p) =>
+      p.calls.length > 0 &&
+      !p.calls.some((c) => Object.values(c.params).includes(p.id)),
   );
 
   const requirements: Requirement[] = [
@@ -391,7 +476,12 @@ export async function judgeWhoPointsHere(exports: Record<string, unknown>): Prom
     },
   ];
   const done = requirements.every((r) => r.done);
-  return { requirements, done, solvedAs: done ? {} : undefined, data: { component: view as ViewFn } };
+  return {
+    requirements,
+    done,
+    solvedAs: done ? {} : undefined,
+    data: { component: view as ViewFn },
+  };
 }
 
 // --- The preview: a document pane for a place -------------------------------
@@ -404,8 +494,13 @@ class Safe extends Component<
   static getDerivedStateFromError() {
     return { failed: true };
   }
-  static getDerivedStateFromProps(props: { resetKey: unknown }, state: { failed: boolean; resetKey: unknown }) {
-    return props.resetKey !== state.resetKey ? { failed: false, resetKey: props.resetKey } : null;
+  static getDerivedStateFromProps(
+    props: { resetKey: unknown },
+    state: { failed: boolean; resetKey: unknown },
+  ) {
+    return props.resetKey !== state.resetKey
+      ? { failed: false, resetKey: props.resetKey }
+      : null;
   }
   render() {
     return this.state.failed ? this.props.fallback : this.props.children;
@@ -436,10 +531,22 @@ function PlacePane({ verdict }: { verdict: Verdict | null }) {
       </div>
       <p className="cw-wph-title">{place.name}</p>
       <div className="cw-wph-tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={tab === "form"} className={tab === "form" ? "is-open" : undefined} onClick={() => setTab("form")}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "form"}
+          className={tab === "form" ? "is-open" : undefined}
+          onClick={() => setTab("form")}
+        >
           Editor
         </button>
-        <button type="button" role="tab" aria-selected={tab === "view"} className={tab === "view" ? "is-open" : undefined} onClick={() => setTab("view")}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "view"}
+          className={tab === "view" ? "is-open" : undefined}
+          onClick={() => setTab("view")}
+        >
           Observasjoner her
         </button>
       </div>
@@ -450,7 +557,14 @@ function PlacePane({ verdict }: { verdict: Verdict | null }) {
             <input value={place.name} readOnly />
           </label>
         ) : (
-          <Safe resetKey={View} fallback={<p className="cw-wph-empty" role="alert">Fanen krasjet i forhåndsvisningen.</p>}>
+          <Safe
+            resetKey={View}
+            fallback={
+              <p className="cw-wph-empty" role="alert">
+                Fanen krasjet i forhåndsvisningen.
+              </p>
+            }
+          >
             <View key={place._id} {...props} />
           </Safe>
         )}
