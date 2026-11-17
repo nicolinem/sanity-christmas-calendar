@@ -66,11 +66,25 @@ export default function BakerySign({ sign, onClose }: Props) {
         onClick={(event) => event.stopPropagation()}
       >
         <p className="bakery-sign-heading">Bakerens bod</p>
-        <div className="bakery-sign-text">
-          <BakeryText
-            sign={sign}
-            empty="Skiltet er tomt. Publiser skilttekst i Studio for å vise den her."
-          />
+        <div className="bakery-sign-views">
+          <figure className="bakery-sign-view">
+            <figcaption>Skiltet ved boden</figcaption>
+            <div className="bakery-sign-preview bakery-sign-preview--board bakery-sign-text">
+              <BakeryText
+                sign={sign}
+                empty="Skiltet er tomt. Publiser skilttekst i Studio for å vise den her."
+              />
+            </div>
+          </figure>
+          <figure className="bakery-sign-view">
+            <figcaption>Kortversjon, som i en app</figcaption>
+            <div className="bakery-sign-preview bakery-sign-preview--app bakery-sign-text">
+              <BakeryText
+                sign={sign}
+                empty="Skiltet er tomt. Publiser skilttekst i Studio for å vise den her."
+              />
+            </div>
+          </figure>
         </div>
         <button
           ref={closeRef}

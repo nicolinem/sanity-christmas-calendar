@@ -579,6 +579,12 @@ test("the skilt link is a shared optional door and does not change core totals",
 });
 
 test("the sign quest is offered at the sign, never by the Baker", () => {
+  const signQuest = CHAPTERS.flatMap(({ quests }) => quests).find(
+    ({ id }) => id === "baker-sign",
+  );
+  assert.match(signQuest.goal, /kortversjonen/);
+  assert.match(signQuest.lesson.text, /appvisningen/);
+  assert.doesNotMatch(signQuest.goal + signQuest.lesson.text, /HUD-strip/);
   const before = [
     "the-broken-forge",
     "weapon-description",

@@ -1036,12 +1036,15 @@ const bakerSign: Quest = {
   title: "Bodskiltet",
   topic: "*Portable Text*",
   intro: [
-    "Folk går forbi boden uten å vite hva som er nystekt. Skriv og publiser et skilt i Studio med ett viktig ord i fet skrift, så samme beskjed kan brukes på boden og i en kort appvisning.",
+    "Folk går forbi boden uten å vite hva som er nystekt.",
+    "Skriv og publiser et skilt i Studio med ett viktig ord i fet skrift.",
+    "Den samme beskjeden vises på skiltet og i en kort appvisning.",
   ],
   outro: [
-    "Beskjeden møter nå både folk ved boden og dem som ser appversjonen. Du lærte at Portable Text kan ha formatering som hver flate viser på sin måte.",
+    "Beskjeden møter nå både folk ved boden og dem som ser appversjonen.",
+    "Du lærte at Portable Text kan ha formatering som hver flate viser på sin måte.",
   ],
-  goal: "Publiser én rik tekst som fungerer på både bodskiltet og HUD-stripen.",
+  goal: "Publiser én rik tekst som fungerer på skiltet og i kortversjonen.",
   goalPreview: {
     before: "Boden har et tomt skilt.",
     after: "Det publiserte skiltet har et fremhevet ord.",
@@ -1063,7 +1066,7 @@ const bakerSign: Quest = {
   learn: { label: "Portable Text", url: `${DOCS}/block-content` },
   lesson: {
     title: "*Portable Text*",
-    text: "En tekstblokk kan inneholde ord med egne *marks*, som fet skrift. Spillet brukte samme publiserte verdi på bodskiltet og i HUD-stripen, men ga markeringen ulik stil på de to flatene.",
+    text: "En tekstblokk kan inneholde ord med egne *marks*, som fet skrift. Spillet brukte samme publiserte verdi på skiltet og i appvisningen, men ga markeringen ulik stil på de to flatene.",
     atWork:
       'Teksten bærer ikke utseendet. Den sier bare hva som er viktig. Hver flate bestemmer selv hvordan "viktig" ser ut.',
   },
