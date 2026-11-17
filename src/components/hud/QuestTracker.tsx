@@ -70,7 +70,9 @@ export default function QuestTracker({
         aria-live="polite"
       >
         <div className="tracker-head">
-          <span className="tracker-week">{finished.bonus ? "☆ Frivillig" : `Luke ${finished.door}`} er ferdig</span>
+          <span className="tracker-week">
+            {finished.bonus ? "☆ Frivillig" : `Luke ${finished.door}`} er ferdig
+          </span>
           <span className="tracker-title">{finished.title}</span>
         </div>
         <p className="tracker-goal">Luka lyser nå i journalen.</p>
@@ -181,15 +183,26 @@ export default function QuestTracker({
               aria-label={`${board.completedCount} av ${board.total} luker`}
             >
               {Array.from({ length: board.total }, (_, i) => (
-                <i key={i} className={i < board.completedCount ? "is-on" : ""} />
+                <i
+                  key={i}
+                  className={i < board.completedCount ? "is-on" : ""}
+                />
               ))}
             </span>
             <div className="tracker-nav">
-              <button type="button" className="tracker-nav-btn" onClick={onOpenMap}>
+              <button
+                type="button"
+                className="tracker-nav-btn"
+                onClick={onOpenMap}
+              >
                 <IconMap size={14} />
                 Kart
               </button>
-              <button type="button" className="tracker-nav-btn" onClick={onOpenLog}>
+              <button
+                type="button"
+                className="tracker-nav-btn"
+                onClick={onOpenLog}
+              >
                 <IconBook size={14} />
                 Journal
               </button>

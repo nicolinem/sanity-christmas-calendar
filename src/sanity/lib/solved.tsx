@@ -65,7 +65,9 @@ export function useBakeryReady(): boolean {
     subscribe,
     () => {
       read();
-      return lastTrack === "nonTechnical" && Boolean(lastCompleted["baker-sign"]);
+      return (
+        lastTrack === "nonTechnical" && Boolean(lastCompleted["baker-sign"])
+      );
     },
     () => false,
   );

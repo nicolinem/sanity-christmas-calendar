@@ -28,7 +28,9 @@ export async function GET() {
         '*[_type == "observation" && _id in $ids]{_id, status, "place": place._ref}',
         { ids: ARCHIVE_IDS },
       ),
-      client.fetch<OwnCase[]>('*[_type == "case"]{_id, "observations": observations[]._ref}'),
+      client.fetch<OwnCase[]>(
+        '*[_type == "case"]{_id, "observations": observations[]._ref}',
+      ),
     ]);
     return Response.json({
       configured: true,
@@ -37,7 +39,12 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Could not read the archive:", error);
-    return Response.json({ configured: true, docs: [], cases: [], error: "fetch_failed" });
+    return Response.json({
+      configured: true,
+      docs: [],
+      cases: [],
+      error: "fetch_failed",
+    });
   }
 }
 
@@ -50,13 +57,23 @@ export async function POST(request: Request) {
   if (!projectId || !token)
     return Response.json({ error: "no_token" }, { status: 503 });
 
-  const writer = createClient({ projectId, dataset, apiVersion, token, useCdn: false });
+  const writer = createClient({
+    projectId,
+    dataset,
+    apiVersion,
+    token,
+    useCdn: false,
+  });
   try {
     // Identical content gives the same asset, so this is safe to repeat.
-    const asset = await writer.assets.upload("image", Buffer.from(FOOTPRINTS_SVG), {
-      filename: "fotspor.svg",
-      contentType: "image/svg+xml",
-    });
+    const asset = await writer.assets.upload(
+      "image",
+      Buffer.from(FOOTPRINTS_SVG),
+      {
+        filename: "fotspor.svg",
+        contentType: "image/svg+xml",
+      },
+    );
     const ref = (id: string) => ({ _type: "reference", _ref: id });
     const tx = writer.transaction();
     for (const p of PLACES) tx.createIfNotExists({ ...p });
@@ -71,7 +88,9 @@ export async function POST(request: Request) {
         witness: ref(`witness-${o.witness}`),
         seen: true,
         status: "unknown",
-        ...(o.image ? { image: { _type: "image", asset: ref(asset._id) } } : {}),
+        ...(o.image
+          ? { image: { _type: "image", asset: ref(asset._id) } }
+          : {}),
       });
     for (const o of LINK_THE_PLACE)
       tx.createIfNotExists({

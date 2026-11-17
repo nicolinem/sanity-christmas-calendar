@@ -4,7 +4,12 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { GameItemView } from "@/game/items";
 import type { QuestState } from "@/game/quests/types";
 import type { QuestBoard } from "@/game/quests/engine";
-import { NPCS, QUEST_SITES, type NpcId, type QuestSiteId } from "@/game/village";
+import {
+  NPCS,
+  QUEST_SITES,
+  type NpcId,
+  type QuestSiteId,
+} from "@/game/village";
 import { giverOf, lukeName } from "@/game/quests/label";
 import SpriteIcon from "./SpriteIcon";
 import GoalPreview from "./goalPreviews";
@@ -98,7 +103,9 @@ export default function ForgeDialogue(props: Props) {
     <section
       className="dialogue frame frame--wood"
       role="dialog"
-      aria-label={speaker.title ? `${speaker.name}, ${speaker.title}` : speaker.name}
+      aria-label={
+        speaker.title ? `${speaker.name}, ${speaker.title}` : speaker.name
+      }
     >
       <div className="dialogue-portrait frame frame--inset">
         <SpriteIcon sprite={speaker.sprite} scale={4} />

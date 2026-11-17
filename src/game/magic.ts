@@ -20,15 +20,66 @@ export const ELEMENTS: Record<Element, { title: string }> = {
 
 // A word carries an element if it starts with one of these.
 const STEMS: Record<Element, string[]> = {
-  fire: ["fire", "flam", "blaz", "ember", "inferno", "burn", "scorch", "pyre", "ild", "flamm", "glød", "bål", "gnist"],
-  frost: ["frost", "ice", "icy", "froz", "glacier", "glacial", "rime", "winter", "snow", "snø", "kulde", "kald", "frys"],
-  lightning: ["thunder", "storm", "lightning", "volt", "spark", "torden", "lyn"],
+  fire: [
+    "fire",
+    "flam",
+    "blaz",
+    "ember",
+    "inferno",
+    "burn",
+    "scorch",
+    "pyre",
+    "ild",
+    "flamm",
+    "glød",
+    "bål",
+    "gnist",
+  ],
+  frost: [
+    "frost",
+    "ice",
+    "icy",
+    "froz",
+    "glacier",
+    "glacial",
+    "rime",
+    "winter",
+    "snow",
+    "snø",
+    "kulde",
+    "kald",
+    "frys",
+  ],
+  lightning: [
+    "thunder",
+    "storm",
+    "lightning",
+    "volt",
+    "spark",
+    "torden",
+    "lyn",
+  ],
   poison: ["venom", "toxic", "poison", "blight", "plague", "gift", "eiter"],
-  light: ["holy", "radiant", "dawn", "solar", "light", "bright", "lys", "hellig"],
+  light: [
+    "holy",
+    "radiant",
+    "dawn",
+    "solar",
+    "light",
+    "bright",
+    "lys",
+    "hellig",
+  ],
 };
 
 // Short words that would match far too much as stems, so they must stand alone.
-const WHOLE_WORDS: Record<string, Element> = { is: "frost", isen: "frost", rim: "frost", sol: "light", sun: "light" };
+const WHOLE_WORDS: Record<string, Element> = {
+  is: "frost",
+  isen: "frost",
+  rim: "frost",
+  sol: "light",
+  sun: "light",
+};
 
 // Old names with a little extra power. Not listed anywhere in the game: found by trying.
 export const SECRET_WORDS: Record<string, Element> = {
@@ -55,17 +106,23 @@ export function findElements(name: string | null | undefined): RuneMatch[] {
   const found: RuneMatch[] = [];
   for (const word of words(name ?? "")) {
     let match: RuneMatch | null = null;
-    if (SECRET_WORDS[word]) match = { element: SECRET_WORDS[word], word, secret: true };
-    else if (WHOLE_WORDS[word]) match = { element: WHOLE_WORDS[word], word, secret: false };
+    if (SECRET_WORDS[word])
+      match = { element: SECRET_WORDS[word], word, secret: true };
+    else if (WHOLE_WORDS[word])
+      match = { element: WHOLE_WORDS[word], word, secret: false };
     else
-      for (const [element, stems] of Object.entries(STEMS) as [Element, string[]][]) {
+      for (const [element, stems] of Object.entries(STEMS) as [
+        Element,
+        string[],
+      ][]) {
         const stem = stems.find((s) => word.startsWith(s));
         if (stem) {
           match = { element, word: stem, secret: false };
           break;
         }
       }
-    if (match && !found.some((f) => f.element === match.element)) found.push(match);
+    if (match && !found.some((f) => f.element === match.element))
+      found.push(match);
   }
   return found;
 }
@@ -79,6 +136,7 @@ export type NameMagic =
 export function readName(name: string | null | undefined): NameMagic {
   const found = findElements(name);
   if (found.length === 0) return { kind: "none" };
-  if (found.length === 1) return { kind: "element", element: found[0].element, match: found[0] };
+  if (found.length === 1)
+    return { kind: "element", element: found[0].element, match: found[0] };
   return { kind: "fizzle", matches: found };
 }

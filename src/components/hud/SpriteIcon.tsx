@@ -20,5 +20,11 @@ export default function SpriteIcon({ sprite, scale, className }: Props) {
     ...(scale ? { "--s": scale } : {}),
     backgroundImage: `url(${sheet.url})`,
   } as CSSProperties;
-  return <span aria-hidden className={`sprite${className ? ` ${className}` : ""}`} style={style} />;
+  return (
+    <span
+      aria-hidden
+      className={`sprite${className ? ` ${className}` : ""}`}
+      style={style}
+    />
+  );
 }

@@ -66,11 +66,17 @@ export function evaluateQuests(
       const done = Boolean(ctx.progress.completed[quest.id]);
       const unlocked = devUnlock || (previousResolved && dateOpen);
       // An optional luke isn't handed over: it waits at its place once open.
-      const briefed = Boolean(ctx.progress.briefed[quest.id]) || Boolean(quest.bonus) || quest.villageSite === "bakerySign";
+      const briefed =
+        Boolean(ctx.progress.briefed[quest.id]) ||
+        Boolean(quest.bonus) ||
+        quest.villageSite === "bakerySign";
       // A door with its own place is picked up there after Brann's briefing.
       const site = quest.villageSite;
       const pickup =
-        briefed && site && site !== giverOf(quest).site && !ctx.progress.fetched?.[quest.id]
+        briefed &&
+        site &&
+        site !== giverOf(quest).site &&
+        !ctx.progress.fetched?.[quest.id]
           ? site
           : undefined;
       states.push({

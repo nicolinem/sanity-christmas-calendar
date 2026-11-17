@@ -10,7 +10,13 @@
 // Arkivaren's rule: an observation is confirmed when someone saw it
 // themselves and it has a picture, or another witness saw the same place.
 
-export type ArchivePlace = { _id: string; _type: "place"; name: string; x: number; y: number };
+export type ArchivePlace = {
+  _id: string;
+  _type: "place";
+  name: string;
+  x: number;
+  y: number;
+};
 export type ArchiveWitness = { _id: string; _type: "witness"; name: string };
 export type ArchiveObservation = {
   _id: string;
@@ -37,11 +43,25 @@ export const PLACES: ArchivePlace[] = [
 ];
 
 export const WITNESSES: ArchiveWitness[] = [
-  "Ola", "Kari", "Per", "Liv", "Nils", "Mari", "Jon", "Siri",
-].map((name) => ({ _id: `witness-${name.toLowerCase()}`, _type: "witness", name }));
+  "Ola",
+  "Kari",
+  "Per",
+  "Liv",
+  "Nils",
+  "Mari",
+  "Jon",
+  "Siri",
+].map((name) => ({
+  _id: `witness-${name.toLowerCase()}`,
+  _type: "witness",
+  name,
+}));
 
 const ref = (id: string) => ({ _type: "reference" as const, _ref: id });
-const PHOTO = { _type: "image" as const, asset: ref("image-footprints-16x16-png") };
+const PHOTO = {
+  _type: "image" as const,
+  asset: ref("image-footprints-16x16-png"),
+};
 
 let n = 0;
 function obs(
@@ -69,7 +89,10 @@ const C = { seen: true, status: "confirmed" } as const;
 
 // The trail: forest edge → fence → forge → bakery.
 const CONFIRMED = [
-  obs("skogkanten", "18:10", "Store fotspor i snøen", "ola", { ...C, image: true }),
+  obs("skogkanten", "18:10", "Store fotspor i snøen", "ola", {
+    ...C,
+    image: true,
+  }),
   obs("gjerdet", "18:32", "Spor langs gjerdet", "kari", { ...C, image: true }),
   obs("smia", "18:45", "Rim på smiedøra", "per", C),
   obs("smia", "18:47", "Noe stort gikk forbi vinduet", "liv", C),
@@ -79,9 +102,18 @@ const CONFIRMED = [
 
 // Seen, but not enough for the rule: one witness twice, and one alone.
 const SEEN_RUMOURS = [
-  obs("bronnen", "18:20", "Noe plasket i brønnen", "jon", { seen: true, status: "rumor" }),
-  obs("bronnen", "18:50", "Det plasket igjen", "jon", { seen: true, status: "rumor" }),
-  obs("torget", "19:40", "En skygge ved juletreet", "siri", { seen: true, status: "rumor" }),
+  obs("bronnen", "18:20", "Noe plasket i brønnen", "jon", {
+    seen: true,
+    status: "rumor",
+  }),
+  obs("bronnen", "18:50", "Det plasket igjen", "jon", {
+    seen: true,
+    status: "rumor",
+  }),
+  obs("torget", "19:40", "En skygge ved juletreet", "siri", {
+    seen: true,
+    status: "rumor",
+  }),
 ];
 
 // Heard from someone else. Most of it is about the square.
@@ -124,11 +156,24 @@ const HEARD: [string, string][] = [
   ["bakeriet", "Det luktet pepperkaker ute i snøen"],
   ["bakeriet", "Noen så melspor i snøen"],
 ];
-const TELLERS = ["jon", "liv", "jon", "ola", "kari", "mari", "per", "siri", "nils", "jon"];
+const TELLERS = [
+  "jon",
+  "liv",
+  "jon",
+  "ola",
+  "kari",
+  "mari",
+  "per",
+  "siri",
+  "nils",
+  "jon",
+];
 const HEARD_RUMOURS = HEARD.map(([place, what], i) => {
   const minutes = 17 * 60 + 30 + ((i * 37) % 210); // 17:30–20:59
   const time = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-  return obs(place, time, what, TELLERS[i % TELLERS.length], { status: "rumor" });
+  return obs(place, time, what, TELLERS[i % TELLERS.length], {
+    status: "rumor",
+  });
 });
 
 export const OBSERVATIONS: ArchiveObservation[] = [
@@ -138,36 +183,147 @@ export const OBSERVATIONS: ArchiveObservation[] = [
 ];
 
 // The whole practice dataset, as GROQ sees it in the code window.
-export const ARCHIVE_DATASET: ArchiveDoc[] = [...PLACES, ...WITNESSES, ...OBSERVATIONS];
+export const ARCHIVE_DATASET: ArchiveDoc[] = [
+  ...PLACES,
+  ...WITNESSES,
+  ...OBSERVATIONS,
+];
 
 // --- The player's own project (non-technical track) -------------------------
 
 // Nine observations for the source check. They start as "unknown"; the player
 // sets each status by Arkivaren's rule and publishes.
-export const SOURCE_CHECK: { _id: string; place: string; time: string; what: string; witness: string; image?: true; expected: "confirmed" | "rumor" }[] = [
-  { _id: "archive-a1", place: "skogkanten", time: "18:10", what: "Store fotspor i snøen", witness: "ola", image: true, expected: "confirmed" },
-  { _id: "archive-a2", place: "gjerdet", time: "18:32", what: "Spor langs gjerdet", witness: "kari", image: true, expected: "confirmed" },
-  { _id: "archive-b1", place: "smia", time: "18:45", what: "Rim på smiedøra", witness: "per", expected: "confirmed" },
-  { _id: "archive-b2", place: "smia", time: "18:47", what: "Noe stort gikk forbi vinduet", witness: "liv", expected: "confirmed" },
-  { _id: "archive-c1", place: "bakeriet", time: "19:05", what: "Kaker har forsvunnet", witness: "mari", expected: "confirmed" },
-  { _id: "archive-c2", place: "bakeriet", time: "19:10", what: "Iskaldt i rommet etterpå", witness: "nils", expected: "confirmed" },
-  { _id: "archive-d1", place: "torget", time: "19:40", what: "En skygge ved juletreet", witness: "siri", expected: "rumor" },
-  { _id: "archive-e1", place: "bronnen", time: "18:20", what: "Noe plasket i brønnen", witness: "jon", expected: "rumor" },
-  { _id: "archive-e2", place: "bronnen", time: "18:50", what: "Det plasket igjen", witness: "jon", expected: "rumor" },
+export const SOURCE_CHECK: {
+  _id: string;
+  place: string;
+  time: string;
+  what: string;
+  witness: string;
+  image?: true;
+  expected: "confirmed" | "rumor";
+}[] = [
+  {
+    _id: "archive-a1",
+    place: "skogkanten",
+    time: "18:10",
+    what: "Store fotspor i snøen",
+    witness: "ola",
+    image: true,
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-a2",
+    place: "gjerdet",
+    time: "18:32",
+    what: "Spor langs gjerdet",
+    witness: "kari",
+    image: true,
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-b1",
+    place: "smia",
+    time: "18:45",
+    what: "Rim på smiedøra",
+    witness: "per",
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-b2",
+    place: "smia",
+    time: "18:47",
+    what: "Noe stort gikk forbi vinduet",
+    witness: "liv",
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-c1",
+    place: "bakeriet",
+    time: "19:05",
+    what: "Kaker har forsvunnet",
+    witness: "mari",
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-c2",
+    place: "bakeriet",
+    time: "19:10",
+    what: "Iskaldt i rommet etterpå",
+    witness: "nils",
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-d1",
+    place: "torget",
+    time: "19:40",
+    what: "En skygge ved juletreet",
+    witness: "siri",
+    expected: "rumor",
+  },
+  {
+    _id: "archive-e1",
+    place: "bronnen",
+    time: "18:20",
+    what: "Noe plasket i brønnen",
+    witness: "jon",
+    expected: "rumor",
+  },
+  {
+    _id: "archive-e2",
+    place: "bronnen",
+    time: "18:50",
+    what: "Det plasket igjen",
+    witness: "jon",
+    expected: "rumor",
+  },
 ];
 
 // Three confirmed observations where someone typed the place as text. The
 // player replaces the text with a reference to the right place.
-export const LINK_THE_PLACE: { _id: string; placeNote: string; time: string; what: string; witness: string; expected: string }[] = [
-  { _id: "archive-l1", placeNote: "bakriet", time: "19:20", what: "Melspor ut døra", witness: "mari", expected: "place-bakeriet" },
-  { _id: "archive-l2", placeNote: "ved smia, tror jeg", time: "18:50", what: "Smeltet snø rundt smia", witness: "per", expected: "place-smia" },
-  { _id: "archive-l3", placeNote: "skogen (kanten)", time: "18:05", what: "Grener knekt høyt oppe", witness: "ola", expected: "place-skogkanten" },
+export const LINK_THE_PLACE: {
+  _id: string;
+  placeNote: string;
+  time: string;
+  what: string;
+  witness: string;
+  expected: string;
+}[] = [
+  {
+    _id: "archive-l1",
+    placeNote: "bakriet",
+    time: "19:20",
+    what: "Melspor ut døra",
+    witness: "mari",
+    expected: "place-bakeriet",
+  },
+  {
+    _id: "archive-l2",
+    placeNote: "ved smia, tror jeg",
+    time: "18:50",
+    what: "Smeltet snø rundt smia",
+    witness: "per",
+    expected: "place-smia",
+  },
+  {
+    _id: "archive-l3",
+    placeNote: "skogen (kanten)",
+    time: "18:05",
+    what: "Grener knekt høyt oppe",
+    witness: "ola",
+    expected: "place-skogkanten",
+  },
 ];
 
-export const ARCHIVE_IDS = [...SOURCE_CHECK, ...LINK_THE_PLACE].map((d) => d._id);
+export const ARCHIVE_IDS = [...SOURCE_CHECK, ...LINK_THE_PLACE].map(
+  (d) => d._id,
+);
 
 // What the game reads back from the player's project (published only).
-export type OwnArchiveDoc = { _id: string; status?: string | null; place?: string | null };
+export type OwnArchiveDoc = {
+  _id: string;
+  status?: string | null;
+  place?: string | null;
+};
 
 export function sourceCheckScore(docs: OwnArchiveDoc[]) {
   const right = SOURCE_CHECK.filter(

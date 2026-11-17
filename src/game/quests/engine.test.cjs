@@ -412,34 +412,66 @@ const STUDIO_STEPS = [
   },
   {
     id: "follow-the-trail",
-    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board"],
+    before: [
+      "the-broken-forge",
+      "branns-ledger",
+      "the-guilds-law",
+      "the-drawing-board",
+    ],
     next: "archive-lists",
   },
   {
     id: "archive-lists",
-    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail"],
+    before: [
+      "the-broken-forge",
+      "branns-ledger",
+      "the-guilds-law",
+      "the-drawing-board",
+      "follow-the-trail",
+    ],
     next: "who-points-here",
   },
   {
     id: "who-points-here",
-    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists"],
+    before: [
+      "the-broken-forge",
+      "branns-ledger",
+      "the-guilds-law",
+      "the-drawing-board",
+      "follow-the-trail",
+      "archive-lists",
+    ],
     next: "baker-template",
   },
   {
     id: "baker-template",
-    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists", "who-points-here"],
+    before: [
+      "the-broken-forge",
+      "branns-ledger",
+      "the-guilds-law",
+      "the-drawing-board",
+      "follow-the-trail",
+      "archive-lists",
+      "who-points-here",
+    ],
     next: "baker-forge",
   },
   {
     id: "baker-forge",
-    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists", "who-points-here", "baker-template"],
+    before: [
+      "the-broken-forge",
+      "branns-ledger",
+      "the-guilds-law",
+      "the-drawing-board",
+      "follow-the-trail",
+      "archive-lists",
+      "who-points-here",
+      "baker-template",
+    ],
     next: "baker-function",
   },
 ];
-function studioBoard(
-  step,
-  { solved = false, done = false } = {},
-) {
+function studioBoard(step, { solved = false, done = false } = {}) {
   const ids = done ? [...step.before, step.id] : step.before;
   return evaluateQuests(
     chaptersForTrack(CHAPTERS, "technical"),
@@ -474,32 +506,63 @@ test("the skilt link is a shared optional door and does not change core totals",
   assert.equal(link.track, undefined);
   assert.equal(link.door, 0);
   assert.equal(link.check(context()).done, false);
-  const sign = { _id: "bakery-sign", text: [{ _type: "block", children: [
-    { _type: "span", text: "Kaker", marks: ["url"] },
-  ], markDefs: [{ _key: "url", _type: "link", href: "https://example.org/kaker" }] }] };
+  const sign = {
+    _id: "bakery-sign",
+    text: [
+      {
+        _type: "block",
+        children: [{ _type: "span", text: "Kaker", marks: ["url"] }],
+        markDefs: [
+          { _key: "url", _type: "link", href: "https://example.org/kaker" },
+        ],
+      },
+    ],
+  };
   assert.equal(link.check({ ...context(), bakerySign: sign }).done, true);
   for (const track of ["technical", "nonTechnical"]) {
     const chapters = chaptersForTrack(CHAPTERS, track);
     const board = evaluateQuests(chapters, context({ track }), NOW);
-    assert.equal(board.states.filter(({ quest }) => quest.id === "baker-link").length, 1);
-    assert.equal(board.total, board.states.filter(({ quest }) => !quest.bonus).length);
+    assert.equal(
+      board.states.filter(({ quest }) => quest.id === "baker-link").length,
+      1,
+    );
+    assert.equal(
+      board.total,
+      board.states.filter(({ quest }) => !quest.bonus).length,
+    );
   }
 });
 
 test("the sign quest is offered at the sign, never by the Baker", () => {
-  const before = ["the-broken-forge", "source-check", "link-the-place", "case-file", "baker-first-order"];
-  const board = evaluateQuests(chaptersForTrack(CHAPTERS, "nonTechnical"), context({
-    track: "nonTechnical", completed: Object.fromEntries(before.map((id) => [id, COMPLETED_AT])),
-  }), NOW);
+  const before = [
+    "the-broken-forge",
+    "source-check",
+    "link-the-place",
+    "case-file",
+    "baker-first-order",
+  ];
+  const board = evaluateQuests(
+    chaptersForTrack(CHAPTERS, "nonTechnical"),
+    context({
+      track: "nonTechnical",
+      completed: Object.fromEntries(before.map((id) => [id, COMPLETED_AT])),
+    }),
+    NOW,
+  );
   assert.equal(board.current.quest.id, "baker-sign");
   assert.equal(board.current.pickup, "bakerySign");
   assert.equal(board.current.status, "offered");
 });
 
 test("Bakeren's ready door accepts only a published ready order with an item", () => {
-  const ready = CHAPTERS.flatMap(({ quests }) => quests).find(({ id }) => id === "baker-ready");
+  const ready = CHAPTERS.flatMap(({ quests }) => quests).find(
+    ({ id }) => id === "baker-ready",
+  );
   assert.ok(ready);
-  const ctx = { ...context({ bakeryOrderId: "order" }), bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }] };
+  const ctx = {
+    ...context({ bakeryOrderId: "order" }),
+    bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }],
+  };
   assert.equal(ready.check(ctx).done, false);
   ctx.bakeryOrders[0].status = "klar";
   assert.equal(ready.check(ctx).done, true);
@@ -540,8 +603,7 @@ for (const step of STUDIO_STEPS) {
       // Passing the check is not completion: the hook records it on the next render.
       assert.equal(state.status, "active");
       assert.equal(board.completedCount, step.before.length);
-      if (step.next)
-        assert.equal(stateOf(board, step.next).status, "locked");
+      if (step.next) assert.equal(stateOf(board, step.next).status, "locked");
       else assert.equal(board.current.quest.id, step.id);
     }
   });
@@ -552,8 +614,7 @@ for (const step of STUDIO_STEPS) {
     assert.equal(state.status, "done");
     assert.equal(state.result.done, false);
     assert.equal(board.completedCount, step.before.length + 1);
-    if (step.next)
-      assert.equal(stateOf(board, step.next).status, "offered");
+    if (step.next) assert.equal(stateOf(board, step.next).status, "offered");
     // Only an optional luke may be left once the core doors are done.
     else assert.ok(board.current === null || board.current.quest.bonus);
   });

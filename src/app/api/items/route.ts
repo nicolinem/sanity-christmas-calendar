@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "next-sanity";
 import { getSanityClient } from "@/sanity/client";
 import { apiVersion, dataset, projectId } from "@/sanity/env";
-import { itemsQuery, unpublishedWeaponDraftsQuery, type SanityItem } from "@/sanity/queries";
+import {
+  itemsQuery,
+  unpublishedWeaponDraftsQuery,
+  type SanityItem,
+} from "@/sanity/queries";
 
 // Fetch published game items from Sanity on the server. The items come from a
 // public read with no token (the optional draft count below is the only token
@@ -17,7 +21,14 @@ async function countUnpublishedWeapons(): Promise<number> {
   const token = process.env.SANITY_AUTH_TOKEN;
   if (!token) return 0;
   try {
-    const reader = createClient({ projectId, dataset, apiVersion, token, useCdn: false, perspective: "raw" });
+    const reader = createClient({
+      projectId,
+      dataset,
+      apiVersion,
+      token,
+      useCdn: false,
+      perspective: "raw",
+    });
     return await reader.fetch<number>(unpublishedWeaponDraftsQuery);
   } catch {
     return 0;
@@ -39,7 +50,12 @@ export async function GET() {
       client.fetch<SanityItem[]>(itemsQuery),
       countUnpublishedWeapons(),
     ]);
-    return NextResponse.json({ configured: true, unclaimed, unpublishedDrafts, items });
+    return NextResponse.json({
+      configured: true,
+      unclaimed,
+      unpublishedDrafts,
+      items,
+    });
   } catch (error) {
     console.error("Failed to fetch game items from Sanity:", error);
     return NextResponse.json(

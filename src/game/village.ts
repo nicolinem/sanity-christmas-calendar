@@ -219,7 +219,9 @@ export const NPCS: Record<NpcId, Npc> = {
 };
 
 // Who stands at a place, if anyone.
-export function npcAtSite(site: QuestSiteId | null | undefined): Npc | undefined {
+export function npcAtSite(
+  site: QuestSiteId | null | undefined,
+): Npc | undefined {
   return Object.values(NPCS).find((n) => n.site === site);
 }
 

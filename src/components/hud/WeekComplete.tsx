@@ -76,8 +76,8 @@ export default function WeekComplete({
             {summary.pages} nye {summary.pages === 1 ? "side" : "sider"} i boka.
           </li>
           <li>
-            Nivå {forgeLevel}: våpnene gjør{" "}
-            {forgedPower(forgeLevel).damage} skade.
+            Nivå {forgeLevel}: våpnene gjør {forgedPower(forgeLevel).damage}{" "}
+            skade.
           </li>
         </ul>
 

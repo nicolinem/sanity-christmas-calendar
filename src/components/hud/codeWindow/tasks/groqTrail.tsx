@@ -47,8 +47,17 @@ type TrailData = { points: TrailPoint[]; rows: number; json: string };
 function coordsOf(row: Record<string, unknown>) {
   for (const value of Object.values(row)) {
     const v = value as { x?: unknown; y?: unknown; name?: unknown } | null;
-    if (v && typeof v === "object" && typeof v.x === "number" && typeof v.y === "number")
-      return { x: v.x, y: v.y, name: typeof v.name === "string" ? v.name : undefined };
+    if (
+      v &&
+      typeof v === "object" &&
+      typeof v.x === "number" &&
+      typeof v.y === "number"
+    )
+      return {
+        x: v.x,
+        y: v.y,
+        name: typeof v.name === "string" ? v.name : undefined,
+      };
   }
   return null;
 }
@@ -63,7 +72,11 @@ export async function judgeTrail(
       done: false,
       data: empty,
       requirements: [
-        { label: "Fant `query`", done: false, message: "Behold `export const query = \\`…\\``." },
+        {
+          label: "Fant `query`",
+          done: false,
+          message: "Behold `export const query = \\`…\\``.",
+        },
       ],
     };
 
@@ -71,7 +84,12 @@ export async function judgeTrail(
   try {
     result = await runGroq(query);
   } catch (err) {
-    return { done: false, data: empty, error: groqError(err), requirements: [] };
+    return {
+      done: false,
+      data: empty,
+      error: groqError(err),
+      requirements: [],
+    };
   }
   const json = JSON.stringify(result, null, 2) ?? "null";
   if (!Array.isArray(result))
@@ -79,21 +97,31 @@ export async function judgeTrail(
       done: false,
       data: { ...empty, json },
       requirements: [
-        { label: "Spørringen gir en liste", done: false, message: "Kartet trenger en liste med observasjoner, `*[…]`." },
+        {
+          label: "Spørringen gir en liste",
+          done: false,
+          message: "Kartet trenger en liste med observasjoner, `*[…]`.",
+        },
       ],
     };
 
-  const rows = result.filter((r): r is Record<string, unknown> => Boolean(r) && typeof r === "object");
+  const rows = result.filter(
+    (r): r is Record<string, unknown> => Boolean(r) && typeof r === "object",
+  );
   const matched: (ArchiveObservation | undefined)[] = rows.map((r) =>
     OBSERVATIONS.find((o) => o.time === r.time && o.what === r.what),
   );
   const known = rows.length === result.length && matched.every(Boolean);
   const rumours = matched.filter((o) => o && o.status !== "confirmed").length;
-  const confirmedFound = matched.filter((o) => o?.status === "confirmed").length;
-  const onlyConfirmed = known && rumours === 0 && confirmedFound === CONFIRMED.length;
+  const confirmedFound = matched.filter(
+    (o) => o?.status === "confirmed",
+  ).length;
+  const onlyConfirmed =
+    known && rumours === 0 && confirmedFound === CONFIRMED.length;
 
   const times = rows.map((r) => String(r.time ?? ""));
-  const ordered = rows.length > 1 && times.every((t, i) => i === 0 || times[i - 1] <= t);
+  const ordered =
+    rows.length > 1 && times.every((t, i) => i === 0 || times[i - 1] <= t);
 
   const coords = rows.map(coordsOf);
   const placed = rows.length > 0 && coords.every(Boolean);
@@ -127,7 +155,8 @@ export async function judgeTrail(
     {
       label: "I tidsrekkefølge",
       done: ordered,
-      message: "Prikkene kommer ikke i tidsrekkefølge, så stien hopper fram og tilbake.",
+      message:
+        "Prikkene kommer ikke i tidsrekkefølge, så stien hopper fram og tilbake.",
     },
     {
       label: "Med sted på kartet",
@@ -154,7 +183,11 @@ function spread(points: TrailPoint[]) {
     seen.set(at, n + 1);
     const angle = n * 2.4;
     const r = n === 0 ? 0 : 2.2 + n * 0.35;
-    return { ...p, x: p.x + Math.cos(angle) * r, y: p.y + Math.sin(angle) * r * 1.6 };
+    return {
+      ...p,
+      x: p.x + Math.cos(angle) * r,
+      y: p.y + Math.sin(angle) * r * 1.6,
+    };
   });
 }
 
@@ -168,10 +201,25 @@ export function TrailMap({ verdict }: { verdict: Verdict | null }) {
   const last = points.at(-1);
   return (
     <div className="cw-trail">
-      <div className="cw-trail-map" role="img" aria-label={`Kart med ${points.length} observasjoner`}>
-        <canvas ref={canvas} width={VILLAGE_W} height={VILLAGE_H} className="cw-trail-bg" aria-hidden />
+      <div
+        className="cw-trail-map"
+        role="img"
+        aria-label={`Kart med ${points.length} observasjoner`}
+      >
+        <canvas
+          ref={canvas}
+          width={VILLAGE_W}
+          height={VILLAGE_H}
+          className="cw-trail-bg"
+          aria-hidden
+        />
         {ordered && points.length > 1 && (
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="cw-trail-line" aria-hidden>
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            className="cw-trail-line"
+            aria-hidden
+          >
             <polyline points={line} className={done ? "is-done" : undefined} />
           </svg>
         )}
@@ -186,7 +234,10 @@ export function TrailMap({ verdict }: { verdict: Verdict | null }) {
           </span>
         ))}
         {done && last && (
-          <span className="cw-trail-label" style={{ left: `${last.x}%`, top: `${last.y}%` }}>
+          <span
+            className="cw-trail-label"
+            style={{ left: `${last.x}%`, top: `${last.y}%` }}
+          >
             {last.name}
           </span>
         )}

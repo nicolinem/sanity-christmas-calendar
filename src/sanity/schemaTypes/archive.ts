@@ -21,18 +21,44 @@ export const observation = defineType({
   type: "document",
   icon: EyeOpenIcon,
   fields: [
-    defineField({ name: "what", title: "What was seen", type: "string", validation: (r) => r.required() }),
-    defineField({ name: "time", title: "Time", type: "string", description: "HH:MM, the same evening" }),
-    defineField({ name: "place", title: "Place", type: "reference", to: [{ type: "place" }] }),
+    defineField({
+      name: "what",
+      title: "What was seen",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "time",
+      title: "Time",
+      type: "string",
+      description: "HH:MM, the same evening",
+    }),
+    defineField({
+      name: "place",
+      title: "Place",
+      type: "reference",
+      to: [{ type: "place" }],
+    }),
     defineField({
       name: "placeNote",
       title: "Place (as written down)",
       type: "string",
-      description: "What the witness wrote. The Place reference above is what the archive can search.",
+      description:
+        "What the witness wrote. The Place reference above is what the archive can search.",
       hidden: ({ value }) => !value,
     }),
-    defineField({ name: "witness", title: "Witness", type: "reference", to: [{ type: "witness" }] }),
-    defineField({ name: "seen", title: "Seen with own eyes", type: "boolean", initialValue: true }),
+    defineField({
+      name: "witness",
+      title: "Witness",
+      type: "reference",
+      to: [{ type: "witness" }],
+    }),
+    defineField({
+      name: "seen",
+      title: "Seen with own eyes",
+      type: "boolean",
+      initialValue: true,
+    }),
     defineField({ name: "image", title: "Picture", type: "image" }),
     defineField({
       name: "status",
@@ -40,18 +66,32 @@ export const observation = defineType({
       type: "string",
       initialValue: "unknown",
       options: {
-        list: Object.entries(STATUS_TITLES).map(([value, title]) => ({ title, value })),
+        list: Object.entries(STATUS_TITLES).map(([value, title]) => ({
+          title,
+          value,
+        })),
         layout: "radio",
         direction: "horizontal",
       },
     }),
   ],
-  orderings: [{ title: "Time", name: "time", by: [{ field: "time", direction: "asc" }] }],
+  orderings: [
+    { title: "Time", name: "time", by: [{ field: "time", direction: "asc" }] },
+  ],
   preview: {
-    select: { title: "what", time: "time", status: "status", place: "place.name", note: "placeNote", media: "image" },
+    select: {
+      title: "what",
+      time: "time",
+      status: "status",
+      place: "place.name",
+      note: "placeNote",
+      media: "image",
+    },
     prepare: ({ title, time, status, place, note, media }) => ({
       title,
-      subtitle: [time, place ?? note, STATUS_TITLES[status] ?? status].filter(Boolean).join(" · "),
+      subtitle: [time, place ?? note, STATUS_TITLES[status] ?? status]
+        .filter(Boolean)
+        .join(" · "),
       media,
     }),
   },
@@ -63,10 +103,25 @@ export const place = defineType({
   type: "document",
   icon: PinIcon,
   fields: [
-    defineField({ name: "name", title: "Name", type: "string", validation: (r) => r.required() }),
+    defineField({
+      name: "name",
+      title: "Name",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
     // Where the place is on the village map, in percent. Read by the game.
-    defineField({ name: "x", title: "Map x (%)", type: "number", hidden: true }),
-    defineField({ name: "y", title: "Map y (%)", type: "number", hidden: true }),
+    defineField({
+      name: "x",
+      title: "Map x (%)",
+      type: "number",
+      hidden: true,
+    }),
+    defineField({
+      name: "y",
+      title: "Map y (%)",
+      type: "number",
+      hidden: true,
+    }),
   ],
 });
 
@@ -75,7 +130,14 @@ export const witness = defineType({
   title: "Witness",
   type: "document",
   icon: UserIcon,
-  fields: [defineField({ name: "name", title: "Name", type: "string", validation: (r) => r.required() })],
+  fields: [
+    defineField({
+      name: "name",
+      title: "Name",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
+  ],
 });
 
 export const caseFile = defineType({
@@ -84,12 +146,23 @@ export const caseFile = defineType({
   type: "document",
   icon: FolderIcon,
   fields: [
-    defineField({ name: "title", title: "Title", type: "string", validation: (r) => r.required() }),
+    defineField({
+      name: "title",
+      title: "Title",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
     defineField({
       name: "observations",
       title: "Observations",
       type: "array",
-      of: [{ type: "reference", to: [{ type: "observation" }], options: { disableNew: true } }],
+      of: [
+        {
+          type: "reference",
+          to: [{ type: "observation" }],
+          options: { disableNew: true },
+        },
+      ],
     }),
   ],
   preview: {

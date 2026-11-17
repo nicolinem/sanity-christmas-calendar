@@ -13,7 +13,13 @@ type Props = {
 // A game sprite you can drop anywhere React renders, including Sanity Studio
 // (list previews, custom inputs, document views). Self-contained inline styles,
 // so it doesn't depend on the game's stylesheet.
-export default function SpriteImage({ spriteId, kind, scale = 2, sprite: exact, style }: Props) {
+export default function SpriteImage({
+  spriteId,
+  kind,
+  scale = 2,
+  sprite: exact,
+  style,
+}: Props) {
   const sprite = exact ?? resolveSprite(spriteId, kind);
   const sheet = SHEETS[sprite.sheet];
   const size = TILE * scale;

@@ -22,20 +22,22 @@ const QUESTIONS: Question[] = [
   {
     n: 1,
     ask: "Hvor mange rykter har vi egentlig?",
-    detail: "Svaret er ett tall: antall observasjoner med `status` `\"rumor\"`.",
+    detail: 'Svaret er ett tall: antall observasjoner med `status` `"rumor"`.',
     ours: `count(*[_type == "observation" && status == "rumor"])`,
   },
   {
     n: 2,
     ask: "Hva skjedde mellom seks og sju?",
-    detail: "Alle observasjoner fra og med 18:00 til før 19:00, med `time` og `what`, i tidsrekkefølge.",
+    detail:
+      "Alle observasjoner fra og med 18:00 til før 19:00, med `time` og `what`, i tidsrekkefølge.",
     ours: `*[_type == "observation" && time >= "18:00" && time < "19:00"]
   | order(time asc) { time, what }`,
   },
   {
     n: 3,
     ask: "Hvor mange observasjoner har hvert sted? Flest først.",
-    detail: "Ett objekt per sted med `name` og `antall`, sortert med flest først.",
+    detail:
+      "Ett objekt per sted med `name` og `antall`, sortert med flest først.",
     ours: `*[_type == "place"] {
   name,
   "antall": count(*[_type == "observation" && references(^._id)])
@@ -44,7 +46,7 @@ const QUESTIONS: Question[] = [
   {
     n: 4,
     ask: "Hvem sprer flest rykter?",
-    detail: "Navnet på vitnet med flest observasjoner som er `\"rumor\"`.",
+    detail: 'Navnet på vitnet med flest observasjoner som er `"rumor"`.',
     ours: `*[_type == "witness"] {
   name,
   "rykter": count(*[_type == "observation" && status == "rumor" && references(^._id)])
@@ -68,7 +70,10 @@ const QUESTIONS: Question[] = [
     && place._ref == ^.place._ref
     && witness._ref != ^.witness._ref]) > 0
 )] | order(time asc) { time, what }`,
-    forbid: { word: "status", why: "Arkivaren stoler ikke på `status`. Bruk regelen i stedet." },
+    forbid: {
+      word: "status",
+      why: "Arkivaren stoler ikke på `status`. Bruk regelen i stedet.",
+    },
   },
 ];
 
@@ -86,9 +91,18 @@ export const svar${q.n} = \`
 ).join("\n")}
 `;
 
-const OURS = QUESTIONS.map((q) => `// ${q.n}. ${q.ask}\n${q.ours}`).join("\n\n");
+const OURS = QUESTIONS.map((q) => `// ${q.n}. ${q.ask}\n${q.ours}`).join(
+  "\n\n",
+);
 
-type Answer = { n: number; ask: string; done: boolean; json: string; message?: string; reward: string };
+type Answer = {
+  n: number;
+  ask: string;
+  done: boolean;
+  json: string;
+  message?: string;
+  reward: string;
+};
 type AnswersData = { answers: Answer[] };
 
 // What each answer earns, shown before it's solved. Placeholders until the
@@ -97,14 +111,23 @@ const REWARDS = ["Lue", "Skjerf", "Lykt", "Kappe", "Stjerne"];
 
 const expected = new Map<number, Promise<unknown>>();
 function answerFor(q: Question) {
-  if (!expected.has(q.n)) expected.set(q.n, runGroq(q.ours).then((r) => (q.read ? q.read(r) : r)));
+  if (!expected.has(q.n))
+    expected.set(
+      q.n,
+      runGroq(q.ours).then((r) => (q.read ? q.read(r) : r)),
+    );
   return expected.get(q.n)!;
 }
 
 async function judgeOne(q: Question, query: unknown): Promise<Answer> {
   const base = { n: q.n, ask: q.ask, reward: REWARDS[q.n - 1] };
   if (typeof query !== "string")
-    return { ...base, done: false, json: "", message: `Behold \`export const svar${q.n} = \\\`…\\\`\`.` };
+    return {
+      ...base,
+      done: false,
+      json: "",
+      message: `Behold \`export const svar${q.n} = \\\`…\\\`\`.`,
+    };
   let result: unknown;
   try {
     result = await runGroq(query);
@@ -115,19 +138,33 @@ async function judgeOne(q: Question, query: unknown): Promise<Answer> {
   const answer = await answerFor(q);
   const same = isDeepStrictEqual(q.read ? q.read(result) : result, answer);
   if (!same) {
-    const size = (v: unknown) => (Array.isArray(v) ? `${v.length} rader` : "én verdi");
-    return { ...base, done: false, json, message: `Ikke likt ennå. Du får ${size(result)}, svaret har ${size(answer)}.` };
+    const size = (v: unknown) =>
+      Array.isArray(v) ? `${v.length} rader` : "én verdi";
+    return {
+      ...base,
+      done: false,
+      json,
+      message: `Ikke likt ennå. Du får ${size(result)}, svaret har ${size(answer)}.`,
+    };
   }
   if (q.forbid && new RegExp(`\\b${q.forbid.word}\\b`).test(query))
     return { ...base, done: false, json, message: q.forbid.why };
   return { ...base, done: true, json };
 }
 
-export async function judgeQuestions(exports: Record<string, unknown>): Promise<Verdict<AnswersData>> {
-  const answers = await Promise.all(QUESTIONS.map((q) => judgeOne(q, exports[`svar${q.n}`])));
+export async function judgeQuestions(
+  exports: Record<string, unknown>,
+): Promise<Verdict<AnswersData>> {
+  const answers = await Promise.all(
+    QUESTIONS.map((q) => judgeOne(q, exports[`svar${q.n}`])),
+  );
   const done = answers.every((a) => a.done);
   return {
-    requirements: answers.map((a) => ({ label: `${a.n}. ${a.ask}`, done: a.done, message: a.message })),
+    requirements: answers.map((a) => ({
+      label: `${a.n}. ${a.ask}`,
+      done: a.done,
+      message: a.message,
+    })),
     done,
     solvedAs: done ? {} : undefined,
     data: { answers },
@@ -139,7 +176,10 @@ export async function judgeQuestions(exports: Record<string, unknown>): Promise<
 function Answers({ verdict }: { verdict: Verdict | null }) {
   const answers = (verdict?.data as AnswersData | undefined)?.answers ?? [];
   const [picked, setPicked] = useState<number | null>(null);
-  const shown = answers.find((a) => a.n === picked) ?? answers.find((a) => !a.done) ?? answers[0];
+  const shown =
+    answers.find((a) => a.n === picked) ??
+    answers.find((a) => !a.done) ??
+    answers[0];
   return (
     <div className="cw-aq">
       <ol className="cw-aq-row">
@@ -162,7 +202,9 @@ function Answers({ verdict }: { verdict: Verdict | null }) {
           <p className="cw-aq-ask">
             <span className="cw-aq-who">Arkivaren</span> {shown.ask}
           </p>
-          <pre className={`cw-groq-result${shown.done ? " is-done" : ""}`}>{shown.json || "Ingen resultat ennå."}</pre>
+          <pre className={`cw-groq-result${shown.done ? " is-done" : ""}`}>
+            {shown.json || "Ingen resultat ennå."}
+          </pre>
         </>
       )}
     </div>

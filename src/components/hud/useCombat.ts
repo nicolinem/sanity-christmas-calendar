@@ -34,10 +34,21 @@ export function useCombat(weapon: GameItemView | null) {
       return;
     }
     const base = weapon.power?.damage ?? 0; // set by the forge level, see rules.ts
-    const element = weapon.magic.kind === "element" ? weapon.magic.element : null;
-    const affinity = element === ENEMY_WEAK_TO ? "weak" : element === ENEMY_IMMUNE_TO ? "immune" : undefined;
+    const element =
+      weapon.magic.kind === "element" ? weapon.magic.element : null;
+    const affinity =
+      element === ENEMY_WEAK_TO
+        ? "weak"
+        : element === ENEMY_IMMUNE_TO
+          ? "immune"
+          : undefined;
     const rolled = base + Math.floor(Math.random() * 3); // tiny variance
-    const dmg = affinity === "immune" ? 0 : affinity === "weak" ? Math.round(rolled * WEAK_MULTIPLIER) : rolled;
+    const dmg =
+      affinity === "immune"
+        ? 0
+        : affinity === "weak"
+          ? Math.round(rolled * WEAK_MULTIPLIER)
+          : rolled;
     const next = Math.max(0, hp - dmg);
     setHp(next);
     const flavour = affinity === "weak" ? " Monsteret tåler ikke ild!" : "";

@@ -84,4 +84,3 @@ export function useVillageCanvas() {
   }, []);
   return ref;
 }
-

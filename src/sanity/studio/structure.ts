@@ -62,16 +62,22 @@ export const structure: StructureResolver = (S) => {
     .title("Content")
     .items([
       ...archive,
-      ...S.documentTypeListItems().filter((item) => item.getId() !== "bakerySign"),
-      S.listItem().id("baker-skilt").title("Bodskilt").child(
-        S.document().schemaType("bakerySign").documentId("bakery-sign"),
+      ...S.documentTypeListItems().filter(
+        (item) => item.getId() !== "bakerySign",
       ),
+      S.listItem()
+        .id("baker-skilt")
+        .title("Bodskilt")
+        .child(S.document().schemaType("bakerySign").documentId("bakery-sign")),
     ]);
 };
 
 // QUEST: Hvem peker hit. Our version of the uke 2 document view: a tab on each
 // place that lists the observations pointing at it.
-export const defaultDocumentNode: DefaultDocumentNodeResolver = (S, { schemaType }) => {
+export const defaultDocumentNode: DefaultDocumentNodeResolver = (
+  S,
+  { schemaType },
+) => {
   if (schemaType === "place" && isSolved("who-points-here"))
     return S.document().views([
       S.view.form(),

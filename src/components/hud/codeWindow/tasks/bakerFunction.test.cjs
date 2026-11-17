@@ -17,17 +17,23 @@ test("the starter does not pass the simulated Function challenge", async () => {
 
 test("event filtering and checking the current sign pass all three checks", async () => {
   const source = bakerFunctionTask.starter
-    .replace("// Sjekk at dette er en publisert bakeryOrder med en vare.",
-      'if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return')
-    .replace("// Ikke skriv hvis skiltet allerede viser denne teksten.",
-      'if (sign?.text?.[0]?.children?.[0]?.text === text) return');
+    .replace(
+      "// Sjekk at dette er en publisert bakeryOrder med en vare.",
+      'if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return',
+    )
+    .replace(
+      "// Ikke skriv hvis skiltet allerede viser denne teksten.",
+      "if (sign?.text?.[0]?.children?.[0]?.text === text) return",
+    );
   const verdict = await run(source);
   assert.equal(verdict.done, true, verdict.error);
 });
 
 test("unconditional sign writes fail the repeat-delivery check", async () => {
-  const source = bakerFunctionTask.starter.replace("// Sjekk at dette er en publisert bakeryOrder med en vare.",
-    'if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return');
+  const source = bakerFunctionTask.starter.replace(
+    "// Sjekk at dette er en publisert bakeryOrder med en vare.",
+    'if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return',
+  );
   const verdict = await run(source);
   assert.equal(verdict.requirements[0].done, true);
   assert.equal(verdict.requirements[2].done, false);

@@ -1,12 +1,12 @@
 import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
-import { isNewOrder, isReadyOrder, signHasHttpsLink, signHasStrong } from "../bakery";
+import {
+  isNewOrder,
+  isReadyOrder,
+  signHasHttpsLink,
+  signHasStrong,
+} from "../bakery";
 import type { GameItemView } from "../items";
-import type {
-  Chapter,
-  CheckResult,
-  Quest,
-  QuestContext,
-} from "./types";
+import type { Chapter, CheckResult, Quest, QuestContext } from "./types";
 
 // The calendar's quests, in the order they unlock. Every quest teaches one new
 // Sanity idea. Quests say what to achieve; the hints get gradually closer to
@@ -111,8 +111,7 @@ const brannsLedger: Quest = {
     before: "I dag viser lista bare navn.",
     after: "Etterpå ser du bildet og typen til hvert våpen.",
   },
-  where:
-    "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
+  where: "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
   hints: [
     {
       text: "En *schema type* kan ha et `icon`. Det er ett merke for hele dokumenttypen, ikke for hvert våpen. Det lista viser for hvert våpen, styres av `preview`.",
@@ -165,8 +164,7 @@ const theGuildsLaw: Quest = {
     before: "I dag kan et våpen uten sprite publiseres.",
     after: "Etterpå sier Studio fra og stopper Publish.",
   },
-  where:
-    "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
+  where: "I kodevinduet i spillet. Åpne det fra Brann eller kalenderen.",
   hints: [
     {
       title: "Bare våpen trenger sprite",
@@ -391,16 +389,22 @@ const archiveLists: Quest = {
   hints: [
     {
       text: "Et punkt i lista er `S.listItem().title(…).child(…)`. Barnet kan være en `S.documentList()` med `.filter(…)`.",
-      link: { label: "Structure Builder", url: `${DOCS}/structure-builder-introduction` },
+      link: {
+        label: "Structure Builder",
+        url: `${DOCS}/structure-builder-introduction`,
+      },
     },
     {
-      text: "«Per sted» kan starte med `S.documentTypeList(\"place\")`. Dens `.child((placeId) => …)` får id-en til stedet du klikker på.",
+      text: '«Per sted» kan starte med `S.documentTypeList("place")`. Dens `.child((placeId) => …)` får id-en til stedet du klikker på.',
     },
     {
       text: "Gi id-en videre som en parameter: `.filter('_type == \"observation\" && references($placeId)').params({ placeId })`.",
     },
   ],
-  learn: { label: "Structure Builder", url: `${DOCS}/structure-builder-introduction` },
+  learn: {
+    label: "Structure Builder",
+    url: `${DOCS}/structure-builder-introduction`,
+  },
   lesson: {
     title: "*Structure Builder*",
     text: "Lista til venstre i Studio er kode. Med `S.documentList().filter()` blir en GROQ-spørring en liste redaktørene kan klikke seg gjennom, uten å skrive GROQ selv.",
@@ -427,12 +431,20 @@ const whoPointsHere: Quest = {
   hints: [
     {
       text: "`client.fetch(query, params)` gir et løfte. Send resultatet til `setRows` med `.then(setRows)`.",
-      link: { label: "Component views", url: `${DOCS}/create-custom-document-views-with-structure-builder` },
+      link: {
+        label: "Component views",
+        url: `${DOCS}/create-custom-document-views-with-structure-builder`,
+      },
     },
     { text: "`references($id)` er sant for dokumenter som peker på `$id`." },
-    { text: "Gi id-en som parameter: `{ id: props.documentId }`. `props.document.displayed._id` kan være en *draft*-id." },
+    {
+      text: "Gi id-en som parameter: `{ id: props.documentId }`. `props.document.displayed._id` kan være en *draft*-id.",
+    },
   ],
-  learn: { label: "Document views", url: `${DOCS}/create-custom-document-views-with-structure-builder` },
+  learn: {
+    label: "Document views",
+    url: `${DOCS}/create-custom-document-views-with-structure-builder`,
+  },
   lesson: {
     title: "*References* går én vei",
     text: "Et dokument vet ikke hva som peker på det. Med `references($id)` spør du etter det, og en *document view* kan vise svaret rett i Studio.",
@@ -458,8 +470,12 @@ const archiveQuestions: Quest = {
   goal: "Svar på Arkivarens fem spørsmål med GROQ. Hvert svar gir en gjenstand.",
   where: "På skiltet ved torget. Etterpå i kodevinduet.",
   hints: [
-    { text: "Hvert spørsmål har sin egen `svar`-konstant. Resultatet vises med en gang, og du kan ta dem i hvilken rekkefølge du vil." },
-    { text: "Tell med `count(…)`. En underspørring inne i en projeksjon kan bruke `^` for dokumentet utenfor." },
+    {
+      text: "Hvert spørsmål har sin egen `svar`-konstant. Resultatet vises med en gang, og du kan ta dem i hvilken rekkefølge du vil.",
+    },
+    {
+      text: "Tell med `count(…)`. En underspørring inne i en projeksjon kan bruke `^` for dokumentet utenfor.",
+    },
   ],
   learn: { label: "GROQ", url: GROQ_DOCS },
   lesson: {
@@ -471,11 +487,20 @@ const archiveQuestions: Quest = {
   check: fromWindow("archive-questions"),
 };
 
-function waitingForArchive(archive: QuestContext["archive"]): CheckResult | null {
+function waitingForArchive(
+  archive: QuestContext["archive"],
+): CheckResult | null {
   if (archive == null)
-    return { done: false, message: "Henter Arkivarens observasjoner fra prosjektet ditt…" };
+    return {
+      done: false,
+      message: "Henter Arkivarens observasjoner fra prosjektet ditt…",
+    };
   if (archive.length === 0)
-    return { done: false, message: "Arkivarens observasjoner er ikke i Studio ennå. Spillet legger dem inn når luka er gitt." };
+    return {
+      done: false,
+      message:
+        "Arkivarens observasjoner er ikke i Studio ennå. Spillet legger dem inn når luka er gitt.",
+    };
   return null;
 }
 
@@ -492,9 +517,15 @@ const sourceCheck: Quest = {
   goal: "Gi de ni observasjonene riktig *Status* etter Arkivarens regel, og publiser dem.",
   where: "I Sanity Studio, under *Observation* eller «Per sted».",
   hints: [
-    { text: "Åpne «Per sted» i Studio. Da ser du hvilke observasjoner som hører til samme sted." },
-    { text: "Se på *Witness* også. Det teller bare hvis det er et *annet* vitne." },
-    { text: "Husk *Publish* på hver av dem. Spillet ser bare publiserte dokumenter." },
+    {
+      text: "Åpne «Per sted» i Studio. Da ser du hvilke observasjoner som hører til samme sted.",
+    },
+    {
+      text: "Se på *Witness* også. Det teller bare hvis det er et *annet* vitne.",
+    },
+    {
+      text: "Husk *Publish* på hver av dem. Spillet ser bare publiserte dokumenter.",
+    },
   ],
   lesson: {
     title: "Innhold som henger sammen",
@@ -508,7 +539,12 @@ const sourceCheck: Quest = {
     const { right, total } = sourceCheckScore(archive!);
     return {
       done: right === total,
-      objectives: [{ label: `${right} av ${total} har riktig publisert status`, done: right === total }],
+      objectives: [
+        {
+          label: `${right} av ${total} har riktig publisert status`,
+          done: right === total,
+        },
+      ],
     };
   },
 };
@@ -526,8 +562,12 @@ const linkThePlace: Quest = {
   goal: "Gi de tre observasjonene med stedet som tekst en *reference* til riktig sted, og publiser.",
   where: "I Sanity Studio, under *Observation*.",
   hints: [
-    { text: "Observasjonene det gjelder, har feltet *Place (as written down)*." },
-    { text: "Feltet *Place* over er en *reference*. Begynn å skrive navnet på stedet, og velg det fra lista." },
+    {
+      text: "Observasjonene det gjelder, har feltet *Place (as written down)*.",
+    },
+    {
+      text: "Feltet *Place* over er en *reference*. Begynn å skrive navnet på stedet, og velg det fra lista.",
+    },
     { text: "Husk *Publish*." },
   ],
   learn: { label: "Reference type", url: `${DOCS}/reference-type` },
@@ -543,7 +583,12 @@ const linkThePlace: Quest = {
     const { right, total } = linkScore(archive!);
     return {
       done: right === total,
-      objectives: [{ label: `${right} av ${total} peker på riktig sted`, done: right === total }],
+      objectives: [
+        {
+          label: `${right} av ${total} peker på riktig sted`,
+          done: right === total,
+        },
+      ],
     };
   },
 };
@@ -561,8 +606,12 @@ const caseFile: Quest = {
   goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene, og ingen rykter.",
   where: "I Sanity Studio, under *Case*.",
   hints: [
-    { text: "Lista «Bare bekreftede» i Studio viser hvilke observasjoner som skal med." },
-    { text: "Feltet *Observations* er en liste av *references*. Trykk «Add item» og søk etter observasjonen du vil legge til." },
+    {
+      text: "Lista «Bare bekreftede» i Studio viser hvilke observasjoner som skal med.",
+    },
+    {
+      text: "Feltet *Observations* er en liste av *references*. Trykk «Add item» og søk etter observasjonen du vil legge til.",
+    },
     { text: "Husk *Publish*. Spillet ser bare publiserte dokumenter." },
   ],
   learn: { label: "Array of references", url: `${DOCS}/array-type` },
@@ -574,14 +623,26 @@ const caseFile: Quest = {
   reward: { forgeLevel: 1 },
   check: ({ archiveCases }) => {
     if (archiveCases == null)
-      return { done: false, message: "Henter saksmappene fra prosjektet ditt…" };
+      return {
+        done: false,
+        message: "Henter saksmappene fra prosjektet ditt…",
+      };
     const { right, wrong, total } = caseFileScore(archiveCases);
     const done = right === total && wrong === 0;
     return {
       done,
       objectives: [
-        { label: `${right} av ${total} bekreftede er med`, done: right === total },
-        { label: wrong === 0 ? "Ingen rykter i mappa" : `${wrong} rykte${wrong === 1 ? "" : "r"} i mappa`, done: wrong === 0 },
+        {
+          label: `${right} av ${total} bekreftede er med`,
+          done: right === total,
+        },
+        {
+          label:
+            wrong === 0
+              ? "Ingen rykter i mappa"
+              : `${wrong} rykte${wrong === 1 ? "" : "r"} i mappa`,
+          done: wrong === 0,
+        },
       ],
     };
   },
@@ -598,22 +659,42 @@ const bakerTemplate: Quest = {
     "Brann vil ha lussekatter, Arkivaren pepperkaker og Kari julekake. De ligger allerede som eksempler, men nye lapper kommer hele tiden.",
     "Kan du gi meg en *initial value* som fyller dem ut når jeg lager en ny bestilling? Åpne kodevinduet.",
   ],
-  outro: ["Nå slipper jeg å skrive datoen på hver nye lapp.", "Neste gang jeg åpner en bestilling, står startverdiene der allerede."],
+  outro: [
+    "Nå slipper jeg å skrive datoen på hver nye lapp.",
+    "Neste gang jeg åpner en bestilling, står startverdiene der allerede.",
+  ],
   goal: "Gi en ny bestilling status «ny» og dagens dato fra start.",
-  goalPreview: { before: "En ny lapp mangler dato og status.", after: "Nye lapper starter med dagens dato og «ny»." },
+  goalPreview: {
+    before: "En ny lapp mangler dato og status.",
+    after: "Nye lapper starter med dagens dato og «ny».",
+  },
   where: "I kodevinduet hos Bakeren. Prøv den ferdige malen i Studio etterpå.",
   hints: [
-    { text: "`initialValue` på en *document type* brukes når et nytt dokument opprettes, ikke når et gammelt redigeres.", link: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` } },
-    { text: "Returner et objekt med `status` og `date` fra funksjonen. Statusen skal være `\"ny\"`." },
-    { text: "Kall `bakeryToday()` inne i `initialValue`-funksjonen, så datoen ikke låses til dagen du skrev koden." },
+    {
+      text: "`initialValue` på en *document type* brukes når et nytt dokument opprettes, ikke når et gammelt redigeres.",
+      link: {
+        label: "Initial Value Templates",
+        url: `${DOCS}/initial-value-templates`,
+      },
+    },
+    {
+      text: 'Returner et objekt med `status` og `date` fra funksjonen. Statusen skal være `"ny"`.',
+    },
+    {
+      text: "Kall `bakeryToday()` inne i `initialValue`-funksjonen, så datoen ikke låses til dagen du skrev koden.",
+    },
   ],
-  learn: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` },
+  learn: {
+    label: "Initial Value Templates",
+    url: `${DOCS}/initial-value-templates`,
+  },
   lesson: {
     title: "*Initial value*",
     text: "En *initial value* fyller ut nye dokumenter når de opprettes. Endrer du et eksisterende dokument, beholder det verdiene sine. Kodevinduet testet malen din; Studio bruker vår ferdige versjon.",
   },
   checkedBy: "window",
-  studioPractice: "Åpne en ny bestilling i Studio. Status og dagens dato skal allerede stå der; fyll inn en vare hvis du vil.",
+  studioPractice:
+    "Åpne en ny bestilling i Studio. Status og dagens dato skal allerede stå der; fyll inn en vare hvis du vil.",
   check: fromWindow("baker-template"),
 };
 
@@ -628,14 +709,28 @@ const bakerForge: Quest = {
     "Han kommer inn fra smia med sot på hendene og rekker ikke både å stemple og å trykke Publish.",
     "Lag én *document action* som stempler `forgedAt` og publiserer våpenet. Bruk kodevinduet.",
   ],
-  outro: ["Brann kan nå smi og publisere i ett trykk.", "Publish er der fortsatt når han bare skal publisere som vanlig."],
+  outro: [
+    "Brann kan nå smi og publisere i ett trykk.",
+    "Publish er der fortsatt når han bare skal publisere som vanlig.",
+  ],
   goal: "Lag en Smi-action som stempler og publiserer et våpen i ett trykk.",
-  goalPreview: { before: "Våpenet mangler smitidspunkt.", after: "Smi stempler våpenet og publiserer det." },
-  where: "I kodevinduet hos Bakeren. Prøv den ferdige Smi-knappen i Studio etterpå.",
+  goalPreview: {
+    before: "Våpenet mangler smitidspunkt.",
+    after: "Smi stempler våpenet og publiserer det.",
+  },
+  where:
+    "I kodevinduet hos Bakeren. Prøv den ferdige Smi-knappen i Studio etterpå.",
   hints: [
-    { text: "En *document action* returnerer blant annet `label` og `onHandle`.", link: { label: "Document actions", url: `${DOCS}/document-actions` } },
-    { text: "`useDocumentOperation(props.id, props.type)` gir `patch` og `publish`." },
-    { text: "Kall `patch.execute([{ set: { forgedAt: new Date().toISOString() } }])` før `publish.execute()`." },
+    {
+      text: "En *document action* returnerer blant annet `label` og `onHandle`.",
+      link: { label: "Document actions", url: `${DOCS}/document-actions` },
+    },
+    {
+      text: "`useDocumentOperation(props.id, props.type)` gir `patch` og `publish`.",
+    },
+    {
+      text: "Kall `patch.execute([{ set: { forgedAt: new Date().toISOString() } }])` før `publish.execute()`.",
+    },
   ],
   learn: { label: "Document actions", url: `${DOCS}/document-actions` },
   lesson: {
@@ -643,7 +738,8 @@ const bakerForge: Quest = {
     text: "En *document action* legger et nytt arbeidssteg i Studio. Kodevinduet sjekket både stempel og publisering; spillet kan ikke se hvilket knappetrykk som skapte feltet. Studio bruker vår trygge Smi-versjon.",
   },
   checkedBy: "window",
-  studioPractice: "Åpne et våpen i Studio og prøv Smi. Et materiale skal ikke kunne smis.",
+  studioPractice:
+    "Åpne et våpen i Studio og prøv Smi. Et materiale skal ikke kunne smis.",
   check: fromWindow("baker-forge"),
 };
 
@@ -658,14 +754,26 @@ const bakerFunction: Quest = {
     "Noen ganger kommer samme beskjed to ganger. Da skal skiltet ikke skrives om to ganger.",
     "Lag hendelseslogikken i kodevinduet. Vi simulerer publisering med en falsk klient; ingenting deployes til prosjektet ditt.",
   ],
-  outro: ["Simuleringen reagerte på riktig publisering.", "Ingen bestilling eller skilt ble endret i prosjektet ditt."],
+  outro: [
+    "Simuleringen reagerte på riktig publisering.",
+    "Ingen bestilling eller skilt ble endret i prosjektet ditt.",
+  ],
   goal: "Oppdater skiltet ved publisering av en bestilling, men ikke ved andre hendelser eller gjentakelser.",
-  goalPreview: { before: "Hver hendelse ville skrevet om skiltet.", after: "Bare nye publiseringer endrer det – i simuleringen." },
+  goalPreview: {
+    before: "Hver hendelse ville skrevet om skiltet.",
+    after: "Bare nye publiseringer endrer det – i simuleringen.",
+  },
   where: "I kodevinduet hos Bakeren – ikke i Sanity Studio.",
   hints: [
-    { text: "Sjekk `event.transition` og `event.document._type` før du henter skiltet. Tom vare må ignoreres." },
-    { text: "`getDocument(\"bakery-sign\")` returnerer skiltet. Sammenlign tekstspennet der med den nye `text`-verdien." },
-    { text: "Legg inn `return` når hendelsen er feil, og når `sign?.text?.[0]?.children?.[0]?.text === text`. Resten av oppdateringen er klar." },
+    {
+      text: "Sjekk `event.transition` og `event.document._type` før du henter skiltet. Tom vare må ignoreres.",
+    },
+    {
+      text: '`getDocument("bakery-sign")` returnerer skiltet. Sammenlign tekstspennet der med den nye `text`-verdien.',
+    },
+    {
+      text: "Legg inn `return` når hendelsen er feil, og når `sign?.text?.[0]?.children?.[0]?.text === text`. Resten av oppdateringen er klar.",
+    },
   ],
   learn: { label: "Sanity Functions", url: `${DOCS}/functions` },
   lesson: {
@@ -687,16 +795,33 @@ const bakerFirstOrder: Quest = {
     "Hver *ny* bestilling må ha dato og status. Jeg har laget en mal som fyller inn begge deler – ventelappene teller ikke som din nye bestilling.",
     "Lag din egen *Ny bestilling* i Studio, skriv inn varen og trykk *Publish*. Hva står der allerede?",
   ],
-  outro: ["Der kom lappen din inn sammen med de andre!", "Dato og «ny» kom fra malen; varen valgte du selv."],
+  outro: [
+    "Der kom lappen din inn sammen med de andre!",
+    "Dato og «ny» kom fra malen; varen valgte du selv.",
+  ],
   goal: "Lag og publiser en ny bestilling med vare, status «ny» og dato.",
-  goalPreview: { before: "Eksempelbestillingene venter; din lapp er tom.", after: "Din publiserte bestilling har vare, dato og status «ny»." },
+  goalPreview: {
+    before: "Eksempelbestillingene venter; din lapp er tom.",
+    after: "Din publiserte bestilling har vare, dato og status «ny».",
+  },
   where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
   hints: [
-    { text: "Åpne *Ny bestilling* i Studio. Den ferdige malen fyller ut dato og status når du oppretter et nytt dokument.", link: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` } },
-    { text: "Skriv en vare i feltet *Vare*. Du kan beholde malens status «ny» og datoen." },
+    {
+      text: "Åpne *Ny bestilling* i Studio. Den ferdige malen fyller ut dato og status når du oppretter et nytt dokument.",
+      link: {
+        label: "Initial Value Templates",
+        url: `${DOCS}/initial-value-templates`,
+      },
+    },
+    {
+      text: "Skriv en vare i feltet *Vare*. Du kan beholde malens status «ny» og datoen.",
+    },
     { text: "Trykk *Publish*; utkast er ikke synlige for spillet." },
   ],
-  learn: { label: "Initial Value Templates", url: `${DOCS}/initial-value-templates` },
+  learn: {
+    label: "Initial Value Templates",
+    url: `${DOCS}/initial-value-templates`,
+  },
   lesson: {
     title: "En mal starter dokumentet",
     text: "En *initial value template* gir nye dokumenter startverdier, men du kan endre dem før publisering. Spillet sjekket den publiserte bestillingen; det kan ikke vite hvilken mal du brukte.",
@@ -704,9 +829,10 @@ const bakerFirstOrder: Quest = {
   checkedBy: "game",
   check: ({ bakeryOrders }) => ({
     done: Boolean(bakeryOrders?.some(isNewOrder)),
-    message: bakeryOrders === null
-      ? "Henter publiserte bestillinger fra prosjektet ditt…"
-      : "Publiser en ny bestilling med vare, dato og status «ny».",
+    message:
+      bakeryOrders === null
+        ? "Henter publiserte bestillinger fra prosjektet ditt…"
+        : "Publiser en ny bestilling med vare, dato og status «ny».",
   }),
 };
 
@@ -722,14 +848,28 @@ const bakerSign: Quest = {
     "Folk går forbi uten å se hva som er nystekt. Et tydelig ord vil få dem til å stanse.",
     "Skriv skiltet i Studio, gjør det viktigste ordet fett og trykk *Publish*. Da kan alle se det ved bakeriet.",
   ],
-  outro: ["Nå kan folk se hva som selges før de går inn.", "Det fete ordet gjør skiltet lettere å lese fra stien."],
+  outro: [
+    "Nå kan folk se hva som selges før de går inn.",
+    "Det fete ordet gjør skiltet lettere å lese fra stien.",
+  ],
   goal: "Skriv og publiser et bodskilt med fremhevet tekst.",
-  goalPreview: { before: "Boden har et tomt skilt.", after: "Det publiserte skiltet har et fremhevet ord." },
-  where: "Hent oppgaven ved bodskiltet utenfor bakeriet. Skriv deretter i ditt eget Sanity Studio under *Bodskilt*.",
+  goalPreview: {
+    before: "Boden har et tomt skilt.",
+    after: "Det publiserte skiltet har et fremhevet ord.",
+  },
+  where:
+    "Hent oppgaven ved bodskiltet utenfor bakeriet. Skriv deretter i ditt eget Sanity Studio under *Bodskilt*.",
   hints: [
-    { text: "Åpne *Bodskilt* i Studio. Feltet *Skilttekst* er *Portable Text*: det kan ha tekst med formatering.", link: { label: "Portable Text", url: `${DOCS}/block-content` } },
-    { text: "Skriv tekst, marker et ord og velg fet skrift. Hele teksten skal ikke være tom." },
-    { text: "Trykk *Publish*. Bare den publiserte teksten vises på skiltet i bygda." },
+    {
+      text: "Åpne *Bodskilt* i Studio. Feltet *Skilttekst* er *Portable Text*: det kan ha tekst med formatering.",
+      link: { label: "Portable Text", url: `${DOCS}/block-content` },
+    },
+    {
+      text: "Skriv tekst, marker et ord og velg fet skrift. Hele teksten skal ikke være tom.",
+    },
+    {
+      text: "Trykk *Publish*. Bare den publiserte teksten vises på skiltet i bygda.",
+    },
   ],
   learn: { label: "Portable Text", url: `${DOCS}/block-content` },
   lesson: {
@@ -754,14 +894,27 @@ const bakerReady: Quest = {
     "Finn bestillingen *du* publiserte i første luke, ikke de tre ventelappene.",
     "Åpne den i Studio og velg *Klar* i menyen ved siden av *Publish*. Knappen setter status og publiserer i ett trykk.",
   ],
-  outro: ["Din bestilling er klar til å hentes!", "Vi brukte ett trykk i stedet for å endre status og publisere hver for seg."],
+  outro: [
+    "Din bestilling er klar til å hentes!",
+    "Vi brukte ett trykk i stedet for å endre status og publisere hver for seg.",
+  ],
   goal: "Merk en bestilling som «klar» og publiser den.",
-  goalPreview: { before: "Din bestilling er publisert med status «ny».", after: "Klar publiserer den samme bestillingen med status «klar»." },
+  goalPreview: {
+    before: "Din bestilling er publisert med status «ny».",
+    after: "Klar publiserer den samme bestillingen med status «klar».",
+  },
   where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
   hints: [
-    { text: "Åpne bestillingen du laget i første luke. *Klar* er en *document action* i menyen ved siden av *Publish*.", link: { label: "Document actions", url: `${DOCS}/document-actions` } },
-    { text: "Knappen er tilgjengelig når bestillingen har en vare. Du trenger ikke skrive kode." },
-    { text: "Trykk *Klar*: den oppdaterer status og publiserer. Kontroller at den publiserte bestillingen står som «klar»." },
+    {
+      text: "Åpne bestillingen du laget i første luke. *Klar* er en *document action* i menyen ved siden av *Publish*.",
+      link: { label: "Document actions", url: `${DOCS}/document-actions` },
+    },
+    {
+      text: "Knappen er tilgjengelig når bestillingen har en vare. Du trenger ikke skrive kode.",
+    },
+    {
+      text: "Trykk *Klar*: den oppdaterer status og publiserer. Kontroller at den publiserte bestillingen står som «klar».",
+    },
   ],
   learn: { label: "Document actions", url: `${DOCS}/document-actions` },
   lesson: {
@@ -770,10 +923,14 @@ const bakerReady: Quest = {
   },
   checkedBy: "game",
   check: ({ bakeryOrders, progress }) => ({
-    done: Boolean(progress.bakeryOrderId && bakeryOrders?.some((order) =>
-      order._id === progress.bakeryOrderId && isReadyOrder(order),
-    )),
-    message: "Bruk Klar på den samme bestillingen som i første luke; den må være publisert med status «klar».",
+    done: Boolean(
+      progress.bakeryOrderId &&
+      bakeryOrders?.some(
+        (order) => order._id === progress.bakeryOrderId && isReadyOrder(order),
+      ),
+    ),
+    message:
+      "Bruk Klar på den samme bestillingen som i første luke; den må være publisert med status «klar».",
   }),
 };
 
@@ -789,14 +946,28 @@ const bakerLink: Quest = {
     "De som spør om oppskriftene, trenger en vei videre enn selve boden.",
     "Dette er frivillig ☆: legg en relevant HTTPS-lenke på tekst i bodskiltet og publiser.",
   ],
-  outro: ["Nå kan folk følge et ord på skiltet videre.", "En lenke i et tekstspenn er noe mer enn en adresse skrevet med bokstaver."],
+  outro: [
+    "Nå kan folk følge et ord på skiltet videre.",
+    "En lenke i et tekstspenn er noe mer enn en adresse skrevet med bokstaver.",
+  ],
   goal: "Legg en HTTPS-lenke på et ord i bodskiltet og publiser. Frivillig ☆.",
-  goalPreview: { before: "Skiltet har bare vanlig tekst.", after: "Et markert ord har en publisert HTTPS-lenke." },
-  where: "Hent ☆ ved bodskiltet utenfor bakeriet. Legg deretter lenken til i ditt eget Sanity Studio.",
+  goalPreview: {
+    before: "Skiltet har bare vanlig tekst.",
+    after: "Et markert ord har en publisert HTTPS-lenke.",
+  },
+  where:
+    "Hent ☆ ved bodskiltet utenfor bakeriet. Legg deretter lenken til i ditt eget Sanity Studio.",
   hints: [
-    { text: "Åpne skiltet i Studio, marker et ord og legg på *Lenke* (annotation).", link: { label: "Portable Text", url: `${DOCS}/block-content` } },
-    { text: "Bruk en relevant adresse som begynner med `https://`. En URL skrevet som vanlig tekst teller ikke." },
-    { text: "Publiser skiltet etter endringen. Bare publiserte lenker kan sjekkes." },
+    {
+      text: "Åpne skiltet i Studio, marker et ord og legg på *Lenke* (annotation).",
+      link: { label: "Portable Text", url: `${DOCS}/block-content` },
+    },
+    {
+      text: "Bruk en relevant adresse som begynner med `https://`. En URL skrevet som vanlig tekst teller ikke.",
+    },
+    {
+      text: "Publiser skiltet etter endringen. Bare publiserte lenker kan sjekkes.",
+    },
   ],
   learn: { label: "Portable Text annotations", url: `${DOCS}/block-content` },
   lesson: {
@@ -806,7 +977,8 @@ const bakerLink: Quest = {
   checkedBy: "game",
   check: ({ bakerySign }) => ({
     done: signHasHttpsLink(bakerySign ?? null),
-    message: "Publiser skiltet med en HTTPS-lenke på et markert ord. Ren URL i teksten teller ikke.",
+    message:
+      "Publiser skiltet med en HTTPS-lenke på et markert ord. Ren URL i teksten teller ikke.",
   }),
 };
 
@@ -814,12 +986,7 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 1,
     title: "Studio",
-    quests: [
-      theBrokenForge,
-      brannsLedger,
-      theGuildsLaw,
-      theDrawingBoard,
-    ],
+    quests: [theBrokenForge, brannsLedger, theGuildsLaw, theDrawingBoard],
   },
   {
     number: 2,
@@ -837,7 +1004,15 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 3,
     title: "Automatisere",
-    quests: [bakerTemplate, bakerForge, bakerFunction, bakerFirstOrder, bakerSign, bakerReady, bakerLink],
+    quests: [
+      bakerTemplate,
+      bakerForge,
+      bakerFunction,
+      bakerFirstOrder,
+      bakerSign,
+      bakerReady,
+      bakerLink,
+    ],
     teaser: [
       "Singleton",
       "Portable Text",

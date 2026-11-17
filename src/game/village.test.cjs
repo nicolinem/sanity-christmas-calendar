@@ -3,7 +3,13 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
 
-const { BLACKSMITH, NPCS, QUEST_SITES, isPath, pathRoute } = require("./village.ts");
+const {
+  BLACKSMITH,
+  NPCS,
+  QUEST_SITES,
+  isPath,
+  pathRoute,
+} = require("./village.ts");
 
 test("the bodskilt has its own reachable interaction zone, outside Baker range", () => {
   const sign = QUEST_SITES.bakerySign;

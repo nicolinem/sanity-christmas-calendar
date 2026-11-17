@@ -76,7 +76,11 @@ export default function QuestCelebration({
           className={`quest-celebration-copy${unlocked ? "" : " quest-celebration-copy--done"}`}
         >
           <p className="quest-celebration-kicker">
-            {unlocked ? `Luke ${nextDoor}` : bonus ? "☆ Frivillig" : `Luke ${door}`}{" "}
+            {unlocked
+              ? `Luke ${nextDoor}`
+              : bonus
+                ? "☆ Frivillig"
+                : `Luke ${door}`}{" "}
             {unlocked ? "er åpnet" : "er fullført"}
           </p>
           <h2 id="quest-celebration-heading">
@@ -85,15 +89,20 @@ export default function QuestCelebration({
           <p className="quest-celebration-title">
             {unlocked ? `Neste oppgave venter hos ${giver.name}` : title}
           </p>
-          {!unlocked && outro?.map((line) => (
-            <p className="quest-celebration-note" key={line}>«{line}»</p>
-          ))}
+          {!unlocked &&
+            outro?.map((line) => (
+              <p className="quest-celebration-note" key={line}>
+                «{line}»
+              </p>
+            ))}
           {unlocked && (
             <div className="quest-celebration-guide">
               <span
                 className="quest-celebration-guide-portrait"
                 role="img"
-                aria-label={giver.title ? `${giver.name}, ${giver.title}` : giver.name}
+                aria-label={
+                  giver.title ? `${giver.name}, ${giver.title}` : giver.name
+                }
               >
                 <SpriteIcon sprite={giver.sprite} scale={4} />
               </span>
@@ -125,7 +134,9 @@ export default function QuestCelebration({
                 >
                   <SpriteIcon sprite={{ sheet: "town", frame: 84 }} scale={2} />
                 </span>
-                <span>{bonus ? "☆ Frivillig" : `Luke ${door}`} lyser i journalen</span>
+                <span>
+                  {bonus ? "☆ Frivillig" : `Luke ${door}`} lyser i journalen
+                </span>
               </li>
               {level && (
                 <li className="quest-celebration-reward">
@@ -143,8 +154,8 @@ export default function QuestCelebration({
                     </span>
                   </span>
                   <span>
-                    Nivå {level.number}! Våpnene dine gjør nå{" "}
-                    {level.damage} skade.
+                    Nivå {level.number}! Våpnene dine gjør nå {level.damage}{" "}
+                    skade.
                   </span>
                 </li>
               )}

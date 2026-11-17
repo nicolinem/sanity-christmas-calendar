@@ -57,7 +57,12 @@ type Node = {
 };
 
 function node(kind: string, args: unknown[] = []): Node {
-  const target: Node = { __kind: kind, __args: args, __calls: {}, __standard: undefined };
+  const target: Node = {
+    __kind: kind,
+    __args: args,
+    __calls: {},
+    __standard: undefined,
+  };
   const proxy: Node = new Proxy(target, {
     get(t, prop) {
       if (typeof prop === "symbol" || prop in t) return Reflect.get(t, prop);
@@ -101,29 +106,54 @@ function makeS() {
   };
 }
 
-const isNode = (v: unknown): v is Node => Boolean(v) && typeof v === "object" && "__kind" in (v as object);
+const isNode = (v: unknown): v is Node =>
+  Boolean(v) && typeof v === "object" && "__kind" in (v as object);
 const call = (n: Node, name: string) => n.__calls[name]?.[0];
 
 // --- What the panes show ----------------------------------------------------
 
-export type DocRow = { id: string; title: string; subtitle: string; status: string };
+export type DocRow = {
+  id: string;
+  title: string;
+  subtitle: string;
+  status: string;
+};
 type Pane =
   | { kind: "docs"; title: string; rows: DocRow[]; error?: string }
-  | { kind: "places"; title: string; places: { id: string; name: string; rows: DocRow[] | null; error?: string }[] };
+  | {
+      kind: "places";
+      title: string;
+      places: {
+        id: string;
+        name: string;
+        rows: DocRow[] | null;
+        error?: string;
+      }[];
+    };
 type RootItem = { key: string; title: string; divider?: true; pane?: Pane };
 export type StructureData = { root: RootItem[] };
 
 const placeName = (id: string) => PLACES.find((p) => p._id === id)?.name ?? id;
 const rowFor = (id: string): DocRow | null => {
   const o = OBSERVATIONS.find((x) => x._id === id);
-  return o ? { id, title: o.what, subtitle: `${o.time} · ${placeName(o.place._ref)}`, status: o.status } : null;
+  return o
+    ? {
+        id,
+        title: o.what,
+        subtitle: `${o.time} · ${placeName(o.place._ref)}`,
+        status: o.status,
+      }
+    : null;
 };
 
 // Runs a list's filter the way the Studio would: `*[filter]` with its params,
 // newest-insensitive, as rows sorted by time.
-async function rowsOf(list: Node): Promise<{ rows: DocRow[] | null; ids: string[]; error?: string }> {
+async function rowsOf(
+  list: Node,
+): Promise<{ rows: DocRow[] | null; ids: string[]; error?: string }> {
   const filter = call(list, "filter");
-  if (typeof filter !== "string") return { rows: null, ids: [], error: "Lista har ingen `filter`." };
+  if (typeof filter !== "string")
+    return { rows: null, ids: [], error: "Lista har ingen `filter`." };
   const params = (call(list, "params") ?? {}) as Record<string, unknown>;
   try {
     const result = await runGroq(`*[${filter}]._id`, params);
@@ -132,13 +162,21 @@ async function rowsOf(list: Node): Promise<{ rows: DocRow[] | null; ids: string[
     rows.sort((a, b) => a.subtitle.localeCompare(b.subtitle));
     return { rows, ids };
   } catch (err) {
-    return { rows: null, ids: [], error: `Filteret virker ikke: ${err instanceof Error ? err.message : String(err)}` };
+    return {
+      rows: null,
+      ids: [],
+      error: `Filteret virker ikke: ${err instanceof Error ? err.message : String(err)}`,
+    };
   }
 }
 
-const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
-const CONFIRMED_IDS = OBSERVATIONS.filter((o) => o.status === "confirmed").map((o) => o._id);
-const idsAt = (placeId: string) => OBSERVATIONS.filter((o) => o.place._ref === placeId).map((o) => o._id);
+const sameSet = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((x) => b.includes(x));
+const CONFIRMED_IDS = OBSERVATIONS.filter((o) => o.status === "confirmed").map(
+  (o) => o._id,
+);
+const idsAt = (placeId: string) =>
+  OBSERVATIONS.filter((o) => o.place._ref === placeId).map((o) => o._id);
 
 export async function judgeStructure(
   exports: Record<string, unknown>,
@@ -152,14 +190,17 @@ export async function judgeStructure(
     return fail("Behold `export const structure = (S) => …`.");
 
   const root = (exports.structure as (s: unknown) => unknown)(makeS());
-  if (!isNode(root) || root.__kind !== "list") return fail("`structure` skal gi en `S.list()`.");
+  if (!isNode(root) || root.__kind !== "list")
+    return fail("`structure` skal gi en `S.list()`.");
   const items = (call(root, "items") ?? []) as unknown[];
   if (!Array.isArray(items)) return fail("`.items()` skal få en liste.");
 
   let confirmedOk = false;
   let perPlaceOk = false;
-  let confirmedMsg = "Fant ingen liste som viser akkurat de bekreftede observasjonene.";
-  let perPlaceMsg = "Fant ingen liste over steder med observasjonene under hvert sted.";
+  let confirmedMsg =
+    "Fant ingen liste som viser akkurat de bekreftede observasjonene.";
+  let perPlaceMsg =
+    "Fant ingen liste over steder med observasjonene under hvert sted.";
 
   const out: RootItem[] = [];
   for (const [i, it] of items.entries()) {
@@ -173,9 +214,16 @@ export async function judgeStructure(
       const type = it.__standard;
       const rows =
         type === "observation"
-          ? OBSERVATIONS.map((o) => rowFor(o._id)!).sort((a, b) => a.subtitle.localeCompare(b.subtitle))
+          ? OBSERVATIONS.map((o) => rowFor(o._id)!).sort((a, b) =>
+              a.subtitle.localeCompare(b.subtitle),
+            )
           : type === "place"
-            ? PLACES.map((p) => ({ id: p._id, title: p.name, subtitle: "", status: "" }))
+            ? PLACES.map((p) => ({
+                id: p._id,
+                title: p.name,
+                subtitle: "",
+                status: "",
+              }))
             : [];
       out.push({ key: `s${i}`, title, pane: { kind: "docs", title, rows } });
       continue;
@@ -191,20 +239,38 @@ export async function judgeStructure(
       const { rows, ids, error } = await rowsOf(child);
       if (!error && sameSet(ids, CONFIRMED_IDS)) confirmedOk = true;
       else if (!confirmedOk && error) confirmedMsg = error;
-      else if (!confirmedOk && ids.length) confirmedMsg = `«${title}» viser ${ids.length} observasjoner. De bekreftede er ${CONFIRMED_IDS.length}.`;
-      out.push({ key: `i${i}`, title, pane: { kind: "docs", title: String(call(child, "title") ?? title), rows: rows ?? [], error } });
+      else if (!confirmedOk && ids.length)
+        confirmedMsg = `«${title}» viser ${ids.length} observasjoner. De bekreftede er ${CONFIRMED_IDS.length}.`;
+      out.push({
+        key: `i${i}`,
+        title,
+        pane: {
+          kind: "docs",
+          title: String(call(child, "title") ?? title),
+          rows: rows ?? [],
+          error,
+        },
+      });
       continue;
     }
 
     // A list of places, each opening its observations.
     const listsPlaces =
       (child.__kind === "documentTypeList" && child.__args[0] === "place") ||
-      (child.__kind === "documentList" && /place/.test(String(call(child, "filter"))));
+      (child.__kind === "documentList" &&
+        /place/.test(String(call(child, "filter"))));
     if (listsPlaces) {
       const next = call(child, "child");
-      const places: { id: string; name: string; rows: DocRow[] | null; error?: string }[] = [];
+      const places: {
+        id: string;
+        name: string;
+        rows: DocRow[] | null;
+        error?: string;
+      }[] = [];
       let allRight = typeof next === "function";
-      if (typeof next !== "function") perPlaceMsg = "Stedene åpner ingenting ennå. Gi lista over steder en `.child((placeId) => …)`.";
+      if (typeof next !== "function")
+        perPlaceMsg =
+          "Stedene åpner ingenting ennå. Gi lista over steder en `.child((placeId) => …)`.";
       for (const p of PLACES) {
         if (typeof next !== "function") {
           places.push({ id: p._id, name: p.name, rows: null });
@@ -235,7 +301,15 @@ export async function judgeStructure(
         places.push({ id: p._id, name: p.name, rows, error });
       }
       if (allRight) perPlaceOk = true;
-      out.push({ key: `i${i}`, title, pane: { kind: "places", title: String(call(child, "title") ?? title), places } });
+      out.push({
+        key: `i${i}`,
+        title,
+        pane: {
+          kind: "places",
+          title: String(call(child, "title") ?? title),
+          places,
+        },
+      });
       continue;
     }
     out.push({ key: `i${i}`, title });
@@ -243,22 +317,37 @@ export async function judgeStructure(
 
   const standard = items.filter((it) => isNode(it) && it.__standard).length;
   const requirements: Requirement[] = [
-    { label: "«Bare bekreftede» viser de bekreftede", done: confirmedOk, message: confirmedMsg },
-    { label: "«Per sted» viser observasjonene der", done: perPlaceOk, message: perPlaceMsg },
+    {
+      label: "«Bare bekreftede» viser de bekreftede",
+      done: confirmedOk,
+      message: confirmedMsg,
+    },
+    {
+      label: "«Per sted» viser observasjonene der",
+      done: perPlaceOk,
+      message: perPlaceMsg,
+    },
     {
       label: "De vanlige typene er der fortsatt",
       done: standard >= TYPES.length,
-      message: "`...S.documentTypeListItems()` mangler, så Item, Observation og de andre forsvinner fra Studio.",
+      message:
+        "`...S.documentTypeListItems()` mangler, så Item, Observation og de andre forsvinner fra Studio.",
     },
   ];
   const done = requirements.every((r) => r.done);
-  return { requirements, done, solvedAs: done ? {} : undefined, data: { root: out } };
+  return {
+    requirements,
+    done,
+    solvedAs: done ? {} : undefined,
+    data: { root: out },
+  };
 }
 
 // --- The panes, drawn like the Studio --------------------------------------
 
 function Rows({ rows }: { rows: DocRow[] }) {
-  if (rows.length === 0) return <p className="cw-sb-empty">Ingen dokumenter.</p>;
+  if (rows.length === 0)
+    return <p className="cw-sb-empty">Ingen dokumenter.</p>;
   return (
     <ul className="cw-sb-rows">
       {rows.map((r) => (
@@ -267,7 +356,9 @@ function Rows({ rows }: { rows: DocRow[] }) {
           {(r.subtitle || r.status) && (
             <span className="cw-sb-sub">
               {r.subtitle}
-              {r.status && <span className={`cw-sb-chip is-${r.status}`}>{r.status}</span>}
+              {r.status && (
+                <span className={`cw-sb-chip is-${r.status}`}>{r.status}</span>
+              )}
             </span>
           )}
         </li>
@@ -282,7 +373,10 @@ export function StructurePanes({ verdict }: { verdict: Verdict | null }) {
   const [place, setPlace] = useState<string | null>(null);
   const item = root.find((r) => r.key === open && r.pane);
   const pane = item?.pane;
-  const chosenPlace = pane?.kind === "places" ? pane.places.find((p) => p.id === place) : undefined;
+  const chosenPlace =
+    pane?.kind === "places"
+      ? pane.places.find((p) => p.id === place)
+      : undefined;
   return (
     <div className="cw-sb" aria-label="Slik blir det i Studio">
       <div className="cw-sb-pane">
@@ -313,12 +407,20 @@ export function StructurePanes({ verdict }: { verdict: Verdict | null }) {
         <div className="cw-sb-pane">
           <p className="cw-sb-head">{pane.title}</p>
           {pane.kind === "docs" ? (
-            pane.error ? <p className="cw-sb-empty">{pane.error}</p> : <Rows rows={pane.rows} />
+            pane.error ? (
+              <p className="cw-sb-empty">{pane.error}</p>
+            ) : (
+              <Rows rows={pane.rows} />
+            )
           ) : (
             <ul className="cw-sb-items">
               {pane.places.map((p) => (
                 <li key={p.id}>
-                  <button type="button" className={p.id === place ? "is-open" : undefined} onClick={() => setPlace(p.id)}>
+                  <button
+                    type="button"
+                    className={p.id === place ? "is-open" : undefined}
+                    onClick={() => setPlace(p.id)}
+                  >
                     {p.name}
                   </button>
                 </li>
@@ -330,7 +432,13 @@ export function StructurePanes({ verdict }: { verdict: Verdict | null }) {
       {chosenPlace && (
         <div className="cw-sb-pane">
           <p className="cw-sb-head">{chosenPlace.name}</p>
-          {chosenPlace.rows ? <Rows rows={chosenPlace.rows} /> : <p className="cw-sb-empty">{chosenPlace.error ?? "Åpner ingen liste ennå."}</p>}
+          {chosenPlace.rows ? (
+            <Rows rows={chosenPlace.rows} />
+          ) : (
+            <p className="cw-sb-empty">
+              {chosenPlace.error ?? "Åpner ingen liste ennå."}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -344,7 +452,7 @@ export const SCHEMA_REFERENCE: Reference = {
   path: "src/sanity/schemaTypes/archive.ts",
   source: archiveSchemaSource,
   about:
-    "Skjemaet for Arkivarens dokumenter. En `observation` har `status` (`\"unknown\"`, `\"confirmed\"` eller `\"rumor\"`) og peker på et `place` med en *reference*. Fanen `observasjoner.json` viser hvordan dataene ser ut.",
+    'Skjemaet for Arkivarens dokumenter. En `observation` har `status` (`"unknown"`, `"confirmed"` eller `"rumor"`) og peker på et `place` med en *reference*. Fanen `observasjoner.json` viser hvordan dataene ser ut.',
   examples: [],
 };
 

@@ -326,7 +326,10 @@ export default function CharacterSheet({
         </header>
 
         <div className="cs-body">
-          <nav className="cs-cats" aria-label={mode === "bag" ? "Ting" : "Utseende"}>
+          <nav
+            className="cs-cats"
+            aria-label={mode === "bag" ? "Ting" : "Utseende"}
+          >
             {mode === "bag"
               ? INVENTORY_FILTERS.map(({ id, label }) => {
                   const count =
@@ -347,13 +350,13 @@ export default function CharacterSheet({
                   );
                 })
               : cats.map((c) => {
-                    const part = c.part;
-                    const hasNew = part
-                      ? (FIGURE_OPTIONS[part] as readonly Option[]).some(
+                  const part = c.part;
+                  const hasNew = part
+                    ? (FIGURE_OPTIONS[part] as readonly Option[]).some(
                         (option) =>
-                            isGear(part, option.id) &&
-                            owned.has(`${part}:${option.id}`) &&
-                            !seenGear[`${part}:${option.id}`],
+                          isGear(part, option.id) &&
+                          owned.has(`${part}:${option.id}`) &&
+                          !seenGear[`${part}:${option.id}`],
                       )
                     : false;
                   return (
@@ -390,7 +393,9 @@ export default function CharacterSheet({
                         onClick={() => setSelectedItemId(item.id)}
                       >
                         <SpriteIcon sprite={item.sprite} />
-                        {item.source === "sanity" && <span className="slot-mark" />}
+                        {item.source === "sanity" && (
+                          <span className="slot-mark" />
+                        )}
                         {item.spriteId &&
                           (!item.knownSprite || !item.spriteMatchesKind) && (
                             <span className="slot-fallback" />
@@ -421,106 +426,117 @@ export default function CharacterSheet({
                           disabled={selectedItem.id === equippedId}
                           onClick={() => onEquip(selectedItem)}
                         >
-                          {selectedItem.id === equippedId ? "I hånda" : "Ta i hånda"}
+                          {selectedItem.id === equippedId
+                            ? "I hånda"
+                            : "Ta i hånda"}
                         </button>
                       )}
                     </div>
                   )}
                 </>
               ))}
-            {mode !== "bag" && <>
-            {cat.part && current && (
-              <div className="cs-stepper">
-                <button
-                  type="button"
-                  className="cs-arrow"
-                  onClick={() => step(-1)}
-                  aria-label="Forrige"
-                >
-                  ‹
-                </button>
-                <strong>{current.label}</strong>
-                <button
-                  type="button"
-                  className="cs-arrow"
-                  onClick={() => step(1)}
-                  aria-label="Neste"
-                >
-                  ›
-                </button>
-                <span>
-                  {Math.max(
-                    1,
-                    usable.findIndex((o) => o.id === current.id) + 1,
-                  )}{" "}
-                  av {usable.length}
-                </span>
-              </div>
-            )}
-
-            {cat.part && (
-              <div className="cs-grid">
-                {options.map((o) => {
-                  const mine = isOwned(cat.part!, o.id);
-                  const source = gearSource(cat.part!, o.id);
-                  return (
+            {mode !== "bag" && (
+              <>
+                {cat.part && current && (
+                  <div className="cs-stepper">
                     <button
-                      key={o.id}
                       type="button"
-                      className={`cs-option${mine ? "" : " is-locked"}`}
-                      data-new-gear={newGearKeys.includes(`${cat.part}:${o.id}`) ? `${cat.part}:${o.id}` : undefined}
-                      aria-pressed={choice[cat.part!] === o.id}
-                      disabled={!mine}
-                      title={
-                        mine
-                          ? o.label
-                          : `${o.label}: ${source ?? "ikke funnet ennå"}`
-                      }
-                      onClick={() => set({ ...choice, [cat.part!]: o.id })}
+                      className="cs-arrow"
+                      onClick={() => step(-1)}
+                      aria-label="Forrige"
                     >
-                      <FigureCanvas
-                        // Hairstyles are hidden under most hats, so show them bare.
-                        choice={{
-                          ...choice,
-                          ...(cat.part === "hair" ? { hat: "none" } : {}),
-                          [cat.part!]: o.id,
-                        }}
-                        scale={4}
-                      />
-                      <span>{o.label}</span>
-                      {newGearKeys.includes(`${cat.part}:${o.id}`) && (
-                        <span className="cs-new-badge">Ny</span>
-                      )}
-                      {!mine && <small>{source ?? "Ikke funnet ennå"}</small>}
+                      ‹
                     </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {cat.color && showColor && (
-              <div>
-                <p className="cs-label">{cat.color.label}</p>
-                <div className="cs-swatches">
-                  {cat.color.options.map((o) => (
+                    <strong>{current.label}</strong>
                     <button
-                      key={o.id}
                       type="button"
-                      className="cs-swatch"
-                      aria-pressed={choice[cat.color!.key] === o.id}
-                      aria-label={`${cat.color!.label}: ${o.label}`}
-                      title={o.label}
-                      onClick={() => set({ ...choice, [cat.color!.key]: o.id })}
-                      style={{
-                        background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+                      className="cs-arrow"
+                      onClick={() => step(1)}
+                      aria-label="Neste"
+                    >
+                      ›
+                    </button>
+                    <span>
+                      {Math.max(
+                        1,
+                        usable.findIndex((o) => o.id === current.id) + 1,
+                      )}{" "}
+                      av {usable.length}
+                    </span>
+                  </div>
+                )}
 
-            </>}
+                {cat.part && (
+                  <div className="cs-grid">
+                    {options.map((o) => {
+                      const mine = isOwned(cat.part!, o.id);
+                      const source = gearSource(cat.part!, o.id);
+                      return (
+                        <button
+                          key={o.id}
+                          type="button"
+                          className={`cs-option${mine ? "" : " is-locked"}`}
+                          data-new-gear={
+                            newGearKeys.includes(`${cat.part}:${o.id}`)
+                              ? `${cat.part}:${o.id}`
+                              : undefined
+                          }
+                          aria-pressed={choice[cat.part!] === o.id}
+                          disabled={!mine}
+                          title={
+                            mine
+                              ? o.label
+                              : `${o.label}: ${source ?? "ikke funnet ennå"}`
+                          }
+                          onClick={() => set({ ...choice, [cat.part!]: o.id })}
+                        >
+                          <FigureCanvas
+                            // Hairstyles are hidden under most hats, so show them bare.
+                            choice={{
+                              ...choice,
+                              ...(cat.part === "hair" ? { hat: "none" } : {}),
+                              [cat.part!]: o.id,
+                            }}
+                            scale={4}
+                          />
+                          <span>{o.label}</span>
+                          {newGearKeys.includes(`${cat.part}:${o.id}`) && (
+                            <span className="cs-new-badge">Ny</span>
+                          )}
+                          {!mine && (
+                            <small>{source ?? "Ikke funnet ennå"}</small>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {cat.color && showColor && (
+                  <div>
+                    <p className="cs-label">{cat.color.label}</p>
+                    <div className="cs-swatches">
+                      {cat.color.options.map((o) => (
+                        <button
+                          key={o.id}
+                          type="button"
+                          className="cs-swatch"
+                          aria-pressed={choice[cat.color!.key] === o.id}
+                          aria-label={`${cat.color!.label}: ${o.label}`}
+                          title={o.label}
+                          onClick={() =>
+                            set({ ...choice, [cat.color!.key]: o.id })
+                          }
+                          style={{
+                            background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)`,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <aside className={`cs-hero cs-hero--${mode}`}>

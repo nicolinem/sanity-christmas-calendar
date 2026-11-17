@@ -15,7 +15,10 @@ const QUERY = '*[_type in ["item", "observation", "case"]]';
 // The listener needs the page's origin in the project's CORS list. An
 // unclaimed project only allows localhost:3000; anywhere else the stream is
 // refused, and the game quietly falls back to checking every few seconds.
-export function useLiveRefresh(refresh: () => void, enabled: boolean): LiveMode {
+export function useLiveRefresh(
+  refresh: () => void,
+  enabled: boolean,
+): LiveMode {
   const [mode, setMode] = useState<LiveMode>("off");
 
   useEffect(() => {

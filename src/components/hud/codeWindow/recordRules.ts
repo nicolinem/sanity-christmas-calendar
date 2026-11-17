@@ -30,7 +30,8 @@ export function recordRules(validation: unknown): Recorded[] {
             return chain(own);
           };
           if (prop === "custom") return (fn: Recorded["fn"]) => add(fn);
-          if (prop === "required") return () => add((v) => (isEmpty(v) ? "Required" : true));
+          if (prop === "required")
+            return () => add((v) => (isEmpty(v) ? "Required" : true));
           if (prop === "error" || prop === "warning" || prop === "info")
             return (message?: unknown) => {
               own.forEach((r) => {
@@ -54,7 +55,9 @@ export function recordRules(validation: unknown): Recorded[] {
 export function messagesOf(result: unknown, fallback = "Invalid"): string[] {
   if (result === false) return [fallback];
   if (typeof result === "string") return [result];
-  if (Array.isArray(result)) return result.flatMap((r) => messagesOf(r, fallback));
-  if (typeof result === "object" && result !== null && "message" in result) return [String((result as { message: unknown }).message)];
+  if (Array.isArray(result))
+    return result.flatMap((r) => messagesOf(r, fallback));
+  if (typeof result === "object" && result !== null && "message" in result)
+    return [String((result as { message: unknown }).message)];
   return [];
 }

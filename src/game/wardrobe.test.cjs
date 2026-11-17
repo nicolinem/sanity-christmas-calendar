@@ -72,10 +72,21 @@ test("the crown needs every core Bakery door on the same track", () => {
     ["baker-template", "baker-forge", "baker-function"],
     ["baker-first-order", "baker-sign", "baker-ready"],
   ]) {
-    const progress = (done) => ({ completed: Object.fromEntries(done.map((id) => [id, "2026-12-01"])) });
+    const progress = (done) => ({
+      completed: Object.fromEntries(done.map((id) => [id, "2026-12-01"])),
+    });
     assert.equal(ownedGear(progress(ids.slice(0, 2))).has("hat:crown"), false);
     assert.equal(ownedGear(progress(ids.slice(1))).has("hat:crown"), false);
     assert.equal(ownedGear(progress(ids)).has("hat:crown"), true);
   }
-  assert.equal(ownedGear({ completed: { "baker-template": "yes", "baker-sign": "yes", "baker-ready": "yes" } }).has("hat:crown"), false);
+  assert.equal(
+    ownedGear({
+      completed: {
+        "baker-template": "yes",
+        "baker-sign": "yes",
+        "baker-ready": "yes",
+      },
+    }).has("hat:crown"),
+    false,
+  );
 });

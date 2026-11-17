@@ -136,14 +136,15 @@ export default function VillageMap({
                 className={`vmap-row is-${d.status}`}
                 onClick={() => onOpenQuest(d.id)}
               >
-                <span className={`vmap-door is-${d.status}${d.bonus ? " is-bonus" : ""} is-inline`}>
+                <span
+                  className={`vmap-door is-${d.status}${d.bonus ? " is-bonus" : ""} is-inline`}
+                >
                   <SpriteIcon sprite={{ sheet: "town", frame: 84 }} />
                 </span>
                 <span className="vmap-row-text">
                   <span className="vmap-row-meta">
                     {d.bonus ? "☆ Frivillig" : `Luke ${d.door}`} ·{" "}
-                    {QUEST_SITES[d.site].label} ·{" "}
-                    {STATUS_LABEL[d.status]}
+                    {QUEST_SITES[d.site].label} · {STATUS_LABEL[d.status]}
                   </span>
                   {d.id === current?.quest.id &&
                   current.status === "offered" &&

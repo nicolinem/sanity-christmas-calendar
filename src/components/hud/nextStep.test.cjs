@@ -20,7 +20,9 @@ vm.runInNewContext(
       if (name === "@/game/village")
         return require(path.resolve(__dirname, "../../game/village.ts"));
       if (name === "@/game/quests/label") {
-        const { NPCS } = require(path.resolve(__dirname, "../../game/village.ts"));
+        const { NPCS } = require(
+          path.resolve(__dirname, "../../game/village.ts"),
+        );
         return { giverOf: (q) => NPCS[q.giver ?? "brann"] };
       }
       return require(name);
@@ -40,7 +42,9 @@ test("an offered door sends you to its giver: Brann unless another is named", ()
   assert.equal(brann.kind, "giver");
   assert.equal(brann.site, "forge");
   assert.equal(brann.label, "Gå til Brann");
-  const arkivaren = nextStep(door({ checkedBy: "window", giver: "arkivaren" }, "offered"));
+  const arkivaren = nextStep(
+    door({ checkedBy: "window", giver: "arkivaren" }, "offered"),
+  );
   assert.equal(arkivaren.site, "square");
   assert.equal(arkivaren.label, "Gå til Arkivaren");
 });
@@ -63,7 +67,9 @@ test("a content door with a place walks there, otherwise opens the Studio", () =
     "studio",
   );
   assert.equal(
-    nextStep(door({ checkedBy: "game", giver: "bakeren", villageSite: "bakery" })).kind,
+    nextStep(
+      door({ checkedBy: "game", giver: "bakeren", villageSite: "bakery" }),
+    ).kind,
     "studio",
   );
 });
@@ -92,7 +98,10 @@ test("a Bakery sign quest leads first to the sign, then to Studio", () => {
   for (const id of ["baker-sign", "baker-link"]) {
     const quest = CHAPTERS[2].quests.find((q) => q.id === id);
     assert.equal(quest.villageSite, "bakerySign");
-    const pickup = nextStep({ ...door(quest, "offered"), pickup: "bakerySign" });
+    const pickup = nextStep({
+      ...door(quest, "offered"),
+      pickup: "bakerySign",
+    });
     assert.equal(pickup.kind, "travel");
     assert.equal(pickup.site, "bakerySign");
     assert.equal(nextStep(door(quest)).kind, "studio");

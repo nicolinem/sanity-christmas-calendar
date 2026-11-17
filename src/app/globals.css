@@ -1049,10 +1049,19 @@ kbd {
   line-height: 1.5;
   white-space: pre-wrap;
 }
-.bakery-sign-text p { margin: 0 0 12px; }
-.bakery-sign-text strong { color: var(--amber); }
-.bakery-sign-text a { color: var(--glacier); text-decoration: underline; }
-.bakery-sign .btn { align-self: flex-end; }
+.bakery-sign-text p {
+  margin: 0 0 12px;
+}
+.bakery-sign-text strong {
+  color: var(--amber);
+}
+.bakery-sign-text a {
+  color: var(--glacier);
+  text-decoration: underline;
+}
+.bakery-sign .btn {
+  align-self: flex-end;
+}
 .log {
   display: flex;
   flex-direction: column;
@@ -1603,12 +1612,16 @@ kbd {
 .plate-name {
   max-width: 160px;
   overflow: hidden;
-  font: 400 22px/1 var(--font-display), var(--font-body);
+  font:
+    400 22px/1 var(--font-display),
+    var(--font-body);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .plate-level {
-  font: 500 11px/1.2 var(--font-pixel), var(--font-body);
+  font:
+    500 11px/1.2 var(--font-pixel),
+    var(--font-body);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--amber);
