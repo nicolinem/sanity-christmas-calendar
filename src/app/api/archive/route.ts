@@ -28,7 +28,7 @@ export async function GET() {
         { ids: ARCHIVE_IDS },
       ),
       client.fetch<OwnCase[]>(
-        '*[_type == "case"]{_id, "observations": observations[]._ref}',
+        '*[_type == "case"] | order(_updatedAt desc){_id, title, "observations": observations[]._ref, "entries": observations[]->{_id, what, "place": place->name}}',
       ),
     ]);
     return Response.json({

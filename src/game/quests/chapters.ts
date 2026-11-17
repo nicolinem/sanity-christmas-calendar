@@ -754,13 +754,21 @@ const caseFile: Quest = {
   id: "case-file",
   giver: "arkivaren",
   track: "nonTechnical",
-  door: 4,
+  door: 6,
   title: "Saksmappa",
+  topic: "*Array of references*",
   intro: [
     "Jeg vil samle alt om det store sporet på ett sted, så hele bygda kan lese det før markedet.",
-    "Lag en *Case* i Studio og legg inn alle de bekreftede observasjonene, også de tre du koblet til et sted. Ingen rykter.",
+    "Lag en *Case* i Studio og legg inn alle de tre bekreftede observasjonene. Ingen rykter.",
+  ],
+  outro: [
+    "Prøv å gi et sted nytt navn i Studio og publiser. Se på tavla: mappa oppdateres fordi den peker og ikke kopierer.",
   ],
   goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene, og ingen rykter.",
+  goalPreview: {
+    before: "Tre observasjoner ligger hver for seg i arkivet.",
+    after: "Én publisert sak peker på alle tre og vises på torget.",
+  },
   where: "I Sanity Studio, under *Case*.",
   hints: [
     {
@@ -774,7 +782,9 @@ const caseFile: Quest = {
   learn: { label: "Array of references", url: `${DOCS}/array-type` },
   lesson: {
     title: "En liste av *references*",
-    text: "Én *Case* kan peke på mange observasjoner uten å kopiere dem. Endrer du en observasjon, er mappa fortsatt oppdatert.",
+    text: "Én *Case* kan peke på mange observasjoner uten å kopiere dem. Tavla følger referansene videre til stedsnavnet, så en endring slår gjennom overalt.",
+    atWork:
+      "Én kilde, mange steder: endrer du den ett sted, er den riktig overalt.",
   },
   checkedBy: "game",
   reward: { forgeLevel: 1 },

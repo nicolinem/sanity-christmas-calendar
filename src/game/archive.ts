@@ -281,7 +281,12 @@ export const CASE_FILE_EXPECTED = WHO_IS_LYING.filter(
   ({ expected }) => expected === "confirmed",
 ).map(({ _id }) => _id);
 
-export type OwnCase = { _id: string; observations: string[] };
+export type OwnCase = {
+  _id: string;
+  title?: string | null;
+  observations: string[];
+  entries?: { _id: string; what: string; place?: string | null }[];
+};
 
 // The best published case counts: right = expected ids in it, wrong = ids in it
 // that are not expected (a rumour in the folder counts against it).

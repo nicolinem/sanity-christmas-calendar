@@ -52,6 +52,7 @@ import { ARCHIVE_IDS, type OwnArchiveDoc, type OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
+import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
 import ForgeHammer from "./hud/ForgeHammer";
 import { giverOf } from "@/game/quests/label";
@@ -145,6 +146,7 @@ export default function GameClient() {
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const [signOpen, setSignOpen] = useState(false);
+  const [caseOpen, setCaseOpen] = useState(false);
   const [celebrations, setCelebrations] = useState<QuestCelebrationData[]>([]);
   const celebration = celebrations[0];
   const [logInitialTab, setLogInitialTab] = useState<"quests" | "map" | "book">(
@@ -342,6 +344,12 @@ export default function GameClient() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  const studioWasOpen = useRef(studio.open);
+  useEffect(() => {
+    if (studioWasOpen.current && !studio.open) refresh();
+    studioWasOpen.current = studio.open;
+  }, [refresh, studio.open]);
 
   // Publish in the Studio and the game hears about it straight away.
   const liveMode = useLiveRefresh(refresh, configured === true);
@@ -541,6 +549,7 @@ export default function GameClient() {
     setTalking(false);
     setLogOpen(false);
     setModelQuestId(null);
+    setCaseOpen(false);
     setCodeQuestId(questId);
   }, []);
   const openBoard = useCallback((questId: string) => {
@@ -549,6 +558,7 @@ export default function GameClient() {
     setSheetOpen(false);
     closeStudio();
     setCodeQuestId(null);
+    setCaseOpen(false);
     setModelQuestId(questId);
   }, []);
   const openSiteQuest = useCallback(() => {
@@ -564,6 +574,11 @@ export default function GameClient() {
     else setSignOpen(true);
   }, [siteQuest, openSiteQuest]);
   useEffect(() => bridge.on("readSign", readSign), [readSign]);
+  const openCaseBoard = useCallback(() => {
+    setTalking(false);
+    setLogOpen(false);
+    setCaseOpen(true);
+  }, []);
   // The non-technical uke 2 tasks work on observations in the player's own
   // project. Once Brann has handed one over, the game writes the starting
   // documents (existing ones are left alone) and reads them back.
@@ -664,6 +679,7 @@ export default function GameClient() {
     !studio.open &&
     !logOpen &&
     !signOpen &&
+    !caseOpen &&
     !dialogueOpen &&
     !showOpening;
   const summaryWeek = weekShown ?? (quiet ? pendingWeek : undefined);
@@ -701,6 +717,7 @@ export default function GameClient() {
         dialogueOpen ||
         logOpen ||
         signOpen ||
+        caseOpen ||
         codeOpen ||
         modelOpen ||
         showOpening ||
@@ -719,6 +736,7 @@ export default function GameClient() {
     dialogueOpen,
     logOpen,
     signOpen,
+    caseOpen,
     codeOpen,
     modelOpen,
     showOpening,
@@ -755,6 +773,10 @@ export default function GameClient() {
       }
       if (signOpen) {
         if (e.key === "Escape") setSignOpen(false);
+        return;
+      }
+      if (caseOpen) {
+        if (e.key === "Escape") setCaseOpen(false);
         return;
       }
       const onControl = (e.target as HTMLElement)?.closest?.(
@@ -798,6 +820,15 @@ export default function GameClient() {
         readSign();
         return;
       }
+      if (
+        (e.key === "e" || e.key === "E") &&
+        zone === "noticeboard" &&
+        (progress.briefed["case-file"] || progress.completed["case-file"])
+      ) {
+        e.preventDefault();
+        openCaseBoard();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -818,6 +849,7 @@ export default function GameClient() {
     dialogueOpen,
     logOpen,
     signOpen,
+    caseOpen,
     codeOpen,
     modelOpen,
     showOpening,
@@ -829,6 +861,9 @@ export default function GameClient() {
     openSheet,
     openSiteQuest,
     readSign,
+    openCaseBoard,
+    progress.briefed,
+    progress.completed,
     combat,
     items,
     slots,
@@ -940,6 +975,20 @@ export default function GameClient() {
                 <kbd>E</kbd> Les bodskiltet
               </button>
             )}
+            {zone === "noticeboard" &&
+              !siteQuest &&
+              !logOpen &&
+              !caseOpen &&
+              (progress.briefed["case-file"] ||
+                progress.completed["case-file"]) && (
+                <button
+                  type="button"
+                  className="prompt"
+                  onClick={openCaseBoard}
+                >
+                  <kbd>E</kbd> Les saksmappa
+                </button>
+              )}
             {!hasMoved &&
               !progress.metBlacksmith &&
               !showOpening &&
@@ -1040,6 +1089,13 @@ export default function GameClient() {
           <BakerySign sign={bakerySign} onClose={() => setSignOpen(false)} />
         )}
 
+        {!showOpening && caseOpen && (
+          <ArchiveNoticeboard
+            cases={archiveCases}
+            onClose={() => setCaseOpen(false)}
+          />
+        )}
+
         {!showOpening && codeState && (
           <CodeWindow
             key={codeState.quest.id}
@@ -1058,6 +1114,7 @@ export default function GameClient() {
           !logOpen &&
           !codeOpen &&
           !signOpen &&
+          !caseOpen &&
           !studio.open && (
             <ModelBoard
               key={modelState.quest.id}
@@ -1152,6 +1209,7 @@ export default function GameClient() {
         celebration &&
         codeQuestId === null &&
         modelQuestId === null &&
+        !caseOpen &&
         !studio.open && (
           <QuestCelebration
             key={`${celebration.door}:${celebration.title}`}

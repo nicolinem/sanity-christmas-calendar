@@ -6,14 +6,16 @@ const vm = require("node:vm");
 const { transform } = require("sucrase");
 require("sucrase/register");
 const archive = require("./archive.ts");
+const routeSource = readFileSync(
+  `${__dirname}/../app/api/archive/route.ts`,
+  "utf8",
+);
 
 const created = [];
 let commits = 0;
 const mod = { exports: {} };
 vm.runInNewContext(
-  transform(readFileSync(`${__dirname}/../app/api/archive/route.ts`, "utf8"), {
-    transforms: ["typescript", "imports"],
-  }).code,
+  transform(routeSource, { transforms: ["typescript", "imports"] }).code,
   {
     module: mod,
     exports: mod.exports,
@@ -67,4 +69,9 @@ test("archive seed creates five unknown clues without overwriting", async () => 
   const clueC = clues.find(({ _id }) => _id === "archive-c");
   assert.equal(clueC.place, undefined);
   assert.equal(clueC.placeNote, "bakriet");
+});
+
+test("archive cases read place names through the reference", () => {
+  assert.match(routeSource, /place->name/);
+  assert.match(routeSource, /observations\[\]->/);
 });

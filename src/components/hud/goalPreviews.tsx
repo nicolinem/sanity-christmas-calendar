@@ -229,6 +229,24 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       />
     ),
   },
+  "case-file": {
+    before: (
+      <BakeryCard
+        label="Observasjoner"
+        lines={[
+          ["A", "Smia"],
+          ["B", "Bakeriet"],
+          ["C", "Bakeriet"],
+        ]}
+      />
+    ),
+    after: (
+      <BakeryCard
+        label="Saksmappa på torget"
+        lines={[["Observations", "A →  B →  C →"]]}
+      />
+    ),
+  },
   "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
   "the-guilds-law": {
     before: <DocumentCard blocked={false} />,

@@ -1088,6 +1088,30 @@ kbd {
 .bakery-sign .btn {
   align-self: flex-end;
 }
+.archive-noticeboard h2 {
+  margin: 0 0 12px;
+  color: var(--parchment);
+  font-family: var(--font-pixel), var(--font-body);
+  font-size: 18px;
+}
+.archive-noticeboard ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.archive-noticeboard li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--parchment) 25%, transparent);
+}
+.archive-noticeboard li span {
+  flex: none;
+  font-size: 13px;
+}
 .log {
   display: flex;
   flex-direction: column;
