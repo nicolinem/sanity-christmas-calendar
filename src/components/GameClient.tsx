@@ -534,12 +534,15 @@ export default function GameClient() {
     setLogOpen(false);
     setCodeQuestId(questId);
   }, []);
+  const openBoard = useCallback((_questId: string) => {}, []);
   const openSiteQuest = useCallback(() => {
     if (!siteQuest) return;
     if (siteQuest.pickup) fetchQuest(siteQuest.quest.id);
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
+    else if (siteQuest.quest.checkedBy === "board")
+      openBoard(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
-  }, [siteQuest, openCode, openQuestLog, fetchQuest]);
+  }, [siteQuest, openCode, openBoard, openQuestLog, fetchQuest]);
   const readSign = useCallback(() => {
     if (siteQuest?.pickup) openSiteQuest();
     else setSignOpen(true);
@@ -800,6 +803,7 @@ export default function GameClient() {
               onOpenMap={openMap}
               onOpenQuest={openQuestLog}
               onOpenCode={openCode}
+              onOpenBoard={openBoard}
               onOpenStudio={openStudio}
               onTravel={travelToSite}
               finished={
@@ -865,7 +869,9 @@ export default function GameClient() {
                     : `Hent luke ${siteQuest.quest.door}`
                   : siteQuest.quest.checkedBy === "window"
                     ? "Åpne kodevinduet"
-                    : "Åpne luka her"}
+                    : siteQuest.quest.checkedBy === "board"
+                      ? "Åpne modellbrettet"
+                      : "Åpne luka her"}
               </button>
             )}
             {zone === "bakerySign" && !siteQuest && !logOpen && !signOpen && (
@@ -951,6 +957,7 @@ export default function GameClient() {
             hintsShown={progress.hints}
             onRevealHint={revealHint}
             onOpenCode={openCode}
+            onOpenBoard={openBoard}
             solvedTasks={progress.solved}
             completedAt={progress.completed}
             onTravelToSite={travelToSite}

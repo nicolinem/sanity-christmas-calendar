@@ -315,7 +315,9 @@ export function useQuestBoard({
         door: s.quest.door,
         bonus: s.quest.bonus,
         title: s.quest.title,
+        topic: s.quest.topic,
         lesson: plainText(s.quest.lesson.title),
+        atWork: s.quest.lesson.atWork,
         outro: s.quest.outro,
         objectives: s.result.objectives
           ?.filter((o) => o.done)

@@ -77,6 +77,7 @@ export type Quest = {
   track?: QuestTrack; // omitted for quests shared by both tracks
   door: number; // display order for this door in the calendar
   title: string;
+  topic?: string; // the Sanity concept, separate from the in-world problem
   intro: string[]; // what Brann says when he hands it over, one short page each
   outro?: string[]; // optional giver's lines after completing the door
   goal: string; // one line for the tracker: what, not how
@@ -93,10 +94,10 @@ export type Quest = {
   learn?: { label: string; url: string };
   // What the player just learned, in plain words. Shown when the quest is done
   // and collected in Brann's book.
-  lesson: { title: string; text: string };
+  lesson: { title: string; text: string; atWork?: string };
   // game: the game sees it in your content. code: `npm run quest` judges your
   // files. window: you write it in the game's code window, which checks it.
-  checkedBy: "game" | "code" | "window";
+  checkedBy: "game" | "code" | "window" | "board";
   // Optional: shown with a ☆ and left out of the "N av M" totals.
   bonus?: true;
   reward?: { forgeLevel: number };

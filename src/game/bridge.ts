@@ -39,7 +39,9 @@ export type QuestCelebration = {
   door: number;
   bonus?: true;
   title: string;
+  topic?: string;
   lesson: string;
+  atWork?: string;
   outro?: string[];
   objectives?: string[];
   nextDoor?: number;

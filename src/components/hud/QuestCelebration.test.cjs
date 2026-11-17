@@ -33,6 +33,7 @@ vm.runInNewContext(
         };
       if (name === "./SpriteIcon")
         return () => React.createElement("span", { className: "brann-sprite" });
+      if (name === "./richText") return { renderText: (text) => text };
       return name === "./icons"
         ? { IconCheck: () => React.createElement("span", null, "✓") }
         : require(name);
@@ -46,7 +47,9 @@ test("quest completion shows the finished task and reward before opening the nex
     React.createElement(QuestCelebration, {
       door: 3,
       title: "Validation: regler for våpen",
+      topic: "*Validation*",
       lesson: "Validation",
+      atWork: "Stopp feil før publisering.",
       objectives: ["Koden er bestått"],
       nextDoor: 4,
       level: { number: 2, damage: 6 },
@@ -59,6 +62,9 @@ test("quest completion shows the finished task and reward before opening the nex
   assert.match(html, /Luke 3 er fullført/);
   assert.match(html, /Gratulerer!/);
   assert.match(html, /Validation: regler for våpen/);
+  assert.match(html, /\*Validation\*/);
+  assert.match(html, /På jobb/);
+  assert.match(html, /Stopp feil før publisering/);
   assert.match(html, /Krysset av i journalen/);
   assert.match(html, /Koden er bestått/);
   assert.match(html, /Nivå 2! Våpnene dine gjør nå 6 skade/);
@@ -97,6 +103,7 @@ test("the second beat opens the new door and directs the player to Brann", () =>
         if (name === "./SpriteIcon")
           return () =>
             React.createElement("span", { className: "brann-sprite" });
+        if (name === "./richText") return { renderText: (text) => text };
         return name === "react"
           ? { ...React, useState: () => [true, () => {}] }
           : require(name);

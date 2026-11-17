@@ -36,12 +36,14 @@ export default function VillageMap({
   onTravel,
   onOpenQuest,
   onOpenCode,
+  onOpenBoard,
   onOpenStudio,
 }: {
   board: QuestBoard;
   onTravel: (siteId: QuestSiteId) => void;
   onOpenQuest: (questId: string) => void;
   onOpenCode: (questId: string) => void;
+  onOpenBoard: (questId: string) => void;
   onOpenStudio: () => void;
 }) {
   const canvas = useVillageCanvas();
@@ -57,6 +59,7 @@ export default function VillageMap({
     if (!step) return;
     if (step.kind === "giver") onTravel(step.site);
     else if (step.kind === "code") onOpenCode(step.questId);
+    else if (step.kind === "board") onOpenBoard(step.questId);
     else if (step.kind === "travel") onTravel(step.site);
     else if (step.kind === "studio") onOpenStudio();
     else onOpenQuest(step.questId);

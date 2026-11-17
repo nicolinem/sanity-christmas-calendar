@@ -32,6 +32,7 @@ type Props = {
   completedAt: Progress["completed"];
   onRevealHint: (questId: string) => void;
   onOpenCode: (questId: string) => void;
+  onOpenBoard: (questId: string) => void;
   onTravelToSite: (siteId: QuestSiteId) => void;
   onClose: () => void;
   onReset: () => void;
@@ -55,6 +56,7 @@ export default function QuestLog({
   completedAt,
   onRevealHint,
   onOpenCode,
+  onOpenBoard,
   onTravelToSite,
   onClose,
   onReset,
@@ -224,6 +226,7 @@ export default function QuestLog({
               board={board}
               onTravel={onTravelToSite}
               onOpenCode={onOpenCode}
+              onOpenBoard={onOpenBoard}
               onOpenStudio={() => {
                 openStudio();
                 onClose();
@@ -460,6 +463,11 @@ function WeekBody({
                   {s.status === "offered" && !s.pickup
                     ? `Snakk med ${giverOf(s.quest).name}`
                     : s.quest.title}
+                  {s.status !== "offered" && s.quest.topic && (
+                    <span className="quest-topic">
+                      {renderText(s.quest.topic)}
+                    </span>
+                  )}
                 </span>
               </button>
             </li>
@@ -544,6 +552,9 @@ function QuestDetail({
       <article className="log-detail">
         <p className="log-week-kicker">{lukeName(quest)}</p>
         <h3 className="log-quest-title">{quest.title}</h3>
+        {quest.topic && (
+          <p className="quest-topic">{renderText(quest.topic)}</p>
+        )}
         <p className="log-locked">
           {state.opensAt
             ? `Åpner ${dateLabel(state.opensAt)}.`
@@ -570,6 +581,11 @@ function QuestDetail({
           <p className="log-lesson-quest">Det du lærte</p>
           <h4 className="log-lesson-title">{renderText(quest.lesson.title)}</h4>
           <p className="log-lesson-text">{renderText(quest.lesson.text)}</p>
+          {quest.lesson.atWork && (
+            <p className="quest-at-work">
+              <strong>På jobb</strong> {renderText(quest.lesson.atWork)}
+            </p>
+          )}
         </div>
         {result.objectives && (
           <ul className="tracker-list log-done-list">
@@ -622,6 +638,7 @@ function QuestDetail({
           : "pågår"}
       </p>
       <h3 className="log-quest-title">{quest.title}</h3>
+      {quest.topic && <p className="quest-topic">{renderText(quest.topic)}</p>}
       <p className="log-intro">
         {quest.villageSite === "bakerySign" ? (
           quest.intro.map((line) => (
