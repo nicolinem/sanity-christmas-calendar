@@ -234,39 +234,64 @@ Document action («Smi»-knappen) flyttes til uke 3. De åpne punktene over er
 fortsatt forslag til produktkontrakt; de behandles ikke som vedtatt før de er
 godkjent for den aktuelle leveransen.
 
-### Uke 2 og 3: utkast; må avklares før bygging
+### Uke 2: Finne (åpner mandag 7. desember)
 
-Tabellene under er eldre utkast, ikke vedtatt oppgavesett. De har for mange
-kjerneoppgaver og dekker bare den tekniske løypa. Før bygging fastsettes
-læringsmål og oppgaver for begge løyper. Prosjektansvarlig velger pensum.
+Arkivarens mysterium er bygget som to spor. Teknisk spor løser GROQ,
+Structure Builder og en document view i kodevinduet (luke 5–7); ☆ er
+frivillige GROQ-spørsmål. Ikke-teknisk spor sorterer observasjoner, kobler
+dem til steder og lager en saksmappe i eget Studio (luke 2–4). Begge
+følger sporene mot bakeriet. Observasjonene seedes bare i deltakerens eget
+prosjekt når de trengs; spillet leser publiserte dokumenter.
 
-### Uke 2: Innholdsmodellering (åpner mandag 7. desember)
+### Uke 3: Bakeren – Automatisere (åpner mandag 14. desember)
 
-Ny ting i spillet: monstre fra innhold, med kamp og bytte (ca. 2,5 dagsverk).
+**Problem:** Markedet nærmer seg. Bakeren vil slippe å fylle de samme feltene
+om igjen, Brann vil smi med ett trykk, og bodskiltet må være klart. Bakeriet,
+Bakeren og dørankeret finnes allerede. Ukas eneste nye synlige resultat i
+bygda er **skiltet på boden ved bakeriet**; bestillinger kan omtales i
+Bakerens dialog. Ingen arbeidsliste, bildevegg eller ny lyseffekt.
 
-|     | Sanity-tema         | Hva deltakeren gjør                                     | Sjekk                   |
-| --- | ------------------- | ------------------------------------------------------- | ----------------------- |
-| ★   | Ny document type    | Lager en `monster`-type. Monstrene dukker opp i spillet | Spillet                 |
-| ★   | `reference` og `->` | Kobler et monster til gjenstandene det slipper          | Spillet                 |
-| ★   | GROQ i Vision       | Den ene obligatoriske GROQ-oppgaven                     | Resultatet sammenlignes |
-| ★   | `image` og assets   | Tegner sin første julekule og laster den opp            | Spillet                 |
-| ☆   | GROQ                | Frivillige GROQ-oppgaver                                | Resultatet sammenlignes |
+Teknisk spor lager automatisering i kodevinduet; bestått kode slår på vår
+trygge Studio-implementasjon der det er mulig. Spillerens kode kjøres aldri
+i Studio. Ikke-teknisk spor bruker verktøyene i **ekte Studio** fra starten
+av, aktivert med `isTrack("nonTechnical")` uten krav om å løse kodeoppgaver.
 
-Monstrene følger en fast kontrakt, og spillet avgjør HP og skade: `name`,
-`kind`, `size`, `sprite`, `weakness`, `drops`.
+| Luke | Spor | Ett Sanity-tema | Handling | Automatisk sjekk |
+| --- | --- | --- | --- | --- |
+| 9 | Teknisk | `initialValue` / initial value templates | Lag en mal for ny bestilling med status «ny» og dagens dato i kodevinduet. | Falsk dokumentopprettelse med testklokke gir begge startverdier, uten å endre en eksisterende bestilling. Bestått løser luka og aktiverer vår mal i Studio. |
+| 10 | Teknisk | Document action | Lag «Smi» som setter `forgedAt` og publiserer et eksisterende våpen. Ingen oppskrifter/materialer. | Falske Studio-operasjoner må både stemple og publisere rett dokument. Et publisert stempel alene beviser ikke hvilken knapp som ble brukt; Studio-prøving er frivillig. |
+| 11 | Teknisk | Sanity Function (simulert) | Skriv hendelseslogikk som oppdaterer skilttekst når en bestilling publiseres. | Kodevinduet kjører publiseringshendelser mot en falsk klient og sjekker rett oppdatering, ignorering av andre hendelser og ingen dobbel oppdatering. Ingen deploy eller ekte Function i deltakerens prosjekt. |
+| 5 | Ikke-teknisk | Initial value template | Se tre ventelapper fra Brann, Arkivaren og Kari; lag **din egen** «Ny bestilling» fra Bakerens ferdige mal i Studio, fyll inn en vare og bruk vanlig Publish. | Spillet finner en **ny publisert** bestilling med status «ny», dato og ikke-tom vare. Ventelappene har status «venter» og teller ikke. Det kan ikke bevise at malen ble brukt; det er akseptert. |
+| 6 | Ikke-teknisk | Portable Text | Hent luka ved bodskiltet, skriv skiltet i Studio, bruk fet skrift og publiser med vanlig Publish. | Spillet leser publiserte blokker, krever lesbar tekst og `strong`-markering og viser skiltet ved bakeriet. Utkast teller ikke. |
+| 7 | Ikke-teknisk | Document action | «Klar» finnes i menyen ved siden av vanlig Publish **først etter luke 6**. Bruk den på din egen bestilling; den setter status «klar» og publiserer i ett trykk. | Spillet finner den **samme** publiserte bestillingen med status «klar». Det kan ikke bevise hvilket knappetrykk som endret status; det er akseptert. |
+| ☆ | Begge | Portable Text-lenke | Hent ☆ ved bodskiltet, legg en relevant HTTPS-lenke i det publiserte bodskiltet. | Spillet krever en lenke-annotation knyttet til tekst; ren URL i teksten teller ikke. Valgfri, uten lukenummer eller krav for å fullføre uka. |
 
-### Uke 3: Utover skjemaet (åpner mandag 14. desember)
+Bakeren gir lukene som gjøres i kodevinduet eller Studio; skiltlukene hentes
+ved bodskiltet, et eget sted i bygda. Korte replikker før og etter hver luke,
+Før/Etter-visning, 2–3 hint og en presis melding om hva som mangler følger
+hver sjekk. Ventelappene seedes én gang i deltakerens prosjekt uten å
+overskrive egne redigeringer. Kodelukene har en frivillig Studio-prøve,
+mens de ikke-tekniske lukene alltid bruker eget Studio. Luke 11s lærdomstekst
+skal si eksplisitt: «Dette var en simulering av hvordan en ekte Sanity Function
+ville reagert på en publisering. Ingen Function ble deployet eller kjørt i
+prosjektet ditt.» Skiltet endres virkelig bare når et publisert Sanity-skilt
+endres; den simulerte Function skriver ikke til Sanity.
 
-|     | Sanity-tema               | Hva deltakeren gjør                                    | Sjekk                                                  |
-| --- | ------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
-| ★   | Document action           | Egen «Smi»-knapp som setter et tidspunkt og publiserer | Spillet                                                |
-| ★   | Portable Text             | Tekst med egne marks som vises i spillet               | Planlagt: ved fillagring i repoet og publisert innhold |
-| ★   | Functions                 | Fyller et felt automatisk ved publisering (30–45 min)  | Spillet                                                |
-| ★   | Offentlig dataset og GROQ | Henter en kollegas julekuler fra deres prosjekt        | Spillet                                                |
-| ☆   | Custom input              | Lager tegnebrettet for julekuler selv                  | Planlagt: ved fillagring i repoet                      |
+Sanity [tilbyr Functions på Free-planen](https://www.sanity.io/pricing), men
+det endrer ikke valget om å simulere luke 11. Content Releases finnes bare på
+visse Enterprise-planer; Scheduled Drafts krever Growth. Ingen av dem brukes
+her. Studio-dokumenter og skiltgrunnlag opprettes ved behov per deltaker i
+eget prosjekt uten å overskrive redigeringer; felles production berøres ikke.
 
-Functions krever claimet prosjekt og `npx sanity login`. Den siste
-★-oppgaven bruker det samme som gjør at deltakerne ser hverandre (se under).
+Lukene gir dagens vanlige lukefullføring, journal og ukesoppsummering – ikke
+poeng eller XP. Når **alle tre kjerneluker i valgt spor** er fullført, får
+spilleren `hat:crown` via `wardrobe.ts` (den siste kjerneluka i hvert spor
+kan være kilde). ☆ teller ikke. XP er utsatt til fasen i
+[plan-utforsking.md](plan-utforsking.md). Ingen ny økning i sminivå loves ved
+taket. Test oppsett og seeding 27. november fra en fersk klone på **eget**
+Sanity-prosjekt, aldri på felles produksjon. Før utgivelse: prøv en ny
+deltaker, utkast/publisering/sletting, gjentatte klikk og begge spor; hvis
+en kjerneluke overstiger 25 minutter for en førstegangsdeltaker, forenkles den.
 
 ### Uka før jul
 

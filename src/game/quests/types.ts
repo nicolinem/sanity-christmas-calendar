@@ -1,4 +1,5 @@
 import type { OwnArchiveDoc, OwnCase } from "../archive";
+import type { BakeryOrder, BakerySign } from "../bakery";
 import type { GameItemView } from "../items";
 import type { Element } from "../magic";
 import type { NpcId, QuestSiteId } from "../village";
@@ -15,6 +16,7 @@ export type Progress = {
   metBlacksmith: boolean;
   wraithDefeated: boolean;
   completed: Record<string, string>; // quest id → ISO time it was completed
+  bakeryOrderId?: string; // published order that completed the first Bakery door
   briefed: Record<string, true>; // quests Brann has already explained
   fetched: Record<string, true>; // quests picked up at their place in the village
   hints: Record<string, number>; // how many hints the player has revealed per quest
@@ -49,6 +51,8 @@ export type QuestContext = {
   // track), published versions only. null until the game has asked.
   archive?: OwnArchiveDoc[] | null;
   archiveCases?: OwnCase[] | null; // published `case` documents, same source
+  bakeryOrders?: BakeryOrder[] | null; // published orders from the player's project
+  bakerySign?: BakerySign | null; // published skilt only
 };
 
 export type Objective = { label: string; done: boolean };
@@ -74,6 +78,7 @@ export type Quest = {
   door: number; // display order for this door in the calendar
   title: string;
   intro: string[]; // what Brann says when he hands it over, one short page each
+  outro?: string[]; // optional giver's lines after completing the door
   goal: string; // one line for the tracker: what, not how
   where?: string; // where the work happens: a file or a place, not the answer
   // Optional steps to try the result in the real Studio after solving the code.

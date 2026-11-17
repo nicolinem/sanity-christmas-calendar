@@ -49,6 +49,8 @@ import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
+import { SAMPLE_ORDERS } from "@/game/bakery";
+import BakerySign from "./hud/BakerySign";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
@@ -119,6 +121,8 @@ export default function GameClient() {
   // Arkivarens observasjoner in the player's project (uke 2, non-technical).
   const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
   const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
+  const [bakeryOrders, setBakeryOrders] = useState<import("@/game/bakery").BakeryOrder[] | null>(null);
+  const [bakerySign, setBakerySign] = useState<import("@/game/bakery").BakerySign | null>(null);
   const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
   const [communityReady, setCommunityReady] = useState(false);
   const [equippedId, setEquippedId] = useState<string | null>(null);
@@ -130,6 +134,7 @@ export default function GameClient() {
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const [signOpen, setSignOpen] = useState(false);
   const [celebrations, setCelebrations] = useState<QuestCelebrationData[]>([]);
   const celebration = celebrations[0];
   const [logInitialTab, setLogInitialTab] = useState<"quests" | "map" | "book">(
@@ -286,7 +291,7 @@ export default function GameClient() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, checks, own] = await Promise.all([
+      const [res, checks, own, bakery] = await Promise.all([
         fetch("/api/items", { cache: "no-store" }),
         fetch("/api/quest-checks", { cache: "no-store" })
           .then((r) => r.json())
@@ -294,9 +299,14 @@ export default function GameClient() {
         fetch("/api/archive", { cache: "no-store" })
           .then((r) => r.json())
           .catch(() => null),
+        fetch("/api/bakery", { cache: "no-store" })
+          .then((r) => r.json())
+          .catch(() => null),
       ]);
       setArchive(own?.error ? null : (own?.docs ?? null));
       setArchiveCases(own?.error ? null : (own?.cases ?? null));
+      setBakeryOrders(bakery?.error ? null : (bakery?.orders ?? null));
+      setBakerySign(bakery?.error ? null : (bakery?.sign ?? null));
       const data: {
         configured: boolean;
         unclaimed?: boolean;
@@ -446,6 +456,8 @@ export default function GameClient() {
     unpublishedDrafts,
     archive,
     archiveCases,
+    bakeryOrders,
+    bakerySign,
     wraithDefeatedNow: combat.defeated,
     progress,
   });
@@ -461,7 +473,7 @@ export default function GameClient() {
       ? board.states.find(
           (state) =>
             state.quest.villageSite === zone &&
-            (state.status === "active" || state.pickup === zone),
+            (state.pickup === zone || (zone !== "bakerySign" && state.status === "active")),
         )
       : undefined;
 
@@ -523,6 +535,11 @@ export default function GameClient() {
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
   }, [siteQuest, openCode, openQuestLog, fetchQuest]);
+  const readSign = useCallback(() => {
+    if (siteQuest?.pickup) openSiteQuest();
+    else setSignOpen(true);
+  }, [siteQuest, openSiteQuest]);
+  useEffect(() => bridge.on("readSign", readSign), [readSign]);
   // The non-technical uke 2 tasks work on observations in the player's own
   // project. Once Brann has handed one over, the game writes the starting
   // documents (existing ones are left alone) and reads them back.
@@ -540,6 +557,19 @@ export default function GameClient() {
       .then((r) => (r.ok ? refresh() : undefined))
       .catch(() => {});
   }, [needsArchive, archive, refresh]);
+
+  const bakerySeeded = useRef(false);
+  const needsBakery = board.states.some(
+    (s) => s.quest.id === "baker-first-order" && s.status === "active",
+  );
+  useEffect(() => {
+    if (!needsBakery || bakeryOrders === null || bakerySeeded.current ||
+      SAMPLE_ORDERS.every((sample) => bakeryOrders.some((order) => order._id === sample._id))) return;
+    bakerySeeded.current = true;
+    fetch("/api/bakery", { method: "POST" })
+      .then((r) => (r.ok ? refresh() : undefined))
+      .catch(() => {});
+  }, [needsBakery, bakeryOrders, refresh]);
 
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
@@ -573,6 +603,7 @@ export default function GameClient() {
     codeQuestId === null &&
     !studio.open &&
     !logOpen &&
+    !signOpen &&
     !dialogueOpen &&
     !showOpening;
   const summaryWeek = weekShown ?? (quiet ? pendingWeek : undefined);
@@ -609,6 +640,7 @@ export default function GameClient() {
       frozen:
         dialogueOpen ||
         logOpen ||
+        signOpen ||
         codeOpen ||
         showOpening ||
         sheetShown ||
@@ -625,6 +657,7 @@ export default function GameClient() {
     combat.defeated,
     dialogueOpen,
     logOpen,
+    signOpen,
     codeOpen,
     showOpening,
     celebration,
@@ -649,6 +682,10 @@ export default function GameClient() {
       // Typing in the code window: every key is code, except Escape.
       if (codeOpen) {
         if (e.key === "Escape") setCodeQuestId(null);
+        return;
+      }
+      if (signOpen) {
+        if (e.key === "Escape") setSignOpen(false);
         return;
       }
       const onControl = (e.target as HTMLElement)?.closest?.(
@@ -684,11 +721,15 @@ export default function GameClient() {
       }
       if (
         (e.key === "e" || e.key === "E") &&
-        siteQuest &&
-        (zone === "noticeboard" || zone === "westHouse")
+        siteQuest
       ) {
         e.preventDefault();
         openSiteQuest();
+        return;
+      }
+      if ((e.key === "e" || e.key === "E") && zone === "bakerySign") {
+        e.preventDefault();
+        readSign();
         return;
       }
       if (e.key === " " && zone === "wraith" && !onControl) {
@@ -710,6 +751,7 @@ export default function GameClient() {
     siteQuest,
     dialogueOpen,
     logOpen,
+    signOpen,
     codeOpen,
     showOpening,
     sheetShown,
@@ -719,6 +761,7 @@ export default function GameClient() {
     openMap,
     openSheet,
     openSiteQuest,
+    readSign,
     combat,
     items,
     slots,
@@ -803,8 +846,7 @@ export default function GameClient() {
               </button>
             )}
             {siteQuest &&
-              !logOpen &&
-              (zone === "noticeboard" || zone === "westHouse") && (
+              !logOpen && (
                 <button
                   type="button"
                   className="prompt"
@@ -813,13 +855,18 @@ export default function GameClient() {
                   <kbd>E</kbd>{" "}
                   {siteQuest.pickup
                     ? siteQuest.quest.bonus
-                      ? "Les oppslaget"
+                      ? siteQuest.quest.villageSite === "bakerySign" ? "Les bodskiltet" : "Les oppslaget"
                       : `Hent luke ${siteQuest.quest.door}`
                     : siteQuest.quest.checkedBy === "window"
                       ? "Åpne kodevinduet"
                       : "Åpne luka her"}
                 </button>
               )}
+            {zone === "bakerySign" && !siteQuest && !logOpen && !signOpen && (
+              <button type="button" className="prompt" onClick={readSign}>
+                <kbd>E</kbd> Les bodskiltet
+              </button>
+            )}
             {!hasMoved &&
               !progress.metBlacksmith &&
               !showOpening &&
@@ -913,6 +960,10 @@ export default function GameClient() {
               setWeekShown(week);
             }}
           />
+        )}
+
+        {!showOpening && signOpen && (
+          <BakerySign sign={bakerySign} onClose={() => setSignOpen(false)} />
         )}
 
         {!showOpening && codeState && (

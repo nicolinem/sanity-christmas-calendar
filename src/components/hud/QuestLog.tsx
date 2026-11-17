@@ -623,7 +623,9 @@ function QuestDetail({
       </p>
       <h3 className="log-quest-title">{quest.title}</h3>
       <p className="log-intro">
-        «{renderText(quest.intro[quest.intro.length - 1])}»
+        {quest.villageSite === "bakerySign"
+          ? quest.intro.map((line) => <span key={line}>«{renderText(line)}» </span>)
+          : <>«{renderText(quest.intro[quest.intro.length - 1])}»</>}
       </p>
       <p className="log-goal">{renderText(quest.goal)}</p>
       <GoalPreview quest={quest} />

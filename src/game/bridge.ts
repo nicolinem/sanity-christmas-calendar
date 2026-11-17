@@ -37,8 +37,10 @@ export type WorldState = {
 export type QuestCelebration = {
   questId: string;
   door: number;
+  bonus?: true;
   title: string;
   lesson: string;
+  outro?: string[];
   objectives?: string[];
   nextDoor?: number;
   nextGiver?: NpcId; // who hands the next door over
@@ -61,6 +63,7 @@ type EventMap = {
   forgeFlare: void; // a blade was stamped by the Forge button
   moved: void; // the knight took its first steps (scene → HUD)
   travelToSite: QuestSiteId; // the player chose a destination on the village map
+  readSign: void; // the player clicked the bakery sign while standing beside it
 };
 
 type Listener<T> = (payload: T) => void;

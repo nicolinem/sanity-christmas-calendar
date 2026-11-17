@@ -147,6 +147,13 @@ export const QUEST_SITES = {
     mapX: 33 * 16 + 8,
     mapY: 7 * 16,
   },
+  bakerySign: {
+    label: "Bodskiltet",
+    x: 33 * 16 + 8,
+    y: 13 * 16 + 8,
+    mapX: 33 * 16 + 8,
+    mapY: 11 * 16,
+  },
 } as const;
 
 export type QuestSiteId = keyof typeof QUEST_SITES;
@@ -163,6 +170,7 @@ export const DOOR_ANCHORS: Record<QuestSiteId, { x: number; y: number }> = {
   noticeboard: { x: QUEST_SITES.noticeboard.mapX, y: 13 * 16 - 4 },
   square: { x: 19 * 16 + 8, y: 11 * 16 + 2 },
   bakery: { x: 33 * 16, y: 5 * 16 + 4 },
+  bakerySign: { x: 33 * 16 + 8, y: 11 * 16 + 4 },
 };
 
 // The people in the village who hand out lukes. Each stands at a place and

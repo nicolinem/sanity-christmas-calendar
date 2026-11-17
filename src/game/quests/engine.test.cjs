@@ -423,7 +423,17 @@ const STUDIO_STEPS = [
   {
     id: "who-points-here",
     before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists"],
-    next: null,
+    next: "baker-template",
+  },
+  {
+    id: "baker-template",
+    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists", "who-points-here"],
+    next: "baker-forge",
+  },
+  {
+    id: "baker-forge",
+    before: ["the-broken-forge", "branns-ledger", "the-guilds-law", "the-drawing-board", "follow-the-trail", "archive-lists", "who-points-here", "baker-template"],
+    next: "baker-function",
   },
 ];
 function studioBoard(
@@ -446,6 +456,56 @@ function studioBoard(
 
 const stateOf = (board, id) =>
   board.states.find(({ quest }) => quest.id === id);
+
+test("the Function simulation is the final technical door, without a Studio step", () => {
+  const step = {
+    id: "baker-function",
+    before: [...STUDIO_STEPS.at(-1).before, "baker-forge"],
+  };
+  const board = studioBoard(step, { done: true });
+  assert.equal(stateOf(board, step.id).status, "done");
+  assert.ok(board.current === null || board.current.quest.bonus);
+  assert.equal(stateOf(board, step.id).quest.studioPractice, undefined);
+});
+
+test("the skilt link is a shared optional door and does not change core totals", () => {
+  const link = CHAPTERS[2].quests.find(({ id }) => id === "baker-link");
+  assert.equal(link.bonus, true);
+  assert.equal(link.track, undefined);
+  assert.equal(link.door, 0);
+  assert.equal(link.check(context()).done, false);
+  const sign = { _id: "bakery-sign", text: [{ _type: "block", children: [
+    { _type: "span", text: "Kaker", marks: ["url"] },
+  ], markDefs: [{ _key: "url", _type: "link", href: "https://example.org/kaker" }] }] };
+  assert.equal(link.check({ ...context(), bakerySign: sign }).done, true);
+  for (const track of ["technical", "nonTechnical"]) {
+    const chapters = chaptersForTrack(CHAPTERS, track);
+    const board = evaluateQuests(chapters, context({ track }), NOW);
+    assert.equal(board.states.filter(({ quest }) => quest.id === "baker-link").length, 1);
+    assert.equal(board.total, board.states.filter(({ quest }) => !quest.bonus).length);
+  }
+});
+
+test("the sign quest is offered at the sign, never by the Baker", () => {
+  const before = ["the-broken-forge", "source-check", "link-the-place", "case-file", "baker-first-order"];
+  const board = evaluateQuests(chaptersForTrack(CHAPTERS, "nonTechnical"), context({
+    track: "nonTechnical", completed: Object.fromEntries(before.map((id) => [id, COMPLETED_AT])),
+  }), NOW);
+  assert.equal(board.current.quest.id, "baker-sign");
+  assert.equal(board.current.pickup, "bakerySign");
+  assert.equal(board.current.status, "offered");
+});
+
+test("Bakeren's ready door accepts only a published ready order with an item", () => {
+  const ready = CHAPTERS.flatMap(({ quests }) => quests).find(({ id }) => id === "baker-ready");
+  assert.ok(ready);
+  const ctx = { ...context({ bakeryOrderId: "order" }), bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }] };
+  assert.equal(ready.check(ctx).done, false);
+  ctx.bakeryOrders[0].status = "klar";
+  assert.equal(ready.check(ctx).done, true);
+  ctx.bakeryOrders[0]._id = "another-order";
+  assert.equal(ready.check(ctx).done, false);
+});
 
 test("Studio-practice quests name their real Studio step and are technical", () => {
   const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];

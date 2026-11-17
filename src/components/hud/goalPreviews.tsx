@@ -140,6 +140,21 @@ function DocumentCard({ blocked }: { blocked: boolean }) {
   );
 }
 
+function BakeryCard({ label, lines }: { label: string; lines: [string, string][] }) {
+  return (
+    <StudioCard label={label}>
+      <dl className="gp-fields">
+        {lines.map(([field, value]) => (
+          <div key={field}>
+            <dt>{field}</dt>
+            <dd>{value || <em>tom</em>}</dd>
+          </div>
+        ))}
+      </dl>
+    </StudioCard>
+  );
+}
+
 const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
   "the-guilds-law": {
@@ -147,6 +162,34 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
     after: <DocumentCard blocked />,
   },
   "the-drawing-board": { before: <SelectBefore />, after: <GridAfter /> },
+  "baker-template": {
+    before: <BakeryCard label="Ny bestilling" lines={[["Status", ""], ["Dato", ""]]} />,
+    after: <BakeryCard label="Ny bestilling" lines={[["Status", "ny"], ["Dato", "14. desember"]]} />,
+  },
+  "baker-forge": {
+    before: <BakeryCard label="Våpen" lines={[["Forged at", ""], ["Handling", "Publish"]]} />,
+    after: <BakeryCard label="Våpen" lines={[["Forged at", "nå"], ["Handling", "Smi → publisert"]]} />,
+  },
+  "baker-function": {
+    before: <BakeryCard label="Simulert bodskilt" lines={[["Hendelse", "alle"], ["Tekst", "Bakerens bod"]]} />,
+    after: <BakeryCard label="Simulert bodskilt" lines={[["Hendelse", "publisert bestilling"], ["Tekst", "Dagens bestilling: Julekake"]]} />,
+  },
+  "baker-first-order": {
+    before: <BakeryCard label="Din nye bestilling" lines={[["Vare", ""], ["Status", "ny"], ["Dato", "14. desember"]]} />,
+    after: <BakeryCard label="Publisert bestilling" lines={[["Vare", "Julekake"], ["Status", "ny"], ["Dato", "14. desember"]]} />,
+  },
+  "baker-sign": {
+    before: <BakeryCard label="Bodskilt" lines={[["Skilttekst", ""]]} />,
+    after: <BakeryCard label="Publisert bodskilt" lines={[["Skilttekst", "Nystekte JULEKAKER"]]} />,
+  },
+  "baker-ready": {
+    before: <BakeryCard label="Din bestilling" lines={[["Vare", "Julekake"], ["Status", "ny"], ["Handling", "Publish"]]} />,
+    after: <BakeryCard label="Din bestilling" lines={[["Vare", "Julekake"], ["Status", "klar"], ["Handling", "Klar → publisert"]]} />,
+  },
+  "baker-link": {
+    before: <BakeryCard label="Bodskilt" lines={[["Skilttekst", "Julekaker"]]} />,
+    after: <BakeryCard label="Bodskilt" lines={[["Lenket ord", "Julekaker → https://…"]]} />,
+  },
 };
 
 export function hasGoalPreview(quest: Quest) {

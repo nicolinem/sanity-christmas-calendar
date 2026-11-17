@@ -20,7 +20,7 @@ type Props = {
   onOpenStudio: () => void;
   onTravel: (site: QuestSiteId) => void;
   // A finished door whose celebration waits until the Studio pane closes.
-  finished?: { door: number; title: string } | null;
+  finished?: { door: number; title: string; bonus?: true } | null;
   onShowCelebration?: () => void;
 };
 
@@ -70,7 +70,7 @@ export default function QuestTracker({
         aria-live="polite"
       >
         <div className="tracker-head">
-          <span className="tracker-week">Luke {finished.door} er ferdig</span>
+          <span className="tracker-week">{finished.bonus ? "☆ Frivillig" : `Luke ${finished.door}`} er ferdig</span>
           <span className="tracker-title">{finished.title}</span>
         </div>
         <p className="tracker-goal">Luka lyser nå i journalen.</p>

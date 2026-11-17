@@ -23,6 +23,7 @@ type Solved = Record<string, SolvedTask>;
 let lastRaw: string | null | undefined;
 let last: Solved = {};
 let lastTrack: QuestTrack = "technical";
+let lastCompleted: Record<string, string> = {};
 
 function read(): Solved {
   let raw: string | null = null;
@@ -37,9 +38,11 @@ function read(): Solved {
     const parsed = raw ? JSON.parse(raw) : {};
     last = parsed.solved || {};
     lastTrack = parsed.track === "nonTechnical" ? "nonTechnical" : "technical";
+    lastCompleted = parsed.completed || {};
   } catch {
     last = {};
     lastTrack = "technical";
+    lastCompleted = {};
   }
   return last;
 }
@@ -55,6 +58,17 @@ export function isTrack(track: QuestTrack): boolean {
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
   return () => window.removeEventListener("storage", onChange);
+}
+
+export function useBakeryReady(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => {
+      read();
+      return lastTrack === "nonTechnical" && Boolean(lastCompleted["baker-sign"]);
+    },
+    () => false,
+  );
 }
 
 export function useSolved(questId: string): SolvedTask | undefined {

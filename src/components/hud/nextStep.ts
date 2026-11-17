@@ -34,7 +34,7 @@ export function nextStep(current: QuestState | null): NextStep | null {
   }
   const site = quest.villageSite;
   const place =
-    site && site !== "forge" ? QUEST_SITES[site].label.toLowerCase() : null;
+    site && site !== giverOf(quest).site ? QUEST_SITES[site].label.toLowerCase() : null;
   // Once the giver has handed it over, the window opens from anywhere: the
   // button says it all, no place to explain.
   if (quest.checkedBy === "window")
@@ -46,7 +46,13 @@ export function nextStep(current: QuestState | null): NextStep | null {
       where: "Gjøres i koden din. Stegene står i journalen.",
       questId: quest.id,
     };
-  if (site && site !== "forge" && place)
+  if (site === "bakerySign")
+    return {
+      kind: "studio",
+      label: "Åpne Sanity Studio",
+      where: "Du hentet oppgaven ved bodskiltet. Skriv og publiser skiltet i Studio.",
+    };
+  if (site && place)
     return {
       kind: "travel",
       label: `Gå til ${place}`,

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { bridge } from "@/game/bridge";
+import { isNewOrder } from "@/game/bakery";
 import type { GameItemView } from "@/game/items";
 import { forgedPower } from "@/game/rules";
 import { CHAPTERS } from "@/game/quests/chapters";
@@ -199,6 +200,8 @@ type BoardInput = {
   unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
   archive?: QuestContext["archive"];
   archiveCases?: QuestContext["archiveCases"];
+  bakeryOrders?: QuestContext["bakeryOrders"];
+  bakerySign?: QuestContext["bakerySign"];
   wraithDefeatedNow: boolean;
   progress: ReturnType<typeof useProgress>["progress"];
 };
@@ -213,6 +216,8 @@ export function useQuestBoard({
   unpublishedDrafts,
   archive = null,
   archiveCases = null,
+  bakeryOrders = null,
+  bakerySign = null,
   wraithDefeatedNow,
   progress,
 }: BoardInput) {
@@ -237,6 +242,8 @@ export function useQuestBoard({
       unpublishedDrafts,
       archive,
       archiveCases,
+      bakeryOrders,
+      bakerySign,
     };
     return evaluateQuests(chapters, ctx, new Date(), devUnlock);
   }, [
@@ -248,6 +255,8 @@ export function useQuestBoard({
     unpublishedDrafts,
     archive,
     archiveCases,
+    bakeryOrders,
+    bakerySign,
     devUnlock,
   ]);
 
@@ -275,7 +284,10 @@ export function useQuestBoard({
     updateProgress(PROJECT, (p) => {
       const completed = { ...p.completed };
       for (const s of finished) completed[s.quest.id] = now;
-      return { ...p, completed };
+      const bakeryOrderId = finished.some((s) => s.quest.id === "baker-first-order")
+        ? bakeryOrders?.find(isNewOrder)?._id
+        : p.bakeryOrderId;
+      return { ...p, completed, bakeryOrderId };
     });
     const updated = readProgress(PROJECT);
     const after = forgeLevelFor(chapters, updated);
@@ -289,6 +301,8 @@ export function useQuestBoard({
         unpublishedDrafts,
         archive,
         archiveCases,
+        bakeryOrders,
+        bakerySign,
       },
       new Date(),
       devUnlock,
@@ -297,8 +311,10 @@ export function useQuestBoard({
       bridge.emit("questCelebration", {
         questId: s.quest.id,
         door: s.quest.door,
+        bonus: s.quest.bonus,
         title: s.quest.title,
         lesson: plainText(s.quest.lesson.title),
+        outro: s.quest.outro,
         objectives: s.result.objectives
           ?.filter((o) => o.done)
           .map((o) => o.label),
@@ -332,6 +348,8 @@ export function useQuestBoard({
     unpublishedDrafts,
     archive,
     archiveCases,
+    bakeryOrders,
+    bakerySign,
     devUnlock,
   ]);
 

@@ -1029,6 +1029,30 @@ kbd {
   background: rgb(27 31 51 / 0.55);
   pointer-events: auto;
 }
+.bakery-sign {
+  width: min(440px, 100%);
+  max-height: min(500px, 100%);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: var(--parchment);
+}
+.bakery-sign-heading {
+  margin: 0;
+  font-family: var(--font-display), var(--font-body);
+  font-size: 30px;
+  color: var(--amber);
+}
+.bakery-sign-text {
+  overflow: auto;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.bakery-sign-text p { margin: 0 0 12px; }
+.bakery-sign-text strong { color: var(--amber); }
+.bakery-sign-text a { color: var(--glacier); text-decoration: underline; }
+.bakery-sign .btn { align-self: flex-end; }
 .log {
   display: flex;
   flex-direction: column;

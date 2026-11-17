@@ -89,6 +89,7 @@ export const item = defineType({
       type: "text",
       rows: 2,
     }),
+    defineField({ name: "forgedAt", title: "Smidd", type: "datetime", hidden: true }),
   ],
   // QUEST: Luke 2. Dette er vår versjon av koden fra kodevinduet. Gå videre:
   // bytt ut ItemMedia (src/sanity/lib/solved.tsx) med din egen komponent.

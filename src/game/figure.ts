@@ -234,7 +234,7 @@ export const HATS: Part[] = [
   },
   // A cloth band across the forehead (frame 112).
   { id: "bandana", label: "Bandana", grid: grid(5, "....aAAWAWAa", "...a") },
-  { id: "crown", label: "Krone", grid: grid(2, "....Y..Y..Y", "....YyYYYyYY", "....YGYYYGYY"), unlock: "Finnes i bygda" },
+  { id: "crown", label: "Krone", grid: grid(2, "....Y..Y..Y", "....YyYYYyYY", "....YGYYYGYY"), unlock: "Bakeren: fullført uke 3" },
 ];
 
 // Scarves: K main.

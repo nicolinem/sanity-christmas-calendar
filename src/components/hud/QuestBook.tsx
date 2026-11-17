@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CHAPTERS } from "@/game/quests/chapters";
+import { lukeName } from "@/game/quests/label";
 import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
 import type { Progress, QuestState } from "@/game/quests/types";
 import { plainText, renderText } from "./richText";
@@ -92,7 +93,7 @@ export default function QuestBook({
                         </button>
                       ) : (
                         <span className="book-page is-blank">
-                          Luke {s.quest.door}
+                          {lukeName(s.quest)}
                           <br />
                           ikke skrevet
                         </span>
@@ -176,7 +177,7 @@ function BookSpread({
     <article className="book-spread" aria-label={`Side ${page}`}>
       <div className="book-leaf">
         <p className="book-kicker">
-          Side {page} · Luke {quest.door}
+          Side {page} · {lukeName(quest)}
         </p>
         <h3 className="book-title">{renderText(quest.lesson.title)}</h3>
         <p className="book-text">{renderText(quest.lesson.text)}</p>

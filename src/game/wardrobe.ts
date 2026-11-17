@@ -34,6 +34,11 @@ export const GEAR_REWARDS: Record<string, GearKey[]> = {
   "archive-questions": gearWithSource("Arkivarens spørsmål"),
 };
 
+const BAKERY_CORE = [
+  ["baker-template", "baker-forge", "baker-function"],
+  ["baker-first-order", "baker-sign", "baker-ready"],
+];
+
 const ALL_GEAR: GearKey[] = KEYS.flatMap((key) =>
   FIGURE_OPTIONS[key].filter((o) => o.unlock).map((o) => `${key}:${o.id}` as GearKey),
 );
@@ -45,6 +50,8 @@ export function ownedGear(progress: Pick<Progress, "completed">, opts: { dev?: b
   for (const [questId, gear] of Object.entries(GEAR_REWARDS)) {
     if (progress.completed[questId]) for (const g of gear) owned.add(g);
   }
+  if (BAKERY_CORE.some((ids) => ids.every((id) => progress.completed[id])))
+    owned.add("hat:crown");
   return owned;
 }
 

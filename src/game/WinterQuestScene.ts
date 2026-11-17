@@ -202,6 +202,22 @@ export class WinterQuestScene extends Phaser.Scene {
       if (p.solid) this.solids.push({ x: x + 2, y: y + 6, w: 12, h: 10 });
     }
 
+    const sign = QUEST_SITES.bakerySign;
+    const post = this.add.rectangle(0, 0, 3, 10, 0x705038).setPosition(0, -3);
+    const board = this.add.rectangle(0, 0, 30, 16, 0x443020)
+      .setStrokeStyle(1, 0xfdbe53).setPosition(0, -12).setInteractive({ useHandCursor: true });
+    board.on("pointerdown", (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+      if (bridge.world.frozen || Phaser.Math.Distance.Between(
+        bridge.knight.x, bridge.knight.y, sign.x, sign.y,
+      ) >= FORGE_RANGE) return;
+      event.stopPropagation();
+      bridge.emit("readSign", undefined);
+    });
+    const label = this.add.text(0, -12, "BOD", {
+      fontFamily: this.font, fontSize: "6px", color: "#ffe2a0",
+    }).setOrigin(0.5).setResolution(6);
+    this.add.container(sign.x, sign.y, [post, board, label]).setDepth(sign.y);
+
     for (const t of TREES) {
       this.add.image(t.x, t.y, "town", t.frame).setOrigin(0.5, 1).setDepth(t.y);
       this.solids.push({ x: t.x - 4, y: t.y - 6, w: 8, h: 6 });
@@ -905,6 +921,15 @@ export class WinterQuestScene extends Phaser.Scene {
       ) < FORGE_RANGE
     )
       zone = "westHouse";
+    else if (
+      Phaser.Math.Distance.Between(
+        k.x,
+        k.y,
+        QUEST_SITES.bakerySign.x,
+        QUEST_SITES.bakerySign.y,
+      ) < FORGE_RANGE
+    )
+      zone = "bakerySign";
     // Where the wraith stands, or where it fell (which offers a rematch).
     else if (
       Phaser.Math.Distance.Between(
