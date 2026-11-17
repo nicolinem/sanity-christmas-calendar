@@ -193,11 +193,24 @@ test("finishing the first Bakery order remembers its published ID", () => {
     },
   );
   const orders = [
+    {
+      _id: "bakery-sample-brann",
+      item: "Lussekatter",
+      date: "2026-12-14",
+      status: "ny",
+    },
     { _id: "order-1", item: "Julekake", date: "2026-12-14", status: "ny" },
+    {
+      _id: "order-2",
+      item: "Lussekatter",
+      date: "2026-12-14",
+      status: "ny",
+      createdAt: "2026-12-15",
+    },
   ];
   const { effects } = h.render({ bakeryOrders: orders });
   effects.forEach((effect) => effect());
-  assert.equal(h.saved.bakeryOrderId, "order-1");
+  assert.equal(h.saved.bakeryOrderId, "order-2");
 });
 
 for (const [track, selected, foreign, total, level] of [

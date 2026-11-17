@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { bridge } from "@/game/bridge";
-import { isNewOrder } from "@/game/bakery";
+import { findNewPlayerOrder } from "@/game/bakery";
 import type { GameItemView } from "@/game/items";
 import { forgedPower } from "@/game/rules";
 import { CHAPTERS } from "@/game/quests/chapters";
@@ -299,7 +299,7 @@ export function useQuestBoard({
       const completed = { ...p.completed };
       for (const s of finished) completed[s.quest.id] = now;
       const bakeryOrderId = finished.some((s) => s.quest.id === "baker-model")
-        ? bakeryOrders?.find(isNewOrder)?._id
+        ? findNewPlayerOrder(bakeryOrders)?._id
         : p.bakeryOrderId;
       return { ...p, completed, bakeryOrderId };
     });

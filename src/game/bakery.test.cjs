@@ -14,6 +14,7 @@ vm.runInNewContext(
 );
 const {
   SAMPLE_ORDERS,
+  findNewPlayerOrder,
   isNewOrder,
   isReadyOrder,
   morningRushReadyCount,
@@ -80,6 +81,13 @@ test("morning rush counts only the three samples and the player's order", () => 
     ready({ _id: "some-other-order", item: "Brød", date: "2026-12-14" }),
   ];
   assert.equal(morningRushReadyCount(orders, "player-order"), 4);
+  assert.equal(
+    morningRushReadyCount(
+      [...orders, ready({ _id: "same-name-other-id", item: "Julekake" })],
+      "player-order",
+    ),
+    4,
+  );
   assert.equal(morningRushReadyCount(orders, undefined), 0);
   assert.equal(
     morningRushReadyCount(
@@ -91,6 +99,31 @@ test("morning rush counts only the three samples and the player's order", () => 
       "player-order",
     ),
     3,
+  );
+});
+
+test("the newest non-sample published order is captured by id, not its name", () => {
+  const player = {
+    _id: "felix-order",
+    item: "Lussekatter",
+    orderedBy: "Felix",
+    date: "2026-12-14",
+    status: "ny",
+    createdAt: "2026-12-15T10:00:00Z",
+  };
+  const earlier = {
+    ...player,
+    _id: "older-player-order",
+    createdAt: "2026-12-14T10:00:00Z",
+  };
+  const sample = {
+    ...player,
+    _id: "bakery-sample-brann",
+    createdAt: "2026-12-16T10:00:00Z",
+  };
+  assert.equal(
+    findNewPlayerOrder([sample, earlier, player])._id,
+    "felix-order",
   );
 });
 

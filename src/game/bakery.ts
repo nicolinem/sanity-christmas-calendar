@@ -4,6 +4,7 @@ export type BakeryOrder = {
   orderedBy?: string | null;
   date?: string | null;
   status?: string | null;
+  createdAt?: string | null;
 };
 
 export const SAMPLE_ORDERS: (BakeryOrder & { _type: "bakeryOrder" })[] = [
@@ -97,6 +98,16 @@ export const isReadyOrder = (order: BakeryOrder) =>
   /^\d{4}-\d{2}-\d{2}$/.test(order.date ?? "");
 
 export const SAMPLE_ORDER_IDS = SAMPLE_ORDERS.map(({ _id }) => _id);
+
+export function findNewPlayerOrder(
+  orders: BakeryOrder[] | null | undefined,
+): BakeryOrder | undefined {
+  return orders
+    ?.filter(
+      (order) => !SAMPLE_ORDER_IDS.includes(order._id) && isNewOrder(order),
+    )
+    .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""))[0];
+}
 
 export function morningRushReadyCount(
   orders: BakeryOrder[] | null | undefined,

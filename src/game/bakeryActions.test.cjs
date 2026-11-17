@@ -84,7 +84,7 @@ test("Klar appears in morning rush and patches before publishing", () => {
     id: "order",
     type: "bakeryOrder",
     ready: true,
-    draft: { item: "Julekake", status: "ny" },
+    draft: { item: "Julekake", date: "2026-12-14", status: "ny" },
     onComplete: () => calls.push(["complete"]),
   };
   assert.equal(ReadyAction(props), null);
@@ -102,4 +102,17 @@ test("Klar appears in morning rush and patches before publishing", () => {
   assert.equal(ReadyAction(props).disabled, true);
   validation = { validation: [], isValidating: true };
   assert.equal(ReadyAction(props).disabled, true);
+  validation = { validation: [], isValidating: false };
+  const missingDate = ReadyAction({
+    ...props,
+    draft: { item: "Julekake", status: "ny" },
+  });
+  assert.equal(missingDate.disabled, true);
+  assert.equal(missingDate.title, "Mangler dato");
+  const missingItem = ReadyAction({
+    ...props,
+    draft: { date: "2026-12-14", status: "ny" },
+  });
+  assert.equal(missingItem.disabled, true);
+  assert.equal(missingItem.title, "Mangler vare");
 });

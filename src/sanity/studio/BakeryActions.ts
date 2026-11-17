@@ -37,13 +37,28 @@ export const ReadyAction: DocumentActionComponent = (props) => {
   );
   const hasErrors = validation.validation.some(isValidationErrorMarker);
   const current = props.draft ?? props.published;
+  const item = typeof current?.item === "string" ? current.item : "";
+  const missing = [!current?.date && "dato", !item.trim() && "vare"].filter(
+    Boolean,
+  );
+  const title = missing.length
+    ? `Mangler ${missing.join(" og ")}`
+    : hasErrors
+      ? "Rett valideringsfeil før du trykker Klar."
+      : validation.isValidating
+        ? "Validerer bestillingen…"
+        : current?.status === "klar"
+          ? "Bestillingen er allerede klar."
+          : undefined;
   if (!enabled) return null;
   return {
     label: "Klar",
+    title,
     disabled:
       !props.ready ||
       validation.isValidating ||
       hasErrors ||
+      missing.length > 0 ||
       current?.status === "klar" ||
       Boolean(patch.disabled || publish.disabled),
     onHandle: () => {
