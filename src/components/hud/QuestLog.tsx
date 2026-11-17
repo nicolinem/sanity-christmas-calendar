@@ -6,7 +6,7 @@ import { CHAPTERS } from "@/game/quests/chapters";
 import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
 import { fridayOf } from "@/game/quests/weeks";
 import type { Progress, QuestState, QuestTrack } from "@/game/quests/types";
-import { QUEST_SITES, type QuestSiteId } from "@/game/village";
+import { NPCS, QUEST_SITES, type QuestSiteId } from "@/game/village";
 import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
@@ -587,6 +587,11 @@ function QuestDetail({
         </div>
         <p className="log-week-kicker">{lukeName(quest)}</p>
         <h3 className="log-quest-title">{quest.title}</h3>
+        {quest.asksNpc && (
+          <p className="log-where">
+            {NPCS[quest.asksNpc].name} står {NPCS[quest.asksNpc].at}.
+          </p>
+        )}
         <div className="log-lesson log-lesson--inline">
           <p className="log-lesson-quest">Det du lærte</p>
           <h4 className="log-lesson-title">{renderText(quest.lesson.title)}</h4>
@@ -658,6 +663,11 @@ function QuestDetail({
           <>«{renderText(quest.intro[quest.intro.length - 1])}»</>
         )}
       </p>
+      {quest.asksNpc && (
+        <p className="log-where">
+          {NPCS[quest.asksNpc].name} står {NPCS[quest.asksNpc].at}.
+        </p>
+      )}
       <p className="log-goal">{renderText(result.goal ?? quest.goal)}</p>
       <GoalPreview quest={quest} />
       {quest.where && (

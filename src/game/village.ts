@@ -234,6 +234,13 @@ export function npcAtSite(
   return Object.values(NPCS).find((n) => n.site === site);
 }
 
+export function shouldShowQuestNpc(
+  current: { quest: { asksNpc?: NpcId }; status: string } | null | undefined,
+  npcId: NpcId,
+): boolean {
+  return current?.status === "active" && current.quest.asksNpc === npcId;
+}
+
 export function npcQuestLine(
   npc: NpcId,
   questId: string | undefined,

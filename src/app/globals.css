@@ -4336,6 +4336,26 @@ kbd {
   box-shadow: 0 0 0 2px #2a140e;
   transform: translate(-50%, -100%);
 }
+.vmap-kari {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+.vmap-kari-dot {
+  width: 12px;
+  height: 12px;
+  background: var(--amber);
+  box-shadow: 0 0 0 3px #1b1f33;
+}
+.vmap-kari-label {
+  padding: 1px 5px;
+  font-size: 11px;
+  color: var(--amber);
+  background: #1b1f33;
+}
 .vmap-you {
   position: absolute;
   display: grid;

@@ -4,7 +4,7 @@ import { giverOf } from "@/game/quests/label";
 import { lukeName } from "@/game/quests/label";
 import { useState } from "react";
 import type { QuestBoard } from "@/game/quests/engine";
-import type { QuestSiteId } from "@/game/village";
+import { NPCS, type QuestSiteId } from "@/game/village";
 import { IconBook, IconCheck, IconMap } from "./icons";
 import { nextStep } from "./nextStep";
 import { renderText } from "./richText";
@@ -133,6 +133,12 @@ export default function QuestTracker({
               <p className="tracker-goal">
                 {renderText(current.result.goal ?? current.quest.goal)}
               </p>
+              {current.quest.asksNpc && (
+                <p className="tracker-note">
+                  {NPCS[current.quest.asksNpc].name} står{" "}
+                  {NPCS[current.quest.asksNpc].at}.
+                </p>
+              )}
               {ready && (
                 <p className="tracker-ready">
                   {current.quest.checkedBy === "window"

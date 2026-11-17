@@ -1080,15 +1080,19 @@ const bakerSign: Quest = {
 const morningRush: Quest = {
   id: "morning-rush",
   giver: "bakeren",
+  asksNpc: "kari",
   track: "nonTechnical",
   door: 9,
   title: "Morgenrushet",
   topic: "*Document action* og *validation*",
   intro: [
-    "Markedet åpner snart, og Branns, Arkivarens, Karis og din bestilling må bli klare. I Studio fyller du inn det som mangler, spør Kari ved huset vest i bygda om varen hennes, og bruker *Klar* på hver gyldige bestilling.",
+    "Markedet åpner snart.",
+    "Branns, Arkivarens, Karis og din bestilling må bli klare.",
+    "I Studio fyller du inn det som mangler, spør Kari om varen hennes, og bruker *Klar* på hver gyldige bestilling.",
   ],
   outro: [
-    "Alle fire bestillingene er klare før markedet åpner. Du lærte at validation stopper mangler, mens *Klar* oppdaterer og publiserer i ett arbeidssteg.",
+    "Alle fire bestillingene er klare før markedet åpner.",
+    "Du lærte at validation stopper mangler, mens *Klar* oppdaterer og publiserer i ett arbeidssteg.",
   ],
   goal: "Rett de ufullstendige lappene og bruk Klar på alle fire bestillingene.",
   goalPreview: {

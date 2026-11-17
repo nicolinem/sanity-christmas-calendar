@@ -90,6 +90,7 @@ export type Quest = {
   studioPractice?: string;
   villageSite?: QuestSiteId; // where the player finds this task in Frostholm
   giver?: NpcId; // who hands it over; Brann when left out
+  asksNpc?: NpcId; // who the player must ask for information
   // "Slik blir det": a Før / Etter picture of the goal, with a short caption
   // under each. The pictures are React, so they live in a registry keyed by
   // quest id (src/components/hud/goalPreviews.tsx); only the captions are here.
