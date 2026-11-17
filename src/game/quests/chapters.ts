@@ -967,11 +967,13 @@ const bakerModel: Quest = {
   title: "Hva er en bestilling?",
   topic: "Modell, *validation* og *initial value* (modellbrett)",
   intro: [
-    "Jeg vil slippe å glemme opplysninger på bestillingene, så bestem modellen på brettet og lag en ny bestilling i Studio.",
+    "På modellbrettet bestemmer du modellen før du lager en ny i Studio; datoen er nesten alltid i dag, status starter som «ny», og varen vet jeg aldri på forhånd",
     "Hver del av notatet blir et felt i Studio. Velg hvilken type felt det skal være.",
+    "Velg feltene som passer til jobben.",
   ],
   outro: [
     "Den nye bestillingen kom inn med nødvendige opplysninger på plass. Du lærte at modellen kan kreve viktige felt og fylle inn kjente startverdier.",
+    "Dato og status er kjent på forhånd, men varen fyller du inn når bestillingen lages.",
   ],
   goal: "Bestem modellen, og lag deretter én ny publisert bestilling.",
   goalPreview: {
@@ -1018,7 +1020,9 @@ const bakerModel: Quest = {
         ? "Løs modellbrettet først."
         : bakeryOrders === null
           ? "Henter publiserte bestillinger fra prosjektet ditt…"
-          : "Publiser en ny bestilling med vare, dato og status «ny».",
+          : !order
+            ? "Se i Studio: dato og status er fylt ut når du lager en ny bestilling."
+            : undefined,
     };
   },
 };

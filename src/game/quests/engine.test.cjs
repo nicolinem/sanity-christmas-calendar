@@ -412,6 +412,20 @@ test("Luke 4 and 7 explain the model board in their intro", () => {
     );
     assert.ok(item?.intro.includes(expected), id);
   }
+  const baker = CHAPTERS.flatMap((chapter) => chapter.quests).find(
+    (quest) => quest.id === "baker-model",
+  );
+  assert.match(baker.intro.join(" "), /datoen er nesten alltid i dag/i);
+  assert.match(baker.intro.join(" "), /starter som «ny»/i);
+  assert.match(baker.intro.join(" "), /varen vet jeg aldri/i);
+  const bakerContext = context({
+    solved: { "baker-model": { at: COMPLETED_AT } },
+  });
+  bakerContext.bakeryOrders = [];
+  assert.equal(
+    baker.check(bakerContext).message,
+    "Se i Studio: dato og status er fylt ut når du lager en ny bestilling.",
+  );
 });
 
 test("week one ends with custom input and has no Document view quest", () => {
