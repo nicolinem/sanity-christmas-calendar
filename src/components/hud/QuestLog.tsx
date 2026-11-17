@@ -205,6 +205,7 @@ export default function QuestLog({
                 selected && selected.chapter.number === week ? (
                   <QuestDetail
                     state={selected}
+                    states={board.states}
                     completedAt={completedAt[selected.quest.id]}
                     shown={hintsShown[selected.quest.id] ?? 0}
                     onMoreHint={() => onRevealHint(selected.quest.id)}
@@ -491,6 +492,7 @@ function WeekBody({
 
 function QuestDetail({
   state,
+  states,
   completedAt,
   shown,
   onMoreHint,
@@ -501,6 +503,7 @@ function QuestDetail({
   onClose,
 }: {
   state: QuestState;
+  states: QuestState[];
   completedAt?: string;
   shown: number;
   onMoreHint: () => void;
@@ -548,6 +551,11 @@ function QuestDetail({
   }
 
   if (status === "locked") {
+    const index = states.findIndex((s) => s.quest.id === quest.id);
+    const prerequisite = states
+      .slice(0, index)
+      .reverse()
+      .find((s) => !s.quest.bonus && s.status !== "done");
     return (
       <article className="log-detail">
         <p className="log-week-kicker">{lukeName(quest)}</p>
@@ -556,9 +564,11 @@ function QuestDetail({
           <p className="quest-topic">{renderText(quest.topic)}</p>
         )}
         <p className="log-locked">
-          {state.opensAt
-            ? `Åpner ${dateLabel(state.opensAt)}.`
-            : "Åpner når du har fullført luken før."}
+          {prerequisite
+            ? `Gjør luke ${prerequisite.quest.door} først.`
+            : state.opensAt
+              ? `Åpner ${dateLabel(state.opensAt)}.`
+              : "Åpner når du har fullført luken før."}
         </p>
       </article>
     );

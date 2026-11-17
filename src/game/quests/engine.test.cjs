@@ -113,9 +113,12 @@ test("passing a check never grants completion or bypasses a strict predecessor",
   );
   assert.equal(board.states[0].result.done, true);
   assert.equal(board.states[1].result.done, true);
+  assert.equal(board.states[0].status, "offered");
+  assert.equal(board.states[1].status, "locked");
   assert.equal(board.completedCount, 0);
   assert.equal(board.previous, null);
   assert.deepEqual(ctx.progress.completed, {});
+  assert.notEqual(board.current.quest.id, "second");
 
   ctx.progress = {
     ...ctx.progress,
