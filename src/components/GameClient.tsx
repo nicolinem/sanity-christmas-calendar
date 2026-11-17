@@ -129,6 +129,7 @@ export default function GameClient() {
   // Arkivarens observasjoner in the player's project (uke 2, non-technical).
   const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
   const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
+  const [archiveCaseDrafts, setArchiveCaseDrafts] = useState(false);
   const [bakeryOrders, setBakeryOrders] = useState<
     import("@/game/bakery").BakeryOrder[] | null
   >(null);
@@ -319,6 +320,7 @@ export default function GameClient() {
       ]);
       setArchive(own?.error ? null : (own?.docs ?? null));
       setArchiveCases(own?.error ? null : (own?.cases ?? null));
+      setArchiveCaseDrafts(Boolean(own?.caseDraft));
       setBakeryOrders(bakery?.error ? null : (bakery?.orders ?? null));
       setBakerySign(bakery?.error ? null : (bakery?.sign ?? null));
       const data: {
@@ -476,6 +478,7 @@ export default function GameClient() {
     unpublishedDrafts,
     archive,
     archiveCases,
+    archiveCaseDrafts,
     bakeryOrders,
     bakerySign,
     wraithDefeatedNow: combat.defeated,

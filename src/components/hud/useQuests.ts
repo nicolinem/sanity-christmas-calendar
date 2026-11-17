@@ -210,6 +210,7 @@ type BoardInput = {
   unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
   archive?: QuestContext["archive"];
   archiveCases?: QuestContext["archiveCases"];
+  archiveCaseDrafts?: boolean;
   bakeryOrders?: QuestContext["bakeryOrders"];
   bakerySign?: QuestContext["bakerySign"];
   wraithDefeatedNow: boolean;
@@ -226,6 +227,7 @@ export function useQuestBoard({
   unpublishedDrafts,
   archive = null,
   archiveCases = null,
+  archiveCaseDrafts = false,
   bakeryOrders = null,
   bakerySign = null,
   wraithDefeatedNow,
@@ -252,6 +254,7 @@ export function useQuestBoard({
       unpublishedDrafts,
       archive,
       archiveCases,
+      archiveCaseDrafts,
       bakeryOrders,
       bakerySign,
     };
@@ -265,6 +268,7 @@ export function useQuestBoard({
     unpublishedDrafts,
     archive,
     archiveCases,
+    archiveCaseDrafts,
     bakeryOrders,
     bakerySign,
     devUnlock,
@@ -311,6 +315,7 @@ export function useQuestBoard({
         unpublishedDrafts,
         archive,
         archiveCases,
+        archiveCaseDrafts,
         bakeryOrders,
         bakerySign,
       },
@@ -360,6 +365,7 @@ export function useQuestBoard({
     unpublishedDrafts,
     archive,
     archiveCases,
+    archiveCaseDrafts,
     bakeryOrders,
     bakerySign,
     devUnlock,

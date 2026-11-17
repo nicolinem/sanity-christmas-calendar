@@ -18,6 +18,7 @@ vm.runInNewContext(code, { module: mod, exports: mod.exports });
 const {
   CASE_FILE_EXPECTED,
   WHO_IS_LYING,
+  caseFileResult,
   caseFileScore,
   linkScore,
   sourceCheckScore,
@@ -71,6 +72,34 @@ test("the best case is chosen", () => {
     { _id: "c", observations: CASE_FILE_EXPECTED.slice(0, 1) },
   ]);
   assert.deepEqual(plain(s), { right: 3, wrong: 1, total: 3 });
+});
+
+test("case feedback names every missing and wrong observation", () => {
+  const result = caseFileResult(
+    [
+      {
+        _id: "case-one",
+        observations: ["archive-a", "archive-e"],
+        entries: [{ _id: "archive-e", what: "Noen hørte et brøl" }],
+      },
+    ],
+    false,
+  );
+  assert.equal(result.objectives.length, 4);
+  assert.ok(
+    result.objectives.some((item) => item.label.includes("Melsekken revnet")),
+  );
+  assert.ok(
+    result.objectives.some((item) => item.label.includes("Noen hørte et brøl")),
+  );
+  assert.equal(result.objectives.filter((item) => !item.done).length, 3);
+});
+
+test("case feedback identifies an unpublished draft when no case is published", () => {
+  const result = caseFileResult([], true);
+  assert.equal(result.done, false);
+  assert.equal(result.message, "Saksmappa er ikke publisert.");
+  assert.equal(result.objectives.length, CASE_FILE_EXPECTED.length);
 });
 
 test("who-is-lying needs five correct statuses and C linked to Bakeriet", () => {

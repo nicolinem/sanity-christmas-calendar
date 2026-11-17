@@ -53,6 +53,7 @@ export type QuestContext = {
   // track), published versions only. null until the game has asked.
   archive?: OwnArchiveDoc[] | null;
   archiveCases?: OwnCase[] | null; // published `case` documents, same source
+  archiveCaseDrafts?: boolean;
   bakeryOrders?: BakeryOrder[] | null; // published orders from the player's project
   bakerySign?: BakerySign | null; // published skilt only
 };

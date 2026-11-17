@@ -1,4 +1,4 @@
-import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
+import { caseFileResult, linkScore, sourceCheckScore } from "../archive";
 import { APPRENTICE_ITEM_ID, isRestoredHammer } from "../apprentice";
 import {
   isNewOrder,
@@ -810,30 +810,13 @@ const caseFile: Quest = {
   },
   checkedBy: "game",
   reward: { forgeLevel: 1 },
-  check: ({ archiveCases }) => {
+  check: ({ archiveCases, archiveCaseDrafts }) => {
     if (archiveCases == null)
       return {
         done: false,
         message: "Henter saksmappene fra prosjektet ditt…",
       };
-    const { right, wrong, total } = caseFileScore(archiveCases);
-    const done = right === total && wrong === 0;
-    return {
-      done,
-      objectives: [
-        {
-          label: `${right} av ${total} bekreftede er med`,
-          done: right === total,
-        },
-        {
-          label:
-            wrong === 0
-              ? "Ingen rykter i mappa"
-              : `${wrong} rykte${wrong === 1 ? "" : "r"} i mappa`,
-          done: wrong === 0,
-        },
-      ],
-    };
+    return caseFileResult(archiveCases, archiveCaseDrafts);
   },
 };
 

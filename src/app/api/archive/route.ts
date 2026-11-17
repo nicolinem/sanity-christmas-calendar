@@ -18,11 +18,35 @@ import {
 
 export const dynamic = "force-dynamic";
 
+async function hasUnpublishedCaseDraft(): Promise<boolean> {
+  const token = process.env.SANITY_AUTH_TOKEN;
+  if (!projectId || !token) return false;
+  try {
+    const reader = createClient({
+      projectId,
+      dataset,
+      apiVersion,
+      token,
+      useCdn: false,
+      perspective: "raw",
+    });
+    const drafts = await reader.fetch<{ observations?: string[] }[]>(
+      '*[_type == "case" && _id in path("drafts.**")]{"observations": observations[]._ref}',
+    );
+    const relevantIds = new Set(ARCHIVE_IDS);
+    return drafts.some((draft) =>
+      (draft.observations ?? []).some((id) => relevantIds.has(id)),
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function GET() {
   const client = getSanityClient();
   if (!client) return Response.json({ configured: false, docs: [], cases: [] });
   try {
-    const [docs, cases] = await Promise.all([
+    const [docs, cases, caseDraft] = await Promise.all([
       client.fetch<OwnArchiveDoc[]>(
         '*[_type == "observation" && _id in $ids]{_id, status, "place": place._ref}',
         { ids: ARCHIVE_IDS },
@@ -30,11 +54,13 @@ export async function GET() {
       client.fetch<OwnCase[]>(
         '*[_type == "case"] | order(_updatedAt desc){_id, title, "observations": observations[]._ref, "entries": observations[]->{_id, what, "place": place->name}}',
       ),
+      hasUnpublishedCaseDraft(),
     ]);
     return Response.json({
       configured: true,
       docs,
       cases: cases.map((c) => ({ ...c, observations: c.observations ?? [] })),
+      caseDraft,
     });
   } catch (error) {
     console.error("Could not read the archive:", error);

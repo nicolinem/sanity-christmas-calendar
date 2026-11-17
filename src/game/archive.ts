@@ -287,6 +287,40 @@ export type OwnCase = {
   observations: string[];
   entries?: { _id: string; what: string; place?: string | null }[];
 };
+export function caseFileResult(cases: OwnCase[], hasDraft = false) {
+  const expected = new Set(CASE_FILE_EXPECTED);
+  const bestCase = cases.reduce<OwnCase | undefined>((best, candidate) => {
+    if (!best) return candidate;
+    const score = (value: OwnCase) => {
+      const ids = new Set(value.observations ?? []);
+      const right = CASE_FILE_EXPECTED.filter((id) => ids.has(id)).length;
+      return right - (ids.size - right);
+    };
+    return score(candidate) > score(best) ? candidate : best;
+  }, undefined);
+  const ids = new Set(bestCase?.observations ?? []);
+  const right = CASE_FILE_EXPECTED.filter((id) => ids.has(id)).length;
+  const wrongIds = [...ids].filter((id) => !expected.has(id));
+  const objectives = [
+    ...CASE_FILE_EXPECTED.map((id) => ({
+      label: `${WHO_IS_LYING.find((observation) => observation._id === id)?.what ?? "Observasjon"} er med`,
+      done: ids.has(id),
+    })),
+    ...wrongIds.map((id) => ({
+      label: `${bestCase?.entries?.find((entry) => entry._id === id)?.what ?? "Ukjent observasjon"} skal ikke være i mappa`,
+      done: false,
+    })),
+  ];
+  const done = right === CASE_FILE_EXPECTED.length && wrongIds.length === 0;
+
+  return {
+    done,
+    objectives,
+    ...(cases.length === 0 && hasDraft
+      ? { message: "Saksmappa er ikke publisert." }
+      : {}),
+  };
+}
 
 // The best published case counts: right = expected ids in it, wrong = ids in it
 // that are not expected (a rumour in the folder counts against it).
