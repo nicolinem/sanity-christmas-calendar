@@ -1,4 +1,4 @@
-import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
+import { caseFileScore, linkScore } from "../archive";
 import { APPRENTICE_ITEM_ID, isRestoredHammer } from "../apprentice";
 import {
   isNewOrder,
@@ -38,6 +38,16 @@ function fromWindow(id: string) {
     return {
       done: solved,
       objectives: [{ label: "Koden er bestått", done: solved }],
+    };
+  };
+}
+
+function fromBoard(id: string) {
+  return ({ progress }: QuestContext): CheckResult => {
+    const solved = Boolean(progress.solved[id]);
+    return {
+      done: solved,
+      objectives: [{ label: "Modellbrettet er løst", done: solved }],
     };
   };
 }
@@ -644,49 +654,44 @@ function waitingForArchive(
   return null;
 }
 
-const sourceCheck: Quest = {
-  id: "source-check",
+const archiveModel: Quest = {
+  id: "archive-model",
   giver: "arkivaren",
   track: "nonTechnical",
-  door: 2,
-  title: "Kildesjekk",
+  door: 4,
+  title: "Rydd notatene",
+  topic: "Innholdsmodell (modellbrett)",
   intro: [
-    "Halve bygda vil avlyse markedet på grunn av alle ryktene. Jeg vil ha fakta først, og jeg trenger hjelp til å sortere.",
-    "Ni observasjoner i Studio har status *Unknown*. Regelen min: bekreftet hvis den har et bilde, eller hvis et *annet* vitne så det samme stedet. Ellers er det et rykte.",
+    "Notatene mine er skrevet for hånd, og nå finner jeg ingenting igjen. Før vi legger dem inn, må vi bestemme *hvordan* hver del skal lagres.",
   ],
-  goal: "Gi de ni observasjonene riktig *Status* etter Arkivarens regel, og publiser dem.",
-  where: "I Sanity Studio, under *Observation* eller «Per sted».",
+  outro: ["Se i Studio: modellen din er der nå."],
+  goal: "Sorter bitene i notatet etter hvordan de bør lagres.",
+  goalPreview: {
+    before: "Ett håndskrevet notat der alt er blandet sammen.",
+    after: "Hver del har en type og tydelige forbindelser.",
+  },
+  where: "På modellbrettet. Etterpå kan du se modellen i Sanity Studio.",
   hints: [
     {
-      text: "Åpne «Per sted» i Studio. Da ser du hvilke observasjoner som hører til samme sted.",
+      text: "Spør hva du vil gjøre med opplysningen senere: lese den, filtrere den eller finne det den peker på.",
     },
     {
-      text: "Se på *Witness* også. Det teller bare hvis det er et *annet* vitne.",
+      text: "Sted og vitne kan brukes igjen i mange observasjoner. De bør peke på egne dokumenter.",
     },
     {
-      text: "Husk *Publish* på hver av dem. Spillet ser bare publiserte dokumenter.",
+      text: "Status har tre kjente muligheter. «Så det selv» har bare to.",
     },
   ],
+  studioPractice: "Se feltene og listene modellen slo på.",
   lesson: {
-    title: "Innhold som henger sammen",
-    text: "Et felt alene sier ikke alt. *References* til sted og vitne gjør at du kan se hva som hører sammen, og et filter finner bare det som er registrert riktig.",
+    title: "En innholdsmodell før kode",
+    text: "En innholdsmodell bestemmer hva hver opplysning er, og hvordan delene henger sammen. Gode typer gjør innholdet lettere å finne, kontrollere og bruke igjen.",
+    atWork:
+      "Det er dette du gjør før en utvikler skriver schemaet: bestemme hva innholdet er, og hvordan det henger sammen.",
   },
-  checkedBy: "game",
+  checkedBy: "board",
   reward: { forgeLevel: 1 },
-  check: ({ archive }) => {
-    const waiting = waitingForArchive(archive);
-    if (waiting) return waiting;
-    const { right, total } = sourceCheckScore(archive!);
-    return {
-      done: right === total,
-      objectives: [
-        {
-          label: `${right} av ${total} har riktig publisert status`,
-          done: right === total,
-        },
-      ],
-    };
-  },
+  check: fromBoard("archive-model"),
 };
 
 const linkThePlace: Quest = {
@@ -1143,7 +1148,7 @@ export const CHAPTERS: Chapter[] = [
       archiveQuestions,
       archiveLists,
       whoPointsHere,
-      sourceCheck,
+      archiveModel,
       linkThePlace,
       caseFile,
     ],

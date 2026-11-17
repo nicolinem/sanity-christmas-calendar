@@ -540,7 +540,7 @@ test("the sign quest is offered at the sign, never by the Baker", () => {
     "the-broken-forge",
     "weapon-description",
     "apprentice-mistake",
-    "source-check",
+    "archive-model",
     "link-the-place",
     "case-file",
     "baker-first-order",
@@ -574,22 +574,23 @@ test("Bakeren's ready door accepts only a published ready order with an item", (
   assert.equal(ready.check(ctx).done, false);
 });
 
-test("Studio-practice quests name their real Studio step and are technical", () => {
+test("Studio-practice quests name their real Studio step", () => {
   const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];
   const named = all.filter(
     ({ studioPractice }) => studioPractice !== undefined,
   );
   assert.deepEqual(
     named.map(({ id }) => id).sort(),
-    STUDIO_STEPS.map(({ id }) => id).sort(),
+    [...STUDIO_STEPS.map(({ id }) => id), "archive-model"].sort(),
   );
   for (const quest of named) {
     assert.equal(typeof quest.studioPractice, "string", quest.id);
     assert.notEqual(quest.studioPractice.trim(), "", quest.id);
-    assert.equal(quest.track, "technical", quest.id);
+    if (quest.checkedBy === "window")
+      assert.equal(quest.track, "technical", quest.id);
     assert.equal(quest.bonus, undefined, quest.id);
   }
-  assert.equal(named.length, STUDIO_STEPS.length);
+  assert.equal(named.length, STUDIO_STEPS.length + 1);
 });
 
 for (const step of STUDIO_STEPS) {

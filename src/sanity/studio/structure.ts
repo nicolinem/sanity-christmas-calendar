@@ -9,8 +9,8 @@ import { ObservationsHere } from "./ObservationsHere";
 
 // The Studio's document lists. Arkivarens lister (uke 2) are our version of the
 // technical track's Structure task: they switch on once the task is solved in
-// the game's code window. The non-technical track gets them from the start,
-// since its source check needs "Per sted".
+// the game's code window. The non-technical track switches them on through its
+// model board.
 //
 // Relative imports on purpose: the Sanity CLI bundles this without "@/".
 
@@ -21,7 +21,8 @@ const API_VERSION = "2024-01-01";
 
 export const structure: StructureResolver = (S) => {
   const archive =
-    isSolved("archive-lists") || isTrack("nonTechnical")
+    isSolved("archive-lists") ||
+    (isTrack("nonTechnical") && isSolved("archive-model"))
       ? [
           S.listItem()
             .id("bekreftede")

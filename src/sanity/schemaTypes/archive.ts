@@ -3,6 +3,7 @@ import { PinIcon } from "@sanity/icons/Pin";
 import { UserIcon } from "@sanity/icons/User";
 import { FolderIcon } from "@sanity/icons/Folder";
 import { EyeOpenIcon } from "@sanity/icons/EyeOpen";
+import { isSolved, isTrack } from "../lib/solved";
 
 // Arkivarens observasjoner (uke 2). These types are ready-made in every
 // project: nobody writes them as a task. The non-technical track sorts and
@@ -14,6 +15,9 @@ const STATUS_TITLES: Record<string, string> = {
   confirmed: "Confirmed",
   rumor: "Rumor",
 };
+
+const hideModeledField = () =>
+  isTrack("nonTechnical") && !isSolved("archive-model");
 
 export const observation = defineType({
   name: "observation",
@@ -38,6 +42,7 @@ export const observation = defineType({
       title: "Place",
       type: "reference",
       to: [{ type: "place" }],
+      hidden: hideModeledField,
     }),
     defineField({
       name: "placeNote",
@@ -52,6 +57,7 @@ export const observation = defineType({
       title: "Witness",
       type: "reference",
       to: [{ type: "witness" }],
+      hidden: hideModeledField,
     }),
     defineField({
       name: "seen",
@@ -65,6 +71,7 @@ export const observation = defineType({
       title: "Status",
       type: "string",
       initialValue: "unknown",
+      hidden: hideModeledField,
       options: {
         list: Object.entries(STATUS_TITLES).map(([value, title]) => ({
           title,

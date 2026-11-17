@@ -3,6 +3,9 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
 const { judgeBoard } = require("./modelBoard.ts");
+const {
+  BOARD_TASKS,
+} = require("../../components/hud/modelBoard/tasks/index.ts");
 
 const task = {
   id: "test-board",
@@ -101,7 +104,7 @@ test("toggle feedback explains the first wrong switch", () => {
 });
 
 test("every board task covers every believable wrong slot", () => {
-  for (const board of [task]) {
+  for (const board of Object.values(BOARD_TASKS)) {
     for (const card of board.cards) {
       const decision = board.decisions.find(({ card: id }) => id === card.id);
       assert.ok(decision, `${board.id}/${card.id} needs a decision`);
@@ -114,4 +117,19 @@ test("every board task covers every believable wrong slot", () => {
       }
     }
   }
+});
+
+test("the archive model has seven meaningful decisions and can be solved", () => {
+  const board = BOARD_TASKS["archive-model"];
+  const placement = {
+    tracks: { slot: "text" },
+    time: { slot: "text" },
+    place: { slot: "place" },
+    witness: { slot: "witness" },
+    seen: { slot: "boolean" },
+    photo: { slot: "image" },
+    status: { slot: "list" },
+  };
+  assert.equal(board.cards.length, 7);
+  assert.equal(judgeBoard(board, placement).done, true);
 });

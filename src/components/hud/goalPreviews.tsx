@@ -191,6 +191,24 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       />
     ),
   },
+  "archive-model": {
+    before: (
+      <BakeryCard
+        label="Arkivarens notat"
+        lines={[["Alt", "21:40 – fotspor ved smia, Kari …"]]}
+      />
+    ),
+    after: (
+      <BakeryCard
+        label="Observation"
+        lines={[
+          ["What", "Tekst"],
+          ["Place", "Reference → Sted"],
+          ["Status", "Liste med valg"],
+        ]}
+      />
+    ),
+  },
   "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
   "the-guilds-law": {
     before: <DocumentCard blocked={false} />,
