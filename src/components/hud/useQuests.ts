@@ -44,14 +44,24 @@ export function useProgress() {
   );
   const forgeLevel = forgeLevelFor(chapters, progress);
 
-  const metBrann = useCallback((questId?: string) => {
+  const metBrann = useCallback((questId?: string, weapon?: GameItemView) => {
     updateProgress(PROJECT, (p) =>
-      p.metBlacksmith && (!questId || p.briefed[questId])
+      p.metBlacksmith &&
+      (!questId || p.briefed[questId]) &&
+      (questId !== "weapon-description" || p.weaponDescriptionItemId)
         ? p
         : {
             ...p,
             metBlacksmith: true,
             briefed: questId ? { ...p.briefed, [questId]: true } : p.briefed,
+            ...(questId === "weapon-description" &&
+            weapon &&
+            !p.weaponDescriptionItemId
+              ? {
+                  weaponDescriptionItemId: weapon.id,
+                  weaponDescriptionBefore: weapon.description,
+                }
+              : {}),
           },
     );
   }, []);

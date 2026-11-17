@@ -51,6 +51,7 @@ import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
 import BakerySign from "./hud/BakerySign";
+import ForgeDescription from "./hud/ForgeDescription";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
@@ -499,8 +500,9 @@ export default function GameClient() {
     ? giverOf(board.current.quest).id
     : "brann";
   useEffect(() => {
-    if (dialogueOpen && talkTo?.id === currentGiver) metBrann(currentId);
-  }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann]);
+    if (dialogueOpen && talkTo?.id === currentGiver)
+      metBrann(currentId, forged);
+  }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann, forged]);
 
   const openLog = useCallback(() => {
     setTalking(false);
@@ -682,6 +684,9 @@ export default function GameClient() {
   ]);
 
   const slots = narrow ? 5 : 8;
+  const describedWeapon =
+    items.find((item) => item.id === progress.weaponDescriptionItemId) ??
+    forged;
   const dismissCelebration = useCallback(
     () => setCelebrations((queue) => queue.slice(1)),
     [],
@@ -836,6 +841,9 @@ export default function GameClient() {
           </div>
 
           <div className="hud-bc">
+            {zone === "forge" && progress.briefed["weapon-description"] && (
+              <ForgeDescription weapon={describedWeapon} />
+            )}
             {dialogueOpen && (
               <ForgeDialogue
                 key={`${talkTo?.id}:${currentId ?? "none"}`}

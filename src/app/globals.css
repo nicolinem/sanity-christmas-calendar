@@ -1886,6 +1886,27 @@ kbd {
   font-weight: 600;
   color: var(--amber);
 }
+
+.forge-description {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(420px, calc(100vw - 32px));
+  margin: 0 auto 10px;
+  padding: 8px 12px;
+  color: var(--wood-deep);
+  background: var(--parchment);
+}
+
+.forge-description > span:last-child {
+  display: grid;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.forge-description strong {
+  color: var(--wood-dark);
+}
 .dialogue-task {
   margin-left: 10px;
   padding: 1px 7px 2px;

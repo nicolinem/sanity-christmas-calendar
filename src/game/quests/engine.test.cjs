@@ -390,6 +390,7 @@ test("week one ends with custom input and has no Document view quest", () => {
     CHAPTERS[0].quests.map(({ id }) => id),
     [
       "the-broken-forge",
+      "weapon-description",
       "branns-ledger",
       "the-guilds-law",
       "the-drawing-board",
@@ -536,6 +537,7 @@ test("the skilt link is a shared optional door and does not change core totals",
 test("the sign quest is offered at the sign, never by the Baker", () => {
   const before = [
     "the-broken-forge",
+    "weapon-description",
     "source-check",
     "link-the-place",
     "case-file",

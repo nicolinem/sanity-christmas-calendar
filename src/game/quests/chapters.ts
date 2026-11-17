@@ -96,6 +96,77 @@ const theBrokenForge: Quest = {
   },
 };
 
+const weaponDescription: Quest = {
+  id: "weapon-description",
+  track: "nonTechnical",
+  door: 2,
+  title: "Samme tekst, to steder",
+  topic: "Innhold og presentasjon",
+  intro: [
+    "Våpenet virker, men ingen vet hva som er spesielt med det. Jeg vil beskrive det både i våpenkassa og på tavla i smia.",
+    "Skriv minst én hel setning i *Description* på våpenet ditt, og trykk *Publish*. Den samme teksten får ulik form på de to stedene.",
+  ],
+  outro: [
+    "Nå står den samme beskrivelsen både på våpenet og på tavla.",
+    "Prøv å endre den én gang til og publiser. Begge stedene følger med.",
+  ],
+  goal: "Endre våpenets beskrivelse, skriv minst én hel setning, og publiser.",
+  goalPreview: {
+    before: "Våpenet har ingen forklaring.",
+    after: "Én beskrivelse vises både på våpenet og tavla.",
+  },
+  where: "I Sanity Studio, på våpenet du publiserte i første luke.",
+  hints: [
+    {
+      text: "Åpne våpenet ditt og finn feltet *Description*.",
+      link: { label: "String type", url: `${DOCS}/string-type` },
+    },
+    {
+      text: "Skriv minst én hel setning. Tavla viser bare den første setningen.",
+      link: {
+        label: "Content Lake",
+        url: "https://www.sanity.io/docs/content-lake",
+      },
+    },
+    {
+      text: "Trykk *Publish*. Et utkast endrer ikke våpenkassa eller tavla.",
+      link: {
+        label: "Drafts og publisering",
+        url: "https://www.sanity.io/docs/content-lake/drafts-and-versions",
+      },
+    },
+  ],
+  learn: {
+    label: "Content Lake",
+    url: "https://www.sanity.io/docs/content-lake",
+  },
+  lesson: {
+    title: "Innhold er ikke utseende",
+    text: "Beskrivelsen er lagret én gang. Våpenkassa viser hele teksten, mens tavla bruker bare første setning og sin egen stil.",
+    atWork:
+      "Skriv innholdet én gang, så kan nettside, app og nyhetsbrev vise det hver på sin måte.",
+  },
+  checkedBy: "game",
+  reward: { forgeLevel: 1 },
+  check: ({ items, progress }) => {
+    const weapon = items.find(
+      (item) => item.id === progress.weaponDescriptionItemId,
+    );
+    const description = weapon?.description?.trim() ?? "";
+    const changed =
+      description !== (progress.weaponDescriptionBefore?.trim() ?? "");
+    return {
+      done: description.length >= 10 && changed,
+      message:
+        description && description.length < 10
+          ? "Skriv minst én hel setning."
+          : !description || !changed
+            ? "Beskrivelsen er ikke publisert ennå."
+            : undefined,
+    };
+  },
+};
+
 const brannsLedger: Quest = {
   id: "branns-ledger",
   track: "technical",
@@ -986,7 +1057,13 @@ export const CHAPTERS: Chapter[] = [
   {
     number: 1,
     title: "Studio",
-    quests: [theBrokenForge, brannsLedger, theGuildsLaw, theDrawingBoard],
+    quests: [
+      theBrokenForge,
+      weaponDescription,
+      brannsLedger,
+      theGuildsLaw,
+      theDrawingBoard,
+    ],
   },
   {
     number: 2,

@@ -162,6 +162,15 @@ function BakeryCard({
 }
 
 const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
+  "weapon-description": {
+    before: <BakeryCard label="Våpen og tavle" lines={[["Description", ""]]} />,
+    after: (
+      <BakeryCard
+        label="Våpen og tavle"
+        lines={[["Description", "Smidd for vinterens farer."]]}
+      />
+    ),
+  },
   "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
   "the-guilds-law": {
     before: <DocumentCard blocked={false} />,
