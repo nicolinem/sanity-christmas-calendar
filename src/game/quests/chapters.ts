@@ -1022,18 +1022,19 @@ const bakerSign: Quest = {
   giver: "bakeren",
   villageSite: "bakerySign",
   track: "nonTechnical",
-  door: 6,
-  title: "Portable Text: bodskiltet",
+  door: 8,
+  title: "Bodskiltet",
+  topic: "*Portable Text*",
   intro: [
     "Bestillingen er på plass, men boden mangler et skilt.",
-    "Folk går forbi uten å se hva som er nystekt. Et tydelig ord vil få dem til å stanse.",
-    "Skriv skiltet i Studio, gjør det viktigste ordet fett og trykk *Publish*. Da kan alle se det ved bakeriet.",
+    "Folk går forbi uten å se hva som er nystekt. Den samme beskjeden skal vises både på boden og i en smal stripe øverst i spillet.",
+    "Skriv skiltet i Studio, gjør det viktigste ordet fett og trykk *Publish*. Se hvordan de to flatene fremhever ordet forskjellig.",
   ],
   outro: [
-    "Nå kan folk se hva som selges før de går inn.",
-    "Det fete ordet gjør skiltet lettere å lese fra stien.",
+    "Nå kan folk se den samme beskjeden både på boden og i HUD-stripen.",
+    "Innholdet er felles, men hver flate presenterer det på sin måte.",
   ],
-  goal: "Skriv og publiser et bodskilt med fremhevet tekst.",
+  goal: "Publiser én rik tekst som fungerer på både bodskiltet og HUD-stripen.",
   goalPreview: {
     before: "Boden har et tomt skilt.",
     after: "Det publiserte skiltet har et fremhevet ord.",
@@ -1055,7 +1056,9 @@ const bakerSign: Quest = {
   learn: { label: "Portable Text", url: `${DOCS}/block-content` },
   lesson: {
     title: "*Portable Text*",
-    text: "En tekstblokk kan inneholde ord med egne *marks*, som fet skrift. Spillet leste det publiserte skiltet og viste teksten ved bakeriet; et utkast ville ikke dukket opp.",
+    text: "En tekstblokk kan inneholde ord med egne *marks*, som fet skrift. Spillet brukte samme publiserte verdi på bodskiltet og i HUD-stripen, men ga markeringen ulik stil på de to flatene.",
+    atWork:
+      'Teksten bærer ikke utseendet. Den sier bare hva som er viktig. Hver flate bestemmer selv hvordan "viktig" ser ut.',
   },
   checkedBy: "game",
   check: ({ bakerySign }) => ({

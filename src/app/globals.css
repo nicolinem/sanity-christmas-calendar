@@ -286,6 +286,40 @@ kbd {
   top: var(--gutter);
   right: var(--gutter);
 }
+.hud-tc {
+  top: var(--gutter);
+  left: 50%;
+  translate: -50% 0;
+  width: min(430px, 36cqw);
+}
+.bakery-strip {
+  overflow: hidden;
+  padding: 7px 12px;
+  border: var(--px) solid var(--night-2);
+  color: var(--parchment);
+  background: rgb(27 31 51 / 0.86);
+  box-shadow: 0 calc(var(--px) * 2) 0 rgb(27 31 51 / 0.35);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+}
+.bakery-strip p {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bakery-strip p + p {
+  display: none;
+}
+.bakery-strip strong {
+  color: var(--sanity);
+  font-weight: inherit;
+}
+.bakery-strip a {
+  color: inherit;
+  text-decoration: underline;
+}
 .hud-bc {
   bottom: var(--gutter);
   left: 50%;

@@ -52,6 +52,7 @@ import { ARCHIVE_IDS, type OwnArchiveDoc, type OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
+import BakeryStrip from "./hud/BakeryStrip";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
 import ForgeHammer from "./hud/ForgeHammer";
@@ -877,8 +878,10 @@ export default function GameClient() {
           <PhaserGame />
           <div className="stage-vignette" aria-hidden />
         </div>
-
         <div className={`hud${showOpening ? " is-hidden" : ""}`}>
+          <div className="hud-tc">
+            <BakeryStrip sign={bakerySign} />
+          </div>
           <div className="hud-tl">
             <h1 className="crest">
               <span className="crest-title">Julekalenderen</span>
@@ -1056,7 +1059,6 @@ export default function GameClient() {
             </span>
           </p>
         </div>
-
         {!showOpening && logOpen && (
           <QuestLog
             key={progress.track}
@@ -1084,18 +1086,15 @@ export default function GameClient() {
             }}
           />
         )}
-
         {!showOpening && signOpen && (
           <BakerySign sign={bakerySign} onClose={() => setSignOpen(false)} />
         )}
-
         {!showOpening && caseOpen && (
           <ArchiveNoticeboard
             cases={archiveCases}
             onClose={() => setCaseOpen(false)}
           />
         )}
-
         {!showOpening && codeState && (
           <CodeWindow
             key={codeState.quest.id}
@@ -1107,7 +1106,6 @@ export default function GameClient() {
             onClose={() => setCodeQuestId(null)}
           />
         )}
-
         {!showOpening &&
           modelState &&
           !sheetShown &&
@@ -1126,7 +1124,6 @@ export default function GameClient() {
               onClose={() => setModelQuestId(null)}
             />
           )}
-
         {showOpening && (
           <Opening
             stage={entryStage}
@@ -1152,7 +1149,6 @@ export default function GameClient() {
             onNewGame={startNewGame}
           />
         )}
-
         {sheetShown && (
           <CharacterSheet
             initial={normalizeFigure(progress.figure)}
@@ -1170,7 +1166,6 @@ export default function GameClient() {
             onClose={() => setSheetOpen(false)}
           />
         )}
-
         {!showOpening &&
           dev &&
           codeQuestId === null &&

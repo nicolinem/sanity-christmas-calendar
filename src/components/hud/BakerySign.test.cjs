@@ -19,6 +19,29 @@ vm.runInNewContext(
 );
 const BakerySign = result.exports.default;
 
+const stripResult = { exports: {} };
+vm.runInNewContext(
+  transform(readFileSync(path.resolve(__dirname, "BakeryStrip.tsx"), "utf8"), {
+    transforms: ["typescript", "jsx", "imports"],
+    jsxRuntime: "automatic",
+    production: true,
+  }).code,
+  {
+    module: stripResult,
+    exports: stripResult.exports,
+    require: (id) => {
+      if (id === "@/game/bakery")
+        return {
+          signText: (sign) =>
+            sign?.text?.[0]?.children?.map(({ text }) => text).join("") ?? "",
+        };
+      if (id === "./BakerySign") return result.exports;
+      return require(id);
+    },
+  },
+);
+const BakeryStrip = stripResult.exports.default;
+
 const render = (sign) =>
   renderToStaticMarkup(React.createElement(BakerySign, { sign, onClose() {} }));
 
@@ -59,4 +82,25 @@ test("unpublished or unsafe links cannot appear on the village sign", () => {
   });
   assert.doesNotMatch(html, /href=/);
   assert.match(html, /Farlig/);
+});
+
+test("the narrow HUD strip reuses the rich-text renderer", () => {
+  const sign = {
+    text: [
+      {
+        _type: "block",
+        children: [
+          { text: "Nystekte ", marks: [] },
+          { text: "kaker", marks: ["strong"] },
+        ],
+      },
+    ],
+  };
+  const html = renderToStaticMarkup(React.createElement(BakeryStrip, { sign }));
+  assert.match(html, /class="bakery-strip"/);
+  assert.match(html, /Nystekte <\/span><span><strong>kaker<\/strong>/);
+  assert.equal(
+    renderToStaticMarkup(React.createElement(BakeryStrip, { sign: null })),
+    "",
+  );
 });
