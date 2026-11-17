@@ -86,11 +86,10 @@ export default function ModelBoard({
       [selected]: { ...current[selected], slot },
     }));
   };
-  const removeSelected = () => {
-    if (!selected) return;
+  const removeCard = (card: string) => {
     setPlacement((current) => ({
       ...current,
-      [selected]: { ...current[selected], slot: undefined },
+      [card]: { ...current[card], slot: undefined },
     }));
   };
   const setToggle = (card: string, toggle: BoardToggle, value: boolean) =>
@@ -171,15 +170,6 @@ export default function ModelBoard({
                 ? `Valgt: ${task.cards.find(({ id }) => id === selected)?.text}`
                 : "Velg et kort, og velg deretter hvor det hører hjemme."}
             </span>
-            {selected && placement[selected]?.slot && (
-              <button
-                type="button"
-                className="btn btn--quiet"
-                onClick={removeSelected}
-              >
-                Ta av brettet
-              </button>
-            )}
           </div>
 
           <section className="mb-slots" aria-label="Felt på modellbrettet">
@@ -189,7 +179,7 @@ export default function ModelBoard({
               );
               return (
                 <article className="mb-slot frame frame--slate" key={slot.id}>
-                  <h3>{slot.label}</h3>
+                  <h3>{renderText(slot.label)}</h3>
                   <p>{slot.about}</p>
                   <button
                     type="button"
@@ -202,13 +192,24 @@ export default function ModelBoard({
                   <ul>
                     {cards.map((card) => (
                       <li key={card.id}>
-                        <button
-                          type="button"
-                          className="mb-placed-card"
-                          onClick={() => setSelected(card.id)}
-                        >
-                          {card.text}
-                        </button>
+                        <div className="mb-placed-row">
+                          <button
+                            type="button"
+                            className="mb-placed-card"
+                            onClick={() => setSelected(card.id)}
+                          >
+                            {card.text}
+                          </button>
+                          <button
+                            type="button"
+                            className="mb-remove-card"
+                            aria-label={`Fjern ${card.text} fra brettet`}
+                            title={`Fjern ${card.text}`}
+                            onClick={() => removeCard(card.id)}
+                          >
+                            ×
+                          </button>
+                        </div>
                         {task.allowToggles?.map((toggle) => (
                           <label key={toggle}>
                             <input

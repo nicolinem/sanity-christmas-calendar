@@ -119,18 +119,25 @@ test("every board task covers every believable wrong slot", () => {
   }
 });
 
-test("the archive model has seven meaningful decisions and can be solved", () => {
+test("the archive model has six meaningful decisions and can be solved", () => {
   const board = BOARD_TASKS["archive-model"];
   const placement = {
     tracks: { slot: "text" },
-    time: { slot: "text" },
     place: { slot: "place" },
     witness: { slot: "witness" },
     seen: { slot: "boolean" },
     photo: { slot: "image" },
     status: { slot: "list" },
   };
-  assert.equal(board.cards.length, 7);
+  assert.equal(board.cards.length, 6);
+  assert.equal(
+    board.cards.some(({ text }) => text === "21:40"),
+    false,
+  );
+  assert.equal(
+    board.cards.find(({ id }) => id === "seen").text,
+    "Kari så det selv (ikke hørt fra andre)",
+  );
   assert.equal(judgeBoard(board, placement).done, true);
 });
 

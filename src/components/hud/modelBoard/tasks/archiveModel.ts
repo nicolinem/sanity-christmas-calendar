@@ -4,27 +4,38 @@ export const archiveModelTask: BoardTask = {
   id: "archive-model",
   note: "Arkivarens notat: «21:40 – fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde. Ikke sjekket.»",
   slots: [
-    { id: "text", label: "Tekst", about: "Ord og korte beskrivelser" },
-    { id: "boolean", label: "Ja/nei", about: "Sant eller usant" },
-    { id: "image", label: "Bilde", about: "Et bilde som kan vises" },
-    { id: "list", label: "Liste med valg", about: "Ett kjent valg" },
+    {
+      id: "text",
+      label: "Tekst · `string`",
+      about: "Ord og korte beskrivelser",
+    },
+    {
+      id: "boolean",
+      label: "Ja/nei · `boolean`",
+      about: "Sant eller usant",
+    },
+    { id: "image", label: "Bilde · `image`", about: "Et bilde som kan vises" },
+    {
+      id: "list",
+      label: "Liste med valg · `string` med `options.list`",
+      about: "Ett kjent valg",
+    },
     {
       id: "place",
-      label: "Reference → Sted",
+      label: "`Reference` → Sted",
       about: "Peker på ett sted",
     },
     {
       id: "witness",
-      label: "Reference → Vitne",
+      label: "`Reference` → Vitne",
       about: "Peker på ett vitne",
     },
   ],
   cards: [
     { id: "tracks", text: "fotspor i snøen" },
-    { id: "time", text: "21:40" },
     { id: "place", text: "ved smia, tror jeg" },
     { id: "witness", text: "Kari" },
-    { id: "seen", text: "så det selv" },
+    { id: "seen", text: "Kari så det selv (ikke hørt fra andre)" },
     { id: "photo", text: "bilde" },
     { id: "status", text: "Ikke sjekket" },
   ],
@@ -40,18 +51,6 @@ export const archiveModelTask: BoardTask = {
         list: "Folk ser alt mulig. Jeg kan ikke lage en liste over alt.",
         place: "Fotsporene er observasjonen, ikke stedet der den skjedde.",
         witness: "Fotspor kan ikke være vitnet jeg skal spørre igjen.",
-      },
-    },
-    {
-      card: "time",
-      accept: ["text"],
-      feedback: {
-        boolean: "Det er et tidspunkt, ikke et ja eller nei.",
-        image:
-          "Et bilde av klokka lar meg ikke sortere observasjonene etter tid.",
-        list: "Jeg vil ikke vedlikeholde en liste over hvert mulig klokkeslett.",
-        place: "Klokkeslettet peker ikke på et sted i bygda.",
-        witness: "21:40 er når det skjedde, ikke hvem som så det.",
       },
     },
     {

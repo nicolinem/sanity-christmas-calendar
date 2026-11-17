@@ -4,9 +4,13 @@ export const bakerModelTask: BoardTask = {
   id: "baker-model",
   note: "Bakerens notat: «Lussekatter til Brann, fredag. Ny.» Bakeren skriver status og dato om igjen hver gang og glemmer varen av og til.",
   slots: [
-    { id: "text", label: "Tekst", about: "Ord som varierer" },
-    { id: "date", label: "Dato", about: "En kalenderdato" },
-    { id: "list", label: "Liste med valg", about: "Ett kjent valg" },
+    { id: "text", label: "Tekst · `string`", about: "Ord som varierer" },
+    { id: "date", label: "Dato · `date`", about: "En kalenderdato" },
+    {
+      id: "list",
+      label: "Liste med valg · `string` med `options.list`",
+      about: "Ett kjent valg",
+    },
   ],
   cards: [
     { id: "item", text: "Lussekatter" },
