@@ -181,13 +181,14 @@ test("unavailable storage does not prevent in-memory progress or notifications",
   assert.equal(notifications, 1);
 });
 
-test("resetting progress also removes saved code answers but keeps unrelated storage", () => {
+test("resetting progress removes saved task answers but keeps unrelated storage", () => {
   records.set(
     progress.storageKey("reset"),
     JSON.stringify({ introSeen: true }),
   );
   records.set("winter-quest:code:branns-ledger", "learner code");
   records.set("winter-quest:code:the-guilds-law", "another answer");
+  records.set("winter-quest:board:archive-model", "half a board");
   records.set("other-app:preference", "keep me");
 
   progress.resetProgress("reset");
@@ -198,6 +199,7 @@ test("resetting progress also removes saved code answers but keeps unrelated sto
   assert.equal(progress.readProgress("reset").sharePrompted, false);
   assert.equal(records.has("winter-quest:code:branns-ledger"), false);
   assert.equal(records.has("winter-quest:code:the-guilds-law"), false);
+  assert.equal(records.has("winter-quest:board:archive-model"), false);
   assert.equal(records.get("other-app:preference"), "keep me");
 });
 

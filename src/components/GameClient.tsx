@@ -82,6 +82,9 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
 const CodeWindow = dynamic(() => import("./hud/codeWindow/CodeWindow"), {
   ssr: false,
 });
+const ModelBoard = dynamic(() => import("./hud/modelBoard/ModelBoard"), {
+  ssr: false,
+});
 
 function useNarrow() {
   return useSyncExternalStore(
@@ -151,6 +154,7 @@ export default function GameClient() {
     string | undefined
   >();
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
+  const [modelQuestId, setModelQuestId] = useState<string | null>(null);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
   useEffect(
@@ -458,7 +462,7 @@ export default function GameClient() {
   const board = useQuestBoard({
     items,
     codeChecks: checks,
-    codeQuestId,
+    codeQuestId: codeQuestId ?? modelQuestId,
     sanityConfigured: configured,
     unpublishedDrafts,
     archive,
@@ -536,9 +540,17 @@ export default function GameClient() {
   const openCode = useCallback((questId: string) => {
     setTalking(false);
     setLogOpen(false);
+    setModelQuestId(null);
     setCodeQuestId(questId);
   }, []);
-  const openBoard = useCallback((_questId: string) => {}, []);
+  const openBoard = useCallback((questId: string) => {
+    setTalking(false);
+    setLogOpen(false);
+    setSheetOpen(false);
+    closeStudio();
+    setCodeQuestId(null);
+    setModelQuestId(questId);
+  }, []);
   const openSiteQuest = useCallback(() => {
     if (!siteQuest) return;
     if (siteQuest.pickup) fetchQuest(siteQuest.quest.id);
@@ -607,11 +619,19 @@ export default function GameClient() {
 
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
-  const onSolved = useCallback(
+  const modelState = board.states.find((s) => s.quest.id === modelQuestId);
+  const modelOpen = Boolean(modelState);
+  const onCodeSolved = useCallback(
     (how: Parameters<typeof solveTask>[1]) => {
       if (codeQuestId) solveTask(codeQuestId, how);
     },
     [codeQuestId, solveTask],
+  );
+  const onModelSolved = useCallback(
+    (how: Parameters<typeof solveTask>[1]) => {
+      if (modelQuestId) solveTask(modelQuestId, how);
+    },
+    [modelQuestId, solveTask],
   );
 
   const showOpening =
@@ -635,6 +655,7 @@ export default function GameClient() {
   const quiet =
     celebrations.length === 0 &&
     codeQuestId === null &&
+    modelQuestId === null &&
     !studio.open &&
     !logOpen &&
     !signOpen &&
@@ -676,6 +697,7 @@ export default function GameClient() {
         logOpen ||
         signOpen ||
         codeOpen ||
+        modelOpen ||
         showOpening ||
         sheetShown ||
         Boolean(celebration) ||
@@ -693,6 +715,7 @@ export default function GameClient() {
     logOpen,
     signOpen,
     codeOpen,
+    modelOpen,
     showOpening,
     celebration,
     summary,
@@ -719,6 +742,10 @@ export default function GameClient() {
       // Typing in the code window: every key is code, except Escape.
       if (codeOpen) {
         if (e.key === "Escape") setCodeQuestId(null);
+        return;
+      }
+      if (modelOpen) {
+        if (e.key === "Escape") setModelQuestId(null);
         return;
       }
       if (signOpen) {
@@ -787,6 +814,7 @@ export default function GameClient() {
     logOpen,
     signOpen,
     codeOpen,
+    modelOpen,
     showOpening,
     sheetShown,
     celebrations.length,
@@ -1012,12 +1040,30 @@ export default function GameClient() {
             key={codeState.quest.id}
             state={codeState}
             solved={Boolean(progress.solved[codeState.quest.id])}
-            onSolved={onSolved}
+            onSolved={onCodeSolved}
             hintsShown={progress.hints[codeState.quest.id] ?? 0}
             onRevealHint={() => revealHint(codeState.quest.id)}
             onClose={() => setCodeQuestId(null)}
           />
         )}
+
+        {!showOpening &&
+          modelState &&
+          !sheetShown &&
+          !logOpen &&
+          !codeOpen &&
+          !signOpen &&
+          !studio.open && (
+            <ModelBoard
+              key={modelState.quest.id}
+              state={modelState}
+              solved={Boolean(progress.solved[modelState.quest.id])}
+              onSolved={onModelSolved}
+              hintsShown={progress.hints[modelState.quest.id] ?? 0}
+              onRevealHint={() => revealHint(modelState.quest.id)}
+              onClose={() => setModelQuestId(null)}
+            />
+          )}
 
         {showOpening && (
           <Opening
@@ -1063,49 +1109,59 @@ export default function GameClient() {
           />
         )}
 
-        {!showOpening && dev && codeQuestId === null && !sheetShown && (
-          <DevPanel
-            board={board}
-            forgeLevel={forgeLevel}
-            liveMode={liveMode}
-            codeChecks={codeChecks}
-            devChecks={devChecks}
-            onDevCheck={(id, done) =>
-              setDevChecks((prev) => {
-                const next = { ...prev };
-                if (done === null) delete next[id];
-                else next[id] = done;
-                return next;
-              })
-            }
-            onJump={jumpTo}
-            onComplete={completeQuest}
-            track={progress.track}
-            onTrack={setTrack}
-            onReset={() => {
-              reset();
-              setDevChecks({});
-            }}
-            weaponSprite={equipped?.kind === "weapon" ? equipped.sprite : null}
-          />
-        )}
+        {!showOpening &&
+          dev &&
+          codeQuestId === null &&
+          modelQuestId === null &&
+          !sheetShown && (
+            <DevPanel
+              board={board}
+              forgeLevel={forgeLevel}
+              liveMode={liveMode}
+              codeChecks={codeChecks}
+              devChecks={devChecks}
+              onDevCheck={(id, done) =>
+                setDevChecks((prev) => {
+                  const next = { ...prev };
+                  if (done === null) delete next[id];
+                  else next[id] = done;
+                  return next;
+                })
+              }
+              onJump={jumpTo}
+              onComplete={completeQuest}
+              track={progress.track}
+              onTrack={setTrack}
+              onReset={() => {
+                reset();
+                setDevChecks({});
+              }}
+              weaponSprite={
+                equipped?.kind === "weapon" ? equipped.sprite : null
+              }
+            />
+          )}
       </div>
 
-      {!showOpening && celebration && codeQuestId === null && !studio.open && (
-        <QuestCelebration
-          key={`${celebration.door}:${celebration.title}`}
-          {...celebration}
-          onClose={dismissCelebration}
-          onOpenLog={() => {
-            dismissCelebration();
-            openLog();
-          }}
-          onReadPage={() => {
-            dismissCelebration();
-            openQuestLog(celebration.questId);
-          }}
-        />
-      )}
+      {!showOpening &&
+        celebration &&
+        codeQuestId === null &&
+        modelQuestId === null &&
+        !studio.open && (
+          <QuestCelebration
+            key={`${celebration.door}:${celebration.title}`}
+            {...celebration}
+            onClose={dismissCelebration}
+            onOpenLog={() => {
+              dismissCelebration();
+              openLog();
+            }}
+            onReadPage={() => {
+              dismissCelebration();
+              openQuestLog(celebration.questId);
+            }}
+          />
+        )}
 
       {!showOpening && summary && !celebration && (
         <WeekComplete

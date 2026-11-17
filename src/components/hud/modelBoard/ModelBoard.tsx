@@ -126,6 +126,7 @@ export default function ModelBoard({
             onClick={() => {
               setPlacement({});
               setSelected(null);
+              savePlacement(quest.id, {});
             }}
           >
             Start på nytt
