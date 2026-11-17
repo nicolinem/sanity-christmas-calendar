@@ -388,6 +388,21 @@ test("real chapters share startup while all existing code/window tasks stay tech
   }
 });
 
+test("non-technical quests explain the story, action and place, then close with an outcome", () => {
+  const quests = chaptersForTrack(CHAPTERS, "nonTechnical")
+    .flatMap((chapter) => chapter.quests)
+    .filter((item) => !item.bonus);
+  assert.ok(quests.length > 0);
+  for (const item of quests) {
+    const intro = item.intro.join(" ");
+    const outro = item.outro?.join(" ") ?? "";
+    const sentenceCount = (text) => text.split(/[.!?]+/).filter(Boolean).length;
+    assert.ok(sentenceCount(intro) >= 1 && sentenceCount(intro) <= 3, item.id);
+    assert.ok(item.where, `${item.id} needs a place`);
+    assert.ok(sentenceCount(outro) >= 1 && sentenceCount(outro) <= 3, item.id);
+  }
+});
+
 test("week one ends with custom input and has no Document view quest", () => {
   assert.deepEqual(
     CHAPTERS[0].quests.map(({ id }) => id),

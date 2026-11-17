@@ -71,8 +71,10 @@ const theBrokenForge: Quest = {
   title: "Lag og publiser et våpen",
   villageSite: "forge",
   intro: [
-    "Hei! Jeg er Brann, smeden. Hver uke åpner et nytt kapittel med Sanity-oppgaver. Det du lager i Studio, dukker opp her i spillet.",
-    "Luke 1: lag et våpen i Studio, gi det et navn og en sprite, og trykk *Publish*. Test det så på snømonsteret øst for brønnen.",
+    "Jeg er Brann, smeden, og trenger et nytt våpen før snømonsteret kommer nærmere. Lag et våpen med navn og bilde i Sanity Studio, trykk *Publish*, og prøv det på monsteret øst for brønnen.",
+  ],
+  outro: [
+    "Våpenet ditt dukket opp i bygda og hjalp deg mot snømonsteret. Du lærte at *Publish* gjør Studio-innholdet synlig i spillet.",
   ],
   goal: "Lag et våpen i Sanity Studio, trykk *Publish*, og test det på snømonsteret.",
   where: "I Sanity Studio.",
@@ -127,12 +129,10 @@ const weaponDescription: Quest = {
   title: "Samme tekst, to steder",
   topic: "Innhold og presentasjon",
   intro: [
-    "Våpenet virker, men ingen vet hva som er spesielt med det. Jeg vil beskrive det både i våpenkassa og på tavla i smia.",
-    "Skriv minst én hel setning i *Description* på våpenet ditt, og trykk *Publish*. Den samme teksten får ulik form på de to stedene.",
+    "Markedet nærmer seg, og jeg stiller ut våpnene mine i smia. Skriv minst én hel setning i *Description* på våpenet ditt i Studio og trykk *Publish*; teksten er salgsteksten både på tavla og i våpenlista.",
   ],
   outro: [
-    "Nå står den samme beskrivelsen både på våpenet og på tavla.",
-    "Prøv å endre den én gang til og publiser. Begge stedene følger med.",
+    "Nå vises våpenets salgstekst både på tavla og i lista. Du lærte at samme innhold kan få ulik form på to steder.",
   ],
   goal: "Endre våpenets beskrivelse, skriv minst én hel setning, og publiser.",
   goalPreview: {
@@ -207,11 +207,10 @@ const apprenticeMistake: Quest = {
   title: "Lærlingen rotet",
   topic: "*History*",
   intro: [
-    "Lærlingen publiserte hammeren min med feil navn, feil beskrivelse og feil bilde.",
-    "Finn den riktige utgaven i *History*, velg *Revert to revision*, og trykk deretter *Publish*.",
+    "Lærlingen publiserte hammeren min med feil navn, tekst og bilde før markedet. Åpne hammeren i Studio, finn den riktige utgaven i *History*, og publiser den på nytt.",
   ],
   outro: [
-    "Der er hammeren min igjen! Spillet kan se at verdiene er riktige, men ikke om du brukte historikken eller skrev dem inn på nytt.",
+    "Hammeren er tilbake slik den var før feilen. Du lærte at *History* lar deg hente tilbake en eldre versjon, og *Publish* deler den igjen.",
   ],
   goal: "Gjenopprett den riktige versjonen av hammeren fra *History*, og publiser.",
   goalPreview: {
@@ -684,9 +683,11 @@ const archiveModel: Quest = {
   title: "Rydd notatene",
   topic: "Innholdsmodell (modellbrett)",
   intro: [
-    "Notatene mine er skrevet for hånd, og nå finner jeg ingenting igjen. Før vi legger dem inn, må vi bestemme *hvordan* hver del skal lagres.",
+    "Arkivnotatene mine er blitt umulige å finne fram i. Bestem på modellbrettet hvordan opplysningene skal lagres før de blir felt i Studio.",
   ],
-  outro: ["Se i Studio: modellen din er der nå."],
+  outro: [
+    "Notatene har nå en modell i Studio. Du lærte at gode felttyper gjør innholdet lettere å finne og bruke igjen.",
+  ],
   goal: "Sorter bitene i notatet etter hvordan de bør lagres.",
   goalPreview: {
     before: "Ett håndskrevet notat der alt er blandet sammen.",
@@ -724,8 +725,10 @@ const whoIsLying: Quest = {
   title: "Hvem lyver?",
   topic: "*Reference*",
   intro: [
-    "Halve bygda vil avlyse markedet på grunn av fem historier. Vi trenger fakta først.",
-    "Regelen min: En observasjon er *Confirmed* hvis noen så det selv og har bilde, eller hvis et *annet* vitne så det samme på samme sted. Ellers er den *Rumor*.",
+    "Fem historier truer med å avlyse markedet, men jeg trenger fakta før vi bestemmer oss. I Studio kobler du observasjon C til Bakeriet, vurderer alle fem og publiserer statusene etter regelen i notatet.",
+  ],
+  outro: [
+    "Nå skiller arkivet fakta fra rykter, og C peker på Bakeriet. Du lærte at references kobler opplysninger til ett bestemt sted.",
   ],
   goal: "Koble observasjon C til Bakeriet, gi alle fem riktig *Status*, og publiser.",
   goalPreview: {
@@ -780,11 +783,10 @@ const caseFile: Quest = {
   title: "Saksmappa",
   topic: "*Array of references*",
   intro: [
-    "Jeg vil samle alt om det store sporet på ett sted, så hele bygda kan lese det før markedet.",
-    "Lag en *Case* i Studio og legg inn alle de tre bekreftede observasjonene. Ingen rykter.",
+    "Markedet trenger et troverdig spor, ikke en bunke løse lapper. Lag en *Case* i Studio og legg inn de tre bekreftede observasjonene, uten rykter.",
   ],
   outro: [
-    "Prøv å gi et sted nytt navn i Studio og publiser. Se på tavla: mappa oppdateres fordi den peker og ikke kopierer.",
+    "Saksmappa samler nå de tre riktige observasjonene. Du lærte at references peker til originalene, så endringer slår gjennom uten kopiering.",
   ],
   goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene, og ingen rykter.",
   goalPreview: {
@@ -964,13 +966,10 @@ const bakerModel: Quest = {
   title: "Hva er en bestilling?",
   topic: "Modell, *validation* og *initial value* (modellbrett)",
   intro: [
-    "Jeg skriver status og dato om igjen på hver lapp, og av og til glemmer jeg varen. Hjelp meg å bestemme hvordan en bestilling skal se ut.",
-    "Når modellen er klar, slår spillet på feltene i Studio. Lag og publiser så én ny bestilling.",
-    "Start på modellbrettet og sorter hvert eksempel før du velger hva som må fylles ut.",
+    "Markedet fylles opp av bestillinger, og jeg vil slippe å glemme viktige opplysninger. På modellbrettet bestemmer du hvordan en bestilling skal se ut, så lager og publiserer du én ny i Studio.",
   ],
   outro: [
-    "Der kom lappen din inn sammen med de andre! Modellen krevde det viktige og fylte ut det vi allerede visste.",
-    "Nå kan Bakeren registrere nye bestillinger raskere uten å miste det viktigste.",
+    "Den nye bestillingen kom inn med nødvendige opplysninger på plass. Du lærte at modellen kan kreve viktige felt og fylle inn kjente startverdier.",
   ],
   goal: "Bestem modellen, og lag deretter én ny publisert bestilling.",
   goalPreview: {
@@ -1031,13 +1030,10 @@ const bakerSign: Quest = {
   title: "Bodskiltet",
   topic: "*Portable Text*",
   intro: [
-    "Bestillingen er på plass, men boden mangler et skilt.",
-    "Folk går forbi uten å se hva som er nystekt. Den samme beskjeden skal vises både på boden og i en smal stripe øverst i spillet.",
-    "Skriv skiltet i Studio, gjør det viktigste ordet fett og trykk *Publish*. Se hvordan de to flatene fremhever ordet forskjellig.",
+    "Folk går forbi boden uten å vite hva som er nystekt. Skriv og publiser et skilt i Studio med ett viktig ord i fet skrift, så samme beskjed kan brukes på boden og i en kort appvisning.",
   ],
   outro: [
-    "Nå kan folk se den samme beskjeden både på boden og i HUD-stripen.",
-    "Innholdet er felles, men hver flate presenterer det på sin måte.",
+    "Beskjeden møter nå både folk ved boden og dem som ser appversjonen. Du lærte at Portable Text kan ha formatering som hver flate viser på sin måte.",
   ],
   goal: "Publiser én rik tekst som fungerer på både bodskiltet og HUD-stripen.",
   goalPreview: {
@@ -1080,13 +1076,10 @@ const morningRush: Quest = {
   title: "Morgenrushet",
   topic: "*Document action* og *validation*",
   intro: [
-    "Markedet åpner snart. Branns, Arkivarens, Karis og din egen bestilling må bli klare.",
-    "To lapper har røde felt: Arkivaren mangler dato, og Karis vare er uleselig. Snakk med Kari ved huset vest i bygda for å finne ut hva hun bestilte.",
-    "Rett manglene i Studio. Når en bestilling er gyldig, velger du *Klar* i menyen ved siden av *Publish*.",
+    "Markedet åpner snart, og Branns, Arkivarens, Karis og din bestilling må bli klare. I Studio fyller du inn det som mangler, spør Kari ved huset vest i bygda om varen hennes, og bruker *Klar* på hver gyldige bestilling.",
   ],
   outro: [
-    "Alle fire bestillingene er klare før markedet åpner!",
-    "Reglene stoppet de ufullstendige lappene, og Klar oppdaterte og publiserte resten i ett trykk.",
+    "Alle fire bestillingene er klare før markedet åpner. Du lærte at validation stopper mangler, mens *Klar* oppdaterer og publiserer i ett arbeidssteg.",
   ],
   goal: "Rett de ufullstendige lappene og bruk Klar på alle fire bestillingene.",
   goalPreview: {
