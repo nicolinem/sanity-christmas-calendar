@@ -130,7 +130,9 @@ export default function QuestTracker({
           )}
           {current && !offered && (
             <>
-              <p className="tracker-goal">{renderText(current.quest.goal)}</p>
+              <p className="tracker-goal">
+                {renderText(current.result.goal ?? current.quest.goal)}
+              </p>
               {ready && (
                 <p className="tracker-ready">
                   {current.quest.checkedBy === "window"

@@ -31,6 +31,19 @@ export function findForgedWeapon(
   );
 }
 
+export function findPlayerWeapon(
+  items: GameItemView[],
+  preferredId?: string | null,
+): GameItemView | undefined {
+  const weapons = items.filter(
+    (item) =>
+      item.source === "sanity" &&
+      item.kind === "weapon" &&
+      item.id !== APPRENTICE_ITEM_ID,
+  );
+  return weapons.find((item) => item.id === preferredId) ?? weapons[0];
+}
+
 // The code window judges these tasks; trying the result in Studio is optional.
 function fromWindow(id: string) {
   return ({ progress }: QuestContext): CheckResult => {
@@ -160,14 +173,23 @@ const weaponDescription: Quest = {
   checkedBy: "game",
   reward: { forgeLevel: 1 },
   check: ({ items, progress }) => {
-    const weapon = items.find(
-      (item) => item.id === progress.weaponDescriptionItemId,
-    );
+    const weapon = findPlayerWeapon(items, progress.weaponDescriptionItemId);
     const description = weapon?.description?.trim() ?? "";
     const changed =
       description !== (progress.weaponDescriptionBefore?.trim() ?? "");
     return {
       done: description.length >= 10 && changed,
+      goal: weapon
+        ? `Skriv minst én hel setning i beskrivelsen på «${weapon.name}», og publiser.`
+        : "Utstyr ditt publiserte våpen, og skriv minst én hel setning i beskrivelsen.",
+      objectives: [
+        {
+          label: weapon
+            ? `Beskrivelse på «${weapon.name}» er endret og publisert`
+            : "Utstyr et publisert våpen",
+          done: description.length >= 10 && changed,
+        },
+      ],
       message:
         description && description.length < 10
           ? "Skriv minst én hel setning."

@@ -658,7 +658,7 @@ function QuestDetail({
           <>«{renderText(quest.intro[quest.intro.length - 1])}»</>
         )}
       </p>
-      <p className="log-goal">{renderText(quest.goal)}</p>
+      <p className="log-goal">{renderText(result.goal ?? quest.goal)}</p>
       <GoalPreview quest={quest} />
       {quest.where && (
         <p className="log-where">

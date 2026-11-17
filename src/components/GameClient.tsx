@@ -31,7 +31,7 @@ import {
   type QuestCelebration as QuestCelebrationData,
   type Zone,
 } from "@/game/bridge";
-import { findForgedWeapon } from "@/game/quests/chapters";
+import { findForgedWeapon, findPlayerWeapon } from "@/game/quests/chapters";
 import type { CodeCheck, QuestTrack } from "@/game/quests/types";
 import Hotbar from "./hud/Hotbar";
 import PlayerPlate from "./hud/PlayerPlate";
@@ -516,8 +516,8 @@ export default function GameClient() {
     : "brann";
   useEffect(() => {
     if (dialogueOpen && talkTo?.id === currentGiver)
-      metBrann(currentId, forged);
-  }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann, forged]);
+      metBrann(currentId, equipped ?? undefined);
+  }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann, equipped]);
 
   const openLog = useCallback(() => {
     setTalking(false);
@@ -748,9 +748,7 @@ export default function GameClient() {
   ]);
 
   const slots = narrow ? 5 : 8;
-  const describedWeapon =
-    items.find((item) => item.id === progress.weaponDescriptionItemId) ??
-    forged;
+  const describedWeapon = findPlayerWeapon(items, equippedId);
   const dismissCelebration = useCallback(
     () => setCelebrations((queue) => queue.slice(1)),
     [],

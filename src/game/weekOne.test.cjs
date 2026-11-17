@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
 
-const { CHAPTERS } = require("./quests/chapters.ts");
+const { CHAPTERS, findPlayerWeapon } = require("./quests/chapters.ts");
 const { BRANN_HAMMER } = require("./apprentice.ts");
 
 const quest = (id) =>
@@ -59,6 +59,24 @@ test("weapon description must be published, long enough and changed", () => {
     ).done,
     true,
   );
+  assert.match(
+    check(context({ progress, items: [weapon("Kort tekst")] })).goal,
+    /Frostsverd/,
+  );
+});
+
+test("the forge sign picks the equipped published player weapon, never Brann's hammer", () => {
+  const playerWeapon = weapon("En beskrivelse.");
+  const hammer = {
+    ...playerWeapon,
+    id: "item-brann-anvil-hammer",
+    name: "Branns hammer",
+  };
+  assert.equal(
+    findPlayerWeapon([hammer, playerWeapon], playerWeapon.id),
+    playerWeapon,
+  );
+  assert.equal(findPlayerWeapon([hammer, playerWeapon]), playerWeapon);
 });
 
 test("the apprentice hammer needs all original published values", () => {

@@ -61,6 +61,7 @@ export type Objective = { label: string; done: boolean };
 
 export type CheckResult = {
   done: boolean;
+  goal?: string;
   objectives?: Objective[];
   message?: string; // what's still missing, in Brann's world
 };
