@@ -50,8 +50,10 @@ import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
+import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
 import ForgeDescription from "./hud/ForgeDescription";
+import ForgeHammer from "./hud/ForgeHammer";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
@@ -588,6 +590,21 @@ export default function GameClient() {
       .catch(() => {});
   }, [needsBakery, bakeryOrders, refresh]);
 
+  const apprenticeSeeded = useRef(false);
+  const needsApprentice = board.states.some(
+    (state) =>
+      state.quest.id === "apprentice-mistake" && state.status === "active",
+  );
+  const apprenticeHammer = items.find((item) => item.id === APPRENTICE_ITEM_ID);
+  useEffect(() => {
+    if (!needsApprentice || apprenticeHammer || apprenticeSeeded.current)
+      return;
+    apprenticeSeeded.current = true;
+    fetch("/api/apprentice", { method: "POST" })
+      .then((response) => (response.ok ? refresh() : undefined))
+      .catch(() => {});
+  }, [needsApprentice, apprenticeHammer, refresh]);
+
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
   const onSolved = useCallback(
@@ -843,6 +860,9 @@ export default function GameClient() {
           <div className="hud-bc">
             {zone === "forge" && progress.briefed["weapon-description"] && (
               <ForgeDescription weapon={describedWeapon} />
+            )}
+            {zone === "forge" && progress.briefed["apprentice-mistake"] && (
+              <ForgeHammer hammer={apprenticeHammer} />
             )}
             {dialogueOpen && (
               <ForgeDialogue

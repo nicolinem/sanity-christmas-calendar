@@ -171,6 +171,26 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       />
     ),
   },
+  "apprentice-mistake": {
+    before: (
+      <BakeryCard
+        label="Bran sin hemmer"
+        lines={[
+          ["Description", "banan banan helt feil"],
+          ["Sprite", "hand-axe"],
+        ]}
+      />
+    ),
+    after: (
+      <BakeryCard
+        label="Brann sin hammer"
+        lines={[
+          ["Description", "En solid smiehammer …"],
+          ["Sprite", "hammer"],
+        ]}
+      />
+    ),
+  },
   "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
   "the-guilds-law": {
     before: <DocumentCard blocked={false} />,

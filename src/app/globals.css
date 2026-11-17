@@ -1887,7 +1887,8 @@ kbd {
   color: var(--amber);
 }
 
-.forge-description {
+.forge-description,
+.forge-hammer {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1898,13 +1899,15 @@ kbd {
   background: var(--parchment);
 }
 
-.forge-description > span:last-child {
+.forge-description > span:last-child,
+.forge-hammer > span:last-child {
   display: grid;
   gap: 2px;
   font-size: 12px;
 }
 
-.forge-description strong {
+.forge-description strong,
+.forge-hammer strong {
   color: var(--wood-dark);
 }
 .dialogue-task {

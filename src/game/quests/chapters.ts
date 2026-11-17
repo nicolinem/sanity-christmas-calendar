@@ -1,4 +1,5 @@
 import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
+import { APPRENTICE_ITEM_ID, isRestoredHammer } from "../apprentice";
 import {
   isNewOrder,
   isReadyOrder,
@@ -163,6 +164,74 @@ const weaponDescription: Quest = {
           : !description || !changed
             ? "Beskrivelsen er ikke publisert ennå."
             : undefined,
+    };
+  },
+};
+
+const apprenticeMistake: Quest = {
+  id: "apprentice-mistake",
+  track: "nonTechnical",
+  door: 3,
+  title: "Lærlingen rotet",
+  topic: "*History*",
+  intro: [
+    "Lærlingen publiserte hammeren min med feil navn, feil beskrivelse og feil bilde.",
+    "Finn den riktige utgaven i *History*, velg *Revert to revision*, og trykk deretter *Publish*.",
+  ],
+  outro: [
+    "Der er hammeren min igjen! Spillet kan se at verdiene er riktige, men ikke om du brukte historikken eller skrev dem inn på nytt.",
+  ],
+  goal: "Gjenopprett den riktige versjonen av hammeren fra *History*, og publiser.",
+  goalPreview: {
+    before: "Hammeren har feil navn, tekst og bilde.",
+    after: "Den tidligere versjonen er gjenopprettet og publisert.",
+  },
+  where: "I Sanity Studio, på dokumentet «Bran sin hemmer».",
+  hints: [
+    {
+      text: "Åpne hammeren i Studio. Åpne menyen med tre prikker øverst til høyre, og velg *History*.",
+      link: {
+        label: "History experience",
+        url: "https://www.sanity.io/docs/user-guides/history-experience",
+      },
+    },
+    {
+      text: "Velg versjonen før lærlingen var der. Se hva som er forskjellig.",
+      link: {
+        label: "Compare document versions",
+        url: "https://www.sanity.io/docs/studio/compare-document-versions",
+      },
+    },
+    {
+      text: "Velg *Revert to revision* og deretter *Publish*.",
+      link: {
+        label: "Drafts og publisering",
+        url: "https://www.sanity.io/docs/content-lake/drafts-and-versions",
+      },
+    },
+  ],
+  learn: {
+    label: "History experience",
+    url: "https://www.sanity.io/docs/user-guides/history-experience",
+  },
+  lesson: {
+    title: "*History* og gjenoppretting",
+    text: "Sanity lagrer revisjoner i tre dager på Free-planen. *Revert to revision* henter en tidligere versjon frem igjen, og *Publish* gjør den synlig for spillet.",
+    atWork:
+      "Noen publiserte feil rett før lansering? Du kan gå tilbake til en tidligere versjon uten å be en utvikler om hjelp.",
+  },
+  checkedBy: "game",
+  reward: { forgeLevel: 1 },
+  check: ({ items }) => {
+    const hammer = items.find((item) => item.id === APPRENTICE_ITEM_ID);
+    const done = isRestoredHammer(hammer);
+    return {
+      done,
+      message: done
+        ? undefined
+        : hammer
+          ? "Hammeren har fortsatt feil navn, beskrivelse eller bilde."
+          : "Hammeren er ikke publisert ennå. Vent et øyeblikk og sjekk på nytt.",
     };
   },
 };
@@ -1060,6 +1129,7 @@ export const CHAPTERS: Chapter[] = [
     quests: [
       theBrokenForge,
       weaponDescription,
+      apprenticeMistake,
       brannsLedger,
       theGuildsLaw,
       theDrawingBoard,

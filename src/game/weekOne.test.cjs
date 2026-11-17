@@ -4,6 +4,7 @@ const { test } = require("node:test");
 require("sucrase/register");
 
 const { CHAPTERS } = require("./quests/chapters.ts");
+const { BRANN_HAMMER } = require("./apprentice.ts");
 
 const quest = (id) =>
   CHAPTERS.flatMap((chapter) => chapter.quests).find((item) => item.id === id);
@@ -58,4 +59,26 @@ test("weapon description must be published, long enough and changed", () => {
     ).done,
     true,
   );
+});
+
+test("the apprentice hammer needs all original published values", () => {
+  const check = quest("apprentice-mistake").check;
+  const hammer = {
+    id: BRANN_HAMMER._id,
+    source: "sanity",
+    kind: "weapon",
+    power: { damage: 3 },
+    name: BRANN_HAMMER.name,
+    description: BRANN_HAMMER.description,
+    spriteId: BRANN_HAMMER.sprite,
+  };
+  assert.equal(check(context()).done, false);
+  assert.equal(
+    check(context({ items: [{ ...hammer, name: "Feil" }] })).done,
+    false,
+  );
+  assert.deepEqual(check(context({ items: [hammer] })), {
+    done: true,
+    message: undefined,
+  });
 });

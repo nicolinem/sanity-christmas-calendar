@@ -391,6 +391,7 @@ test("week one ends with custom input and has no Document view quest", () => {
     [
       "the-broken-forge",
       "weapon-description",
+      "apprentice-mistake",
       "branns-ledger",
       "the-guilds-law",
       "the-drawing-board",
@@ -538,6 +539,7 @@ test("the sign quest is offered at the sign, never by the Baker", () => {
   const before = [
     "the-broken-forge",
     "weapon-description",
+    "apprentice-mistake",
     "source-check",
     "link-the-place",
     "case-file",
