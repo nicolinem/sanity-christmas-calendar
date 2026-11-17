@@ -604,7 +604,7 @@ export default function GameClient() {
 
   const bakerySeeded = useRef(false);
   const needsBakery = board.states.some(
-    (s) => s.quest.id === "baker-first-order" && s.status === "active",
+    (s) => s.quest.id === "baker-model" && s.status === "active",
   );
   useEffect(() => {
     if (

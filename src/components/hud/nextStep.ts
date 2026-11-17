@@ -42,6 +42,16 @@ export function nextStep(current: QuestState | null): NextStep | null {
   // button says it all, no place to explain.
   if (quest.checkedBy === "window")
     return { kind: "code", label: "Åpne kodevinduet", questId: quest.id };
+  if (
+    quest.checkedBy === "board" &&
+    current.result?.objectives?.[0]?.done &&
+    !current.result?.done
+  )
+    return {
+      kind: "studio",
+      label: "Åpne Sanity Studio",
+      where: "Modellen er klar. Lag og publiser dokumentet i Studio.",
+    };
   if (quest.checkedBy === "board")
     return {
       kind: "board",

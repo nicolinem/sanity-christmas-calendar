@@ -173,14 +173,14 @@ function harness(
 
 test("finishing the first Bakery order remembers its published ID", () => {
   const h = harness(
-    { track: "nonTechnical", briefed: { "baker-first-order": true } },
+    { track: "nonTechnical", briefed: { "baker-model": true } },
     {
       chapters: [
         {
           number: 3,
           title: "Bakeren",
           quests: [
-            quest("baker-first-order", 5, {
+            quest("baker-model", 7, {
               track: "nonTechnical",
               checkedBy: "game",
               check: ({ bakeryOrders }) => ({

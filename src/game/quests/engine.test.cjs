@@ -543,7 +543,7 @@ test("the sign quest is offered at the sign, never by the Baker", () => {
     "archive-model",
     "who-is-lying",
     "case-file",
-    "baker-first-order",
+    "baker-model",
   ];
   const board = evaluateQuests(
     chaptersForTrack(CHAPTERS, "nonTechnical"),

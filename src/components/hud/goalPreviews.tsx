@@ -273,6 +273,28 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       />
     ),
   },
+  "baker-model": {
+    before: (
+      <BakeryCard
+        label="Ny bestilling"
+        lines={[
+          ["Vare", ""],
+          ["Dato", ""],
+          ["Status", ""],
+        ]}
+      />
+    ),
+    after: (
+      <BakeryCard
+        label="Ny bestilling"
+        lines={[
+          ["Vare *", "Lussekatter"],
+          ["Dato *", "i dag"],
+          ["Status *", "ny"],
+        ]}
+      />
+    ),
+  },
   "baker-forge": {
     before: (
       <BakeryCard
@@ -309,28 +331,6 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
         lines={[
           ["Hendelse", "publisert bestilling"],
           ["Tekst", "Dagens bestilling: Julekake"],
-        ]}
-      />
-    ),
-  },
-  "baker-first-order": {
-    before: (
-      <BakeryCard
-        label="Din nye bestilling"
-        lines={[
-          ["Vare", ""],
-          ["Status", "ny"],
-          ["Dato", "14. desember"],
-        ]}
-      />
-    ),
-    after: (
-      <BakeryCard
-        label="Publisert bestilling"
-        lines={[
-          ["Vare", "Julekake"],
-          ["Status", "ny"],
-          ["Dato", "14. desember"],
         ]}
       />
     ),

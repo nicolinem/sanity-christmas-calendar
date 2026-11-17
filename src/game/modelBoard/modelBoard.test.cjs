@@ -133,3 +133,22 @@ test("the archive model has seven meaningful decisions and can be solved", () =>
   assert.equal(board.cards.length, 7);
   assert.equal(judgeBoard(board, placement).done, true);
 });
+
+test("the bakery model requires the intended fields and starting values", () => {
+  const board = BOARD_TASKS["baker-model"];
+  const placement = {
+    item: { slot: "text", required: true },
+    orderedBy: { slot: "text" },
+    date: { slot: "date", required: true, initial: true },
+    status: { slot: "list", required: true, initial: true },
+  };
+  assert.equal(board.cards.length, 4);
+  assert.equal(judgeBoard(board, placement).done, true);
+  assert.equal(
+    judgeBoard(board, {
+      ...placement,
+      orderedBy: { slot: "text", required: true },
+    }).done,
+    false,
+  );
+});

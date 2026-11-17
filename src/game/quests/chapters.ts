@@ -951,56 +951,70 @@ const bakerFunction: Quest = {
   check: fromWindow("baker-function"),
 };
 
-const bakerFirstOrder: Quest = {
-  id: "baker-first-order",
+const bakerModel: Quest = {
+  id: "baker-model",
   giver: "bakeren",
   track: "nonTechnical",
-  door: 5,
-  title: "Initial value template: ny bestilling",
+  door: 7,
+  title: "Hva er en bestilling?",
+  topic: "Modell, *validation* og *initial value* (modellbrett)",
   intro: [
-    "Brann har bestilt lussekatter, Arkivaren pepperkaker og Kari julekake. De tre ventelappene ligger i Studio.",
-    "Hver *ny* bestilling må ha dato og status. Jeg har laget en mal som fyller inn begge deler – ventelappene teller ikke som din nye bestilling.",
-    "Lag din egen *Ny bestilling* i Studio, skriv inn varen og trykk *Publish*. Hva står der allerede?",
+    "Jeg skriver status og dato om igjen på hver lapp, og av og til glemmer jeg varen. Hjelp meg å bestemme hvordan en bestilling skal se ut.",
+    "Når modellen er klar, slår spillet på feltene i Studio. Lag og publiser så én ny bestilling.",
+    "Start på modellbrettet og sorter hvert eksempel før du velger hva som må fylles ut.",
   ],
   outro: [
-    "Der kom lappen din inn sammen med de andre!",
-    "Dato og «ny» kom fra malen; varen valgte du selv.",
+    "Der kom lappen din inn sammen med de andre! Modellen krevde det viktige og fylte ut det vi allerede visste.",
+    "Nå kan Bakeren registrere nye bestillinger raskere uten å miste det viktigste.",
   ],
-  goal: "Lag og publiser en ny bestilling med vare, status «ny» og dato.",
+  goal: "Bestem modellen, og lag deretter én ny publisert bestilling.",
   goalPreview: {
-    before: "Eksempelbestillingene venter; din lapp er tom.",
-    after: "Din publiserte bestilling har vare, dato og status «ny».",
+    before: "Lappene mangler regler og de samme feltene fylles ut på nytt.",
+    after: "Modellen krever vare, dato og status og starter med dato og «ny».",
   },
-  where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
+  where:
+    "Først på modellbrettet. Deretter i ditt eget Sanity Studio under *Ny bestilling*.",
   hints: [
     {
-      text: "Åpne *Ny bestilling* i Studio. Den ferdige malen fyller ut dato og status når du oppretter et nytt dokument.",
+      text: "Hva må Bakeren alltid vite, og hva kan hun noen ganger mangle? Startverdier passer bare det hun vet på forhånd.",
       link: {
         label: "Initial Value Templates",
         url: `${DOCS}/initial-value-templates`,
       },
     },
     {
-      text: "Skriv en vare i feltet *Vare*. Du kan beholde malens status «ny» og datoen.",
+      text: "Vare, dato og status må finnes. Kunden er det ekte dilemmaet: noen ganger er navnet ukjent.",
+      link: { label: "Validation", url: `${DOCS}/validation` },
     },
-    { text: "Trykk *Publish*; utkast er ikke synlige for spillet." },
+    {
+      text: "Når brettet er godkjent: åpne Studio, lag en ny bestilling, fyll inn varen og trykk *Publish*.",
+    },
   ],
-  learn: {
-    label: "Initial Value Templates",
-    url: `${DOCS}/initial-value-templates`,
-  },
+  learn: { label: "Validation", url: `${DOCS}/validation` },
   lesson: {
-    title: "En mal starter dokumentet",
-    text: "En *initial value template* gir nye dokumenter startverdier, men du kan endre dem før publisering. Spillet sjekket den publiserte bestillingen; det kan ikke vite hvilken mal du brukte.",
+    title: "Modell, *validation* og startverdier",
+    text: "Påkrevde felt hindrer ufullstendige bestillinger. En *initial value* fyller ut det som vanligvis er kjent, uten å låse redaktøren.",
+    atWork:
+      "Du spesifiserer, utvikleren bygger. Påkrevde felt og startverdier er det du kan be om for å slippe feil og dobbeltarbeid.",
   },
-  checkedBy: "game",
-  check: ({ bakeryOrders }) => ({
-    done: Boolean(bakeryOrders?.some(isNewOrder)),
-    message:
-      bakeryOrders === null
-        ? "Henter publiserte bestillinger fra prosjektet ditt…"
-        : "Publiser en ny bestilling med vare, dato og status «ny».",
-  }),
+  checkedBy: "board",
+  reward: { forgeLevel: 1 },
+  check: ({ bakeryOrders, progress }) => {
+    const modeled = Boolean(progress.solved["baker-model"]);
+    const order = Boolean(bakeryOrders?.some(isNewOrder));
+    return {
+      done: modeled && order,
+      objectives: [
+        { label: "Modellbrettet er løst", done: modeled },
+        { label: "En ny bestilling er publisert", done: order },
+      ],
+      message: !modeled
+        ? "Løs modellbrettet først."
+        : bakeryOrders === null
+          ? "Henter publiserte bestillinger fra prosjektet ditt…"
+          : "Publiser en ny bestilling med vare, dato og status «ny».",
+    };
+  },
 };
 
 const bakerSign: Quest = {
@@ -1182,7 +1196,7 @@ export const CHAPTERS: Chapter[] = [
       bakerTemplate,
       bakerForge,
       bakerFunction,
-      bakerFirstOrder,
+      bakerModel,
       bakerSign,
       bakerReady,
       bakerLink,

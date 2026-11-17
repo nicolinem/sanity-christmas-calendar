@@ -70,7 +70,7 @@ test("the crown needs every core Bakery door on the same track", () => {
   assert.equal(gearSource("hat", "crown"), "Bakeren: fullført uke 3");
   for (const ids of [
     ["baker-template", "baker-forge", "baker-function"],
-    ["baker-first-order", "baker-sign", "baker-ready"],
+    ["baker-model", "baker-sign", "baker-ready"],
   ]) {
     const progress = (done) => ({
       completed: Object.fromEntries(done.map((id) => [id, "2026-12-01"])),
