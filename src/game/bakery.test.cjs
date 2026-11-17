@@ -16,18 +16,21 @@ const {
   SAMPLE_ORDERS,
   isNewOrder,
   isReadyOrder,
+  morningRushReadyCount,
   signHasHttpsLink,
   signHasStrong,
   signText,
 } = moduleResult.exports;
 
-test("sample bakery orders have names and goods without satisfying a core door", () => {
+test("morning-rush samples include one complete and two deliberately incomplete orders", () => {
   assert.equal(SAMPLE_ORDERS.length, 3);
-  for (const order of SAMPLE_ORDERS) {
-    assert.ok(order.item && order.orderedBy && order.date);
-    assert.equal(isNewOrder(order), false);
-    assert.equal(isReadyOrder(order), false);
-  }
+  assert.ok(SAMPLE_ORDERS.every(({ orderedBy }) => orderedBy));
+  assert.equal(SAMPLE_ORDERS[0].item, "Lussekatter");
+  assert.equal(SAMPLE_ORDERS[0].date, "2026-12-14");
+  assert.equal(SAMPLE_ORDERS[1].date, undefined);
+  assert.equal(SAMPLE_ORDERS[2].item, undefined);
+  assert.ok(SAMPLE_ORDERS.every((order) => !isNewOrder(order)));
+  assert.ok(SAMPLE_ORDERS.every((order) => !isReadyOrder(order)));
 });
 
 test("only a new, dated order with an item counts", () => {
@@ -45,7 +48,12 @@ test("only a new, dated order with an item counts", () => {
 
 test("only a ready published order with a real item counts", () => {
   assert.equal(
-    isReadyOrder({ _id: "order-1", item: "Julekake", status: "klar" }),
+    isReadyOrder({
+      _id: "order-1",
+      item: "Julekake",
+      date: "2026-12-14",
+      status: "klar",
+    }),
     true,
   );
   assert.equal(
@@ -55,6 +63,34 @@ test("only a ready published order with a real item counts", () => {
   assert.equal(
     isReadyOrder({ _id: "order-1", item: "  ", status: "klar" }),
     false,
+  );
+});
+
+test("morning rush counts only the three samples and the player's order", () => {
+  const ready = (order) => ({ ...order, status: "klar" });
+  const orders = [
+    ...SAMPLE_ORDERS.map((order) =>
+      ready({
+        ...order,
+        item: order.item ?? "Julekake",
+        date: order.date ?? "2026-12-14",
+      }),
+    ),
+    ready({ _id: "player-order", item: "Kringle", date: "2026-12-14" }),
+    ready({ _id: "some-other-order", item: "Brød", date: "2026-12-14" }),
+  ];
+  assert.equal(morningRushReadyCount(orders, "player-order"), 4);
+  assert.equal(morningRushReadyCount(orders, undefined), 0);
+  assert.equal(
+    morningRushReadyCount(
+      orders.map((order) =>
+        order._id === "bakery-sample-kari"
+          ? { ...order, item: undefined }
+          : order,
+      ),
+      "player-order",
+    ),
+    3,
   );
 });
 

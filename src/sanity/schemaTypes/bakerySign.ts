@@ -1,6 +1,6 @@
 import { defineField, defineType } from "sanity";
 
-// QUEST: Luke 6. One skilt for the bakery's market stall, edited in Studio.
+// QUEST: Luke 8. One skilt for the bakery's market stall, edited in Studio.
 export const bakerySign = defineType({
   name: "bakerySign",
   title: "Bodskilt",

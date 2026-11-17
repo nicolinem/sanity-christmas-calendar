@@ -558,20 +558,36 @@ test("the sign quest is offered at the sign, never by the Baker", () => {
   assert.equal(board.current.status, "offered");
 });
 
-test("Bakeren's ready door accepts only a published ready order with an item", () => {
-  const ready = CHAPTERS.flatMap(({ quests }) => quests).find(
-    ({ id }) => id === "baker-ready",
+test("morning rush needs all three samples and the player's order ready", () => {
+  const rush = CHAPTERS.flatMap(({ quests }) => quests).find(
+    ({ id }) => id === "morning-rush",
   );
-  assert.ok(ready);
+  assert.ok(rush);
   const ctx = {
     ...context({ bakeryOrderId: "order" }),
-    bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }],
+    bakeryOrders: [
+      "bakery-sample-brann",
+      "bakery-sample-arkivaren",
+      "bakery-sample-kari",
+      "order",
+    ].map((_id) => ({
+      _id,
+      item: "Julekake",
+      date: "2026-12-14",
+      status: "klar",
+    })),
   };
-  assert.equal(ready.check(ctx).done, false);
-  ctx.bakeryOrders[0].status = "klar";
-  assert.equal(ready.check(ctx).done, true);
-  ctx.bakeryOrders[0]._id = "another-order";
-  assert.equal(ready.check(ctx).done, false);
+  assert.equal(rush.check(ctx).done, true);
+  assert.equal(
+    rush.check(ctx).objectives[0].label,
+    "4 av 4 bestillinger er klare",
+  );
+  ctx.bakeryOrders[2].item = undefined;
+  assert.equal(rush.check(ctx).done, false);
+  assert.equal(
+    rush.check(ctx).objectives[0].label,
+    "3 av 4 bestillinger er klare",
+  );
 });
 
 test("Studio-practice quests name their real Studio step", () => {

@@ -344,24 +344,26 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       />
     ),
   },
-  "baker-ready": {
+  "morning-rush": {
     before: (
       <BakeryCard
-        label="Din bestilling"
+        label="Morgenrushet"
         lines={[
-          ["Vare", "Julekake"],
-          ["Status", "ny"],
-          ["Handling", "Publish"],
+          ["Brann", "venter"],
+          ["Arkivaren", "mangler dato"],
+          ["Kari", "mangler vare"],
+          ["Din", "ny"],
         ]}
       />
     ),
     after: (
       <BakeryCard
-        label="Din bestilling"
+        label="Markedsklare"
         lines={[
-          ["Vare", "Julekake"],
-          ["Status", "klar"],
-          ["Handling", "Klar → publisert"],
+          ["Brann", "klar"],
+          ["Arkivaren", "klar"],
+          ["Kari", "klar"],
+          ["Din", "klar"],
         ]}
       />
     ),

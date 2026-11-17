@@ -60,19 +60,25 @@ test("Publish is primary; Klar is an additional bakeryOrder action", () => {
   );
 });
 
-test("Klar appears only after door 6 and patches before publishing", () => {
+test("Klar appears in morning rush and patches before publishing", () => {
   let enabled = false;
+  let validation = { validation: [], isValidating: false };
   const calls = [];
   const { ReadyAction } = load("src/sanity/studio/BakeryActions.ts", {
+    "@sanity/types": {
+      isValidationErrorMarker: (marker) => marker.level === "error",
+    },
     sanity: {
+      getDraftId: (id) => `drafts.${id}`,
       useDocumentOperation: () => ({
         patch: {
           execute: (value) => calls.push(["patch", value[0].set.status]),
         },
         publish: { execute: () => calls.push(["publish"]) },
       }),
+      useValidationStatus: () => validation,
     },
-    "../lib/solved": { useBakeryReady: () => enabled },
+    "../lib/solved": { useMorningRush: () => enabled },
   });
   const props = {
     id: "order",
@@ -92,8 +98,8 @@ test("Klar appears only after door 6 and patches before publishing", () => {
     ["publish"],
     ["complete"],
   ]);
-  assert.equal(
-    ReadyAction({ ...props, draft: { item: "  ", status: "ny" } }).disabled,
-    true,
-  );
+  validation = { validation: [{ level: "error" }], isValidating: false };
+  assert.equal(ReadyAction(props).disabled, true);
+  validation = { validation: [], isValidating: true };
+  assert.equal(ReadyAction(props).disabled, true);
 });

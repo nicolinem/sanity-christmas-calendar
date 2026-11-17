@@ -2,7 +2,7 @@ import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
 import { APPRENTICE_ITEM_ID, isRestoredHammer } from "../apprentice";
 import {
   isNewOrder,
-  isReadyOrder,
+  morningRushReadyCount,
   signHasHttpsLink,
   signHasStrong,
 } from "../bakery";
@@ -1067,55 +1067,65 @@ const bakerSign: Quest = {
   }),
 };
 
-const bakerReady: Quest = {
-  id: "baker-ready",
+const morningRush: Quest = {
+  id: "morning-rush",
   giver: "bakeren",
   track: "nonTechnical",
-  door: 7,
-  title: "Document action: Klar",
+  door: 9,
+  title: "Morgenrushet",
+  topic: "*Document action* og *validation*",
   intro: [
-    "Skiltet er på plass. Nå skal den første bestillingen bli ferdig.",
-    "Finn bestillingen *du* publiserte i første luke, ikke de tre ventelappene.",
-    "Åpne den i Studio og velg *Klar* i menyen ved siden av *Publish*. Knappen setter status og publiserer i ett trykk.",
+    "Markedet åpner snart. Branns, Arkivarens, Karis og din egen bestilling må bli klare.",
+    "To lapper har røde felt: Arkivaren mangler dato, og Karis vare er uleselig. Snakk med Kari ved huset vest i bygda for å finne ut hva hun bestilte.",
+    "Rett manglene i Studio. Når en bestilling er gyldig, velger du *Klar* i menyen ved siden av *Publish*.",
   ],
   outro: [
-    "Din bestilling er klar til å hentes!",
-    "Vi brukte ett trykk i stedet for å endre status og publisere hver for seg.",
+    "Alle fire bestillingene er klare før markedet åpner!",
+    "Reglene stoppet de ufullstendige lappene, og Klar oppdaterte og publiserte resten i ett trykk.",
   ],
-  goal: "Merk en bestilling som «klar» og publiser den.",
+  goal: "Rett de ufullstendige lappene og bruk Klar på alle fire bestillingene.",
   goalPreview: {
-    before: "Din bestilling er publisert med status «ny».",
-    after: "Klar publiserer den samme bestillingen med status «klar».",
+    before: "To av fire lapper har mangler, og ingen er klare.",
+    after: "Alle fire er komplette og publisert med status «klar».",
   },
   where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
   hints: [
     {
-      text: "Åpne bestillingen du laget i første luke. *Klar* er en *document action* i menyen ved siden av *Publish*.",
+      text: "Hvorfor er Klar grå på to av dem? Se etter røde felt.",
       link: { label: "Document actions", url: `${DOCS}/document-actions` },
     },
     {
-      text: "Knappen er tilgjengelig når bestillingen har en vare. Du trenger ikke skrive kode.",
+      text: "Datoen kan du fylle inn selv. Varen må du spørre Kari om.",
+      link: { label: "Validation", url: `${DOCS}/validation` },
     },
     {
-      text: "Trykk *Klar*: den oppdaterer status og publiserer. Kontroller at den publiserte bestillingen står som «klar».",
+      text: "Fyll inn feltet, og trykk så *Klar*.",
     },
   ],
   learn: { label: "Document actions", url: `${DOCS}/document-actions` },
   lesson: {
-    title: "*Document action* i praksis",
-    text: "Ett trykk kan både endre et felt og publisere dokumentet. Spillet leste den publiserte statusen «klar»; det kan ikke vite hvilken knapp som ble brukt.",
+    title: "Trygge arbeidssteg",
+    text: "*Validation* hindret Klar mens viktige felt manglet. En *document action* kunne deretter endre status og publisere i ett arbeidssteg.",
+    atWork:
+      "Regler og egne knapper gjør at ingen sender ut noe halvferdig, uten at du må huske alt selv.",
   },
   checkedBy: "game",
-  check: ({ bakeryOrders, progress }) => ({
-    done: Boolean(
-      progress.bakeryOrderId &&
-      bakeryOrders?.some(
-        (order) => order._id === progress.bakeryOrderId && isReadyOrder(order),
-      ),
-    ),
-    message:
-      "Bruk Klar på den samme bestillingen som i første luke; den må være publisert med status «klar».",
-  }),
+  check: ({ bakeryOrders, progress }) => {
+    const ready = morningRushReadyCount(bakeryOrders, progress.bakeryOrderId);
+    return {
+      done: ready === 4,
+      objectives: [
+        {
+          label: `${ready} av 4 bestillinger er klare`,
+          done: ready === 4,
+        },
+      ],
+      message:
+        bakeryOrders === null
+          ? "Henter publiserte bestillinger fra prosjektet ditt…"
+          : "Rett manglene og bruk Klar på de fire bestillingene.",
+    };
+  },
 };
 
 const bakerLink: Quest = {
@@ -1201,7 +1211,7 @@ export const CHAPTERS: Chapter[] = [
       bakerFunction,
       bakerModel,
       bakerSign,
-      bakerReady,
+      morningRush,
       bakerLink,
     ],
     teaser: [

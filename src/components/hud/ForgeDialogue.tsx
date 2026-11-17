@@ -7,6 +7,7 @@ import type { QuestBoard } from "@/game/quests/engine";
 import {
   NPCS,
   QUEST_SITES,
+  npcQuestLine,
   type NpcId,
   type QuestSiteId,
 } from "@/game/village";
@@ -44,24 +45,27 @@ export default function ForgeDialogue(props: Props) {
   const giver = board.current ? giverOf(board.current.quest) : NPCS.brann;
   // Someone else's luke: say who has a new one, or that it's already yours.
   const elsewhere = Boolean(board.current) && giver.id !== speaker.id;
+  const npcLine = npcQuestLine(speaker.id, board.current?.quest.id);
   const waitingAtGiver =
     board.current?.status === "offered" && !board.current.pickup;
   const [pages] = useState<ReactNode[]>(() =>
-    !elsewhere
-      ? buildPages(board, forged, sanityConfigured)
-      : waitingAtGiver
-        ? [
-            <>
-              {giver.name} har en ny luke til deg. Du finner {giver.name}{" "}
-              {giver.at}.
-            </>,
-          ]
-        : [
-            <>
-              Jeg har ingen luke til deg akkurat nå. Det du jobber med, står i
-              journalen (J).
-            </>,
-          ],
+    npcLine
+      ? [<>{npcLine}</>]
+      : !elsewhere
+        ? buildPages(board, forged, sanityConfigured)
+        : waitingAtGiver
+          ? [
+              <>
+                {giver.name} har en ny luke til deg. Du finner {giver.name}{" "}
+                {giver.at}.
+              </>,
+            ]
+          : [
+              <>
+                Jeg har ingen luke til deg akkurat nå. Det du jobber med, står i
+                journalen (J).
+              </>,
+            ],
   );
   const [page, setPage] = useState(0);
   const last = page >= pages.length - 1;
