@@ -1,4 +1,4 @@
-import { caseFileScore, linkScore } from "../archive";
+import { caseFileScore, linkScore, sourceCheckScore } from "../archive";
 import { APPRENTICE_ITEM_ID, isRestoredHammer } from "../apprentice";
 import {
   isNewOrder,
@@ -694,44 +694,56 @@ const archiveModel: Quest = {
   check: fromBoard("archive-model"),
 };
 
-const linkThePlace: Quest = {
-  id: "link-the-place",
+const whoIsLying: Quest = {
+  id: "who-is-lying",
   giver: "arkivaren",
   track: "nonTechnical",
-  door: 3,
-  title: "Koble til stedet",
+  door: 5,
+  title: "Hvem lyver?",
+  topic: "*Reference*",
   intro: [
-    "Tre bekreftede observasjoner har stedet skrevet som tekst: «bakriet», «ved smia, tror jeg». Da finner ingen liste dem.",
-    "Velg riktig *Place* i hver av dem, så havner de på kartet og under «Per sted».",
+    "Halve bygda vil avlyse markedet på grunn av fem historier. Vi trenger fakta først.",
+    "Regelen min: En observasjon er *Confirmed* hvis noen så det selv og har bilde, eller hvis et *annet* vitne så det samme på samme sted. Ellers er den *Rumor*.",
   ],
-  goal: "Gi de tre observasjonene med stedet som tekst en *reference* til riktig sted, og publiser.",
-  where: "I Sanity Studio, under *Observation*.",
+  goal: "Koble observasjon C til Bakeriet, gi alle fem riktig *Status*, og publiser.",
+  goalPreview: {
+    before: "Fem historier med Unknown-status og ett feilstavet sted.",
+    after: "Tre bekreftede observasjoner, to rykter og ett koblet sted.",
+  },
+  where: "I Sanity Studio, under *Observation* og «Per sted».",
   hints: [
     {
-      text: "Observasjonene det gjelder, har feltet *Place (as written down)*.",
+      text: "Én av dem mangler sted. Den kan ikke sjekkes før den har det.",
     },
     {
-      text: "Feltet *Place* over er en *reference*. Begynn å skrive navnet på stedet, og velg det fra lista.",
+      text: 'Bruk "Per sted". Hvem så hva på Bakeriet?',
     },
-    { text: "Husk *Publish*." },
+    { text: '"Et annet vitne": se på navnet, ikke bare stedet.' },
   ],
   learn: { label: "Reference type", url: `${DOCS}/reference-type` },
   lesson: {
-    title: "*References* i stedet for tekst",
-    text: "Tekst kan staves på mange måter. En *reference* peker på ett bestemt dokument, så lister og spørringer finner det igjen.",
+    title: "*References* gjør innhold sammenlignbart",
+    text: "En *reference* peker på ett bestemt dokument. Derfor kan Sanity samle observasjoner fra samme sted selv om noen skrev stedsnavnet feil i notatet.",
+    atWork:
+      "En *reference* gjør at innhold kan sammenlignes og filtreres. Det kan ikke tekst som staves ulikt.",
   },
   checkedBy: "game",
   reward: { forgeLevel: 1 },
   check: ({ archive }) => {
     const waiting = waitingForArchive(archive);
     if (waiting) return waiting;
-    const { right, total } = linkScore(archive!);
+    const statuses = sourceCheckScore(archive!);
+    const place = linkScore(archive!);
     return {
-      done: right === total,
+      done: statuses.right === statuses.total && place.right === place.total,
       objectives: [
         {
-          label: `${right} av ${total} peker på riktig sted`,
-          done: right === total,
+          label: `${statuses.right} av ${statuses.total} har riktig status`,
+          done: statuses.right === statuses.total,
+        },
+        {
+          label: "Stedet er koblet",
+          done: place.right === place.total,
         },
       ],
     };
@@ -1149,7 +1161,7 @@ export const CHAPTERS: Chapter[] = [
       archiveLists,
       whoPointsHere,
       archiveModel,
-      linkThePlace,
+      whoIsLying,
       caseFile,
     ],
   },

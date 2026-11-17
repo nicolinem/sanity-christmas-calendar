@@ -4,9 +4,8 @@ import { apiVersion, dataset, projectId } from "@/sanity/env";
 import {
   ARCHIVE_IDS,
   FOOTPRINTS_SVG,
-  LINK_THE_PLACE,
   PLACES,
-  SOURCE_CHECK,
+  WHO_IS_LYING,
   WITNESSES,
   type OwnArchiveDoc,
   type OwnCase,
@@ -78,30 +77,20 @@ export async function POST(request: Request) {
     const tx = writer.transaction();
     for (const p of PLACES) tx.createIfNotExists({ ...p });
     for (const w of WITNESSES) tx.createIfNotExists({ ...w });
-    for (const o of SOURCE_CHECK)
+    for (const o of WHO_IS_LYING)
       tx.createIfNotExists({
         _id: o._id,
         _type: "observation",
         what: o.what,
         time: o.time,
-        place: ref(`place-${o.place}`),
+        ...(o.place ? { place: ref(`place-${o.place}`) } : {}),
+        ...(o.placeNote ? { placeNote: o.placeNote } : {}),
         witness: ref(`witness-${o.witness}`),
-        seen: true,
+        seen: o.seen,
         status: "unknown",
         ...(o.image
           ? { image: { _type: "image", asset: ref(asset._id) } }
           : {}),
-      });
-    for (const o of LINK_THE_PLACE)
-      tx.createIfNotExists({
-        _id: o._id,
-        _type: "observation",
-        what: o.what,
-        time: o.time,
-        placeNote: o.placeNote,
-        witness: ref(`witness-${o.witness}`),
-        seen: true,
-        status: "confirmed",
       });
     await tx.commit();
     return Response.json({ ok: true });

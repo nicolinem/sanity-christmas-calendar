@@ -209,6 +209,26 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       />
     ),
   },
+  "who-is-lying": {
+    before: (
+      <BakeryCard
+        label="Observation C"
+        lines={[
+          ["Place", "bakriet"],
+          ["Status", "Unknown"],
+        ]}
+      />
+    ),
+    after: (
+      <BakeryCard
+        label="Observation C"
+        lines={[
+          ["Place", "Bakeriet →"],
+          ["Status", "Confirmed"],
+        ]}
+      />
+    ),
+  },
   "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
   "the-guilds-law": {
     before: <DocumentCard blocked={false} />,

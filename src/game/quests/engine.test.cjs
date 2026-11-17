@@ -541,7 +541,7 @@ test("the sign quest is offered at the sign, never by the Baker", () => {
     "weapon-description",
     "apprentice-mistake",
     "archive-model",
-    "link-the-place",
+    "who-is-lying",
     "case-file",
     "baker-first-order",
   ];

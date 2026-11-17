@@ -191,132 +191,68 @@ export const ARCHIVE_DATASET: ArchiveDoc[] = [
 
 // --- The player's own project (non-technical track) -------------------------
 
-// Nine observations for the source check. They start as "unknown"; the player
-// sets each status by Arkivaren's rule and publishes.
-export const SOURCE_CHECK: {
+// Five observations for «Hvem lyver?». They start as "unknown"; the player
+// links C to Bakeriet, applies Arkivaren's rule and publishes each status.
+export const WHO_IS_LYING: {
   _id: string;
-  place: string;
+  place?: string;
+  placeNote?: string;
   time: string;
   what: string;
   witness: string;
+  seen: boolean;
   image?: true;
   expected: "confirmed" | "rumor";
 }[] = [
   {
-    _id: "archive-a1",
-    place: "skogkanten",
-    time: "18:10",
-    what: "Store fotspor i snøen",
-    witness: "ola",
-    image: true,
-    expected: "confirmed",
-  },
-  {
-    _id: "archive-a2",
-    place: "gjerdet",
-    time: "18:32",
-    what: "Spor langs gjerdet",
-    witness: "kari",
-    image: true,
-    expected: "confirmed",
-  },
-  {
-    _id: "archive-b1",
+    _id: "archive-a",
     place: "smia",
     time: "18:45",
-    what: "Rim på smiedøra",
-    witness: "per",
+    what: "Store fotspor utenfor smia",
+    witness: "kari",
+    seen: true,
+    image: true,
     expected: "confirmed",
   },
   {
-    _id: "archive-b2",
-    place: "smia",
-    time: "18:47",
-    what: "Noe stort gikk forbi vinduet",
-    witness: "liv",
-    expected: "confirmed",
-  },
-  {
-    _id: "archive-c1",
+    _id: "archive-b",
     place: "bakeriet",
     time: "19:05",
-    what: "Kaker har forsvunnet",
-    witness: "mari",
-    expected: "confirmed",
-  },
-  {
-    _id: "archive-c2",
-    place: "bakeriet",
-    time: "19:10",
-    what: "Iskaldt i rommet etterpå",
-    witness: "nils",
-    expected: "confirmed",
-  },
-  {
-    _id: "archive-d1",
-    place: "torget",
-    time: "19:40",
-    what: "En skygge ved juletreet",
-    witness: "siri",
-    expected: "rumor",
-  },
-  {
-    _id: "archive-e1",
-    place: "bronnen",
-    time: "18:20",
-    what: "Noe plasket i brønnen",
-    witness: "jon",
-    expected: "rumor",
-  },
-  {
-    _id: "archive-e2",
-    place: "bronnen",
-    time: "18:50",
-    what: "Det plasket igjen",
-    witness: "jon",
-    expected: "rumor",
-  },
-];
-
-// Three confirmed observations where someone typed the place as text. The
-// player replaces the text with a reference to the right place.
-export const LINK_THE_PLACE: {
-  _id: string;
-  placeNote: string;
-  time: string;
-  what: string;
-  witness: string;
-  expected: string;
-}[] = [
-  {
-    _id: "archive-l1",
-    placeNote: "bakriet",
-    time: "19:20",
-    what: "Melspor ut døra",
-    witness: "mari",
-    expected: "place-bakeriet",
-  },
-  {
-    _id: "archive-l2",
-    placeNote: "ved smia, tror jeg",
-    time: "18:50",
-    what: "Smeltet snø rundt smia",
-    witness: "per",
-    expected: "place-smia",
-  },
-  {
-    _id: "archive-l3",
-    placeNote: "skogen (kanten)",
-    time: "18:05",
-    what: "Grener knekt høyt oppe",
+    what: "Melsekken revnet ved bakdøra",
     witness: "ola",
-    expected: "place-skogkanten",
+    seen: true,
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-c",
+    placeNote: "bakriet",
+    time: "19:06",
+    what: "Melsekken revnet ved bakdøra",
+    witness: "kari",
+    seen: true,
+    expected: "confirmed",
+  },
+  {
+    _id: "archive-d",
+    place: "bakeriet",
+    time: "19:12",
+    what: "Bjella ringte av seg selv",
+    witness: "ola",
+    seen: true,
+    expected: "rumor",
+  },
+  {
+    _id: "archive-e",
+    place: "torget",
+    time: "19:30",
+    what: "Noen hørte et brøl ved juletreet",
+    witness: "per",
+    seen: false,
+    expected: "rumor",
   },
 ];
 
-export const ARCHIVE_IDS = [...SOURCE_CHECK, ...LINK_THE_PLACE].map(
-  (d) => d._id,
-);
+export const ARCHIVE_IDS = WHO_IS_LYING.map((document) => document._id);
 
 // What the game reads back from the player's project (published only).
 export type OwnArchiveDoc = {
@@ -326,25 +262,24 @@ export type OwnArchiveDoc = {
 };
 
 export function sourceCheckScore(docs: OwnArchiveDoc[]) {
-  const right = SOURCE_CHECK.filter(
+  const right = WHO_IS_LYING.filter(
     (s) => docs.find((d) => d._id === s._id)?.status === s.expected,
   ).length;
-  return { right, total: SOURCE_CHECK.length };
+  return { right, total: WHO_IS_LYING.length };
 }
 
 export function linkScore(docs: OwnArchiveDoc[]) {
-  const right = LINK_THE_PLACE.filter(
-    (s) => docs.find((d) => d._id === s._id)?.place === s.expected,
-  ).length;
-  return { right, total: LINK_THE_PLACE.length };
+  const linked =
+    docs.find((document) => document._id === "archive-c")?.place ===
+    "place-bakeriet";
+  return { right: linked ? 1 : 0, total: 1 };
 }
 
 // Saksmappa: one published `case` whose observations array references every
 // confirmed observation (the six from the source check plus the three linked).
-export const CASE_FILE_EXPECTED: string[] = [
-  ...SOURCE_CHECK.filter((s) => s.expected === "confirmed").map((s) => s._id),
-  ...LINK_THE_PLACE.map((s) => s._id),
-];
+export const CASE_FILE_EXPECTED = WHO_IS_LYING.filter(
+  ({ expected }) => expected === "confirmed",
+).map(({ _id }) => _id);
 
 export type OwnCase = { _id: string; observations: string[] };
 

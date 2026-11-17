@@ -48,7 +48,7 @@ import {
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
-import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
+import { ARCHIVE_IDS, type OwnArchiveDoc, type OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
@@ -570,11 +570,16 @@ export default function GameClient() {
   const archiveSeeded = useRef(false);
   const needsArchive = board.states.some(
     (s) =>
-      ["source-check", "link-the-place", "case-file"].includes(s.quest.id) &&
+      ["who-is-lying", "case-file"].includes(s.quest.id) &&
       s.status === "active",
   );
   useEffect(() => {
-    if (!needsArchive || archive === null || archive.length > 0) return;
+    if (
+      !needsArchive ||
+      archive === null ||
+      archive.length >= ARCHIVE_IDS.length
+    )
+      return;
     if (archiveSeeded.current) return;
     archiveSeeded.current = true;
     fetch("/api/archive", { method: "POST" })
