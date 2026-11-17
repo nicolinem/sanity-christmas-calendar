@@ -100,3 +100,10 @@ test("the apprentice hammer needs all original published values", () => {
     message: undefined,
   });
 });
+
+test("the History hints cover a wider pane, pre-apprentice revision, and Draft publish", () => {
+  const hints = quest("apprentice-mistake").hints.map(({ text }) => text);
+  assert.match(hints[0], /History.*bredere/);
+  assert.match(hints[1], /før lærlingen/);
+  assert.match(hints[2], /Published.*Draft.*Publish/);
+});

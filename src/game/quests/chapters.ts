@@ -221,21 +221,21 @@ const apprenticeMistake: Quest = {
   where: "I Sanity Studio, på dokumentet «Bran sin hemmer».",
   hints: [
     {
-      text: "Åpne hammeren i Studio. Åpne menyen med tre prikker øverst til høyre, og velg *History*.",
+      text: "Åpne hammeren og velg *History* fra menyen med tre prikker. Ser du ikke History, gjør Studio-vinduet bredere.",
       link: {
         label: "History experience",
         url: "https://www.sanity.io/docs/user-guides/history-experience",
       },
     },
     {
-      text: "Velg versjonen før lærlingen var der. Se hva som er forskjellig.",
+      text: "Velg en versjon fra før lærlingen rotet med hammeren.",
       link: {
         label: "Compare document versions",
         url: "https://www.sanity.io/docs/studio/compare-document-versions",
       },
     },
     {
-      text: "Velg *Revert to revision* og deretter *Publish*.",
+      text: "Etter *Revert to revision* (Restore) havner du kanskje på *Published*. Gå til *Draft* og trykk *Publish*.",
       link: {
         label: "Drafts og publisering",
         url: "https://www.sanity.io/docs/content-lake/drafts-and-versions",
