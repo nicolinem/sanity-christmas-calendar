@@ -950,6 +950,7 @@ export default function GameClient() {
                 onCheck={checkForge}
                 onTravelToSite={travelToSite}
                 onOpenCode={openCode}
+                onOpenBoard={openBoard}
                 onClose={() => setTalking(false)}
               />
             )}

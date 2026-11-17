@@ -403,6 +403,17 @@ test("non-technical quests explain the story, action and place, then close with 
   }
 });
 
+test("Luke 4 and 7 explain the model board in their intro", () => {
+  const expected =
+    "Hver del av notatet blir et felt i Studio. Velg hvilken type felt det skal være.";
+  for (const id of ["archive-model", "baker-model"]) {
+    const item = CHAPTERS.flatMap((chapter) => chapter.quests).find(
+      (quest) => quest.id === id,
+    );
+    assert.ok(item?.intro.includes(expected), id);
+  }
+});
+
 test("week one ends with custom input and has no Document view quest", () => {
   assert.deepEqual(
     CHAPTERS[0].quests.map(({ id }) => id),

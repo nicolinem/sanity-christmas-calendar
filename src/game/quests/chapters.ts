@@ -683,7 +683,8 @@ const archiveModel: Quest = {
   title: "Rydd notatene",
   topic: "Innholdsmodell (modellbrett)",
   intro: [
-    "Arkivnotatene mine er blitt umulige å finne fram i. Bestem på modellbrettet hvordan opplysningene skal lagres før de blir felt i Studio.",
+    "Notatene er uoversiktlige, så bestem på modellbrettet hvordan vi lagrer dem før de kommer inn i Studio.",
+    "Hver del av notatet blir et felt i Studio. Velg hvilken type felt det skal være.",
   ],
   outro: [
     "Notatene har nå en modell i Studio. Du lærte at gode felttyper gjør innholdet lettere å finne og bruke igjen.",
@@ -966,7 +967,8 @@ const bakerModel: Quest = {
   title: "Hva er en bestilling?",
   topic: "Modell, *validation* og *initial value* (modellbrett)",
   intro: [
-    "Markedet fylles opp av bestillinger, og jeg vil slippe å glemme viktige opplysninger. På modellbrettet bestemmer du hvordan en bestilling skal se ut, så lager og publiserer du én ny i Studio.",
+    "Jeg vil slippe å glemme opplysninger på bestillingene, så bestem modellen på brettet og lag en ny bestilling i Studio.",
+    "Hver del av notatet blir et felt i Studio. Velg hvilken type felt det skal være.",
   ],
   outro: [
     "Den nye bestillingen kom inn med nødvendige opplysninger på plass. Du lærte at modellen kan kreve viktige felt og fylle inn kjente startverdier.",

@@ -30,6 +30,7 @@ type Props = {
   onCheck: () => void;
   onTravelToSite: (siteId: QuestSiteId) => void;
   onOpenCode: (questId: string) => void;
+  onOpenBoard: (questId: string) => void;
   onClose: () => void;
 };
 
@@ -305,6 +306,7 @@ function Details({
   onCheck,
   onTravelToSite,
   onOpenCode,
+  onOpenBoard,
   onClose,
   studioRef,
 }: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
@@ -380,6 +382,15 @@ function Details({
             onClick={() => onOpenCode(current.quest.id)}
           >
             Åpne kodevinduet
+          </button>
+        ) : current?.quest.checkedBy === "board" ? (
+          <button
+            ref={studioRef}
+            type="button"
+            className="btn btn--amber"
+            onClick={() => onOpenBoard(current.quest.id)}
+          >
+            Åpne modellbrettet
           </button>
         ) : current ? (
           <>
