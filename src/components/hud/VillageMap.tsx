@@ -10,8 +10,10 @@ import { useVillageCanvas } from "./villageCanvas";
 import {
   MAP_H,
   MAP_W,
+  NPCS,
   QUEST_SITES,
   placeDoors,
+  shouldShowQuestNpc,
   type QuestSiteId,
 } from "@/game/village";
 import SpriteIcon from "./SpriteIcon";
@@ -36,18 +38,21 @@ export default function VillageMap({
   onTravel,
   onOpenQuest,
   onOpenCode,
+  onOpenBoard,
   onOpenStudio,
 }: {
   board: QuestBoard;
   onTravel: (siteId: QuestSiteId) => void;
   onOpenQuest: (questId: string) => void;
   onOpenCode: (questId: string) => void;
+  onOpenBoard: (questId: string) => void;
   onOpenStudio: () => void;
 }) {
-  const canvas = useVillageCanvas();
+  const current = board.current;
+  const showKari = shouldShowQuestNpc(current, "kari");
+  const canvas = useVillageCanvas({ showKari });
   const [knight] = useState(() => ({ ...bridge.knight }));
   const doors = placeDoors(weekDoors(board));
-  const current = board.current;
   const week = board.states.find((s) => s.quest.id === doors[0]?.id)?.chapter;
   // The optional luke isn't part of the week's count.
   const core = doors.filter((d) => !d.bonus);
@@ -57,6 +62,7 @@ export default function VillageMap({
     if (!step) return;
     if (step.kind === "giver") onTravel(step.site);
     else if (step.kind === "code") onOpenCode(step.questId);
+    else if (step.kind === "board") onOpenBoard(step.questId);
     else if (step.kind === "travel") onTravel(step.site);
     else if (step.kind === "studio") onOpenStudio();
     else onOpenQuest(step.questId);
@@ -74,6 +80,20 @@ export default function VillageMap({
           height={H}
           aria-hidden="true"
         />
+        {showKari && (
+          <span
+            className="vmap-kari"
+            style={{
+              left: pct(NPCS.kari.x, W),
+              top: pct(NPCS.kari.y - 20, H),
+            }}
+            role="img"
+            aria-label={`Kari står ${NPCS.kari.at}`}
+          >
+            <span className="vmap-kari-dot" />
+            <span className="vmap-kari-label">Kari</span>
+          </span>
+        )}
         {current?.status === "offered" && !current.pickup && (
           <span
             className="vmap-brann"

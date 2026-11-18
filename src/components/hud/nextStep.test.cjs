@@ -57,6 +57,19 @@ test("a code-window door opens the window from anywhere, with no place line", ()
   }
 });
 
+test("a board door opens the model board and never points back to its giver", () => {
+  for (const giver of [undefined, "arkivaren", "bakeren"]) {
+    const step = nextStep(
+      door({ id: "model", checkedBy: "board", giver, villageSite: "square" }),
+    );
+    assert.deepEqual(step, {
+      kind: "board",
+      label: "Åpne modellbrettet",
+      questId: "model",
+    });
+  }
+});
+
 test("a content door with a place walks there, otherwise opens the Studio", () => {
   assert.equal(
     nextStep(door({ checkedBy: "game", villageSite: "noticeboard" })).kind,

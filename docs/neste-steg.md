@@ -1,8 +1,16 @@
-# Neste steg (16. november 2026)
+# Neste steg etter ikke-teknisk løype
 
 Overlevering til neste økt. Les dette først, deretter `AGENTS.md` (Next 16 er ikke den Next du kjenner), `docs/utviklingsplan.md` og `docs/questplan.md`.
 
 ## Status
+
+- **Ikke-teknisk løype uke 1–3 er implementert lokalt** med ni kjerneluker:
+  felles oppstart, beskrivelse, History, to modellbrett, references,
+  saksmappe, Portable Text og validation-aware document action.
+- **Teknisk løype er bevart.** De egne testene for `bakerTemplate`,
+  `bakerForge` og `bakerFunction` er grønne.
+- **Automatiske sjekker:** 202 tester og TypeScript-sjekken er grønne etter
+  fase 5. Reell gjennomspilling i nettleser og eget Sanity-prosjekt gjenstår.
 
 - **Uke 2 (Arkivaren)** er merget til `main` (PR #8).
 - **Egen figur og karakterside** er merget til `main` (PR #9). Den inneholder:
@@ -27,12 +35,14 @@ Overlevering til neste økt. Les dette først, deretter `AGENTS.md` (Next 16 er 
 
 ## Kjente feil og gjeld
 
-1. **Datoavhengig test** feiler, også på `main`: «finishing before the next week's calendar date does not announce a new door» i `src/game/quests/useQuests.test.cjs`. Testen bruker sannsynligvis dagens dato. Den bør få en fast dato.
-2. **Lint:**
+1. **Lint:**
    - to `react-hooks/set-state-in-effect`-feil i `src/components/GameClient.tsx`, som var der fra før;
    - én advarsel om `exhaustive-deps`.
-3. **Turbopack** viser av og til gammel CSS. Gjør en ekte endring i `globals.css` for å få den til å laste på nytt.
-4. **`docs/fellesskap.md`** sier at alle har samme ridderutseende og at kortet bare har våpen. Den må oppdateres med figur og navn.
+2. **Turbopack** viser av og til gammel CSS. Gjør en ekte endring i `globals.css` for å få den til å laste på nytt.
+3. **`docs/fellesskap.md`** sier at alle har samme ridderutseende og at kortet bare har våpen. Den må oppdateres med figur og navn.
+4. **Manuell verifikasjon:** History-handlingen, modellbrettet på 375 px,
+   Portable Text på to flater og Klar mot ekte Studio-validation er ikke
+   gjennomspilt i denne økten.
 
 ## Åpen beslutning: figurskaperen i Studio
 
@@ -46,18 +56,19 @@ Nå er figurskaperen i spillet i stedet. Velg én av disse og oppdater dokumente
 
 ## Neste oppgaver, i rekkefølge
 
-1. **Sjekk på `main`** at nye spillere får karaktersiden etter intro-en (tøm lagret fremgang, eller bruk et nytt prosjekt).
-2. **Gi utstyret kilder.** Delene merket «Finnes i bygda» (lærvest, ringbrynje, rustning, hjelmer og krone) har ingen kilde ennå.
+1. **Gjennomspill ikke-teknisk løype** fra tom localStorage på port 3000 og
+  eget Sanity-prosjekt. Følg sjekklista og før tider i
+  `docs/gjennomspilling.md`. Ikke bruk felles production.
+2. **Prøv særlig integrasjonene** som automatiske tester ikke kan bevise:
+  History/**Revert to revision**, tastatur og 375 px, HUD-stripen og
+  validation-aware **Klar**.
+3. **Gi utstyret kilder.** Delene merket «Finnes i bygda» (lærvest, ringbrynje, rustning, hjelmer og krone) har ingen kilde ennå.
    - Forslag: legg dem som funn i bygda, eller som belønning fra smia når den når nivå 2, 3 og 4.
    - Lag dette som data i `GEAR_REWARDS`, eller som en ny kilde i `wardrobe.ts`.
    - Vis en kort melding når spilleren får noe: «Du fant Ringbrynje. Trykk C for å ta den på.»
-3. **Ta beslutningen om Studio** (se over), og oppdater `historie.md`, `gjennomforing.md` og `fellesskap.md`.
-4. **Uke 3 med Bakeren** (Automatisere): bruk luke-design-skillen (`/luke-design`) og `docs/questplan.md`. Plasser lukene på samme måte som i uke 2:
-   - `giver: "bakeren"` i `chapters.ts`;
-   - flest mulig kodeoppgaver i kodevinduet i spillet;
-   - ekte kode slås på i Studio når oppgaven er løst.
-5. **Oppdater `docs/questplan.md` og `docs/historie.md`** med uke 2 slik den ble bygget.
-6. **Rydd opp i testene:** gi kalendertesten en fast dato, og fiks de to lint-feilene i `GameClient`.
+4. **Ta beslutningen om Studio** (se over), og oppdater `historie.md`, `gjennomforing.md` og `fellesskap.md`.
+5. **Rydd opp i baseline-lint:** fiks de to eksisterende feilene og
+  `exhaustive-deps`-advarselen i `GameClient` uten å blande det med lukearbeid.
 
 ## Mindre ideer for senere
 

@@ -42,7 +42,7 @@ export const GEAR_REWARDS: Record<string, GearKey[]> = {
 
 const BAKERY_CORE = [
   ["baker-template", "baker-forge", "baker-function"],
-  ["baker-first-order", "baker-sign", "baker-ready"],
+  ["baker-model", "baker-sign", "morning-rush"],
 ];
 
 const ALL_GEAR: GearKey[] = KEYS.flatMap((key) =>

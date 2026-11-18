@@ -4,7 +4,7 @@ import { giverOf } from "@/game/quests/label";
 import { lukeName } from "@/game/quests/label";
 import { useState } from "react";
 import type { QuestBoard } from "@/game/quests/engine";
-import type { QuestSiteId } from "@/game/village";
+import { NPCS, type QuestSiteId } from "@/game/village";
 import { IconBook, IconCheck, IconMap } from "./icons";
 import { nextStep } from "./nextStep";
 import { renderText } from "./richText";
@@ -17,6 +17,7 @@ type Props = {
   onOpenMap: () => void;
   onOpenQuest: (questId: string) => void; // the door's page in the journal
   onOpenCode: (questId: string) => void;
+  onOpenBoard: (questId: string) => void;
   onOpenStudio: () => void;
   onTravel: (site: QuestSiteId) => void;
   // A finished door whose celebration waits until the Studio pane closes.
@@ -35,6 +36,7 @@ export default function QuestTracker({
   onOpenMap,
   onOpenQuest,
   onOpenCode,
+  onOpenBoard,
   onOpenStudio,
   onTravel,
   finished,
@@ -52,6 +54,7 @@ export default function QuestTracker({
     if (!step) return;
     if (step.kind === "giver") onTravel(step.site);
     else if (step.kind === "code") onOpenCode(step.questId);
+    else if (step.kind === "board") onOpenBoard(step.questId);
     else if (step.kind === "travel") onTravel(step.site);
     else if (step.kind === "studio") onOpenStudio();
     else onOpenQuest(step.questId);
@@ -111,6 +114,9 @@ export default function QuestTracker({
           {current ? lukeName(current.quest) : "Julekalenderen"}
         </span>
         <span className="tracker-title">{title}</span>
+        {current && !offered && current.quest.topic && (
+          <span className="quest-topic">{renderText(current.quest.topic)}</span>
+        )}
       </button>
 
       {open && (
@@ -124,12 +130,22 @@ export default function QuestTracker({
           )}
           {current && !offered && (
             <>
-              <p className="tracker-goal">{renderText(current.quest.goal)}</p>
+              <p className="tracker-goal">
+                {renderText(current.result.goal ?? current.quest.goal)}
+              </p>
+              {current.quest.asksNpc && (
+                <p className="tracker-note">
+                  {NPCS[current.quest.asksNpc].name} står{" "}
+                  {NPCS[current.quest.asksNpc].at}.
+                </p>
+              )}
               {ready && (
                 <p className="tracker-ready">
                   {current.quest.checkedBy === "window"
                     ? "Alle sjekker består. Lukk kodevinduet for å fullføre."
-                    : "Alle sjekker består."}
+                    : current.quest.checkedBy === "board"
+                      ? "Alle sjekker består. Lukk modellbrettet for å fullføre."
+                      : "Alle sjekker består."}
                 </p>
               )}
               {current.result.objectives && (

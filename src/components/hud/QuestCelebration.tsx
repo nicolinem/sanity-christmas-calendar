@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { QuestCelebration as Celebration } from "@/game/bridge";
 import { IconCheck } from "./icons";
+import { renderText } from "./richText";
 import SpriteIcon from "./SpriteIcon";
 import { NPCS } from "@/game/village";
 
@@ -17,7 +18,9 @@ export default function QuestCelebration({
   door,
   bonus,
   title,
+  topic,
   lesson,
+  atWork,
   outro,
   objectives,
   level,
@@ -89,6 +92,9 @@ export default function QuestCelebration({
           <p className="quest-celebration-title">
             {unlocked ? `Neste oppgave venter hos ${giver.name}` : title}
           </p>
+          {!unlocked && topic && (
+            <p className="quest-topic">{renderText(topic)}</p>
+          )}
           {!unlocked &&
             outro?.map((line) => (
               <p className="quest-celebration-note" key={line}>
@@ -119,6 +125,11 @@ export default function QuestCelebration({
                 </li>
               ))}
             </ul>
+          )}
+          {!unlocked && atWork && (
+            <p className="quest-at-work">
+              <strong>På jobb</strong> {renderText(atWork)}
+            </p>
           )}
           {unlocked ? (
             <p className="quest-celebration-note">

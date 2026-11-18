@@ -4,9 +4,8 @@ import { apiVersion, dataset, projectId } from "@/sanity/env";
 import {
   ARCHIVE_IDS,
   FOOTPRINTS_SVG,
-  LINK_THE_PLACE,
   PLACES,
-  SOURCE_CHECK,
+  WHO_IS_LYING,
   WITNESSES,
   type OwnArchiveDoc,
   type OwnCase,
@@ -19,23 +18,49 @@ import {
 
 export const dynamic = "force-dynamic";
 
+async function hasUnpublishedCaseDraft(): Promise<boolean> {
+  const token = process.env.SANITY_AUTH_TOKEN;
+  if (!projectId || !token) return false;
+  try {
+    const reader = createClient({
+      projectId,
+      dataset,
+      apiVersion,
+      token,
+      useCdn: false,
+      perspective: "raw",
+    });
+    const drafts = await reader.fetch<{ observations?: string[] }[]>(
+      '*[_type == "case" && _id in path("drafts.**")]{"observations": observations[]._ref}',
+    );
+    const relevantIds = new Set(ARCHIVE_IDS);
+    return drafts.some((draft) =>
+      (draft.observations ?? []).some((id) => relevantIds.has(id)),
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function GET() {
   const client = getSanityClient();
   if (!client) return Response.json({ configured: false, docs: [], cases: [] });
   try {
-    const [docs, cases] = await Promise.all([
+    const [docs, cases, caseDraft] = await Promise.all([
       client.fetch<OwnArchiveDoc[]>(
         '*[_type == "observation" && _id in $ids]{_id, status, "place": place._ref}',
         { ids: ARCHIVE_IDS },
       ),
       client.fetch<OwnCase[]>(
-        '*[_type == "case"]{_id, "observations": observations[]._ref}',
+        '*[_type == "case"] | order(_updatedAt desc){_id, title, "observations": observations[]._ref, "entries": observations[]->{_id, what, "place": place->name}}',
       ),
+      hasUnpublishedCaseDraft(),
     ]);
     return Response.json({
       configured: true,
       docs,
       cases: cases.map((c) => ({ ...c, observations: c.observations ?? [] })),
+      caseDraft,
     });
   } catch (error) {
     console.error("Could not read the archive:", error);
@@ -78,30 +103,20 @@ export async function POST(request: Request) {
     const tx = writer.transaction();
     for (const p of PLACES) tx.createIfNotExists({ ...p });
     for (const w of WITNESSES) tx.createIfNotExists({ ...w });
-    for (const o of SOURCE_CHECK)
+    for (const o of WHO_IS_LYING)
       tx.createIfNotExists({
         _id: o._id,
         _type: "observation",
         what: o.what,
         time: o.time,
-        place: ref(`place-${o.place}`),
+        ...(o.place ? { place: ref(`place-${o.place}`) } : {}),
+        ...(o.placeNote ? { placeNote: o.placeNote } : {}),
         witness: ref(`witness-${o.witness}`),
-        seen: true,
+        seen: o.seen,
         status: "unknown",
         ...(o.image
           ? { image: { _type: "image", asset: ref(asset._id) } }
           : {}),
-      });
-    for (const o of LINK_THE_PLACE)
-      tx.createIfNotExists({
-        _id: o._id,
-        _type: "observation",
-        what: o.what,
-        time: o.time,
-        placeNote: o.placeNote,
-        witness: ref(`witness-${o.witness}`),
-        seen: true,
-        status: "confirmed",
       });
     await tx.commit();
     return Response.json({ ok: true });

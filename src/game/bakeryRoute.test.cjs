@@ -53,7 +53,7 @@ test("bakery seed rejects cross-origin requests", async () => {
   assert.equal(commits, 0);
 });
 
-test("bakery seed uses createIfNotExists for exactly three inert sample orders", async () => {
+test("bakery seed creates the three morning-rush orders without overwriting", async () => {
   const response = await mod.exports.POST({
     url: "https://game.example/api/bakery",
     headers: { get: () => "https://game.example" },
@@ -65,4 +65,12 @@ test("bakery seed uses createIfNotExists for exactly three inert sample orders",
     SAMPLE_ORDERS.map((doc) => doc._id),
   );
   assert.ok(created.every((doc) => doc.orderedBy && doc.status === "venter"));
+  assert.equal(
+    created.find(({ orderedBy }) => orderedBy === "Arkivaren").date,
+    undefined,
+  );
+  assert.equal(
+    created.find(({ orderedBy }) => orderedBy === "Kari").item,
+    undefined,
+  );
 });

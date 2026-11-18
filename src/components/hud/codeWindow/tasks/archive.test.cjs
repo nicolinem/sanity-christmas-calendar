@@ -175,36 +175,40 @@ test("Arkivarens questions: partial answers count, and the rule may not use stat
 });
 
 test("the non-technical checks count right answers, never more", () => {
-  const right = archive.SOURCE_CHECK.map((s) => ({
+  const right = archive.WHO_IS_LYING.map((s) => ({
     _id: s._id,
     status: s.expected,
   }));
   assert.deepEqual(plain(archive.sourceCheckScore(right)), {
-    right: 9,
-    total: 9,
+    right: 5,
+    total: 5,
   });
   const trap = right.map((d) =>
-    d._id === "archive-e1" ? { ...d, status: "confirmed" } : d,
+    d._id === "archive-e" ? { ...d, status: "confirmed" } : d,
   );
   assert.deepEqual(plain(archive.sourceCheckScore(trap)), {
-    right: 8,
-    total: 9,
+    right: 4,
+    total: 5,
   });
-  assert.deepEqual(plain(archive.sourceCheckScore([])), { right: 0, total: 9 });
-  const linked = archive.LINK_THE_PLACE.map((s) => ({
-    _id: s._id,
-    place: s.expected,
-  }));
-  assert.deepEqual(plain(archive.linkScore(linked)), { right: 3, total: 3 });
+  assert.deepEqual(plain(archive.sourceCheckScore([])), { right: 0, total: 5 });
+  assert.deepEqual(
+    plain(archive.linkScore([{ _id: "archive-c", place: "place-bakeriet" }])),
+    { right: 1, total: 1 },
+  );
 });
 
 test("the player's starting documents follow Arkivaren's rule", () => {
-  // Confirmed: a picture, or another witness at the same place.
-  for (const s of archive.SOURCE_CHECK) {
-    const others = archive.SOURCE_CHECK.filter(
-      (o) => o.place === s.place && o.witness !== s.witness,
+  // Confirmed: seen with a picture, or the same event seen by another witness.
+  const clues = archive.WHO_IS_LYING.map((clue) => ({
+    ...clue,
+    place: clue._id === "archive-c" ? "bakeriet" : clue.place,
+  }));
+  for (const s of clues) {
+    const others = clues.filter(
+      (o) =>
+        o.what === s.what && o.place === s.place && o.witness !== s.witness,
     );
-    const confirmed = Boolean(s.image) || others.length > 0;
+    const confirmed = s.seen && (Boolean(s.image) || others.length > 0);
     assert.equal(confirmed ? "confirmed" : "rumor", s.expected, s._id);
   }
 });

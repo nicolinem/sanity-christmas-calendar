@@ -161,7 +161,256 @@ function BakeryCard({
   );
 }
 
+// --- Ikke-teknisk løype: the real things the player changes ---------------
+
+// The forge board (luke 2): a parchment sign with the weapon and a sentence.
+function ForgeBoard({ text }: { text?: string }) {
+  return (
+    <div className="gp-board">
+      <SpriteImage spriteId="sword" kind="weapon" scale={2} />
+      <span>
+        <strong>Frostbit</strong>
+        {text ?? <em>Ingen beskrivelse ennå.</em>}
+      </span>
+    </div>
+  );
+}
+
+// A Studio document row with its sprite, as in the document list.
+function ItemRow({
+  name,
+  sprite,
+  sub,
+  wrong,
+}: {
+  name: string;
+  sprite: string;
+  sub: string;
+  wrong?: boolean;
+}) {
+  return (
+    <StudioCard label="Item">
+      <ul className="gp-list">
+        <li>
+          <span className="gp-media">
+            <SpriteImage spriteId={sprite} kind="weapon" scale={2} />
+          </span>
+          <span className="gp-row-text">
+            <span className="gp-row-title">{name}</span>
+            <span className={`gp-row-sub${wrong ? " is-wrong" : ""}`}>
+              {sub}
+            </span>
+          </span>
+        </li>
+      </ul>
+    </StudioCard>
+  );
+}
+
+// A handwritten note (Arkivaren's lapp).
+function Note({ children }: { children: ReactNode }) {
+  return <div className="gp-note">{children}</div>;
+}
+
+// A Studio form: field name, value and the field type as a small chip.
+function TypedForm({ rows }: { rows: [string, string, string][] }) {
+  return (
+    <StudioCard label="Observation">
+      <dl className="gp-fields">
+        {rows.map(([field, value, type]) => (
+          <div key={field} className="gp-typed">
+            <dt>{field}</dt>
+            <dd>
+              {value}
+              <span className="gp-chip">{type}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </StudioCard>
+  );
+}
+
+// «Per sted»: the observations listed under one place, each with its status.
+function PlaceList({
+  rows,
+}: {
+  rows: { what: string; status: string; tone?: "ok" | "off" }[];
+}) {
+  return (
+    <StudioCard label="Per sted › Bakeriet">
+      <ul className="gp-list">
+        {rows.map((row) => (
+          <li key={row.what}>
+            <span className="gp-row-title">{row.what}</span>
+            <span className={`gp-badge${row.tone ? ` is-${row.tone}` : ""}`}>
+              {row.status}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </StudioCard>
+  );
+}
+
+// The noticeboard on the square (luke 6).
+function Noticeboard({ children }: { children: ReactNode }) {
+  return <div className="gp-noticeboard">{children}</div>;
+}
+
+// A bakery order in Studio, with its Publish button and any error.
+function OrderForm({
+  item,
+  date,
+  status,
+  blocked,
+}: {
+  item?: string;
+  date?: string;
+  status?: string;
+  blocked?: boolean;
+}) {
+  const value = (v?: string) => v || <em>tom</em>;
+  return (
+    <StudioCard>
+      <div className="gp-doc-head">
+        <span>Ny bestilling</span>
+        <span className={`gp-publish${blocked ? " is-off" : ""}`}>Publish</span>
+      </div>
+      <dl className="gp-fields">
+        <dt>Vare{blocked !== undefined && " *"}</dt>
+        <dd>
+          {value(item)}
+          {blocked && <span className="gp-error">Varen må fylles ut</span>}
+        </dd>
+        <dt>Dato{blocked !== undefined && " *"}</dt>
+        <dd>{value(date)}</dd>
+        <dt>Status{blocked !== undefined && " *"}</dt>
+        <dd>{value(status)}</dd>
+      </dl>
+    </StudioCard>
+  );
+}
+
+// The stall sign and the short app version of the same Portable Text.
+function SignPair({ word }: { word?: string }) {
+  const text = word ? (
+    <>
+      Nystekte <strong>{word}</strong> i dag
+    </>
+  ) : (
+    <em>tomt skilt</em>
+  );
+  return (
+    <div className="gp-signs">
+      <div className="gp-sign">{text}</div>
+      <div className="gp-app">{text}</div>
+    </div>
+  );
+}
+
+// The four orders on the morning of the market, with the Klar state.
+function RushList({ ready }: { ready: boolean }) {
+  const rows: [string, string][] = [
+    ["Brann", "venter"],
+    ["Arkivaren", "mangler dato"],
+    ["Kari", "mangler vare"],
+    ["Din", "ny"],
+  ];
+  return (
+    <StudioCard label="Bestillinger">
+      <ul className="gp-list">
+        {rows.map(([who, state]) => (
+          <li key={who}>
+            <span className="gp-row-title">{who}</span>
+            <span
+              className={`gp-badge ${
+                ready ? "is-ok" : state.startsWith("mangler") ? "is-bad" : ""
+              }`}
+            >
+              {ready ? "klar" : state}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </StudioCard>
+  );
+}
+
 const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
+  "weapon-description": {
+    before: <ForgeBoard />,
+    after: <ForgeBoard text="Smidd for vinterens farer." />,
+  },
+  "apprentice-mistake": {
+    before: (
+      <ItemRow
+        name="Bran sin hemmer"
+        sprite="hand-axe"
+        sub="banan banan helt feil"
+        wrong
+      />
+    ),
+    after: (
+      <ItemRow
+        name="Brann sin hammer"
+        sprite="hammer"
+        sub="En solid smiehammer …"
+      />
+    ),
+  },
+  "archive-model": {
+    before: (
+      <Note>
+        21:40 – fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde.
+        Ikke sjekket.
+      </Note>
+    ),
+    after: (
+      <TypedForm
+        rows={[
+          ["What", "fotspor i snøen", "string"],
+          ["Place", "Smia →", "reference"],
+          ["Witness", "Kari →", "reference"],
+          ["Seen", "ja", "boolean"],
+          ["Status", "Unknown", "list"],
+        ]}
+      />
+    ),
+  },
+  "who-is-lying": {
+    before: (
+      <PlaceList rows={[{ what: "B · Melsekken revnet", status: "Unknown" }]} />
+    ),
+    after: (
+      <PlaceList
+        rows={[
+          { what: "B · Melsekken revnet", status: "Confirmed", tone: "ok" },
+          { what: "C · Melsekken revnet", status: "Confirmed", tone: "ok" },
+        ]}
+      />
+    ),
+  },
+  "case-file": {
+    before: (
+      <Noticeboard>
+        <span className="gp-slip">A</span>
+        <span className="gp-slip gp-slip--tilt">D?</span>
+        <span className="gp-slip">C</span>
+        <span className="gp-slip gp-slip--tilt">E?</span>
+      </Noticeboard>
+    ),
+    after: (
+      <Noticeboard>
+        <span className="gp-folder">
+          <strong>Saksmappa</strong>
+          <span>A · Smia</span>
+          <span>B · Bakeriet</span>
+          <span>C · Bakeriet</span>
+        </span>
+      </Noticeboard>
+    ),
+  },
   "branns-ledger": { before: <ListBefore />, after: <ListAfter /> },
   "the-guilds-law": {
     before: <DocumentCard blocked={false} />,
@@ -187,6 +436,10 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
         ]}
       />
     ),
+  },
+  "baker-model": {
+    before: <OrderForm />,
+    after: <OrderForm date="i dag" status="ny" blocked />,
   },
   "baker-forge": {
     before: (
@@ -228,58 +481,13 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       />
     ),
   },
-  "baker-first-order": {
-    before: (
-      <BakeryCard
-        label="Din nye bestilling"
-        lines={[
-          ["Vare", ""],
-          ["Status", "ny"],
-          ["Dato", "14. desember"],
-        ]}
-      />
-    ),
-    after: (
-      <BakeryCard
-        label="Publisert bestilling"
-        lines={[
-          ["Vare", "Julekake"],
-          ["Status", "ny"],
-          ["Dato", "14. desember"],
-        ]}
-      />
-    ),
-  },
   "baker-sign": {
-    before: <BakeryCard label="Bodskilt" lines={[["Skilttekst", ""]]} />,
-    after: (
-      <BakeryCard
-        label="Publisert bodskilt"
-        lines={[["Skilttekst", "Nystekte JULEKAKER"]]}
-      />
-    ),
+    before: <SignPair />,
+    after: <SignPair word="kanelboller" />,
   },
-  "baker-ready": {
-    before: (
-      <BakeryCard
-        label="Din bestilling"
-        lines={[
-          ["Vare", "Julekake"],
-          ["Status", "ny"],
-          ["Handling", "Publish"],
-        ]}
-      />
-    ),
-    after: (
-      <BakeryCard
-        label="Din bestilling"
-        lines={[
-          ["Vare", "Julekake"],
-          ["Status", "klar"],
-          ["Handling", "Klar → publisert"],
-        ]}
-      />
-    ),
+  "morning-rush": {
+    before: <RushList ready={false} />,
+    after: <RushList ready />,
   },
   "baker-link": {
     before: (

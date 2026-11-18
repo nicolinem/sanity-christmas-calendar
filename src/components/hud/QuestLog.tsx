@@ -6,7 +6,7 @@ import { CHAPTERS } from "@/game/quests/chapters";
 import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
 import { fridayOf } from "@/game/quests/weeks";
 import type { Progress, QuestState, QuestTrack } from "@/game/quests/types";
-import { QUEST_SITES, type QuestSiteId } from "@/game/village";
+import { NPCS, QUEST_SITES, type QuestSiteId } from "@/game/village";
 import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
@@ -32,6 +32,7 @@ type Props = {
   completedAt: Progress["completed"];
   onRevealHint: (questId: string) => void;
   onOpenCode: (questId: string) => void;
+  onOpenBoard: (questId: string) => void;
   onTravelToSite: (siteId: QuestSiteId) => void;
   onClose: () => void;
   onReset: () => void;
@@ -55,6 +56,7 @@ export default function QuestLog({
   completedAt,
   onRevealHint,
   onOpenCode,
+  onOpenBoard,
   onTravelToSite,
   onClose,
   onReset,
@@ -203,6 +205,7 @@ export default function QuestLog({
                 selected && selected.chapter.number === week ? (
                   <QuestDetail
                     state={selected}
+                    states={board.states}
                     completedAt={completedAt[selected.quest.id]}
                     shown={hintsShown[selected.quest.id] ?? 0}
                     onMoreHint={() => onRevealHint(selected.quest.id)}
@@ -224,6 +227,7 @@ export default function QuestLog({
               board={board}
               onTravel={onTravelToSite}
               onOpenCode={onOpenCode}
+              onOpenBoard={onOpenBoard}
               onOpenStudio={() => {
                 openStudio();
                 onClose();
@@ -460,6 +464,11 @@ function WeekBody({
                   {s.status === "offered" && !s.pickup
                     ? `Snakk med ${giverOf(s.quest).name}`
                     : s.quest.title}
+                  {s.status !== "offered" && s.quest.topic && (
+                    <span className="quest-topic">
+                      {renderText(s.quest.topic)}
+                    </span>
+                  )}
                 </span>
               </button>
             </li>
@@ -483,6 +492,7 @@ function WeekBody({
 
 function QuestDetail({
   state,
+  states,
   completedAt,
   shown,
   onMoreHint,
@@ -493,6 +503,7 @@ function QuestDetail({
   onClose,
 }: {
   state: QuestState;
+  states: QuestState[];
   completedAt?: string;
   shown: number;
   onMoreHint: () => void;
@@ -540,14 +551,24 @@ function QuestDetail({
   }
 
   if (status === "locked") {
+    const index = states.findIndex((s) => s.quest.id === quest.id);
+    const prerequisite = states
+      .slice(0, index)
+      .reverse()
+      .find((s) => !s.quest.bonus && s.status !== "done");
     return (
       <article className="log-detail">
         <p className="log-week-kicker">{lukeName(quest)}</p>
         <h3 className="log-quest-title">{quest.title}</h3>
+        {quest.topic && (
+          <p className="quest-topic">{renderText(quest.topic)}</p>
+        )}
         <p className="log-locked">
-          {state.opensAt
-            ? `Åpner ${dateLabel(state.opensAt)}.`
-            : "Åpner når du har fullført luken før."}
+          {prerequisite
+            ? `Gjør luke ${prerequisite.quest.door} først.`
+            : state.opensAt
+              ? `Åpner ${dateLabel(state.opensAt)}.`
+              : "Åpner når du har fullført luken før."}
         </p>
       </article>
     );
@@ -566,10 +587,20 @@ function QuestDetail({
         </div>
         <p className="log-week-kicker">{lukeName(quest)}</p>
         <h3 className="log-quest-title">{quest.title}</h3>
+        {quest.asksNpc && (
+          <p className="log-where">
+            {NPCS[quest.asksNpc].name} står {NPCS[quest.asksNpc].at}.
+          </p>
+        )}
         <div className="log-lesson log-lesson--inline">
           <p className="log-lesson-quest">Det du lærte</p>
           <h4 className="log-lesson-title">{renderText(quest.lesson.title)}</h4>
           <p className="log-lesson-text">{renderText(quest.lesson.text)}</p>
+          {quest.lesson.atWork && (
+            <p className="quest-at-work">
+              <strong>På jobb</strong> {renderText(quest.lesson.atWork)}
+            </p>
+          )}
         </div>
         {result.objectives && (
           <ul className="tracker-list log-done-list">
@@ -613,6 +644,10 @@ function QuestDetail({
     );
   }
 
+  const firstOfWeek = state.chapter.quests.find((q) => !q.bonus);
+  const opening =
+    firstOfWeek?.id === quest.id ? (state.chapter.opening ?? []) : [];
+
   return (
     <article className="log-detail">
       <p className="log-week-kicker log-week-kicker--active">
@@ -622,16 +657,33 @@ function QuestDetail({
           : "pågår"}
       </p>
       <h3 className="log-quest-title">{quest.title}</h3>
-      <p className="log-intro">
-        {quest.villageSite === "bakerySign" ? (
-          quest.intro.map((line) => (
-            <span key={line}>«{renderText(line)}» </span>
-          ))
-        ) : (
-          <>«{renderText(quest.intro[quest.intro.length - 1])}»</>
-        )}
-      </p>
-      <p className="log-goal">{renderText(quest.goal)}</p>
+      {quest.topic && <p className="quest-topic">{renderText(quest.topic)}</p>}
+      {opening.length > 0 && (
+        <details className="log-opening">
+          <summary>Dette har skjedd i bygda</summary>
+          {opening.map((line) => (
+            <p key={line}>«{renderText(line)}»</p>
+          ))}
+        </details>
+      )}
+      <div className="log-intro">
+        {quest.intro.map((line) => (
+          <p key={line}>«{renderText(line)}»</p>
+        ))}
+      </div>
+      {quest.asksNpc && (
+        <p className="log-where">
+          {NPCS[quest.asksNpc].name} står {NPCS[quest.asksNpc].at}.
+        </p>
+      )}
+      <p className="log-goal">{renderText(result.goal ?? quest.goal)}</p>
+      {quest.steps && (
+        <ol className="log-steps">
+          {quest.steps.map((step) => (
+            <li key={step}>{renderText(step)}</li>
+          ))}
+        </ol>
+      )}
       <GoalPreview quest={quest} />
       {quest.where && (
         <p className="log-where">

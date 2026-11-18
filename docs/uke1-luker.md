@@ -3,7 +3,7 @@
 Oppdatert 2026-11-12. Retningen «Sanity er bygdas verksted» er vedtatt i
 [questplan.md](questplan.md#sanity-er-bygdas-verksted--vedtatt-retning-2026-11-10).
 Teknisk rekkefølge er avtalt; tekst, sjekker og Studio-resultat må fortsatt
-gjennomspilles. Den ikke-tekniske løypa er fortsatt et forslag. Åpne valg om
+gjennomspilles. Den ikke-tekniske løypa er implementert. Åpne valg om
 poeng og personvern står i [questplan.md](questplan.md).
 Dette erstatter de løse uke-1-ideene, ikke avtalene om poeng, datoer,
 løypebytte eller personvern.
@@ -24,8 +24,8 @@ Studio og spillet, ikke bare en bestått kodeøvelse.
 - **Felles oppstart:** Publiser og prøv ditt eget våpen.
 - **Teknisk løype:** Ikon/preview → validation → custom input. Oppgave 5,
   `Document view`, er tatt ut. Antallet er ikke en kvote.
-- **Ikke-teknisk forslag:** Beskrivelse som brukes i spillet → oppdater samme
-  dokument uten å publisere endringen for tidlig. Ingen kode eller terminal.
+- **Ikke-teknisk løype:** Beskrivelse som brukes på to flater → gjenopprett
+  en tidligere revisjon med History. Ingen kode eller terminal.
 - **Frivillig videre:** Lag og endre mer innhold hvis du vil bruke det.
   Ingen krav om en samling av en bestemt størrelse, og ingen ekstra poeng for
   gjentatt publisering.
@@ -188,7 +188,7 @@ og [Sanity UI Button](https://www.sanity.io/ui/docs/primitive/button).
 igjen, mens Sanity UI holder valgene hjemme i Studio. **Resultat:** Den
 publiserte spriten vises på våpenet i spillet.
 
-## Ikke-teknisk løype — nye luker, ikke implementert
+## Ikke-teknisk løype — implementert
 
 Bruk våpenet fra oppstarten. Ingen ny dokumenttype, ingen krav om en samling,
 og ingen tekstkvalitetspoeng. Feltene `name`, `kind`, `sprite` og `description`
@@ -204,7 +204,7 @@ ikke et skjult kodekrav for spilleren.
 
 ### Innhold: Gi våpenet en beskrivelse
 
-**Foreslått ny ID:** `describe-weapon`, løype `nonTechnical`.
+**ID:** `weapon-description`, luke 2, løype `nonTechnical`.
 
 **Tema:** Et innholdsfelt brukes utenfor Studio.
 
@@ -215,12 +215,12 @@ ikke et skjult kodekrav for spilleren.
 og åpne informasjonen om våpenet i spillet. Innholdet er spillerens eget;
 ingen bestemt formulering eller skjult «riktig» beskrivelse.
 
-**Foreslått automatisk sjekk:** Samme valgte dokument har en publisert,
+**Automatisk sjekk:** Samme valgte dokument har en publisert,
 ikke-tom `description` som er forskjellig fra verdien ved oppgavestart.
-Et rent mellomrom teller ikke. Spillet viser allerede beskrivelsen i
-utstyrslistens tooltip; det finnes ikke en quest-sjekk for dette ennå.
-Sjekken bekrefter teksten i publisert innhold, ikke at tooltipen er lest
-eller at teksten er «god».
+Et rent mellomrom teller ikke. Referansen lagres som
+`progress.weaponDescriptionBefore` sammen med dokument-ID-en. Første setning
+vises både på våpenet og ved smia. Sjekken bekrefter publisert innhold, ikke at
+teksten er «god».
 
 **Hintstige:** Åpne ditt eksisterende `Item` → rediger `Description` og velg
 `Publish` → finn samme gjenstand i spillet og vis informasjonen.
@@ -229,40 +229,39 @@ eller at teksten er «god».
 **Lærdom / resultat:** Studio-feltet er innhold som spillet kan presentere,
 ikke bare et felt i et skjema. Din beskrivelse vises på våpenet.
 
-### Oppdatering: Prøv et nytt utseende før du publiserer
+### History: Lærlingens feil
 
-**Foreslått ny ID:** `update-weapon-sprite`, løype `nonTechnical`.
+**ID:** `apprentice-mistake`, luke 3, løype `nonTechnical`.
 
-**Tema:** Et document beholder identiteten sin når det får en ny publisert versjon.
+**Tema:** *History* og tidligere revisjoner.
 
-> **Brann:** Prøv et annet bilde på det samme våpenet. Lista mi skal ikke
-> endres før du publiserer, og jeg trenger ikke et nytt dokument hver gang.
+> **Brann:** Lærlingen endret hammeren min. Finn den riktige revisjonen i
+> History og gjenopprett den.
 
-**Gjør i Studio:** Endre `Sprite` på samme våpen med standardfeltet. Se at
-spillet fortsatt viser det publiserte bildet mens endringen er et utkast.
-Publiser og se at det samme våpenet nå viser det nye bildet.
+**Gjør i Studio:** Åpne hammeren, åpne History, sammenlign revisjonene og bruk
+**Revert to revision** på den opprinnelige versjonen.
 
-**Foreslått automatisk sjekk:** Dokument-ID er uendret, og publisert, kjent
-`spriteId` er forskjellig fra referansen tatt ved oppstart av denne luka. Et
-annet dokument, sletting og ukjent sprite med reservebilde teller ikke.
-Dette bekrefter den publiserte oppdateringen, ikke at spilleren observerte
-utkastfasen. Innholdssjekken og referanselagringen må bygges.
+**Automatisk sjekk:** Det faste dokumentet `item-brann-anvil-hammer` må igjen
+ha det opprinnelige navnet, beskrivelsen og sprite-ID-en i publisert innhold.
+Seed-ruten lager først riktig revisjon og deretter lærlingens feil, bare i
+deltakerens prosjekt og bare hvis dokumentet ikke finnes. Senere endringer
+overskrives aldri.
 
-**Hintstige:** Åpne det samme dokumentet, ikke «New» → endre sprite uten å
-publisere og sammenlign med spillet → publiser og sammenlign igjen.
-[Documents](https://www.sanity.io/docs/studio/document-type).
+**Hintstige:** Åpne hammeren → åpne History og sammenlign versjoner → velg den
+opprinnelige revisjonen og **Revert to revision**.
+[History](https://www.sanity.io/docs/studio/history-experience).
 
-**Lærdom / resultat:** Oppdateringer endrer innholdet bak samme ID. Spillet
-får den nye publiserte versjonen uten at man lager en ny gjenstand.
+**Lærdom / resultat:** History viser hvordan et document har endret seg, og
+kan føre en tidligere revisjon tilbake til utkastet før publisering. Hammeren
+på smieveggen blir riktig igjen.
 
 ## Regler for foreslåtte innholdssjekker
 
-Referansedata er et lite lokalt øyeblikksbilde av valgt publisert document:
-ID og relevante felt, ikke en ny backend eller en kopi av hele datasettet.
-Foreslått plass er et eget `questBaselines`-felt på `Progress`, per oppgave-ID
-i den eksisterende prosjektspesifikke localStorage-lagringen. Ikke gjenbruk
-`solved`, som allerede betyr bestått kodeoppgave. Gamle lagringer får et tomt
-referansekart uten at tidligere fullføringer endres.
+Referansedata for beskrivelsesluka er et lite lokalt øyeblikksbilde av valgt
+publisert document: `weaponDescriptionItemId` og
+`weaponDescriptionBefore` i den eksisterende prosjektspesifikke
+localStorage-lagringen. `solved` brukes fortsatt bare til kode- og
+modellbrettoppgaver.
 Ta det først når luka er aktiv og innholdet er hentet; bevar det etter reload.
 Hvis innholdet ikke kan hentes, vent med en tydelig melding, ikke ta en tom
 referanse som kan gi feilaktig fullføring.
@@ -279,8 +278,8 @@ får egne stabile ID-er, ikke de tekniske lukenes ID-er eller plassnummer.
 | ---------- | ----------------------------------------------------------------------------------------------- |
 | Tydelig    | ~ Brann sier behov og sted; tekstene må fortsatt prøves av en ny deltaker.                      |
 | Verdt det  | ✓ Alle lukene bruker faktisk innhold eller forbedrer Studio-verktøyet.                          |
-| Svarer     | ~ Innhold vises allerede i spillet; referansesjekker og Studio-avslutninger må bygges.          |
-| Belønnende | ~ Resultat i Studio/spillet pluss fullføringsvarsel er planlagt; helheten er ikke gjennomspilt. |
+| Svarer     | ✓ Publisert beskrivelse og eksakte hammerverdier sjekkes automatisk.                            |
+| Belønnende | ~ Resultat i Studio/spillet og fullføringsvarsel er bygget; helheten er ikke gjennomspilt.      |
 | Passer     | ✓ Samme våpenliste og kjente verktøy, uten nye spillbegreper eller mengdekrav.                  |
 
 **Tidsramme:** Rundt én time per løype/uke og høyst 25 minutter per luke er

@@ -175,7 +175,7 @@ export const DOOR_ANCHORS: Record<QuestSiteId, { x: number; y: number }> = {
 
 // The people in the village who hand out lukes. Each stands at a place and
 // gets a «!» while they have a luke the player hasn't heard about yet.
-export type NpcId = "brann" | "arkivaren" | "bakeren";
+export type NpcId = "brann" | "arkivaren" | "bakeren" | "kari";
 export type Npc = {
   id: NpcId;
   name: string;
@@ -216,6 +216,15 @@ export const NPCS: Record<NpcId, Npc> = {
     x: QUEST_SITES.bakery.x,
     y: QUEST_SITES.bakery.y,
   },
+  kari: {
+    id: "kari",
+    name: "Kari",
+    sprite: { sheet: "dungeon", frame: 87 },
+    site: "westHouse",
+    at: "ved huset vest i bygda",
+    x: QUEST_SITES.westHouse.x,
+    y: QUEST_SITES.westHouse.y,
+  },
 };
 
 // Who stands at a place, if anyone.
@@ -223,6 +232,21 @@ export function npcAtSite(
   site: QuestSiteId | null | undefined,
 ): Npc | undefined {
   return Object.values(NPCS).find((n) => n.site === site);
+}
+
+export function shouldShowQuestNpc(
+  current: { quest: { asksNpc?: NpcId }; status: string } | null | undefined,
+  npcId: NpcId,
+): boolean {
+  return current?.status === "active" && current.quest.asksNpc === npcId;
+}
+
+export function npcQuestLine(
+  npc: NpcId,
+  questId: string | undefined,
+): string | undefined {
+  if (npc === "kari" && questId === "morning-rush")
+    return "Julekake, selvfølgelig!";
 }
 
 // Doors that share a place stand side by side, 22px apart.

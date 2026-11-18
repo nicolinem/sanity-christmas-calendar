@@ -42,6 +42,9 @@ test("the village sign shows published rich text, including bold and safe links"
   assert.match(html, /href="https:\/\/example.com\/kaker"/);
   assert.match(html, /rel="noopener noreferrer"/);
   assert.match(html, /role="dialog"/);
+  assert.match(html, /Skiltet ved boden/);
+  assert.match(html, /Kortversjon, som i en app/);
+  assert.equal((html.match(/<strong>kaker<\/strong>/g) ?? []).length, 2);
 });
 
 test("unpublished or unsafe links cannot appear on the village sign", () => {

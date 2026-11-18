@@ -4,16 +4,10 @@ export type BakeryOrder = {
   orderedBy?: string | null;
   date?: string | null;
   status?: string | null;
+  createdAt?: string | null;
 };
 
-export const SAMPLE_ORDERS: {
-  _id: string;
-  _type: "bakeryOrder";
-  item: string;
-  orderedBy: string;
-  date: string;
-  status: string;
-}[] = [
+export const SAMPLE_ORDERS: (BakeryOrder & { _type: "bakeryOrder" })[] = [
   {
     _id: "bakery-sample-brann",
     _type: "bakeryOrder",
@@ -27,13 +21,11 @@ export const SAMPLE_ORDERS: {
     _type: "bakeryOrder",
     item: "Pepperkaker",
     orderedBy: "Arkivaren",
-    date: "2026-12-14",
     status: "venter",
   },
   {
     _id: "bakery-sample-kari",
     _type: "bakeryOrder",
-    item: "Julekake",
     orderedBy: "Kari",
     date: "2026-12-14",
     status: "venter",
@@ -101,4 +93,28 @@ export const isNewOrder = (order: BakeryOrder) =>
   Boolean(order.item?.trim());
 
 export const isReadyOrder = (order: BakeryOrder) =>
-  order.status === "klar" && Boolean(order.item?.trim());
+  order.status === "klar" &&
+  Boolean(order.item?.trim()) &&
+  /^\d{4}-\d{2}-\d{2}$/.test(order.date ?? "");
+
+export const SAMPLE_ORDER_IDS = SAMPLE_ORDERS.map(({ _id }) => _id);
+
+export function findNewPlayerOrder(
+  orders: BakeryOrder[] | null | undefined,
+): BakeryOrder | undefined {
+  return orders
+    ?.filter(
+      (order) => !SAMPLE_ORDER_IDS.includes(order._id) && isNewOrder(order),
+    )
+    .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""))[0];
+}
+
+export function morningRushReadyCount(
+  orders: BakeryOrder[] | null | undefined,
+  playerOrderId: string | undefined,
+) {
+  if (!orders || !playerOrderId) return 0;
+  const targets = new Set([...SAMPLE_ORDER_IDS, playerOrderId]);
+  return orders.filter((order) => targets.has(order._id) && isReadyOrder(order))
+    .length;
+}

@@ -31,7 +31,7 @@ import {
   type QuestCelebration as QuestCelebrationData,
   type Zone,
 } from "@/game/bridge";
-import { findForgedWeapon } from "@/game/quests/chapters";
+import { findForgedWeapon, findPlayerWeapon } from "@/game/quests/chapters";
 import type { CodeCheck, QuestTrack } from "@/game/quests/types";
 import Hotbar from "./hud/Hotbar";
 import PlayerPlate from "./hud/PlayerPlate";
@@ -48,9 +48,13 @@ import {
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
-import type { OwnArchiveDoc, OwnCase } from "@/game/archive";
+import { ARCHIVE_IDS, type OwnArchiveDoc, type OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
+import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
+import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
+import ForgeDescription from "./hud/ForgeDescription";
+import ForgeHammer from "./hud/ForgeHammer";
 import { giverOf } from "@/game/quests/label";
 import { npcAtSite, type QuestSiteId } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
@@ -77,6 +81,9 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
 
 // The editor and the compiler only load when the code window opens.
 const CodeWindow = dynamic(() => import("./hud/codeWindow/CodeWindow"), {
+  ssr: false,
+});
+const ModelBoard = dynamic(() => import("./hud/modelBoard/ModelBoard"), {
   ssr: false,
 });
 
@@ -121,6 +128,7 @@ export default function GameClient() {
   // Arkivarens observasjoner in the player's project (uke 2, non-technical).
   const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
   const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
+  const [archiveCaseDrafts, setArchiveCaseDrafts] = useState(false);
   const [bakeryOrders, setBakeryOrders] = useState<
     import("@/game/bakery").BakeryOrder[] | null
   >(null);
@@ -139,6 +147,7 @@ export default function GameClient() {
   const [talking, setTalking] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const [signOpen, setSignOpen] = useState(false);
+  const [caseOpen, setCaseOpen] = useState(false);
   const [celebrations, setCelebrations] = useState<QuestCelebrationData[]>([]);
   const celebration = celebrations[0];
   const [logInitialTab, setLogInitialTab] = useState<"quests" | "map" | "book">(
@@ -148,6 +157,7 @@ export default function GameClient() {
     string | undefined
   >();
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
+  const [modelQuestId, setModelQuestId] = useState<string | null>(null);
   const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
   useEffect(
@@ -309,6 +319,7 @@ export default function GameClient() {
       ]);
       setArchive(own?.error ? null : (own?.docs ?? null));
       setArchiveCases(own?.error ? null : (own?.cases ?? null));
+      setArchiveCaseDrafts(Boolean(own?.caseDraft));
       setBakeryOrders(bakery?.error ? null : (bakery?.orders ?? null));
       setBakerySign(bakery?.error ? null : (bakery?.sign ?? null));
       const data: {
@@ -335,6 +346,12 @@ export default function GameClient() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  const studioWasOpen = useRef(studio.open);
+  useEffect(() => {
+    if (studioWasOpen.current && !studio.open) refresh();
+    studioWasOpen.current = studio.open;
+  }, [refresh, studio.open]);
 
   // Publish in the Studio and the game hears about it straight away.
   const liveMode = useLiveRefresh(refresh, configured === true);
@@ -455,11 +472,12 @@ export default function GameClient() {
   const board = useQuestBoard({
     items,
     codeChecks: checks,
-    codeQuestId,
+    codeQuestId: codeQuestId ?? modelQuestId,
     sanityConfigured: configured,
     unpublishedDrafts,
     archive,
     archiveCases,
+    archiveCaseDrafts,
     bakeryOrders,
     bakerySign,
     wraithDefeatedNow: combat.defeated,
@@ -499,8 +517,9 @@ export default function GameClient() {
     ? giverOf(board.current.quest).id
     : "brann";
   useEffect(() => {
-    if (dialogueOpen && talkTo?.id === currentGiver) metBrann(currentId);
-  }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann]);
+    if (dialogueOpen && talkTo?.id === currentGiver)
+      metBrann(currentId, equipped ?? undefined);
+  }, [dialogueOpen, talkTo, currentGiver, currentId, metBrann, equipped]);
 
   const openLog = useCallback(() => {
     setTalking(false);
@@ -532,30 +551,53 @@ export default function GameClient() {
   const openCode = useCallback((questId: string) => {
     setTalking(false);
     setLogOpen(false);
+    setModelQuestId(null);
+    setCaseOpen(false);
     setCodeQuestId(questId);
+  }, []);
+  const openBoard = useCallback((questId: string) => {
+    setTalking(false);
+    setLogOpen(false);
+    setSheetOpen(false);
+    closeStudio();
+    setCodeQuestId(null);
+    setCaseOpen(false);
+    setModelQuestId(questId);
   }, []);
   const openSiteQuest = useCallback(() => {
     if (!siteQuest) return;
     if (siteQuest.pickup) fetchQuest(siteQuest.quest.id);
     if (siteQuest.quest.checkedBy === "window") openCode(siteQuest.quest.id);
+    else if (siteQuest.quest.checkedBy === "board")
+      openBoard(siteQuest.quest.id);
     else openQuestLog(siteQuest.quest.id);
-  }, [siteQuest, openCode, openQuestLog, fetchQuest]);
+  }, [siteQuest, openCode, openBoard, openQuestLog, fetchQuest]);
   const readSign = useCallback(() => {
     if (siteQuest?.pickup) openSiteQuest();
     else setSignOpen(true);
   }, [siteQuest, openSiteQuest]);
   useEffect(() => bridge.on("readSign", readSign), [readSign]);
+  const openCaseBoard = useCallback(() => {
+    setTalking(false);
+    setLogOpen(false);
+    setCaseOpen(true);
+  }, []);
   // The non-technical uke 2 tasks work on observations in the player's own
   // project. Once Brann has handed one over, the game writes the starting
   // documents (existing ones are left alone) and reads them back.
   const archiveSeeded = useRef(false);
   const needsArchive = board.states.some(
     (s) =>
-      ["source-check", "link-the-place", "case-file"].includes(s.quest.id) &&
+      ["who-is-lying", "case-file"].includes(s.quest.id) &&
       s.status === "active",
   );
   useEffect(() => {
-    if (!needsArchive || archive === null || archive.length > 0) return;
+    if (
+      !needsArchive ||
+      archive === null ||
+      archive.length >= ARCHIVE_IDS.length
+    )
+      return;
     if (archiveSeeded.current) return;
     archiveSeeded.current = true;
     fetch("/api/archive", { method: "POST" })
@@ -565,7 +607,7 @@ export default function GameClient() {
 
   const bakerySeeded = useRef(false);
   const needsBakery = board.states.some(
-    (s) => s.quest.id === "baker-first-order" && s.status === "active",
+    (s) => s.quest.id === "baker-model" && s.status === "active",
   );
   useEffect(() => {
     if (
@@ -583,13 +625,36 @@ export default function GameClient() {
       .catch(() => {});
   }, [needsBakery, bakeryOrders, refresh]);
 
+  const apprenticeSeeded = useRef(false);
+  const needsApprentice = board.states.some(
+    (state) =>
+      state.quest.id === "apprentice-mistake" && state.status === "active",
+  );
+  const apprenticeHammer = items.find((item) => item.id === APPRENTICE_ITEM_ID);
+  useEffect(() => {
+    if (!needsApprentice || apprenticeHammer || apprenticeSeeded.current)
+      return;
+    apprenticeSeeded.current = true;
+    fetch("/api/apprentice", { method: "POST" })
+      .then((response) => (response.ok ? refresh() : undefined))
+      .catch(() => {});
+  }, [needsApprentice, apprenticeHammer, refresh]);
+
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
-  const onSolved = useCallback(
+  const modelState = board.states.find((s) => s.quest.id === modelQuestId);
+  const modelOpen = Boolean(modelState);
+  const onCodeSolved = useCallback(
     (how: Parameters<typeof solveTask>[1]) => {
       if (codeQuestId) solveTask(codeQuestId, how);
     },
     [codeQuestId, solveTask],
+  );
+  const onModelSolved = useCallback(
+    (how: Parameters<typeof solveTask>[1]) => {
+      if (modelQuestId) solveTask(modelQuestId, how);
+    },
+    [modelQuestId, solveTask],
   );
 
   const showOpening =
@@ -613,9 +678,11 @@ export default function GameClient() {
   const quiet =
     celebrations.length === 0 &&
     codeQuestId === null &&
+    modelQuestId === null &&
     !studio.open &&
     !logOpen &&
     !signOpen &&
+    !caseOpen &&
     !dialogueOpen &&
     !showOpening;
   const summaryWeek = weekShown ?? (quiet ? pendingWeek : undefined);
@@ -653,7 +720,9 @@ export default function GameClient() {
         dialogueOpen ||
         logOpen ||
         signOpen ||
+        caseOpen ||
         codeOpen ||
+        modelOpen ||
         showOpening ||
         sheetShown ||
         Boolean(celebration) ||
@@ -670,7 +739,9 @@ export default function GameClient() {
     dialogueOpen,
     logOpen,
     signOpen,
+    caseOpen,
     codeOpen,
+    modelOpen,
     showOpening,
     celebration,
     summary,
@@ -679,6 +750,7 @@ export default function GameClient() {
   ]);
 
   const slots = narrow ? 5 : 8;
+  const describedWeapon = findPlayerWeapon(items, equippedId);
   const dismissCelebration = useCallback(
     () => setCelebrations((queue) => queue.slice(1)),
     [],
@@ -696,8 +768,16 @@ export default function GameClient() {
         if (e.key === "Escape") setCodeQuestId(null);
         return;
       }
+      if (modelOpen) {
+        if (e.key === "Escape") setModelQuestId(null);
+        return;
+      }
       if (signOpen) {
         if (e.key === "Escape") setSignOpen(false);
+        return;
+      }
+      if (caseOpen) {
+        if (e.key === "Escape") setCaseOpen(false);
         return;
       }
       const onControl = (e.target as HTMLElement)?.closest?.(
@@ -741,6 +821,15 @@ export default function GameClient() {
         readSign();
         return;
       }
+      if (
+        (e.key === "e" || e.key === "E") &&
+        zone === "noticeboard" &&
+        (progress.briefed["case-file"] || progress.completed["case-file"])
+      ) {
+        e.preventDefault();
+        openCaseBoard();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -761,7 +850,9 @@ export default function GameClient() {
     dialogueOpen,
     logOpen,
     signOpen,
+    caseOpen,
     codeOpen,
+    modelOpen,
     showOpening,
     sheetShown,
     celebrations.length,
@@ -771,6 +862,9 @@ export default function GameClient() {
     openSheet,
     openSiteQuest,
     readSign,
+    openCaseBoard,
+    progress.briefed,
+    progress.completed,
     combat,
     items,
     slots,
@@ -784,7 +878,6 @@ export default function GameClient() {
           <PhaserGame />
           <div className="stage-vignette" aria-hidden />
         </div>
-
         <div className={`hud${showOpening ? " is-hidden" : ""}`}>
           <div className="hud-tl">
             <h1 className="crest">
@@ -800,6 +893,7 @@ export default function GameClient() {
               onOpenMap={openMap}
               onOpenQuest={openQuestLog}
               onOpenCode={openCode}
+              onOpenBoard={openBoard}
               onOpenStudio={openStudio}
               onTravel={travelToSite}
               finished={
@@ -832,6 +926,12 @@ export default function GameClient() {
           </div>
 
           <div className="hud-bc">
+            {zone === "forge" && progress.briefed["weapon-description"] && (
+              <ForgeDescription weapon={describedWeapon} />
+            )}
+            {zone === "forge" && progress.briefed["apprentice-mistake"] && (
+              <ForgeHammer hammer={apprenticeHammer} />
+            )}
             {dialogueOpen && (
               <ForgeDialogue
                 key={`${talkTo?.id}:${currentId ?? "none"}`}
@@ -846,6 +946,7 @@ export default function GameClient() {
                 onCheck={checkForge}
                 onTravelToSite={travelToSite}
                 onOpenCode={openCode}
+                onOpenBoard={openBoard}
                 onClose={() => setTalking(false)}
               />
             )}
@@ -865,7 +966,9 @@ export default function GameClient() {
                     : `Hent luke ${siteQuest.quest.door}`
                   : siteQuest.quest.checkedBy === "window"
                     ? "Åpne kodevinduet"
-                    : "Åpne luka her"}
+                    : siteQuest.quest.checkedBy === "board"
+                      ? "Åpne modellbrettet"
+                      : "Åpne luka her"}
               </button>
             )}
             {zone === "bakerySign" && !siteQuest && !logOpen && !signOpen && (
@@ -873,6 +976,20 @@ export default function GameClient() {
                 <kbd>E</kbd> Les bodskiltet
               </button>
             )}
+            {zone === "noticeboard" &&
+              !siteQuest &&
+              !logOpen &&
+              !caseOpen &&
+              (progress.briefed["case-file"] ||
+                progress.completed["case-file"]) && (
+                <button
+                  type="button"
+                  className="prompt"
+                  onClick={openCaseBoard}
+                >
+                  <kbd>E</kbd> Les saksmappa
+                </button>
+              )}
             {!hasMoved &&
               !progress.metBlacksmith &&
               !showOpening &&
@@ -940,7 +1057,6 @@ export default function GameClient() {
             </span>
           </p>
         </div>
-
         {!showOpening && logOpen && (
           <QuestLog
             key={progress.track}
@@ -951,6 +1067,7 @@ export default function GameClient() {
             hintsShown={progress.hints}
             onRevealHint={revealHint}
             onOpenCode={openCode}
+            onOpenBoard={openBoard}
             solvedTasks={progress.solved}
             completedAt={progress.completed}
             onTravelToSite={travelToSite}
@@ -967,23 +1084,44 @@ export default function GameClient() {
             }}
           />
         )}
-
         {!showOpening && signOpen && (
           <BakerySign sign={bakerySign} onClose={() => setSignOpen(false)} />
         )}
-
+        {!showOpening && caseOpen && (
+          <ArchiveNoticeboard
+            cases={archiveCases}
+            onClose={() => setCaseOpen(false)}
+          />
+        )}
         {!showOpening && codeState && (
           <CodeWindow
             key={codeState.quest.id}
             state={codeState}
             solved={Boolean(progress.solved[codeState.quest.id])}
-            onSolved={onSolved}
+            onSolved={onCodeSolved}
             hintsShown={progress.hints[codeState.quest.id] ?? 0}
             onRevealHint={() => revealHint(codeState.quest.id)}
             onClose={() => setCodeQuestId(null)}
           />
         )}
-
+        {!showOpening &&
+          modelState &&
+          !sheetShown &&
+          !logOpen &&
+          !codeOpen &&
+          !signOpen &&
+          !caseOpen &&
+          !studio.open && (
+            <ModelBoard
+              key={modelState.quest.id}
+              state={modelState}
+              solved={Boolean(progress.solved[modelState.quest.id])}
+              onSolved={onModelSolved}
+              hintsShown={progress.hints[modelState.quest.id] ?? 0}
+              onRevealHint={() => revealHint(modelState.quest.id)}
+              onClose={() => setModelQuestId(null)}
+            />
+          )}
         {showOpening && (
           <Opening
             stage={entryStage}
@@ -1009,7 +1147,6 @@ export default function GameClient() {
             onNewGame={startNewGame}
           />
         )}
-
         {sheetShown && (
           <CharacterSheet
             initial={normalizeFigure(progress.figure)}
@@ -1027,50 +1164,60 @@ export default function GameClient() {
             onClose={() => setSheetOpen(false)}
           />
         )}
-
-        {!showOpening && dev && codeQuestId === null && !sheetShown && (
-          <DevPanel
-            board={board}
-            forgeLevel={forgeLevel}
-            liveMode={liveMode}
-            codeChecks={codeChecks}
-            devChecks={devChecks}
-            onDevCheck={(id, done) =>
-              setDevChecks((prev) => {
-                const next = { ...prev };
-                if (done === null) delete next[id];
-                else next[id] = done;
-                return next;
-              })
-            }
-            onJump={jumpTo}
-            onComplete={completeQuest}
-            track={progress.track}
-            onTrack={setTrack}
-            onReset={() => {
-              reset();
-              setDevChecks({});
-            }}
-            weaponSprite={equipped?.kind === "weapon" ? equipped.sprite : null}
-          />
-        )}
+        {!showOpening &&
+          dev &&
+          codeQuestId === null &&
+          modelQuestId === null &&
+          !sheetShown && (
+            <DevPanel
+              board={board}
+              forgeLevel={forgeLevel}
+              liveMode={liveMode}
+              codeChecks={codeChecks}
+              devChecks={devChecks}
+              onDevCheck={(id, done) =>
+                setDevChecks((prev) => {
+                  const next = { ...prev };
+                  if (done === null) delete next[id];
+                  else next[id] = done;
+                  return next;
+                })
+              }
+              onJump={jumpTo}
+              onComplete={completeQuest}
+              track={progress.track}
+              onTrack={setTrack}
+              onReset={() => {
+                reset();
+                setDevChecks({});
+              }}
+              weaponSprite={
+                equipped?.kind === "weapon" ? equipped.sprite : null
+              }
+            />
+          )}
       </div>
 
-      {!showOpening && celebration && codeQuestId === null && !studio.open && (
-        <QuestCelebration
-          key={`${celebration.door}:${celebration.title}`}
-          {...celebration}
-          onClose={dismissCelebration}
-          onOpenLog={() => {
-            dismissCelebration();
-            openLog();
-          }}
-          onReadPage={() => {
-            dismissCelebration();
-            openQuestLog(celebration.questId);
-          }}
-        />
-      )}
+      {!showOpening &&
+        celebration &&
+        codeQuestId === null &&
+        modelQuestId === null &&
+        !caseOpen &&
+        !studio.open && (
+          <QuestCelebration
+            key={`${celebration.door}:${celebration.title}`}
+            {...celebration}
+            onClose={dismissCelebration}
+            onOpenLog={() => {
+              dismissCelebration();
+              openLog();
+            }}
+            onReadPage={() => {
+              dismissCelebration();
+              openQuestLog(celebration.questId);
+            }}
+          />
+        )}
 
       {!showOpening && summary && !celebration && (
         <WeekComplete

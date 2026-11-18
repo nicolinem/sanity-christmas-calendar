@@ -28,7 +28,9 @@ function loadImage(url: string) {
 
 // The village drawn from the same tile data the world uses (village.ts), so
 // the map is Frostholm in miniature rather than a separate drawing.
-export function useVillageCanvas() {
+export function useVillageCanvas({
+  showKari = true,
+}: { showKari?: boolean } = {}) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let cancelled = false;
@@ -70,8 +72,10 @@ export function useVillageCanvas() {
             ),
           );
         for (const p of PROPS) draw(p.sheet, p.frame, p.x * TILE, p.y * TILE);
-        for (const n of Object.values(NPCS))
+        for (const n of Object.values(NPCS)) {
+          if (n.id === "kari" && !showKari) continue;
           draw(n.sprite.sheet, n.sprite.frame, n.x - 8, n.y - TILE);
+        }
         for (const t of [...TREES].sort((a, b) => a.y - b.y))
           draw("town", t.frame, t.x - 8, t.y - TILE);
       })
@@ -81,6 +85,6 @@ export function useVillageCanvas() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showKari]);
   return ref;
 }

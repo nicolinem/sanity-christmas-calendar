@@ -7,6 +7,7 @@ import { QUEST_SITES, type QuestSiteId } from "@/game/village";
 export type NextStep =
   | { kind: "giver"; label: string; where: string; site: QuestSiteId }
   | { kind: "code"; label: string; where?: undefined; questId: string }
+  | { kind: "board"; label: string; where?: undefined; questId: string }
   | { kind: "travel"; label: string; where: string; site: QuestSiteId }
   | { kind: "studio"; label: string; where: string }
   | { kind: "journal"; label: string; where: string; questId: string };
@@ -41,6 +42,22 @@ export function nextStep(current: QuestState | null): NextStep | null {
   // button says it all, no place to explain.
   if (quest.checkedBy === "window")
     return { kind: "code", label: "Åpne kodevinduet", questId: quest.id };
+  if (
+    quest.checkedBy === "board" &&
+    current.result?.objectives?.[0]?.done &&
+    !current.result?.done
+  )
+    return {
+      kind: "studio",
+      label: "Åpne Sanity Studio",
+      where: "Modellen er klar. Lag og publiser dokumentet i Studio.",
+    };
+  if (quest.checkedBy === "board")
+    return {
+      kind: "board",
+      label: "Åpne modellbrettet",
+      questId: quest.id,
+    };
   if (quest.checkedBy === "code")
     return {
       kind: "journal",

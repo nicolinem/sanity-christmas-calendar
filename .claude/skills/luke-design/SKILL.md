@@ -28,7 +28,27 @@ du vurderer en luke eller en funksjon før den bygges.
   engelsk: `kode` for det man skriver, `*term*` for begreper (se
   `src/components/hud/richText.tsx`).
 
-## 2. Fem spørsmål
+## 2. Fortelling og bilder (alle luker, begge løyper)
+
+Mønsteret fra teknisk uke 1. Deltakeren skal vite **hvorfor** før **hva**.
+
+1. **`intro[0]`: hva gikk galt.** Noe konkret og nylig som gikk ut over noen:
+   «I går sto en kunde lenge foran tavla …». Ingen Studio-ord, ingen klikk.
+2. **`intro[1]` (og ev. `[2]`): ønsket.** Sagt som en tjeneste, med det
+   personen vet («datoen er nesten alltid i dag»). Kan nevne hvor (Studio,
+   modellbrettet), men ikke en klikkoppskrift.
+3. **`goal`, `where` og `hints`: hva du gjør.** Instruksjonene står her.
+4. **«Slik blir det» (`goalPreview` + `goalPreviews.tsx`): ekte ting.** Tegn
+   det deltakeren faktisk endrer: tavla med sprite, Studio-lista, skjemaet med
+   felttyper, skiltet, Klar-knappen. Ikke bare «felt: verdi»-tekst.
+5. **`outro`: hva som skjedde i bygda nå**, så hva det viste. `lesson` og
+   `atWork` sier resten; ikke gjenta dem.
+
+Bruk bare personer og steder som finnes (`NPCS` i `src/game/village.ts`,
+vitnene i `src/game/archive.ts`). Testen i `engine.test.cjs` sjekker punkt 1
+for ikke-teknisk løype.
+
+## 3. Fem spørsmål
 
 Still dem om luka og om hver ting i spillet den berører. Svar med ✓, ~ eller ✗
 og én setning.
@@ -54,7 +74,7 @@ Når noe «føles feil», finn laget først:
 | «Hvorfor skal jeg gjøre dette?» | Verdt det: synlig, varig endring |
 | «Det tok for lang tid» | Omfang: del luka, eller gjør den til bonus |
 
-## 3. Tall
+## 4. Tall
 
 Hvert tall du foreslår, får én av tre merkelapper:
 
@@ -66,7 +86,7 @@ Hvert tall du foreslår, får én av tre merkelapper:
 Aldri «vanlig praksis» eller et tall uten merkelapp. Gjeldende tall står i
 `docs/spillvurdering.md`.
 
-## 4. Fem tester
+## 5. Fem tester
 
 1. **Ny deltaker:** forstår hen det uten forklaring?
 2. **Stresstest:** trykk mye, lagre halvferdig kode, publiser og slett.
@@ -75,10 +95,10 @@ Aldri «vanlig praksis» eller et tall uten merkelapp. Gjeldende tall står i
    (`?dev` kan late som sjekker er bestått.)
 5. **Tilskuer:** skjønner en som ser på, hva som skjedde?
 
-## 5. Ferdig-kriterier for en luke
+## 6. Ferdig-kriterier for en luke
 
-- [ ] Plass i `src/game/quests/chapters.ts`: `door`, kort `title`, `intro` på
-      én eller to setninger, `goal`, `where`, tre `hints` med lenker til
+- [ ] Plass i `src/game/quests/chapters.ts`: `door`, kort `title`, `intro` som
+      følger avsnitt 2, `goalPreview` med bilde, `outro`, `goal`, `where`, tre `hints` med lenker til
       riktig avsnitt i dokumentasjonen, `lesson`.
 - [ ] `QUEST: Luke N`-kommentar der arbeidet skjer.
 - [ ] Automatisk sjekk med en presis melding om hva som mangler.
@@ -88,7 +108,7 @@ Aldri «vanlig praksis» eller et tall uten merkelapp. Gjeldende tall står i
 - [ ] Testet av én person som ikke har sett løsningen, på høyst 25 minutter.
 - [ ] `npm run verify-release -- --build` er grønn.
 
-## 6. Slik svarer du
+## 7. Slik svarer du
 
 Når du foreslår eller vurderer en luke eller funksjon:
 

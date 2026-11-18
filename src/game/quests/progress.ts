@@ -103,8 +103,11 @@ export function resetProgress(project: string) {
     const storage = window.localStorage;
     const drafts = Array.from({ length: storage.length }, (_, index) =>
       storage.key(index),
-    ).filter(
-      (key): key is string => key?.startsWith("winter-quest:code:") ?? false,
+    ).filter((key): key is string =>
+      Boolean(
+        key?.startsWith("winter-quest:code:") ||
+        key?.startsWith("winter-quest:board:"),
+      ),
     );
     drafts.forEach((key) => storage.removeItem(key));
   } catch {

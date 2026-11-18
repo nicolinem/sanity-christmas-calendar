@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { bridge } from "@/game/bridge";
-import { isNewOrder } from "@/game/bakery";
+import { findNewPlayerOrder } from "@/game/bakery";
 import type { GameItemView } from "@/game/items";
 import { forgedPower } from "@/game/rules";
 import { CHAPTERS } from "@/game/quests/chapters";
@@ -44,14 +44,24 @@ export function useProgress() {
   );
   const forgeLevel = forgeLevelFor(chapters, progress);
 
-  const metBrann = useCallback((questId?: string) => {
+  const metBrann = useCallback((questId?: string, weapon?: GameItemView) => {
     updateProgress(PROJECT, (p) =>
-      p.metBlacksmith && (!questId || p.briefed[questId])
+      p.metBlacksmith &&
+      (!questId || p.briefed[questId]) &&
+      (questId !== "weapon-description" || p.weaponDescriptionItemId)
         ? p
         : {
             ...p,
             metBlacksmith: true,
             briefed: questId ? { ...p.briefed, [questId]: true } : p.briefed,
+            ...(questId === "weapon-description" &&
+            weapon &&
+            !p.weaponDescriptionItemId
+              ? {
+                  weaponDescriptionItemId: weapon.id,
+                  weaponDescriptionBefore: weapon.description,
+                }
+              : {}),
           },
     );
   }, []);
@@ -200,6 +210,7 @@ type BoardInput = {
   unpublishedDrafts?: number; // weapons saved but not published (from /api/items)
   archive?: QuestContext["archive"];
   archiveCases?: QuestContext["archiveCases"];
+  archiveCaseDrafts?: boolean;
   bakeryOrders?: QuestContext["bakeryOrders"];
   bakerySign?: QuestContext["bakerySign"];
   wraithDefeatedNow: boolean;
@@ -216,6 +227,7 @@ export function useQuestBoard({
   unpublishedDrafts,
   archive = null,
   archiveCases = null,
+  archiveCaseDrafts = false,
   bakeryOrders = null,
   bakerySign = null,
   wraithDefeatedNow,
@@ -242,6 +254,7 @@ export function useQuestBoard({
       unpublishedDrafts,
       archive,
       archiveCases,
+      archiveCaseDrafts,
       bakeryOrders,
       bakerySign,
     };
@@ -255,6 +268,7 @@ export function useQuestBoard({
     unpublishedDrafts,
     archive,
     archiveCases,
+    archiveCaseDrafts,
     bakeryOrders,
     bakerySign,
     devUnlock,
@@ -284,10 +298,8 @@ export function useQuestBoard({
     updateProgress(PROJECT, (p) => {
       const completed = { ...p.completed };
       for (const s of finished) completed[s.quest.id] = now;
-      const bakeryOrderId = finished.some(
-        (s) => s.quest.id === "baker-first-order",
-      )
-        ? bakeryOrders?.find(isNewOrder)?._id
+      const bakeryOrderId = finished.some((s) => s.quest.id === "baker-model")
+        ? findNewPlayerOrder(bakeryOrders)?._id
         : p.bakeryOrderId;
       return { ...p, completed, bakeryOrderId };
     });
@@ -303,6 +315,7 @@ export function useQuestBoard({
         unpublishedDrafts,
         archive,
         archiveCases,
+        archiveCaseDrafts,
         bakeryOrders,
         bakerySign,
       },
@@ -315,7 +328,9 @@ export function useQuestBoard({
         door: s.quest.door,
         bonus: s.quest.bonus,
         title: s.quest.title,
+        topic: s.quest.topic,
         lesson: plainText(s.quest.lesson.title),
+        atWork: s.quest.lesson.atWork,
         outro: s.quest.outro,
         objectives: s.result.objectives
           ?.filter((o) => o.done)
@@ -350,6 +365,7 @@ export function useQuestBoard({
     unpublishedDrafts,
     archive,
     archiveCases,
+    archiveCaseDrafts,
     bakeryOrders,
     bakerySign,
     devUnlock,

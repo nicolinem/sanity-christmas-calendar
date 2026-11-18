@@ -77,10 +77,10 @@ forenklet eller poengmessig mindreverdig utgave av den tekniske.
    komponent. Ikke-teknisk løype bruker ikke krav om egen kode.
 5. **Bonus går dypere** uten å være nødvendig for neste luke eller finalen.
 
-Over alle tre ukene bør teknisk løype dekke Studio, skjema, React og GROQ,
-mens ikke-teknisk løype dekker publisering, strukturering og bruk av innhold.
-Uke 1-løypa er beholdt uten `Document view`; uke 2–3 og læringsmålene på
-tvers av ukene må fortsatt revideres. Uke 1s tidligere pitch er historisk:
+Over alle tre ukene dekker teknisk løype Studio, skjema, React og GROQ, mens
+ikke-teknisk løype dekker publisering, modellering, references, Portable Text,
+validation og arbeidsflyt med document actions. Uke 1-løypa er beholdt uten
+`Document view`. Uke 1s tidligere pitch er historisk:
 https://claude.ai/artifact/CgjW2uFneNYbhMvFJ4UBaF
 
 For å vurdere en oppgave før den bygges: skillen `luke-design`
@@ -176,26 +176,22 @@ dekker det grunnleggende uten å være en egen poengoppgave. Oppgaver kan legges
 til, tas bort eller flyttes etter testing; `custom input` er fortsatt
 kjerneoppgave. Document action («Smi»-knappen) ligger i uke 3.
 
-**Ikke-teknisk løype — foreløpige oppgaveideer (antallet trenger ikke være
-det samme som i den tekniske løypa):**
+**Ikke-teknisk løype — implementert:**
 
 Etter felles oppstart videreutvikles det samme våpenet; ingen ny samling
 eller bestemt mengde dokumenter er nødvendig.
 
-1. **Gi våpenet en beskrivelse:** bruk `Description` i Studio, publiser og
-   se teksten i informasjonen om våpenet i spillet. Tema: et innholdsfelt
-   brukes utenfor Studio.
-2. **Oppdater samme dokument:** prøv en annen sprite som utkast, sammenlign
-   med spillet og publiser. Tema: samme document beholder ID-en når innholdet
-   oppdateres; utkast endrer ikke den publiserte versjonen.
+1. `weapon-description` (luke 2): endre og publiser beskrivelsen på våpenet.
+   Første setning vises både på våpenet og ved smia. Tema: innhold og
+   presentasjon på flere flater.
+2. `apprentice-mistake` (luke 3): bruk Sanity History til å sammenligne og
+   gjenopprette hammerens opprinnelige revisjon. Tema: *History*.
 
-Oppgavene bruker bare Studio-skjemaet og spillet, ikke kode eller terminal.
-Spillet viser allerede beskrivelser og sprites fra publisert innhold.
-Sjekkene for disse nye lukene må bygges: lagre en referanse ved oppgavestart
-og sammenlign relevante felt på samme publiserte dokument. Vi kan ikke
-automatisk bedømme om teksten er «god», eller bevise at deltakeren så på
-utkastfasen. Vi må teste læringsutbytte og tidsbruk, og kan legge til, ta bort
-eller flytte luker uten å kreve like mange i begge løyper.
+Oppgavene bruker bare Studio og spillet, ikke kode eller terminal. Sjekkene
+leser publisert innhold: beskrivelsen må være endret fra referanseverdien, og
+hammeren må ha alle opprinnelige verdier. De kan ikke bedømme tekstkvalitet
+eller bevise hvilket History-klikk som ble brukt. Læringsutbytte og tidsbruk
+må fortsatt prøves med en ny deltaker.
 
 **Poengforslag:** poeng belønner fullførte kjerneoppgaver; hint eller fasit gir
 ikke poeng i seg selv, og bonus gir ikke poeng. Siden antall oppgaver kan
@@ -237,9 +233,9 @@ godkjent for den aktuelle leveransen.
 ### Uke 2: Finne (åpner mandag 7. desember)
 
 Arkivarens mysterium er bygget som to spor. Teknisk spor løser GROQ,
-Structure Builder og en document view i kodevinduet (luke 5–7); ☆ er
-frivillige GROQ-spørsmål. Ikke-teknisk spor sorterer observasjoner, kobler
-dem til steder og lager en saksmappe i eget Studio (luke 2–4). Begge
+Structure Builder og en document view i kodevinduet; ☆ er frivillige
+GROQ-spørsmål. Ikke-teknisk spor løser `archive-model` (luke 4),
+`who-is-lying` (luke 5) og `case-file` (luke 6). Begge
 følger sporene mot bakeriet. Observasjonene seedes bare i deltakerens eget
 prosjekt når de trengs; spillet leser publiserte dokumenter.
 
@@ -253,17 +249,17 @@ Bakerens dialog. Ingen arbeidsliste, bildevegg eller ny lyseffekt.
 
 Teknisk spor lager automatisering i kodevinduet; bestått kode slår på vår
 trygge Studio-implementasjon der det er mulig. Spillerens kode kjøres aldri
-i Studio. Ikke-teknisk spor bruker verktøyene i **ekte Studio** fra starten
-av, aktivert med `isTrack("nonTechnical")` uten krav om å løse kodeoppgaver.
+i Studio. Ikke-teknisk spor modellerer først behovet og bruker deretter
+verktøyene i **ekte Studio** uten krav om å løse kodeoppgaver.
 
 | Luke | Spor | Ett Sanity-tema | Handling | Automatisk sjekk |
 | --- | --- | --- | --- | --- |
 | 9 | Teknisk | `initialValue` / initial value templates | Lag en mal for ny bestilling med status «ny» og dagens dato i kodevinduet. | Falsk dokumentopprettelse med testklokke gir begge startverdier, uten å endre en eksisterende bestilling. Bestått løser luka og aktiverer vår mal i Studio. |
 | 10 | Teknisk | Document action | Lag «Smi» som setter `forgedAt` og publiserer et eksisterende våpen. Ingen oppskrifter/materialer. | Falske Studio-operasjoner må både stemple og publisere rett dokument. Et publisert stempel alene beviser ikke hvilken knapp som ble brukt; Studio-prøving er frivillig. |
 | 11 | Teknisk | Sanity Function (simulert) | Skriv hendelseslogikk som oppdaterer skilttekst når en bestilling publiseres. | Kodevinduet kjører publiseringshendelser mot en falsk klient og sjekker rett oppdatering, ignorering av andre hendelser og ingen dobbel oppdatering. Ingen deploy eller ekte Function i deltakerens prosjekt. |
-| 5 | Ikke-teknisk | Initial value template | Se tre ventelapper fra Brann, Arkivaren og Kari; lag **din egen** «Ny bestilling» fra Bakerens ferdige mal i Studio, fyll inn en vare og bruk vanlig Publish. | Spillet finner en **ny publisert** bestilling med status «ny», dato og ikke-tom vare. Ventelappene har status «venter» og teller ikke. Det kan ikke bevise at malen ble brukt; det er akseptert. |
-| 6 | Ikke-teknisk | Portable Text | Hent luka ved bodskiltet, skriv skiltet i Studio, bruk fet skrift og publiser med vanlig Publish. | Spillet leser publiserte blokker, krever lesbar tekst og `strong`-markering og viser skiltet ved bakeriet. Utkast teller ikke. |
-| 7 | Ikke-teknisk | Document action | «Klar» finnes i menyen ved siden av vanlig Publish **først etter luke 6**. Bruk den på din egen bestilling; den setter status «klar» og publiserer i ett trykk. | Spillet finner den **samme** publiserte bestillingen med status «klar». Det kan ikke bevise hvilket knappetrykk som endret status; det er akseptert. |
+| 7 | Ikke-teknisk | Modell, validation og initial value | Sorter Bakerens notat på modellbrettet, velg required/startverdi, og publiser deretter én ny bestilling. | Brettet og den publiserte bestillingen må begge være ferdige. Modellen slår først da på required-regler og startverdiene dato/«ny». |
+| 8 | Ikke-teknisk | Portable Text | Publiser et bodskilt med ett viktig ord. | De samme publiserte blokkene vises på boden og som første linje i HUD-en, med ulik stil for `strong`. |
+| 9 | Ikke-teknisk | Document action og validation | Rett Arkivarens dato og Karis vare, og bruk «Klar» på tre ventelapper og egen bestilling. | Klar er deaktivert ved validation-feil. Spillet krever at akkurat alle fire bestillingene er publisert med status «klar». |
 | ☆ | Begge | Portable Text-lenke | Hent ☆ ved bodskiltet, legg en relevant HTTPS-lenke i det publiserte bodskiltet. | Spillet krever en lenke-annotation knyttet til tekst; ren URL i teksten teller ikke. Valgfri, uten lukenummer eller krav for å fullføre uka. |
 
 Bakeren gir lukene som gjøres i kodevinduet eller Studio; skiltlukene hentes
@@ -301,7 +297,18 @@ felles funksjon skal være nødvendig for å oppleve finalen alene.
 
 ### Pensum og pitch
 
-Før uke 2 og 3 avgjøres, svarer vi på:
+Den implementerte ikke-tekniske løypa har fire læringsmål. Etter desember skal
+deltakeren kunne:
+
+1. skissere en enkel innholdsmodell og begrunne felt, typer, references,
+   required-regler og startverdier;
+2. vise at samme publiserte innhold kan brukes og presenteres på flere flater;
+3. jobbe trygt i Studio med drafts, Publish, History, validation og avgrensede
+   document actions;
+4. si konkret hva hen kan be utviklere om når schema eller arbeidsflyt må
+   endres.
+
+Den opprinnelige beslutningslista var:
 
 1. **Hva skal en deltaker kunne etter desember?** Tre til fem læringsmål,
    skrevet som noe man kan gjøre på jobb («Modellere innhold med

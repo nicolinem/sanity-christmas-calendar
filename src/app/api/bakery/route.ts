@@ -15,7 +15,7 @@ export async function GET() {
   try {
     const [orders, sign] = await Promise.all([
       client.fetch<BakeryOrder[]>(
-        '*[_type == "bakeryOrder"]{_id, item, orderedBy, date, status}',
+        '*[_type == "bakeryOrder"] | order(_createdAt desc){_id, item, orderedBy, date, status, "createdAt": _createdAt}',
       ),
       client.fetch<BakerySign | null>('*[_id == "bakery-sign"][0]{_id, text}'),
     ]);

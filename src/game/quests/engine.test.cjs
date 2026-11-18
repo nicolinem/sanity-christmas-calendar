@@ -113,9 +113,12 @@ test("passing a check never grants completion or bypasses a strict predecessor",
   );
   assert.equal(board.states[0].result.done, true);
   assert.equal(board.states[1].result.done, true);
+  assert.equal(board.states[0].status, "offered");
+  assert.equal(board.states[1].status, "locked");
   assert.equal(board.completedCount, 0);
   assert.equal(board.previous, null);
   assert.deepEqual(ctx.progress.completed, {});
+  assert.notEqual(board.current.quest.id, "second");
 
   ctx.progress = {
     ...ctx.progress,
@@ -385,11 +388,50 @@ test("real chapters share startup while all existing code/window tasks stay tech
   }
 });
 
+test("non-technical quests open with what went wrong, then the wish, and close with an outcome", () => {
+  const quests = chaptersForTrack(CHAPTERS, "nonTechnical")
+    .flatMap((chapter) => chapter.quests)
+    .filter((item) => item.track === "nonTechnical");
+  assert.ok(quests.length > 0);
+  for (const item of quests) {
+    assert.ok(item.intro.length >= 2, `${item.id}: story, then the wish`);
+    // The first line is the story: no Studio clicks yet.
+    assert.doesNotMatch(item.intro[0], /Studio|Publish|\*/, item.id);
+    assert.ok(item.where, `${item.id} needs a place`);
+    assert.ok(item.outro?.length, `${item.id} needs an outcome`);
+  }
+});
+
+test("Luke 4 and 7 explain the model board in their intro", () => {
+  for (const id of ["archive-model", "baker-model"]) {
+    const item = CHAPTERS.flatMap((chapter) => chapter.quests).find(
+      (quest) => quest.id === id,
+    );
+    assert.match(item?.intro.join(" ") ?? "", /modellbrettet/, id);
+  }
+  const baker = CHAPTERS.flatMap((chapter) => chapter.quests).find(
+    (quest) => quest.id === "baker-model",
+  );
+  assert.match(baker.intro.join(" "), /datoen nesten alltid er i dag/i);
+  assert.match(baker.intro.join(" "), /starter som ny/i);
+  assert.match(baker.intro.join(" "), /varen vet jeg aldri/i);
+  const bakerContext = context({
+    solved: { "baker-model": { at: COMPLETED_AT } },
+  });
+  bakerContext.bakeryOrders = [];
+  assert.equal(
+    baker.check(bakerContext).message,
+    "Se i Studio: dato og status er fylt ut når du lager en ny bestilling.",
+  );
+});
+
 test("week one ends with custom input and has no Document view quest", () => {
   assert.deepEqual(
     CHAPTERS[0].quests.map(({ id }) => id),
     [
       "the-broken-forge",
+      "weapon-description",
+      "apprentice-mistake",
       "branns-ledger",
       "the-guilds-law",
       "the-drawing-board",
@@ -534,12 +576,20 @@ test("the skilt link is a shared optional door and does not change core totals",
 });
 
 test("the sign quest is offered at the sign, never by the Baker", () => {
+  const signQuest = CHAPTERS.flatMap(({ quests }) => quests).find(
+    ({ id }) => id === "baker-sign",
+  );
+  assert.match(signQuest.goal, /kortversjonen/);
+  assert.match(signQuest.lesson.text, /appvisningen/);
+  assert.doesNotMatch(signQuest.goal + signQuest.lesson.text, /HUD-strip/);
   const before = [
     "the-broken-forge",
-    "source-check",
-    "link-the-place",
+    "weapon-description",
+    "apprentice-mistake",
+    "archive-model",
+    "who-is-lying",
     "case-file",
-    "baker-first-order",
+    "baker-model",
   ];
   const board = evaluateQuests(
     chaptersForTrack(CHAPTERS, "nonTechnical"),
@@ -554,38 +604,55 @@ test("the sign quest is offered at the sign, never by the Baker", () => {
   assert.equal(board.current.status, "offered");
 });
 
-test("Bakeren's ready door accepts only a published ready order with an item", () => {
-  const ready = CHAPTERS.flatMap(({ quests }) => quests).find(
-    ({ id }) => id === "baker-ready",
+test("morning rush needs all three samples and the player's order ready", () => {
+  const rush = CHAPTERS.flatMap(({ quests }) => quests).find(
+    ({ id }) => id === "morning-rush",
   );
-  assert.ok(ready);
+  assert.ok(rush);
   const ctx = {
     ...context({ bakeryOrderId: "order" }),
-    bakeryOrders: [{ _id: "order", item: "Julekake", status: "ny" }],
+    bakeryOrders: [
+      "bakery-sample-brann",
+      "bakery-sample-arkivaren",
+      "bakery-sample-kari",
+      "order",
+    ].map((_id) => ({
+      _id,
+      item: "Julekake",
+      date: "2026-12-14",
+      status: "klar",
+    })),
   };
-  assert.equal(ready.check(ctx).done, false);
-  ctx.bakeryOrders[0].status = "klar";
-  assert.equal(ready.check(ctx).done, true);
-  ctx.bakeryOrders[0]._id = "another-order";
-  assert.equal(ready.check(ctx).done, false);
+  assert.equal(rush.check(ctx).done, true);
+  assert.equal(
+    rush.check(ctx).objectives[0].label,
+    "4 av 4 bestillinger er klare",
+  );
+  ctx.bakeryOrders[2].item = undefined;
+  assert.equal(rush.check(ctx).done, false);
+  assert.equal(
+    rush.check(ctx).objectives[0].label,
+    "3 av 4 bestillinger er klare",
+  );
 });
 
-test("Studio-practice quests name their real Studio step and are technical", () => {
+test("Studio-practice quests name their real Studio step", () => {
   const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];
   const named = all.filter(
     ({ studioPractice }) => studioPractice !== undefined,
   );
   assert.deepEqual(
     named.map(({ id }) => id).sort(),
-    STUDIO_STEPS.map(({ id }) => id).sort(),
+    [...STUDIO_STEPS.map(({ id }) => id), "archive-model"].sort(),
   );
   for (const quest of named) {
     assert.equal(typeof quest.studioPractice, "string", quest.id);
     assert.notEqual(quest.studioPractice.trim(), "", quest.id);
-    assert.equal(quest.track, "technical", quest.id);
+    if (quest.checkedBy === "window")
+      assert.equal(quest.track, "technical", quest.id);
     assert.equal(quest.bonus, undefined, quest.id);
   }
-  assert.equal(named.length, STUDIO_STEPS.length);
+  assert.equal(named.length, STUDIO_STEPS.length + 1);
 });
 
 for (const step of STUDIO_STEPS) {
@@ -650,4 +717,15 @@ test("a door at the forge is active as soon as Brann has explained it", () => {
   );
   assert.equal(board.states[0].status, "active");
   assert.equal(board.states[0].pickup, undefined);
+});
+
+test("every week opens with what has happened, and non-technical lukes have steps", () => {
+  for (const number of [1, 2, 3]) {
+    const chapter = CHAPTERS.find((c) => c.number === number);
+    assert.ok(chapter.opening?.length >= 2, `uke ${number}`);
+  }
+  for (const item of CHAPTERS.flatMap((c) => c.quests)) {
+    if (item.track === "nonTechnical")
+      assert.ok(item.steps?.length >= 2, `${item.id} needs steps`);
+  }
 });
