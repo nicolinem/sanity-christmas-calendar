@@ -78,6 +78,16 @@ const theBrokenForge: Quest = {
     "Der er det, første våpen på den nye lista! Og snømonsteret trakk seg tilbake til skogen, i alle fall for nå.",
   ],
   goal: "Lag et våpen i Sanity Studio, trykk *Publish*, og test det på snømonsteret.",
+  explain: {
+    what: "Ditt første *document* i Studio: et våpen med navn og sprite. Når du publiserer det, dukker det opp i bygda, og du kan slå med det.",
+    why: "Alt i kalenderen bygger på dette: innhold lages i Studio, og spillet leser bare det som er publisert.",
+  },
+  steps: [
+    "Åpne Sanity Studio og lag et nytt *Item*-dokument.",
+    "Velg *Weapon*, gi det et navn og en sprite.",
+    "Trykk *Publish*, og se våpenet dukke opp i spillet.",
+    "Gå til snømonsteret øst for brønnen, og slå med mellomrom.",
+  ],
   goalPreview: {
     before: "Smias liste er tom etter stormen.",
     after: "Våpenet ditt står i lista og i spillet.",
@@ -85,13 +95,21 @@ const theBrokenForge: Quest = {
   where: "I Sanity Studio.",
   hints: [
     {
-      text: "Åpne Studio fra samtalen med Brann, og lag et nytt *Item*-dokument.",
+      text: "Alt i Studio er *documents*. Et våpen er et *Item*-dokument der *Kind* er satt til *Weapon*.",
+      link: {
+        label: "Hello, Studio",
+        url: `${LEARN}/day-one-with-sanity-studio/hello-studio`,
+      },
     },
     {
-      text: "Velg *Weapon* som *Kind*, gi det et navn, og trykk *Publish*. En *draft* kommer aldri med i spillet.",
+      text: "Ser du ikke våpenet i spillet? Står det *Draft* øverst i dokumentet, er det ikke publisert ennå. Bare publiserte *documents* kommer med.",
+      link: {
+        label: "Drafts og publisering",
+        url: "https://www.sanity.io/docs/content-lake/drafts-and-versions",
+      },
     },
     {
-      text: "Snømonsteret står øst for brønnen. Gå helt bort til det og trykk mellomrom.",
+      text: "Står du ved snømonsteret uten at noe skjer? Gå helt inntil det. Mellomrom slår bare når du er nær nok.",
     },
   ],
   learn: {
@@ -142,6 +160,10 @@ const weaponDescription: Quest = {
     "Du skrev teksten ett sted, og to flater viste den hver på sin måte.",
   ],
   goal: "Endre våpenets beskrivelse, skriv minst én hel setning, og publiser.",
+  explain: {
+    what: "En salgstekst i feltet *Description* på våpenet ditt. Samme tekst vises to steder: første setning på tavla i smia, og hele teksten i tingene dine.",
+    why: "Slik jobber man med innhold på jobb: skriv det én gang, og la nettside, app og nyhetsbrev vise det hver på sin måte.",
+  },
   steps: [
     "Åpne våpenet ditt i Studio.",
     "Skriv minst én hel setning i feltet *Description*.",
@@ -155,7 +177,10 @@ const weaponDescription: Quest = {
   where: "I Sanity Studio, på våpenet du publiserte i første luke.",
   hints: [
     {
-      text: "Tavla viser bare første setning, mens tingene dine viser hele teksten. Skriv gjerne den viktigste setningen først.",
+      text: "Tenk som en selger: hva gjør dette våpenet til det rette for kunden? Skriv det først, for tavla viser bare første setning.",
+    },
+    {
+      text: "Feltet *Description* ligger under navnet på våpenet. I tingene dine (I) ser du hele teksten når du holder musa over våpenet.",
       link: { label: "String type", url: `${DOCS}/string-type` },
     },
     {
@@ -221,6 +246,10 @@ const apprenticeMistake: Quest = {
     "Spillet ser bare at verdiene er riktige, ikke hvordan du fikk dem tilbake. Men nå vet du hvor *History* er neste gang noen publiserer feil.",
   ],
   goal: "Gjenopprett den riktige versjonen av hammeren fra *History*, og publiser.",
+  explain: {
+    what: "Du henter fram en eldre versjon av hammeren fra *History* og publiserer den på nytt. Du skriver ingenting inn selv.",
+    why: "Alle publiserer feil iblant. Med *History* retter du det på minutter, uten å be en utvikler om hjelp.",
+  },
   steps: [
     "Åpne «Bran sin hemmer» i Studio.",
     "Velg *History* i menyen med tre prikker øverst til høyre.",
@@ -295,6 +324,10 @@ const brannsLedger: Quest = {
     "Nå kjenner jeg igjen hvert våpen på bildet, uten å åpne et eneste ett.",
   ],
   goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*.",
+  explain: {
+    what: "To ting i *schema*-koden for *Item*: et ikon for hele dokumenttypen, og en *preview* som viser navn og sprite for hvert våpen i lista i Studio.",
+    why: "Med bilde i lista finner Brann riktig våpen med ett blikk, i stedet for å åpne dem ett for ett.",
+  },
   goalPreview: {
     before: "I dag viser lista bare navn.",
     after: "Etterpå ser du bildet og typen til hvert våpen.",
@@ -309,18 +342,15 @@ const brannsLedger: Quest = {
       },
     },
     {
-      text: 'Du velger selv hvilket ikon som passer for *Item*. Sanity sitt eget ikonsett følger med Studio, og hvert ikon har sin egen sti: `import { BoltIcon } from "@sanity/icons/Bolt"`.',
-      link: { label: "Sanity Icons", url: "https://icons.sanity.build" },
-    },
-    {
-      text: "`preview.prepare()` kan returnere `media`: en hvilken som helst React-komponent, ikke bare et bilde.",
+      text: "`preview.select` henter feltene du trenger, for eksempel `name`, `sprite` og `kind`. `prepare()` gjør dem om til det lista viser, og `media` kan være en hvilken som helst React-komponent, ikke bare et bilde.",
       link: {
         label: "React components in previews",
         url: `${DOCS}/previews-list-views#k75b9321e2389`,
       },
     },
     {
-      text: "Du trenger ikke tegne pikselkunsten selv: `<SpriteImage spriteId={…} kind={…} />` gjør det. Den er allerede importert, og i fanen `SpriteImage.tsx` ser du hvordan den virker.",
+      text: 'Ikonet: `import { BoltIcon } from "@sanity/icons/Bolt"`, eller et annet du liker. Bildet: `media: <SpriteImage spriteId={sprite} kind={kind} />`. `SpriteImage` er allerede importert.',
+      link: { label: "Sanity Icons", url: "https://icons.sanity.build" },
     },
   ],
   learn: {
@@ -351,6 +381,10 @@ const theGuildsLaw: Quest = {
     "Ingen flere våpen uten bilde, og ingen to med samme navn. Huset i vest får øksa de faktisk bestilte.",
   ],
   goal: "Få Studio til å nekte våpen uten sprite og gjenstander uten navn eller med navn som allerede er brukt.",
+  explain: {
+    what: "*Validation*-regler i *schema*-et: et våpen uten sprite kan ikke publiseres, og to gjenstander kan ikke ha samme navn. Studio viser en rød feil og stopper *Publish*.",
+    why: "Feil som stoppes i Studio, når aldri spillet eller kunden. Det er billigere enn å rydde opp etterpå.",
+  },
   goalPreview: {
     before: "I dag kan et våpen uten sprite publiseres.",
     after: "Etterpå sier Studio fra og stopper Publish.",
@@ -417,6 +451,10 @@ const theDrawingBoard: Quest = {
   ],
   outro: ["Nå velger jeg bilde ved å se på det, ikke ved å gjette på en ID."],
   goal: "Bygg én bildeknapp for hver tillatte sprite. Vis bare ikonet, marker valget, og la det kunne fjernes.",
+  explain: {
+    what: "En *custom input*: en egen React-komponent som bytter ut nedtrekkslista for sprite med et rutenett av bildeknapper i Studio.",
+    why: "Studio kan tilpasses arbeidet. Når redaktøren ser bildet i stedet for en ID, blir det færre feil.",
+  },
   goalPreview: {
     before: "I dag vises sprite-ID-ene som tekst.",
     after: "Etterpå velger du fra ikonknapper med tydelig valgt tilstand.",
@@ -444,16 +482,8 @@ const theDrawingBoard: Quest = {
       },
     },
     {
-      title: "Vis valget og oppdater feltet",
-      text: 'Sammenlign `props.value` med `id`. Bruk `mode="default"` for valgt og `mode="ghost"` for de andre; unngå `tone="primary"` (blått). Klikket skal sende `props.onChange(set(id))`.',
-      link: {
-        label: "Form components API reference",
-        url: `${DOCS}/form-components-reference`,
-      },
-    },
-    {
-      title: "Fjern valget",
-      text: "Fjern-knappen skal sende `unset()` til `props.onChange(...)`. Vil du se resultatet i Studio, kan du prøve begge knappene der etterpå.",
+      title: "Vis valget, oppdater og fjern",
+      text: 'Sammenlign `props.value` med `id`. Bruk `mode="default"` for valgt og `mode="ghost"` for de andre; unngå `tone="primary"` (blått). Klikket sender `props.onChange(set(id))`, og fjern-knappen sender `props.onChange(unset())`.',
       link: {
         label: "Form components API reference",
         url: `${DOCS}/form-components-reference`,
@@ -497,6 +527,10 @@ const followTheTrail: Quest = {
     "Men hvorfor akkurat bakeriet?",
   ],
   goal: "Skriv en GROQ-spørring som gir de bekreftede observasjonene i tidsrekkefølge, med stedet.",
+  explain: {
+    what: "Én GROQ-spørring som filtrerer femti observasjoner ned til de bekreftede, sorterer dem på tid og henter stedet de peker på. Svaret tegnes som et spor på kartet.",
+    why: "Et godt filter gir svaret: ryktene peker mot torget, men de bekreftede observasjonene viser hvor sporet egentlig går.",
+  },
   goalPreview: {
     before: "Femti observasjoner, rykter og fakta om hverandre.",
     after: "Bare bekreftede, i tidsrekkefølge, med sted.",
@@ -536,9 +570,14 @@ const archiveLists: Quest = {
   ],
   outro: ["Nå finner jeg det Kari spurte om med to klikk, uten å skrive GROQ."],
   goal: "Lag listene «Bare bekreftede» og «Per sted» med *Structure Builder*.",
+  explain: {
+    what: "To nye punkter øverst i venstre kolonne i Studio, laget med *Structure Builder*. «Bare bekreftede» åpner en liste med bare bekreftede observasjoner. «Per sted» viser stedene, og klikker du på ett, ser du alt som er sett der.",
+    why: "Arkivaren kan ikke GROQ. Med listene finner hun svaret med to klikk, og du slipper å skrive en ny spørring hver gang noen spør.",
+  },
   goalPreview: {
     before: "Studio viser bare dokumenttypene.",
-    after: "Arkivarens to lister står øverst.",
+    after:
+      "To nye lister øverst. Per sted › Bakeriet viser alt som er sett der.",
   },
   where: "I kodevinduet.",
   hints: [
@@ -586,6 +625,10 @@ const whoPointsHere: Quest = {
     "Noe stort og kaldt gikk fra skogen til bakeriet i natt og spiste kaker. Ingen ble skadet, og det var ikke noe troll på torget. Markedet går som planlagt.",
   ],
   goal: "Lag en *document view* som viser observasjonene som peker på stedet du har åpnet.",
+  explain: {
+    what: "En ny fane, en *document view*, på hvert sted i Studio. Fanen «Observasjoner her» viser alle observasjonene som peker på stedet du har åpnet.",
+    why: "En *reference* går bare én vei: observasjonen vet hvor den var, men stedet vet ikke hva som skjedde der. Fanen snur spørsmålet, så svaret står der du leter.",
+  },
   goalPreview: {
     before: "Bakeriet vet ikke hva som peker på det.",
     after: "En egen fane viser observasjonene her.",
@@ -633,6 +676,10 @@ const archiveQuestions: Quest = {
   ],
   outro: ["Nå vet du mer om arkivet mitt enn jeg gjør selv."],
   goal: "Svar på Arkivarens fem spørsmål med GROQ. Hvert svar gir en gjenstand.",
+  explain: {
+    what: "Fem GROQ-svar på spørsmålene Arkivaren får hele dagen. Du teller, sammenligner og bruker `^` i en underspørring.",
+    why: "Mer GROQ-trening i ditt eget tempo, og hvert riktige svar gir deg en gjenstand.",
+  },
   goalPreview: {
     before: "Fem spørsmål på skiltet.",
     after: "Hvert svar gir en gjenstand.",
@@ -644,6 +691,9 @@ const archiveQuestions: Quest = {
     },
     {
       text: "Tell med `count(…)`. En underspørring inne i en projeksjon kan bruke `^` for dokumentet utenfor.",
+    },
+    {
+      text: 'Et eksempel med `^`: `*[_type == "place"]{ name, "antall": count(*[_type == "observation" && place._ref == ^._id]) }` teller observasjonene på hvert sted.',
     },
   ],
   learn: { label: "GROQ", url: GROQ_DOCS },
@@ -689,6 +739,10 @@ const archiveModel: Quest = {
     "Åpne Studio og se: valgene dine er blitt feltene i *Observation*.",
   ],
   goal: "Sorter bitene i notatet etter hvordan de bør lagres.",
+  explain: {
+    what: "En innholdsmodell: for hver del av notatet bestemmer du hvilken type felt det blir i Studio. Når brettet er løst, slår spillet på de feltene i *Observation*.",
+    why: "Felttypen avgjør hva du kan gjøre med innholdet senere: sortere på tid, filtrere på status, samle alt fra ett sted. Det er denne samtalen du har med utviklerne før de lager *schema*-et.",
+  },
   steps: [
     "Trykk «Åpne modellbrettet».",
     "Velg et kort fra notatet, og trykk «Legg valgt kort her» på feltet det hører hjemme i.",
@@ -739,6 +793,10 @@ const whoIsLying: Quest = {
     "C peker nå på Bakeriet, så den dukker opp i lista «Per sted», uansett hvordan noen staver navnet.",
   ],
   goal: "Koble observasjon C til Bakeriet, gi alle fem riktig *Status*, og publiser.",
+  explain: {
+    what: "Du kobler én observasjon til riktig sted med en *reference*, og gir alle fem en status: *Confirmed* eller *Rumor*.",
+    why: "En *reference* samler alt fra Bakeriet på samme liste, uansett hvordan noen staver navnet. Statusen er det som skiller fakta fra rykter.",
+  },
   steps: [
     "Åpne observasjon C i Studio, og velg Bakeriet i feltet *Place*.",
     "Åpne «Per sted» og se hvem som så hva på samme sted.",
@@ -756,6 +814,7 @@ const whoIsLying: Quest = {
     },
     {
       text: "«Per sted» samler det flere så på samme sted. Står det to like observasjoner der?",
+      link: { label: "Reference type", url: `${DOCS}/reference-type` },
     },
     {
       text: "«Et annet vitne»: se på navnet, ikke bare stedet.",
@@ -807,6 +866,10 @@ const caseFile: Quest = {
     "Mappa peker på observasjonene i stedet for å kopiere dem. Prøv å gi Bakeriet et nytt navn i Studio og publiser: tavla på torget følger med.",
   ],
   goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene, og ingen rykter.",
+  explain: {
+    what: "En saksmappe, et *Case*-dokument, med en liste av *references* til de tre bekreftede observasjonene. Den henges opp på oppslagstavla på torget.",
+    why: "Mappa peker på observasjonene i stedet for å kopiere dem. Retter noen en observasjon, er mappa riktig med en gang.",
+  },
   steps: [
     "Lag et nytt *Case*-dokument i Studio, og gi det en tittel.",
     "Under *Observations*: trykk «Add item» og velg en bekreftet observasjon. Gjør det for alle tre.",
@@ -863,6 +926,10 @@ const bakerTemplate: Quest = {
     "Neste gang jeg åpner en bestilling, står startverdiene der allerede.",
   ],
   goal: "Gi en ny bestilling status «ny» og dagens dato fra start.",
+  explain: {
+    what: "En *initial value* for bestillinger: når Bakeren lager en ny, står status «ny» og dagens dato der allerede.",
+    why: "Det som nesten alltid er likt, bør ikke skrives for hånd. Færre tastetrykk gir færre feil.",
+  },
   goalPreview: {
     before: "En ny lapp mangler dato og status.",
     after: "Nye lapper starter med dagens dato og «ny».",
@@ -912,6 +979,10 @@ const bakerForge: Quest = {
     "Publish er der fortsatt når han bare skal publisere som vanlig.",
   ],
   goal: "Lag en Smi-action som stempler og publiserer et våpen i ett trykk.",
+  explain: {
+    what: "En *document action*: en egen Smi-knapp ved siden av *Publish* som setter `forgedAt` og publiserer våpenet i samme trykk.",
+    why: "Når to steg alltid hører sammen, sørger én knapp for at ingen glemmer det andre.",
+  },
   goalPreview: {
     before: "Våpenet mangler smitidspunkt.",
     after: "Smi stempler våpenet og publiserer det.",
@@ -957,6 +1028,10 @@ const bakerFunction: Quest = {
     "Ingen bestilling eller skilt ble endret i prosjektet ditt.",
   ],
   goal: "Oppdater skiltet ved publisering av en bestilling, men ikke ved andre hendelser eller gjentakelser.",
+  explain: {
+    what: "Logikken i en Sanity Function: kode som kjører når en bestilling publiseres og oppdaterer skiltet, men bare én gang per bestilling. Du tester den mot en simulert klient.",
+    why: "En Function gjør jobben av seg selv når innhold endres. Vakten mot gjentakelser hindrer at samme hendelse gjør arbeidet to ganger.",
+  },
   goalPreview: {
     before: "Hver hendelse ville skrevet om skiltet.",
     after: "Bare nye publiseringer endrer det – i simuleringen.",
@@ -999,6 +1074,10 @@ const bakerModel: Quest = {
     "Ingen flere lussekatter som blir til pepperkaker.",
   ],
   goal: "Bestem modellen, og lag deretter én ny publisert bestilling.",
+  explain: {
+    what: "En modell for bestillinger: hvilke felt som finnes, hvilke som må fylles ut (*validation*), og hvilke som fylles ut av seg selv (*initial value*). Etterpå lager du en bestilling i Studio med den.",
+    why: "Påkrevde felt stopper ufullstendige lapper, og startverdier sparer Bakeren for å skrive det samme hver gang. Det er dette du ber utviklerne om.",
+  },
   steps: [
     "Trykk «Åpne modellbrettet», og sorter bitene fra lappen til Bakeren.",
     "Kryss av for «Påkrevd» og «Startverdi» der det passer.",
@@ -1022,6 +1101,9 @@ const bakerModel: Quest = {
     {
       text: "Vare, dato og status må finnes. Kunden er det ekte dilemmaet: noen ganger er navnet ukjent.",
       link: { label: "Validation", url: `${DOCS}/validation` },
+    },
+    {
+      text: "«Påkrevd» stopper *Publish* når feltet er tomt. «Startverdi» fyller feltet når bestillingen lages, men kan endres. Et felt kan ha begge.",
     },
   ],
   learn: { label: "Validation", url: `${DOCS}/validation` },
@@ -1070,6 +1152,10 @@ const bakerSign: Quest = {
     "Du skrev teksten én gang, og hver flate bestemte selv hvordan fet skrift skulle se ut.",
   ],
   goal: "Publiser én rik tekst som fungerer på skiltet og i kortversjonen.",
+  explain: {
+    what: "Et skilt i *Portable Text*: tekst der ett ord er fet. Samme tekst vises på skiltet ved boden og i en kortversjon, slik den ville sett ut i en app.",
+    why: "Teksten sier bare hva som er viktig. Hver flate bestemmer selv hvordan «viktig» ser ut, så innholdet kan brukes overalt.",
+  },
   steps: [
     "Åpne *Bodskilt* i Studio.",
     "Skriv en kort beskjed i *Skilttekst*.",
@@ -1083,6 +1169,9 @@ const bakerSign: Quest = {
   where:
     "Hent oppgaven ved bodskiltet utenfor bakeriet. Skriv deretter i ditt eget Sanity Studio under *Bodskilt*.",
   hints: [
+    {
+      text: "Hvilket ord vil du at folk skal se fra andre siden av torget? Det er det ordet som skal bli fet.",
+    },
     {
       text: "*Skilttekst* er *Portable Text*: tekst der ord kan ha formatering. Fet skrift er en *mark* på ordet, ikke store bokstaver.",
       link: { label: "Portable Text", url: `${DOCS}/block-content` },
@@ -1123,6 +1212,10 @@ const morningRush: Quest = {
     "*Klar* nektet de ufullstendige lappene, og tok status og *Publish* i ett trykk for resten.",
   ],
   goal: "Rett de ufullstendige lappene og bruk Klar på alle fire bestillingene.",
+  explain: {
+    what: "Du retter to ufullstendige bestillinger og bruker Bakerens egen knapp, *Klar*, på alle fire. Knappen setter status og publiserer i ett trykk.",
+    why: "*Validation* stopper det som mangler, og en egen *document action* gjør et arbeidssteg til ett trykk. Slik slipper ingen ut noe halvferdig.",
+  },
   steps: [
     "Åpne bestillingene i Studio.",
     "Fyll inn datoen på Arkivarens bestilling.",
@@ -1142,6 +1235,9 @@ const morningRush: Quest = {
     {
       text: "Ser du etter røde felt? Det er *validation* som sier fra om det som mangler.",
       link: { label: "Validation", url: `${DOCS}/validation` },
+    },
+    {
+      text: "Har du trykket *Publish* i stedet? Da er status fortsatt den gamle. Trykk *Klar* også; den setter status og publiserer i ett.",
     },
   ],
   learn: { label: "Document actions", url: `${DOCS}/document-actions` },
@@ -1187,6 +1283,10 @@ const bakerLink: Quest = {
     "En lenke i et tekstspenn er noe mer enn en adresse skrevet med bokstaver.",
   ],
   goal: "Legg en HTTPS-lenke på et ord i bodskiltet og publiser. Frivillig ☆.",
+  explain: {
+    what: "En lenke, en *annotation*, på et ord i skiltet, som peker til en side med mer informasjon.",
+    why: "En lenke er data knyttet til et ord, ikke en adresse skrevet med bokstaver. Da kan hver flate vise den på sin måte.",
+  },
   goalPreview: {
     before: "Skiltet har bare vanlig tekst.",
     after: "Et markert ord har en publisert HTTPS-lenke.",

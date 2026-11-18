@@ -11,10 +11,16 @@ const questTitles = new Map(
 
 export type CommunityEvent = {
   playerId: string;
-  questId: string;
-  title: string;
+  kind?: "quest" | "weapon"; // missing on older milestones: a finished luke
+  questId?: string;
+  title?: string; // the luke's title (quest)
+  label?: string; // the weapon's name (weapon)
+  hints?: number | null; // hints used, only when the player shares them
   at: string;
 };
+
+// Hints counted per luke, at most this many (every luke has three).
+export const MAX_HINTS = 9;
 
 export type CommunityWeapon = { name: string; spriteId: string | null };
 export type CommunityPlayer = {
@@ -24,6 +30,8 @@ export type CommunityPlayer = {
   weapon: CommunityWeapon | null;
   figure: FigureChoice | null;
   name: string | null;
+  // Hints used per finished luke, or null when the player keeps them private.
+  hints: Record<string, number> | null;
 };
 
 export function forgeLevelFromMilestones(questIds: Iterable<string>) {
@@ -40,14 +48,19 @@ export function forgeLevelFromMilestones(questIds: Iterable<string>) {
 }
 
 export function playersFromMilestones(
-  milestones: Pick<CommunityEvent, "playerId" | "questId">[],
+  milestones: { playerId: string; questId: string; hints?: number | null }[],
   profiles: (Pick<CommunityPlayer, "playerId" | "weapon"> &
     Partial<Pick<CommunityPlayer, "figure" | "name">>)[],
 ): CommunityPlayer[] {
   const completed = new Map<string, Set<string>>();
-  for (const { playerId, questId } of milestones) {
+  const hints = new Map<string, Record<string, number>>();
+  for (const { playerId, questId, hints: used } of milestones) {
     if (!completed.has(playerId)) completed.set(playerId, new Set());
     completed.get(playerId)!.add(questId);
+    if (typeof used === "number") {
+      if (!hints.has(playerId)) hints.set(playerId, {});
+      hints.get(playerId)![questId] = used;
+    }
   }
   const byId = new Map(profiles.map((profile) => [profile.playerId, profile]));
   return [...new Set([...completed.keys(), ...byId.keys()])]
@@ -58,6 +71,7 @@ export function playersFromMilestones(
       weapon: byId.get(playerId)?.weapon ?? null,
       figure: byId.get(playerId)?.figure ?? null,
       name: byId.get(playerId)?.name ?? null,
+      hints: hints.get(playerId) ?? null,
     }))
     .sort(
       (a, b) =>
@@ -136,20 +150,66 @@ function displayName(value: unknown) {
 // Only known quests and Sanity project IDs may become document IDs or public data.
 export function milestonesFor(input: unknown) {
   if (!input || typeof input !== "object") return null;
-  const { playerId, questIds } = input as Record<string, unknown>;
+  const { playerId, questIds, hints } = input as Record<string, unknown>;
   if (
     typeof playerId !== "string" ||
     !/^[a-z0-9]{6,20}$/.test(playerId) ||
     !Array.isArray(questIds) ||
     questIds.length > 100 ||
-    !questIds.every((id) => typeof id === "string" && questTitles.has(id))
+    !questIds.every((id) => typeof id === "string" && questTitles.has(id)) ||
+    (hints != null && !isHintCounts(hints))
   )
     return null;
+  const counts = hints as Record<string, number> | null | undefined;
   return [...new Set(questIds as string[])].map((questId) => ({
     _id: `questMilestone.${playerId}.${questId}`,
     _type: "questMilestone" as const,
     playerId,
     questId,
     title: questTitles.get(questId)!,
+    ...(counts ? { hints: counts[questId] ?? 0 } : {}),
   }));
+}
+
+// Whether the player shares hint counts: true (an object was sent), false
+// (null was sent: remove any already shared), or undefined (left as is).
+export function sharesHints(input: unknown): boolean | undefined {
+  if (!input || typeof input !== "object" || !Object.hasOwn(input, "hints"))
+    return undefined;
+  return (input as Record<string, unknown>).hints != null;
+}
+
+function isHintCounts(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const entries = Object.entries(value);
+  return (
+    entries.length <= 100 &&
+    entries.every(
+      ([id, n]) =>
+        questTitles.has(id) &&
+        Number.isInteger(n) &&
+        (n as number) >= 0 &&
+        (n as number) <= MAX_HINTS,
+    )
+  );
+}
+
+// "smidde Frostbit": one event per weapon name the player has shared.
+export function weaponEventFor(playerId: string, weapon: CommunityWeapon) {
+  const slug = weapon.name
+    .toLowerCase()
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "o")
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40);
+  if (!slug) return null;
+  return {
+    _id: `communityEvent.${playerId}.weapon.${slug}`,
+    _type: "communityEvent" as const,
+    playerId,
+    kind: "weapon" as const,
+    label: weapon.name,
+  };
 }

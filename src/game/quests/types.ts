@@ -13,6 +13,7 @@ export type Progress = {
   trackChosen: boolean; // player has completed track choice (legacy saves migrate to true)
   shareProfile: boolean; // explicit opt-in before name, figure and milestones are shared
   sharePrompted: boolean; // returning players have answered the one-time sharing question
+  shareHints: boolean; // when sharing: show how many hints were used per luke (on by default)
   metBlacksmith: boolean;
   wraithDefeated: boolean;
   completed: Record<string, string>; // quest id → ISO time it was completed
@@ -85,6 +86,9 @@ export type Quest = {
   intro: string[]; // what Brann says when he hands it over, one short page each
   outro?: string[]; // optional giver's lines after completing the door
   goal: string; // one line for the tracker: what, not how
+  // «Dette lager du» and «Hvorfor»: the concrete thing the player builds and
+  // where it shows up, and why it matters. Shown in the dialogue and journal.
+  explain: { what: string; why: string };
   // How to do it, step by step. Part of the task text (dialogue and journal),
   // not hints: hints are for when the steps aren't enough.
   steps?: string[];

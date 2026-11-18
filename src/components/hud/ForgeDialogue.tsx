@@ -14,6 +14,7 @@ import {
 import { giverOf, lukeName } from "@/game/quests/label";
 import SpriteIcon from "./SpriteIcon";
 import GoalPreview from "./goalPreviews";
+import Explain from "./Explain";
 import { IconQuill } from "./icons";
 import { renderText } from "./richText";
 import { openStudio } from "./studioPane";
@@ -146,6 +147,7 @@ export default function ForgeDialogue(props: Props) {
         </div>
         {last && current && !elsewhere && sanityConfigured !== false && (
           <div className="dialogue-picture">
+            <Explain quest={current.quest} />
             <GoalPreview quest={current.quest} />
           </div>
         )}
@@ -350,33 +352,13 @@ function Details({
 
   return (
     <>
-      {firstForging && sanityConfigured !== false && (
+      {current?.quest.steps && !remoteSite && sanityConfigured !== false && (
         <ol className="dialogue-steps">
-          <li>
-            Åpne Sanity Studio og lag et nytt <span className="term">Item</span>
-            -dokument
-          </li>
-          <li>
-            Velg <span className="term">Weapon</span>, gi det et navn og en
-            sprite
-          </li>
-          <li>
-            Trykk <span className="term">Publish</span>, og se våpenet dukke opp
-            i spillet
-          </li>
+          {current.quest.steps.map((step) => (
+            <li key={step}>{renderText(step)}</li>
+          ))}
         </ol>
       )}
-
-      {!firstForging &&
-        current?.quest.steps &&
-        !remoteSite &&
-        sanityConfigured !== false && (
-          <ol className="dialogue-steps">
-            {current.quest.steps.map((step) => (
-              <li key={step}>{renderText(step)}</li>
-            ))}
-          </ol>
-        )}
 
       {fetchFailed && !refreshing && (
         <p className="dialogue-feedback" role="status">

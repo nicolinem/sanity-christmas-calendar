@@ -125,12 +125,18 @@ type Props = {
   firstTime: boolean; // no figure yet: nothing to go back to, so no close
   initialTab: Mode;
   initialShareProfile: boolean;
+  initialShareHints: boolean;
   seenGear: Record<string, true>;
   items: GameItemView[];
   equippedId: string | null;
   onEquip: (item: GameItemView) => void;
   level: number;
-  onDone: (choice: FigureChoice, name: string, shareProfile: boolean) => void;
+  onDone: (
+    choice: FigureChoice,
+    name: string,
+    shareProfile: boolean,
+    shareHints: boolean,
+  ) => void;
   onClose: () => void;
 };
 
@@ -141,6 +147,7 @@ export default function CharacterSheet({
   firstTime,
   initialTab,
   initialShareProfile,
+  initialShareHints,
   seenGear,
   items,
   equippedId,
@@ -154,6 +161,7 @@ export default function CharacterSheet({
   );
   const [name, setName] = useState(initialName);
   const [shareProfile, setShareProfile] = useState(initialShareProfile);
+  const [shareHints, setShareHints] = useState(initialShareHints);
   const [history, setHistory] = useState<FigureChoice[]>([]);
   const [mode, setMode] = useState<Mode>(firstTime ? "look" : initialTab);
   const [catId, setCatId] = useState("skin");
@@ -217,7 +225,8 @@ export default function CharacterSheet({
     setHistory((h) => h.slice(0, -1));
     setChoice(prev);
   };
-  const done = () => onDone(choice, cleanName(name).trim(), shareProfile);
+  const done = () =>
+    onDone(choice, cleanName(name).trim(), shareProfile, shareHints);
 
   useEffect(() => {
     doneRef.current?.focus({ preventScroll: true });
@@ -573,6 +582,22 @@ export default function CharacterSheet({
                     </small>
                   </span>
                 </label>
+                {shareProfile && (
+                  <label className="cs-share cs-share--sub">
+                    <input
+                      type="checkbox"
+                      checked={shareHints}
+                      onChange={(e) => setShareHints(e.target.checked)}
+                    />
+                    <span>
+                      <strong>Vis hvor mange hint jeg brukte</strong>
+                      <small>
+                        Andre ser antall hint per luke. Skru av hvis du heller
+                        vil spille i fred.
+                      </small>
+                    </span>
+                  </label>
+                )}
                 <div className="cs-actions">
                   <button
                     type="button"

@@ -10,6 +10,7 @@ import { NPCS, QUEST_SITES, type QuestSiteId } from "@/game/village";
 import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
+import Explain from "./Explain";
 import { renderText } from "./richText";
 import VillageMap from "./VillageMap";
 import StudioPractice from "./StudioPractice";
@@ -677,6 +678,7 @@ function QuestDetail({
         </p>
       )}
       <p className="log-goal">{renderText(result.goal ?? quest.goal)}</p>
+      <Explain quest={quest} />
       {quest.steps && (
         <ol className="log-steps">
           {quest.steps.map((step) => (

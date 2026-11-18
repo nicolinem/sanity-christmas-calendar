@@ -9,6 +9,7 @@ export const EMPTY_PROGRESS: Progress = {
   trackChosen: false,
   shareProfile: false,
   sharePrompted: false,
+  shareHints: true,
   metBlacksmith: false,
   wraithDefeated: false,
   completed: {},
@@ -61,6 +62,7 @@ export function readProgress(project: string): Progress {
           trackChosen:
             typeof saved.trackChosen === "boolean" ? saved.trackChosen : true,
           shareProfile: saved.shareProfile === true,
+          shareHints: saved.shareHints !== false,
           sharePrompted:
             typeof saved.sharePrompted === "boolean"
               ? saved.sharePrompted

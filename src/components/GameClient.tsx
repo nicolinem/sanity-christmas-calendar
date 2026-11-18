@@ -6,6 +6,7 @@ import {
   type FigureChoice,
 } from "@/game/figure";
 import { communityEndpoint } from "@/game/communityEndpoint";
+import { MAX_HINTS } from "@/game/community";
 import { ownedGear, wearable } from "@/game/wardrobe";
 import CharacterSheet from "./figure/CharacterSheet";
 import {
@@ -249,13 +250,19 @@ export default function GameClient() {
     }).catch(() => {});
   }, [communityReady, configured]);
   const saveFigure = useCallback(
-    (choice: FigureChoice, name: string, shareProfile: boolean) => {
+    (
+      choice: FigureChoice,
+      name: string,
+      shareProfile: boolean,
+      shareHints: boolean,
+    ) => {
       if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
       updateProgress(PROGRESS_PROJECT, (p) => ({
         ...p,
         figure: { ...choice },
         name: name || undefined,
         shareProfile,
+        shareHints,
         sharePrompted: true,
         introSeen: true,
       }));
@@ -421,6 +428,15 @@ export default function GameClient() {
       body: JSON.stringify({
         playerId: PROGRESS_PROJECT,
         questIds: Object.keys(progress.completed),
+        // Hints used per finished luke, or null to take them back.
+        hints: progress.shareHints
+          ? Object.fromEntries(
+              Object.keys(progress.completed).map((id) => [
+                id,
+                Math.min(progress.hints[id] ?? 0, MAX_HINTS),
+              ]),
+            )
+          : null,
         character: {
           visible: true,
           weapon:
@@ -437,6 +453,8 @@ export default function GameClient() {
     configured,
     progress.completed,
     progress.shareProfile,
+    progress.shareHints,
+    progress.hints,
     figure,
     progress.name,
     equipped,
@@ -1155,6 +1173,7 @@ export default function GameClient() {
             firstTime={entryStage === "figure"}
             initialTab={progress.figure ? sheetTab : "look"}
             initialShareProfile={progress.shareProfile}
+            initialShareHints={progress.shareHints}
             seenGear={progress.seenGear}
             items={items}
             equippedId={equippedId}

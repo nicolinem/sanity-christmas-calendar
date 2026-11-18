@@ -1266,6 +1266,27 @@ kbd {
   color: #e3c9ad;
   max-width: 60ch;
 }
+.log-explain {
+  display: grid;
+  gap: 6px;
+  max-width: 62ch;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--snow);
+  background: rgb(143 211 255 / 0.06);
+  box-shadow: inset var(--px) 0 0 0 var(--glacier);
+}
+.log-explain p {
+  margin: 0;
+}
+.log-explain-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--glacier);
+}
 .log-intro p {
   margin: 0 0 6px;
 }
@@ -2693,6 +2714,35 @@ kbd {
 .community-player h3 small {
   font-size: 18px;
   color: var(--frost-dim);
+}
+.community-weapon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px !important;
+  color: var(--snow) !important;
+}
+.community-hints {
+  font-size: 12px;
+  color: var(--frost);
+}
+.community-hints summary {
+  cursor: pointer;
+}
+.community-hints ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.community-hints li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  color: var(--frost-dim);
+}
+.community-hints li span:last-child {
+  color: var(--snow);
 }
 .community-level {
   display: flex;
@@ -4176,6 +4226,13 @@ kbd {
   margin: 0 4px 0 auto;
   transform: rotate(-45deg);
 }
+.gp-panes {
+  display: grid;
+  gap: 6px;
+}
+.gp-structure li.is-open {
+  background: #e8f0fe;
+}
 .gp-tabs {
   display: flex;
   gap: 12px;
@@ -5613,6 +5670,10 @@ kbd {
   text-align: left;
   background: rgb(27 31 51 / 0.72);
   cursor: pointer;
+}
+.cs-share--sub {
+  margin-top: 6px;
+  margin-left: 18px;
 }
 .cs-share input {
   flex: none;
