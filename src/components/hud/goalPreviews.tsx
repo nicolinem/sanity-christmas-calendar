@@ -161,6 +161,116 @@ function BakeryCard({
   );
 }
 
+// --- Teknisk løype: luke 1, uke 2 og uke 3 ---------------------------------
+
+// Luke 1: the forge's list in Studio, empty after the storm.
+function EmptyList() {
+  return (
+    <StudioCard label="Item">
+      <p className="gp-empty">Ingen dokumenter ennå</p>
+    </StudioCard>
+  );
+}
+
+// Rows with a time and a status, as a query result or a list in Studio.
+function TimedList({
+  label,
+  rows,
+}: {
+  label: string;
+  rows: { time?: string; text: string; status?: string; tone?: "ok" | "bad" }[];
+}) {
+  return (
+    <StudioCard label={label}>
+      <ul className="gp-list">
+        {rows.map((row) => (
+          <li key={row.text}>
+            {row.time && <span className="gp-chip">{row.time}</span>}
+            <span className="gp-row-title">{row.text}</span>
+            {row.status && (
+              <span className={`gp-badge${row.tone ? ` is-${row.tone}` : ""}`}>
+                {row.status}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </StudioCard>
+  );
+}
+
+// The Studio's left pane: one row per list.
+function StructurePane({ items }: { items: [string, boolean?][] }) {
+  return (
+    <StudioCard label="Content">
+      <ul className="gp-list gp-structure">
+        {items.map(([name, isNew]) => (
+          <li key={name} className={isNew ? "is-new" : undefined}>
+            <span className="gp-row-title">{name}</span>
+            <span className="gp-chevron gp-chevron--right" />
+          </li>
+        ))}
+      </ul>
+    </StudioCard>
+  );
+}
+
+// A place document with its tabs (luke 7): the form, or the new view.
+function PlaceDoc({ view }: { view: boolean }) {
+  return (
+    <StudioCard>
+      <div className="gp-doc-head">
+        <span>Bakeriet</span>
+      </div>
+      <div className="gp-tabs">
+        <span className={view ? undefined : "is-on"}>Edit</span>
+        {view && <span className="is-on">Observasjoner her</span>}
+      </div>
+      {view ? (
+        <ul className="gp-list">
+          <li>
+            <span className="gp-chip">19:05</span>
+            <span className="gp-row-title">Kaker har forsvunnet</span>
+          </li>
+          <li>
+            <span className="gp-chip">19:10</span>
+            <span className="gp-row-title">Iskaldt i rommet etterpå</span>
+          </li>
+        </ul>
+      ) : (
+        <dl className="gp-fields">
+          <dt>Name</dt>
+          <dd>Bakeriet</dd>
+          <dt>x, y</dt>
+          <dd>61, 24</dd>
+        </dl>
+      )}
+    </StudioCard>
+  );
+}
+
+// A weapon with its action buttons (luke 10): Publish only, or Smi too.
+function ForgeDoc({ smi }: { smi: boolean }) {
+  return (
+    <StudioCard>
+      <div className="gp-doc-head">
+        <span className="gp-doc-name">
+          <SpriteImage spriteId="longsword" kind="weapon" scale={1} />
+          Nytt sverd
+        </span>
+        <span className="gp-actions">
+          {smi && <span className="gp-publish">Smi</span>}
+          <span className={`gp-publish${smi ? " is-off" : ""}`}>Publish</span>
+        </span>
+      </div>
+      <dl className="gp-fields">
+        <dt>Forged at</dt>
+        <dd>{smi ? "i dag 10:42" : <em>tom</em>}</dd>
+      </dl>
+    </StudioCard>
+  );
+}
+
 // --- Ikke-teknisk løype: the real things the player changes ---------------
 
 // The forge board (luke 2): a parchment sign with the weapon and a sentence.
@@ -338,6 +448,74 @@ function RushList({ ready }: { ready: boolean }) {
 }
 
 const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
+  "the-broken-forge": {
+    before: <EmptyList />,
+    after: <ItemRow name="Frostbit" sprite="sword" sub="weapon · publisert" />,
+  },
+  "follow-the-trail": {
+    before: (
+      <TimedList
+        label="Alle observasjoner"
+        rows={[
+          { time: "19:40", text: "Torget · skygge ved treet", status: "rumor" },
+          { time: "18:10", text: "Skogkanten · fotspor", status: "confirmed" },
+          { text: "Torget · troll, sies det", status: "rumor" },
+        ]}
+      />
+    ),
+    after: (
+      <TimedList
+        label="Svaret ditt"
+        rows={[
+          { time: "18:10", text: "Skogkanten" },
+          { time: "18:32", text: "Gjerdet" },
+          { time: "18:45", text: "Smia" },
+          { time: "19:05", text: "Bakeriet" },
+        ]}
+      />
+    ),
+  },
+  "archive-lists": {
+    before: (
+      <StructurePane
+        items={[["Item"], ["Observation"], ["Place"], ["Witness"]]}
+      />
+    ),
+    after: (
+      <StructurePane
+        items={[
+          ["Bare bekreftede", true],
+          ["Per sted", true],
+          ["Item"],
+          ["Observation"],
+        ]}
+      />
+    ),
+  },
+  "who-points-here": {
+    before: <PlaceDoc view={false} />,
+    after: <PlaceDoc view />,
+  },
+  "archive-questions": {
+    before: (
+      <Noticeboard>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <span key={n} className="gp-slip">
+            {n} ?
+          </span>
+        ))}
+      </Noticeboard>
+    ),
+    after: (
+      <Noticeboard>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <span key={n} className="gp-slip">
+            {n} ✓
+          </span>
+        ))}
+      </Noticeboard>
+    ),
+  },
   "weapon-description": {
     before: <ForgeBoard />,
     after: <ForgeBoard text="Smidd for vinterens farer." />,
@@ -418,65 +596,35 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   },
   "the-drawing-board": { before: <SelectBefore />, after: <GridAfter /> },
   "baker-template": {
-    before: (
-      <BakeryCard
-        label="Ny bestilling"
-        lines={[
-          ["Status", ""],
-          ["Dato", ""],
-        ]}
-      />
-    ),
-    after: (
-      <BakeryCard
-        label="Ny bestilling"
-        lines={[
-          ["Status", "ny"],
-          ["Dato", "14. desember"],
-        ]}
-      />
-    ),
+    before: <OrderForm />,
+    after: <OrderForm date="i dag" status="ny" />,
   },
   "baker-model": {
     before: <OrderForm />,
     after: <OrderForm date="i dag" status="ny" blocked />,
   },
   "baker-forge": {
-    before: (
-      <BakeryCard
-        label="Våpen"
-        lines={[
-          ["Forged at", ""],
-          ["Handling", "Publish"],
-        ]}
-      />
-    ),
-    after: (
-      <BakeryCard
-        label="Våpen"
-        lines={[
-          ["Forged at", "nå"],
-          ["Handling", "Smi → publisert"],
-        ]}
-      />
-    ),
+    before: <ForgeDoc smi={false} />,
+    after: <ForgeDoc smi />,
   },
   "baker-function": {
     before: (
-      <BakeryCard
-        label="Simulert bodskilt"
-        lines={[
-          ["Hendelse", "alle"],
-          ["Tekst", "Bakerens bod"],
+      <TimedList
+        label="Simulert skilt"
+        rows={[
+          { text: "Bestilling publisert", status: "skrevet", tone: "ok" },
+          { text: "Samme beskjed igjen", status: "skrevet igjen", tone: "bad" },
+          { text: "Utkast endret", status: "skrevet", tone: "bad" },
         ]}
       />
     ),
     after: (
-      <BakeryCard
-        label="Simulert bodskilt"
-        lines={[
-          ["Hendelse", "publisert bestilling"],
-          ["Tekst", "Dagens bestilling: Julekake"],
+      <TimedList
+        label="Simulert skilt"
+        rows={[
+          { text: "Bestilling publisert", status: "skrevet", tone: "ok" },
+          { text: "Samme beskjed igjen", status: "hoppet over" },
+          { text: "Utkast endret", status: "hoppet over" },
         ]}
       />
     ),

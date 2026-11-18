@@ -20,7 +20,7 @@ function loadEngine(calendarStart) {
 
 const { chaptersForTrack, evaluateQuests, forgeLevelFor } = loadEngine();
 const { EMPTY_PROGRESS } = require("./progress.ts");
-const { CHAPTERS, theForgeButton } = require("./chapters.ts");
+const { CHAPTERS } = require("./chapters.ts");
 const NOW = new Date("2026-12-01T12:00:00Z");
 const COMPLETED_AT = "2026-11-30T12:00:00Z";
 
@@ -370,8 +370,7 @@ test("real chapters share startup while all existing code/window tasks stay tech
     ({ checkedBy }) => checkedBy === "code" || checkedBy === "window",
   );
   assert.ok(codeTasks.length > 0);
-  for (const task of [...codeTasks, theForgeButton])
-    assert.equal(task.track, "technical", task.id);
+  for (const task of codeTasks) assert.equal(task.track, "technical", task.id);
   for (const track of ["technical", "nonTechnical"]) {
     const selected = chaptersForTrack(CHAPTERS, track);
     assert.equal(
@@ -637,7 +636,7 @@ test("morning rush needs all three samples and the player's order ready", () => 
 });
 
 test("Studio-practice quests name their real Studio step", () => {
-  const all = [...CHAPTERS.flatMap(({ quests }) => quests), theForgeButton];
+  const all = CHAPTERS.flatMap(({ quests }) => quests);
   const named = all.filter(
     ({ studioPractice }) => studioPractice !== undefined,
   );
