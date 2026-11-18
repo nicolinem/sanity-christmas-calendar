@@ -12,7 +12,7 @@ import { IconClose, IconQuill } from "./hud/icons";
 type Props = { width: number; open: boolean };
 
 // Beside the game needs room for both; below this the Studio covers the game.
-const SIDE_BY_SIDE = "(min-width: 1200px)";
+const SIDE_BY_SIDE = "(min-width: 1000px)";
 
 function useSideBySide() {
   return useSyncExternalStore(

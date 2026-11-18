@@ -10,12 +10,12 @@ import { useSyncExternalStore } from "react";
 export const STUDIO_URL = "/studio";
 
 const KEY = "winter-quest:studio-pane";
-export const MIN_WIDTH = 720;
+export const MIN_WIDTH = 380;
 const FOCUS_GAME = "winter-quest:focus-game";
 
 type Pane = { open: boolean; width: number; loaded: boolean };
 
-let pane: Pane = { open: false, width: 780, loaded: false };
+let pane: Pane = { open: false, width: 560, loaded: false };
 let restored = false;
 const listeners = new Set<() => void>();
 
@@ -27,7 +27,7 @@ function load() {
     if (saved && typeof saved.width === "number")
       pane = {
         open: Boolean(saved.open),
-        width: Math.max(MIN_WIDTH, saved.width),
+        width: saved.width,
         loaded: Boolean(saved.open),
       };
   } catch {
@@ -93,7 +93,7 @@ export function focusGame() {
   window.dispatchEvent(new Event(FOCUS_GAME));
 }
 
-const CLOSED: Pane = { open: false, width: 780, loaded: false };
+const CLOSED: Pane = { open: false, width: 560, loaded: false };
 
 export function useStudioPane(): Pane {
   return useSyncExternalStore(
