@@ -303,7 +303,7 @@ export function caseFileResult(cases: OwnCase[], hasDraft = false) {
   const wrongIds = [...ids].filter((id) => !expected.has(id));
   const objectives = [
     ...CASE_FILE_EXPECTED.map((id) => ({
-      label: `${WHO_IS_LYING.find((observation) => observation._id === id)?.what ?? "Observasjon"} er med`,
+      label: `${id.slice(-1).toUpperCase()} · ${WHO_IS_LYING.find((observation) => observation._id === id)?.what ?? "Observasjon"} er med`,
       done: ids.has(id),
     })),
     ...wrongIds.map((id) => ({
