@@ -74,7 +74,14 @@ const theBrokenForge: Quest = {
     "Først trenger jeg et våpen, så vi kan holde snømonsteret unna til lista er på plass igjen.",
     "Luke 1: lag et våpen i Studio, gi det et navn og en sprite, og trykk *Publish*. Test det så på snømonsteret øst for brønnen.",
   ],
+  outro: [
+    "Der er det, første våpen på den nye lista! Og snømonsteret trakk seg tilbake til skogen, i alle fall for nå.",
+  ],
   goal: "Lag et våpen i Sanity Studio, trykk *Publish*, og test det på snømonsteret.",
+  goalPreview: {
+    before: "Smias liste er tom etter stormen.",
+    after: "Våpenet ditt står i lista og i spillet.",
+  },
   where: "I Sanity Studio.",
   hints: [
     {
@@ -284,6 +291,9 @@ const brannsLedger: Quest = {
     "I går skulle jeg finne den nye øksa i Studio, men lista viser bare navn. Jeg åpnet tre sverd før jeg endelig fant den.",
     "Jeg har hengt våpenlista på oppslagstavla. Velg et ikon for Item, og vis navn og bilde for hvert våpen, så jeg slipper å lete neste gang.",
   ],
+  outro: [
+    "Nå kjenner jeg igjen hvert våpen på bildet, uten å åpne et eneste ett.",
+  ],
   goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*.",
   goalPreview: {
     before: "I dag viser lista bare navn.",
@@ -336,6 +346,9 @@ const theGuildsLaw: Quest = {
   intro: [
     "De i huset vest for brønnen bestilte ei øks, men to våpen hadde samme navn. Et av dem manglet også bilde. Jeg klarte ikke å finne ut hvilket de mente.",
     "Vi må stoppe slike feil før de kommer på lista. Kan du få Studio til å nekte våpen uten sprite og navn som allerede er i bruk?",
+  ],
+  outro: [
+    "Ingen flere våpen uten bilde, og ingen to med samme navn. Huset i vest får øksa de faktisk bestilte.",
   ],
   goal: "Få Studio til å nekte våpen uten sprite og gjenstander uten navn eller med navn som allerede er brukt.",
   goalPreview: {
@@ -402,6 +415,7 @@ const theDrawingBoard: Quest = {
     "Takk for reglene! Men når jeg velger bilde til et våpen, ser jeg bare en liste med sprite-ID-er. Jeg aner ikke hvilken som er hvilken.",
     "Kan du gi meg bildeknapper i stedet? Startfila finner allerede bildene som passer. Du viser dem, markerer valget og lar meg fjerne det igjen. Åpne kodevinduet når du er klar.",
   ],
+  outro: ["Nå velger jeg bilde ved å se på det, ikke ved å gjette på en ID."],
   goal: "Bygg én bildeknapp for hver tillatte sprite. Vis bare ikonet, marker valget, og la det kunne fjernes.",
   goalPreview: {
     before: "I dag vises sprite-ID-ene som tekst.",
@@ -460,56 +474,6 @@ const theDrawingBoard: Quest = {
   check: fromWindow("the-drawing-board"),
 };
 
-// Belongs to week 3 (listed in its teaser), so it's not in any chapter yet.
-export const theForgeButton: Quest = {
-  id: "the-forge-button",
-  track: "technical",
-  door: 6,
-  title: "Document action: egen Smi-knapp",
-  intro: [
-    "Lag en egen knapp i Studio, «Smi», som setter tidspunktet våpenet ble smidd og publiserer det. Ha spillet åpent ved siden av, så ser du smia lyse opp.",
-  ],
-  goal: "Lag en *document action* «Smi» som setter `forgedAt` og publiserer gjenstanden.",
-  where:
-    "`sanity.config.ts`: se etter kommentaren `QUEST: Luke 6`. Selve *action*-en kan ligge i en egen fil.",
-  hints: [
-    {
-      text: "*Document actions* settes opp i `sanity.config.ts`, under `document.actions`.",
-      link: {
-        label: "Registering document actions",
-        url: `${DOCS}/document-actions#k3254d0188d3e`,
-      },
-    },
-    {
-      text: "`useDocumentOperation` gir deg `patch` og `publish`.",
-      link: {
-        label: "Update a value then publish",
-        url: `${DOCS}/document-actions#k362c883e4421`,
-      },
-    },
-    {
-      text: "Spillet ser etter en publisert gjenstand med `forgedAt`, et `datetime`-felt.",
-      link: { label: "Datetime type", url: `${DOCS}/datetime-type` },
-    },
-  ],
-  learn: { label: "Document actions", url: `${DOCS}/document-actions` },
-  lesson: {
-    title: "*Document actions*",
-    text: "Knappene nederst i et *document* er *document actions*. Du kan legge til egne, bytte ut de innebygde som *Publish*, og endre og publisere med `useDocumentOperation`.",
-  },
-  checkedBy: "game",
-  reward: { forgeLevel: 1 },
-  check: ({ items }) => {
-    const stamped = items.some((i) => i.source === "sanity" && i.forgedAt);
-    return {
-      done: stamped,
-      message: stamped
-        ? undefined
-        : "Ingen publisert gjenstand har et `forgedAt`-stempel ennå.",
-    };
-  },
-};
-
 // --- Uke 2: Arkivarens mysterium ----------------------------------------------
 // Halve bygda vil avlyse markedet. Arkivaren har samlet observasjoner, men
 // trenger hjelp til å skille det som skjedde fra rykter. Teknisk løype spør
@@ -525,10 +489,18 @@ const followTheTrail: Quest = {
   door: 5,
   title: "GROQ: følg sporet",
   intro: [
-    "Jeg har femti observasjoner og ingen svar. Hjelp meg å skille det som skjedde fra det folk tror skjedde.",
+    "I morges sto folk i kø utenfor arkivet, og alle hadde sin egen versjon. Nå har jeg femti observasjoner og ingen svar.",
     "Skriv én GROQ-spørring mot observasjonene mine: bare det som er bekreftet, i tidsrekkefølge, og med stedet. Kartet viser hvor sporet går.",
   ],
+  outro: [
+    "Se på kartet: de bekreftede observasjonene går fra skogkanten, langs gjerdet og forbi smia, helt til bakeriet. Ryktene på torget pekte feil vei.",
+    "Men hvorfor akkurat bakeriet?",
+  ],
   goal: "Skriv en GROQ-spørring som gir de bekreftede observasjonene i tidsrekkefølge, med stedet.",
+  goalPreview: {
+    before: "Femti observasjoner, rykter og fakta om hverandre.",
+    after: "Bare bekreftede, i tidsrekkefølge, med sted.",
+  },
   where: "I kodevinduet.",
   hints: [
     {
@@ -559,10 +531,15 @@ const archiveLists: Quest = {
   door: 6,
   title: "Structure: Arkivarens lister",
   intro: [
-    "For et kart! Jeg har hengt opp noen frivillige GROQ-spørsmål på skiltet ved torget, hvis du vil ha mer. Men først: jeg kan ikke skrive GROQ hver gang jeg skal lete.",
-    "Lag to lister i Studio med *Structure Builder*: «Bare bekreftede» og «Per sted». Filtrene er de samme som i spørringen din.",
+    "Kari kom innom og spurte hva som var sett ved bakeriet. Jeg måtte be deg skrive en ny spørring, og hun sto og ventet hele tiden.",
+    "Kan du gjøre spørringene om til lister i Studio, så jeg klikker meg fram selv? «Bare bekreftede» og «Per sted» holder. Spørsmålene på skiltet ved torget kan du ta når du vil.",
   ],
+  outro: ["Nå finner jeg det Kari spurte om med to klikk, uten å skrive GROQ."],
   goal: "Lag listene «Bare bekreftede» og «Per sted» med *Structure Builder*.",
+  goalPreview: {
+    before: "Studio viser bare dokumenttypene.",
+    after: "Arkivarens to lister står øverst.",
+  },
   where: "I kodevinduet.",
   hints: [
     {
@@ -604,7 +581,15 @@ const whoPointsHere: Quest = {
     "Når jeg åpner Bakeriet i Studio, står det ingenting om hva som er sett der. Stedet vet ikke hva som peker på det.",
     "Lag en egen fane på steder, en *document view*, som henter observasjonene som peker hit.",
   ],
+  outro: [
+    "Der står det, rett på Bakeriet: kaker forsvant, og det var iskaldt i rommet etterpå.",
+    "Noe stort og kaldt gikk fra skogen til bakeriet i natt og spiste kaker. Ingen ble skadet, og det var ikke noe troll på torget. Markedet går som planlagt.",
+  ],
   goal: "Lag en *document view* som viser observasjonene som peker på stedet du har åpnet.",
+  goalPreview: {
+    before: "Bakeriet vet ikke hva som peker på det.",
+    after: "En egen fane viser observasjonene her.",
+  },
   where: "I kodevinduet.",
   hints: [
     {
@@ -641,11 +626,17 @@ const archiveQuestions: Quest = {
   track: "technical",
   door: 8,
   title: "Arkivarens spørsmål",
+  giver: "arkivaren",
   villageSite: "noticeboard",
   intro: [
-    "Arkivaren har hengt opp fem spørsmål om observasjonene på skiltet. Svar på så mange du vil, med GROQ.",
+    "Folk stiller meg de samme spørsmålene hele dagen. Jeg har hengt opp de fem vanligste på skiltet ved torget. Svar på så mange du vil, med GROQ.",
   ],
+  outro: ["Nå vet du mer om arkivet mitt enn jeg gjør selv."],
   goal: "Svar på Arkivarens fem spørsmål med GROQ. Hvert svar gir en gjenstand.",
+  goalPreview: {
+    before: "Fem spørsmål på skiltet.",
+    after: "Hvert svar gir en gjenstand.",
+  },
   where: "På skiltet ved torget. Etterpå i kodevinduet.",
   hints: [
     {
@@ -812,7 +803,7 @@ const caseFile: Quest = {
     "Jeg vil henge opp én saksmappe med bare det vi vet sikkert: de tre bekreftede observasjonene, og ingen rykter.",
   ],
   outro: [
-    "Saksmappa henger på torget, og krangelen har stilnet.",
+    "Saksmappa henger på torget, og krangelen har stilnet. Det som er sant: store fotspor ved smia og en revnet melsekk ved bakeriet. Noe gikk fra smia til bakeriet i natt, men ingen ble skadet. Markedet går som planlagt.",
     "Mappa peker på observasjonene i stedet for å kopiere dem. Prøv å gi Bakeriet et nytt navn i Studio og publiser: tavla på torget følger med.",
   ],
   goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene, og ingen rykter.",
@@ -913,9 +904,8 @@ const bakerForge: Quest = {
   door: 10,
   title: "Document action: Smi",
   intro: [
-    "Brann må sette tidspunkt og publisere for hånd hver gang et våpen er klart.",
-    "Han kommer inn fra smia med sot på hendene og rekker ikke både å stemple og å trykke Publish.",
-    "Lag én *document action* som stempler `forgedAt` og publiserer våpenet. Bruk kodevinduet.",
+    "Brann kom innom i morges med sot på hendene. Han hadde smidd et nytt sverd, men glemt å trykke *Publish*, så kunden ventet forgjeves i smia.",
+    "Han ba meg spørre deg: kan Studio få én Smi-knapp, en *document action*, som stempler `forgedAt` og publiserer i samme trykk? Bruk kodevinduet.",
   ],
   outro: [
     "Brann kan nå smi og publisere i ett trykk.",
@@ -958,9 +948,9 @@ const bakerFunction: Quest = {
   door: 11,
   title: "Sanity Function: skiltet",
   intro: [
-    "Markedet nærmer seg. Tenk om bodskiltet kunne reagere når en bestilling publiseres?",
-    "Noen ganger kommer samme beskjed to ganger. Da skal skiltet ikke skrives om to ganger.",
-    "Lag hendelseslogikken i kodevinduet. Vi simulerer publisering med en falsk klient; ingenting deployes til prosjektet ditt.",
+    "I går publiserte jeg en ny bestilling, men skiltet ved boden sto fortsatt med gårsdagens tekst. Folk spurte meg om det samme hele dagen.",
+    "Tenk om skiltet kunne oppdatere seg selv når en bestilling publiseres, men bare én gang per bestilling, selv om beskjeden kommer to ganger.",
+    "Lag hendelseslogikken i kodevinduet. Vi simulerer publiseringen med en falsk klient; ingenting deployes til prosjektet ditt.",
   ],
   outro: [
     "Simuleringen reagerte på riktig publisering.",
@@ -1268,7 +1258,7 @@ export const CHAPTERS: Chapter[] = [
     number: 3,
     title: "Automatisere",
     opening: [
-      "Jeg er Bakeren. Takk for at du hjalp Arkivaren: markedet blir ikke avlyst!",
+      "Jeg er Bakeren. Noen var i bakeriet mitt i natt, men takket være deg og Arkivaren blir markedet ikke avlyst!",
       "Men nå er det få dager igjen, og alle vil ha noe fra boden min. Bestillinger, skilt og alt det andre må bli klart i tide, og jeg rekker det ikke alene.",
     ],
     quests: [
@@ -1279,15 +1269,6 @@ export const CHAPTERS: Chapter[] = [
       bakerSign,
       morningRush,
       bakerLink,
-    ],
-    teaser: [
-      "Singleton",
-      "Portable Text",
-      "Document action: Smi-knapp",
-      "Functions",
-      "Webhook",
-      "Bonus: Agent Actions",
-      "Bonus: plugin",
     ],
   },
 ];

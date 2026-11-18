@@ -42,3 +42,10 @@ test("every Bakery quest shows Before/After and has follow-up lines", () => {
     assert.match(html, /Etter/, quest.id);
   }
 });
+
+test("every luke in both tracks has a picture and an outcome", () => {
+  for (const quest of CHAPTERS.flatMap((chapter) => chapter.quests)) {
+    assert.equal(mod.exports.hasGoalPreview(quest), true, quest.id);
+    assert.ok(quest.outro?.length, `${quest.id} needs an outro`);
+  }
+});
