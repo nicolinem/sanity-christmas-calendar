@@ -7,6 +7,16 @@ import { MAX_FORGE_LEVEL } from "@/game/rules";
 import { normalizeFigure } from "@/game/figure";
 import { communityEndpoint } from "@/game/communityEndpoint";
 import FigureCanvas from "../figure/FigureCanvas";
+import SpriteImage from "../SpriteImage";
+import { CHAPTERS } from "@/game/quests/chapters";
+import { lukeName } from "@/game/quests/label";
+
+// «Luke 5: Hvem lyver?» for a quest id, in calendar order.
+const QUESTS = CHAPTERS.flatMap((chapter) => chapter.quests);
+const lukeLabel = (id: string) => {
+  const quest = QUESTS.find((q) => q.id === id);
+  return quest ? `${lukeName(quest)}: ${quest.title}` : id;
+};
 
 export default function Community() {
   const [events, setEvents] = useState<CommunityEvent[]>([]);
@@ -94,8 +104,21 @@ export default function Community() {
                           ? "luke fullført"
                           : "luker fullført"}
                       </p>
+                      {player.weapon && (
+                        <p className="community-weapon">
+                          {player.weapon.spriteId && (
+                            <SpriteImage
+                              spriteId={player.weapon.spriteId}
+                              kind="weapon"
+                              scale={1}
+                            />
+                          )}
+                          {player.weapon.name}
+                        </p>
+                      )}
                     </div>
                   </div>
+                  {player.hints && <HintSummary hints={player.hints} />}
                   <div
                     className="community-level"
                     aria-label={`Nivå ${player.forgeLevel} av ${MAX_FORGE_LEVEL}`}
@@ -114,13 +137,26 @@ export default function Community() {
           <aside className="community-feed">
             <h3>Siste nytt</h3>
             {events.length === 0 ? (
-              <p>Ingen luker fullført ennå.</p>
+              <p>Ingenting har skjedd ennå.</p>
             ) : (
               <ul>
                 {events.slice(0, 12).map((event) => (
-                  <li key={`${event.playerId}:${event.questId}`}>
-                    <strong>{label(event.playerId)}</strong> fullførte «
-                    {event.title}»
+                  <li
+                    key={`${event.playerId}:${event.kind}:${event.questId ?? event.label}`}
+                  >
+                    <strong>{label(event.playerId)}</strong>{" "}
+                    {event.kind === "weapon" ? (
+                      <>smidde «{event.label}»</>
+                    ) : (
+                      <>
+                        fullførte «{event.title}»
+                        {event.hints === 0
+                          ? " uten hint"
+                          : typeof event.hints === "number"
+                            ? ` med ${event.hints} hint`
+                            : ""}
+                      </>
+                    )}
                     <time dateTime={event.at}>
                       {new Date(event.at).toLocaleDateString("nb-NO")}
                     </time>
@@ -132,5 +168,30 @@ export default function Community() {
         </div>
       )}
     </div>
+  );
+}
+
+// Hints a player used: the total, and per luke when you open it.
+function HintSummary({ hints }: { hints: Record<string, number> }) {
+  const entries = QUESTS.filter((q) => q.id in hints).map(
+    (q) => [q.id, hints[q.id]] as const,
+  );
+  if (!entries.length) return null;
+  const total = entries.reduce((sum, [, n]) => sum + n, 0);
+  const clean = entries.filter(([, n]) => n === 0).length;
+  return (
+    <details className="community-hints">
+      <summary>
+        {total} hint totalt · {clean} uten hint
+      </summary>
+      <ul>
+        {entries.map(([id, n]) => (
+          <li key={id}>
+            <span>{lukeLabel(id)}</span>
+            <span>{n}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

@@ -7,6 +7,8 @@ import {
   characterFor,
   milestonesFor,
   playersFromMilestones,
+  sharesHints,
+  weaponEventFor,
   type CommunityEvent,
   type CommunityPlayer,
 } from "@/game/community";
@@ -85,11 +87,11 @@ export async function GET(request: Request) {
       });
     const [events, milestones] = await Promise.all([
       reader.fetch<CommunityEvent[]>(
-        '*[_type == "questMilestone" && playerId in $playerIds] | order(_createdAt desc)[0...100]{playerId, questId, title, "at": _createdAt}',
+        '*[_type in ["questMilestone", "communityEvent"] && playerId in $playerIds] | order(_createdAt desc)[0...100]{playerId, "kind": coalesce(kind, "quest"), questId, title, label, hints, "at": _createdAt}',
         { playerIds },
       ),
-      reader.fetch<Pick<CommunityEvent, "playerId" | "questId">[]>(
-        '*[_type == "questMilestone" && playerId in $playerIds]{playerId, questId}',
+      reader.fetch<{ playerId: string; questId: string; hints?: number }[]>(
+        '*[_type == "questMilestone" && playerId in $playerIds]{playerId, questId, hints}',
         { playerIds },
       ),
     ]);
@@ -160,7 +162,7 @@ export async function POST(request: Request) {
   try {
     if (character && !character.visible) {
       const documents = await writer.fetch<{ _id: string }[]>(
-        '*[_id == $profileId || (_type == "questMilestone" && playerId == $playerId)]{_id}',
+        '*[_id == $profileId || (_type in ["questMilestone", "communityEvent"] && playerId == $playerId)]{_id}',
         { profileId: character._id, playerId: character.playerId },
       );
       if (documents.length) {
@@ -171,9 +173,23 @@ export async function POST(request: Request) {
       }
       return reply(request, { ok: true });
     }
+    // Hint counts: set when shared, removed when the player stops sharing.
+    const hintsShared = sharesHints(input);
     let transaction = writer.transaction();
-    for (const milestone of milestones)
+    for (const { hints, ...milestone } of milestones) {
       transaction = transaction.createIfNotExists(milestone);
+      if (hintsShared === true)
+        transaction = transaction.patch(milestone._id, (patch) =>
+          patch.set({ hints: hints ?? 0 }),
+        );
+      else if (hintsShared === false)
+        transaction = transaction.patch(milestone._id, (patch) =>
+          patch.unset(["hints"]),
+        );
+    }
+    const weaponEvent =
+      character?.weapon && weaponEventFor(character.playerId, character.weapon);
+    if (weaponEvent) transaction = transaction.createIfNotExists(weaponEvent);
     if (character) {
       transaction = transaction.createIfNotExists(character);
       transaction = transaction.patch(character._id, (patch) =>

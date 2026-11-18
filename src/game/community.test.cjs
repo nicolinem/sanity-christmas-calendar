@@ -7,6 +7,8 @@ const {
   milestonesFor,
   characterFor,
   playersFromMilestones,
+  sharesHints,
+  weaponEventFor,
 } = require("./community.ts");
 const { DEFAULT_FIGURE } = require("./figure.ts");
 
@@ -115,6 +117,7 @@ test("characters include players without milestones and count all unique milesto
       weapon: { name: "Sverd", spriteId: "sword" },
       figure: DEFAULT_FIGURE,
       name: "Kari",
+      hints: null,
     },
     {
       playerId: "ijklmnop",
@@ -123,6 +126,7 @@ test("characters include players without milestones and count all unique milesto
       weapon: null,
       figure: null,
       name: null,
+      hints: null,
     },
     {
       playerId: "newcomer",
@@ -131,6 +135,7 @@ test("characters include players without milestones and count all unique milesto
       weapon: null,
       figure: null,
       name: null,
+      hints: null,
     },
   ]);
 });
@@ -198,6 +203,66 @@ test("player visibility requires explicit opt-in", () => {
   );
   assert.equal(
     characterFor({ playerId: "abcdefgh", character: { visible: "yes" } }),
+    null,
+  );
+});
+
+test("hint counts are stored per luke only when shared, and stay small", () => {
+  const shared = milestonesFor({
+    playerId: "abcdefgh",
+    questIds: ["the-broken-forge", "branns-ledger"],
+    hints: { "the-broken-forge": 2 },
+  });
+  assert.deepEqual(
+    shared.map(({ questId, hints }) => [questId, hints]),
+    [
+      ["the-broken-forge", 2],
+      ["branns-ledger", 0],
+    ],
+  );
+  assert.equal(
+    milestonesFor({ playerId: "abcdefgh", questIds: [], hints: { x: 1 } }),
+    null,
+  );
+  assert.equal(
+    milestonesFor({
+      playerId: "abcdefgh",
+      questIds: [],
+      hints: { "the-broken-forge": 99 },
+    }),
+    null,
+  );
+  assert.equal(sharesHints({ hints: {} }), true);
+  assert.equal(sharesHints({ hints: null }), false);
+  assert.equal(sharesHints({}), undefined);
+  const players = playersFromMilestones(
+    [
+      { playerId: "abcdefgh", questId: "the-broken-forge", hints: 0 },
+      { playerId: "ijklmnop", questId: "the-broken-forge" },
+    ],
+    [],
+  );
+  assert.deepEqual(players[0].hints, { "the-broken-forge": 0 });
+  assert.equal(players[1].hints, null);
+});
+
+test("a shared weapon becomes one stable event", () => {
+  assert.deepEqual(
+    weaponEventFor("abcdefgh", { name: "Frostbit Æ 2", spriteId: "sword" }),
+    {
+      _id: "communityEvent.abcdefgh.weapon.frostbit-ae-2",
+      _type: "communityEvent",
+      playerId: "abcdefgh",
+      kind: "weapon",
+      label: "Frostbit Æ 2",
+    },
+  );
+  assert.equal(
+    weaponEventFor("abcdefgh", { name: "Øks på Å", spriteId: null })._id,
+    "communityEvent.abcdefgh.weapon.oks-pa-a",
+  );
+  assert.equal(
+    weaponEventFor("abcdefgh", { name: "!!!", spriteId: null }),
     null,
   );
 });

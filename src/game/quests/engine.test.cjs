@@ -728,3 +728,20 @@ test("every week opens with what has happened, and non-technical lukes have step
       assert.ok(item.steps?.length >= 2, `${item.id} needs steps`);
   }
 });
+
+test("every luke has three hints that don't repeat its steps or each other", () => {
+  for (const item of CHAPTERS.flatMap((c) => c.quests)) {
+    const texts = item.hints.map(({ text }) => text);
+    assert.equal(texts.length, 3, item.id);
+    assert.equal(new Set(texts).size, 3, `${item.id}: like hint`);
+    for (const step of item.steps ?? [])
+      assert.ok(!texts.includes(step), `${item.id}: hint = steg`);
+  }
+});
+
+test("every luke says what you build and why", () => {
+  for (const item of CHAPTERS.flatMap((c) => c.quests)) {
+    assert.ok(item.explain.what.length > 40, `${item.id}: hva`);
+    assert.ok(item.explain.why.length > 40, `${item.id}: hvorfor`);
+  }
+});

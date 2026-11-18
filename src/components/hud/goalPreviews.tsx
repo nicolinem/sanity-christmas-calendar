@@ -215,6 +215,39 @@ function StructurePane({ items }: { items: [string, boolean?][] }) {
   );
 }
 
+// Luke 6, after: the new lists, and «Per sted» › Bakeriet opened beside them.
+function StructureOpen() {
+  return (
+    <div className="gp-panes">
+      <StudioCard label="Content">
+        <ul className="gp-list gp-structure">
+          <li className="is-new">
+            <span className="gp-row-title">Bare bekreftede</span>
+          </li>
+          <li className="is-new is-open">
+            <span className="gp-row-title">Per sted</span>
+          </li>
+          <li>
+            <span className="gp-row-title">Item</span>
+          </li>
+        </ul>
+      </StudioCard>
+      <StudioCard label="Per sted › Bakeriet">
+        <ul className="gp-list">
+          <li>
+            <span className="gp-chip">19:05</span>
+            <span className="gp-row-title">Kaker forsvant</span>
+          </li>
+          <li>
+            <span className="gp-chip">19:10</span>
+            <span className="gp-row-title">Iskaldt etterpå</span>
+          </li>
+        </ul>
+      </StudioCard>
+    </div>
+  );
+}
+
 // A place document with its tabs (luke 7): the form, or the new view.
 function PlaceDoc({ view }: { view: boolean }) {
   return (
@@ -481,16 +514,7 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
         items={[["Item"], ["Observation"], ["Place"], ["Witness"]]}
       />
     ),
-    after: (
-      <StructurePane
-        items={[
-          ["Bare bekreftede", true],
-          ["Per sted", true],
-          ["Item"],
-          ["Observation"],
-        ]}
-      />
-    ),
+    after: <StructureOpen />,
   },
   "who-points-here": {
     before: <PlaceDoc view={false} />,
