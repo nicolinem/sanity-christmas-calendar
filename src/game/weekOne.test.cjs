@@ -101,9 +101,10 @@ test("the apprentice hammer needs all original published values", () => {
   });
 });
 
-test("the History hints cover a wider pane, pre-apprentice revision, and Draft publish", () => {
-  const hints = quest("apprentice-mistake").hints.map(({ text }) => text);
-  assert.match(hints[0], /History.*bredere/);
-  assert.match(hints[1], /før lærlingen/);
-  assert.match(hints[2], /Published.*Draft.*Publish/);
+test("the History steps are task text, and the hints cover a wider pane and the Draft", () => {
+  const { steps, hints } = quest("apprentice-mistake");
+  assert.match(steps.join(" "), /History.*før lærlingen.*Publish/);
+  const texts = hints.map(({ text }) => text);
+  assert.match(texts[0], /History.*bredere/);
+  assert.match(texts[2], /Published.*Draft.*Publish/);
 });

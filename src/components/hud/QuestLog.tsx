@@ -644,6 +644,10 @@ function QuestDetail({
     );
   }
 
+  const firstOfWeek = state.chapter.quests.find((q) => !q.bonus);
+  const opening =
+    firstOfWeek?.id === quest.id ? (state.chapter.opening ?? []) : [];
+
   return (
     <article className="log-detail">
       <p className="log-week-kicker log-week-kicker--active">
@@ -654,21 +658,32 @@ function QuestDetail({
       </p>
       <h3 className="log-quest-title">{quest.title}</h3>
       {quest.topic && <p className="quest-topic">{renderText(quest.topic)}</p>}
-      <p className="log-intro">
-        {quest.villageSite === "bakerySign" ? (
-          quest.intro.map((line) => (
-            <span key={line}>«{renderText(line)}» </span>
-          ))
-        ) : (
-          <>«{renderText(quest.intro[quest.intro.length - 1])}»</>
-        )}
-      </p>
+      {opening.length > 0 && (
+        <details className="log-opening">
+          <summary>Dette har skjedd i bygda</summary>
+          {opening.map((line) => (
+            <p key={line}>«{renderText(line)}»</p>
+          ))}
+        </details>
+      )}
+      <div className="log-intro">
+        {quest.intro.map((line) => (
+          <p key={line}>«{renderText(line)}»</p>
+        ))}
+      </div>
       {quest.asksNpc && (
         <p className="log-where">
           {NPCS[quest.asksNpc].name} står {NPCS[quest.asksNpc].at}.
         </p>
       )}
       <p className="log-goal">{renderText(result.goal ?? quest.goal)}</p>
+      {quest.steps && (
+        <ol className="log-steps">
+          {quest.steps.map((step) => (
+            <li key={step}>{renderText(step)}</li>
+          ))}
+        </ol>
+      )}
       <GoalPreview quest={quest} />
       {quest.where && (
         <p className="log-where">

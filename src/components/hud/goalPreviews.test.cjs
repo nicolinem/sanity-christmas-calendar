@@ -32,7 +32,7 @@ test("every Bakery quest shows Before/After and has follow-up lines", () => {
   for (const quest of CHAPTERS[2].quests) {
     assert.equal(mod.exports.hasGoalPreview(quest), true, quest.id);
     assert.ok(quest.outro?.length >= 2, quest.id);
-    assert.ok(quest.intro.length >= 3, quest.id);
+    assert.ok(quest.intro.length >= 2, quest.id);
     assert.ok(quest.hints.length >= 2, quest.id);
     const html = renderToStaticMarkup(
       React.createElement(mod.exports.default, { quest }),

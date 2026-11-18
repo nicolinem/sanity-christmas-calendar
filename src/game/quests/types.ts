@@ -85,6 +85,9 @@ export type Quest = {
   intro: string[]; // what Brann says when he hands it over, one short page each
   outro?: string[]; // optional giver's lines after completing the door
   goal: string; // one line for the tracker: what, not how
+  // How to do it, step by step. Part of the task text (dialogue and journal),
+  // not hints: hints are for when the steps aren't enough.
+  steps?: string[];
   where?: string; // where the work happens: a file or a place, not the answer
   // Optional steps to try the result in the real Studio after solving the code.
   studioPractice?: string;
@@ -114,6 +117,9 @@ export type Chapter = {
   title: string;
   quests: Quest[];
   teaser?: string[]; // quest names shown while the chapter isn't built or open yet
+  // What has happened in the village this week, said by the giver before the
+  // week's first luke (both tracks). One short page each.
+  opening?: string[];
 };
 
 // offered: unlocked, but Brann hasn't handed it over yet. Its details stay

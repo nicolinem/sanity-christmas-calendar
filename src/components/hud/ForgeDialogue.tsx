@@ -49,7 +49,7 @@ export default function ForgeDialogue(props: Props) {
   const npcLine = npcQuestLine(speaker.id, board.current?.quest.id);
   const waitingAtGiver =
     board.current?.status === "offered" && !board.current.pickup;
-  const [pages] = useState<ReactNode[]>(() =>
+  const [pages, setPages] = useState<ReactNode[]>(() =>
     npcLine
       ? [<>{npcLine}</>]
       : !elsewhere
@@ -103,6 +103,13 @@ export default function ForgeDialogue(props: Props) {
   }, [last]);
 
   const current = board.current;
+  // Hear the whole conversation again: the week's opening and the luke's intro.
+  const replay = current
+    ? () => {
+        setPages(conversation(current));
+        setPage(0);
+      }
+    : undefined;
 
   return (
     <section
@@ -163,7 +170,13 @@ export default function ForgeDialogue(props: Props) {
             </button>
           </div>
         ) : last ? (
-          <Details {...props} studioRef={studioRef} />
+          <Details
+            {...props}
+            studioRef={studioRef}
+            onReplay={
+              current && current.status !== "offered" ? replay : undefined
+            }
+          />
         ) : (
           <div className="dialogue-actions">
             <button
@@ -218,27 +231,7 @@ function buildPages(
       </>,
     ];
   }
-  const place = current.quest.villageSite
-    ? QUEST_SITES[current.quest.villageSite].label.toLowerCase()
-    : undefined;
-  const placePhrase =
-    current.quest.villageSite === "noticeboard"
-      ? "på oppslagstavla"
-      : place && current.quest.villageSite !== "forge"
-        ? `ved ${place}`
-        : undefined;
-  const introPages = current.quest.intro.map((text, index) => (
-    <>
-      {renderText(text)}
-      {index === current.quest.intro.length - 1 && placePhrase && (
-        <>
-          {" "}
-          Oppgaven ligger {placePhrase}. Gå dit og hent den, så kan du jobbe med
-          den hvor du vil.
-        </>
-      )}
-    </>
-  ));
+  const placePhrase = placePhraseOf(current);
   // Explained, but not picked up yet: a short reminder of where it waits.
   if (current.pickup && placePhrase) {
     return [
@@ -250,7 +243,7 @@ function buildPages(
     ];
   }
   if (current.status === "offered") {
-    return [...reaction, ...introPages];
+    return [...reaction, ...conversation(current)];
   }
   // Already handed over: a short reminder.
   if (current.quest.id === FIRST_QUEST) {
@@ -273,6 +266,39 @@ function buildPages(
       {placePhrase && <>Oppgaven ligger {placePhrase}. </>}
       Se hva som gjenstår i journalen (J).
     </>,
+  ];
+}
+
+function placePhraseOf(current: QuestState) {
+  const site = current.quest.villageSite;
+  const place = site ? QUEST_SITES[site].label.toLowerCase() : undefined;
+  return site === "noticeboard"
+    ? "på oppslagstavla"
+    : place && site !== "forge"
+      ? `ved ${place}`
+      : undefined;
+}
+
+// The week's opening (before its first luke) and the luke's own intro.
+function conversation(current: QuestState): ReactNode[] {
+  const placePhrase = placePhraseOf(current);
+  const first = current.chapter.quests.find((q) => !q.bonus);
+  const opening =
+    first?.id === current.quest.id ? (current.chapter.opening ?? []) : [];
+  return [
+    ...opening.map((text) => <>{renderText(text)}</>),
+    ...current.quest.intro.map((text, index) => (
+      <>
+        {renderText(text)}
+        {index === current.quest.intro.length - 1 && placePhrase && (
+          <>
+            {" "}
+            Oppgaven ligger {placePhrase}. Gå dit og hent den, så kan du jobbe
+            med den hvor du vil.
+          </>
+        )}
+      </>
+    )),
   ];
 }
 
@@ -309,7 +335,11 @@ function Details({
   onOpenBoard,
   onClose,
   studioRef,
-}: Props & { studioRef: React.RefObject<HTMLButtonElement | null> }) {
+  onReplay,
+}: Props & {
+  studioRef: React.RefObject<HTMLButtonElement | null>;
+  onReplay?: () => void;
+}) {
   const current = board.current;
   const firstForging = current?.quest.id === FIRST_QUEST && !forged;
   // Waiting at its place: send the player there to pick it up.
@@ -336,6 +366,17 @@ function Details({
           </li>
         </ol>
       )}
+
+      {!firstForging &&
+        current?.quest.steps &&
+        !remoteSite &&
+        sanityConfigured !== false && (
+          <ol className="dialogue-steps">
+            {current.quest.steps.map((step) => (
+              <li key={step}>{renderText(step)}</li>
+            ))}
+          </ol>
+        )}
 
       {fetchFailed && !refreshing && (
         <p className="dialogue-feedback" role="status">
@@ -413,6 +454,11 @@ function Details({
             </button>
           </>
         ) : null}
+        {onReplay && (
+          <button type="button" className="btn btn--quiet" onClick={onReplay}>
+            Hør samtalen igjen
+          </button>
+        )}
         <button type="button" className="btn btn--quiet" onClick={onClose}>
           Gå <kbd>Esc</kbd>
         </button>

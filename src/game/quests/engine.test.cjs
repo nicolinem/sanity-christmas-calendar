@@ -388,35 +388,32 @@ test("real chapters share startup while all existing code/window tasks stay tech
   }
 });
 
-test("non-technical quests explain the story, action and place, then close with an outcome", () => {
+test("non-technical quests open with what went wrong, then the wish, and close with an outcome", () => {
   const quests = chaptersForTrack(CHAPTERS, "nonTechnical")
     .flatMap((chapter) => chapter.quests)
-    .filter((item) => !item.bonus);
+    .filter((item) => item.track === "nonTechnical");
   assert.ok(quests.length > 0);
   for (const item of quests) {
-    const intro = item.intro.join(" ");
-    const outro = item.outro?.join(" ") ?? "";
-    const sentenceCount = (text) => text.split(/[.!?]+/).filter(Boolean).length;
-    assert.ok(sentenceCount(intro) >= 1 && sentenceCount(intro) <= 3, item.id);
+    assert.ok(item.intro.length >= 2, `${item.id}: story, then the wish`);
+    // The first line is the story: no Studio clicks yet.
+    assert.doesNotMatch(item.intro[0], /Studio|Publish|\*/, item.id);
     assert.ok(item.where, `${item.id} needs a place`);
-    assert.ok(sentenceCount(outro) >= 1 && sentenceCount(outro) <= 3, item.id);
+    assert.ok(item.outro?.length, `${item.id} needs an outcome`);
   }
 });
 
 test("Luke 4 and 7 explain the model board in their intro", () => {
-  const expected =
-    "Hver del av notatet blir et felt i Studio. Velg hvilken type felt det skal være.";
   for (const id of ["archive-model", "baker-model"]) {
     const item = CHAPTERS.flatMap((chapter) => chapter.quests).find(
       (quest) => quest.id === id,
     );
-    assert.ok(item?.intro.includes(expected), id);
+    assert.match(item?.intro.join(" ") ?? "", /modellbrettet/, id);
   }
   const baker = CHAPTERS.flatMap((chapter) => chapter.quests).find(
     (quest) => quest.id === "baker-model",
   );
-  assert.match(baker.intro.join(" "), /datoen er nesten alltid i dag/i);
-  assert.match(baker.intro.join(" "), /starter som «ny»/i);
+  assert.match(baker.intro.join(" "), /datoen nesten alltid er i dag/i);
+  assert.match(baker.intro.join(" "), /starter som ny/i);
   assert.match(baker.intro.join(" "), /varen vet jeg aldri/i);
   const bakerContext = context({
     solved: { "baker-model": { at: COMPLETED_AT } },
@@ -720,4 +717,15 @@ test("a door at the forge is active as soon as Brann has explained it", () => {
   );
   assert.equal(board.states[0].status, "active");
   assert.equal(board.states[0].pickup, undefined);
+});
+
+test("every week opens with what has happened, and non-technical lukes have steps", () => {
+  for (const number of [1, 2, 3]) {
+    const chapter = CHAPTERS.find((c) => c.number === number);
+    assert.ok(chapter.opening?.length >= 2, `uke ${number}`);
+  }
+  for (const item of CHAPTERS.flatMap((c) => c.quests)) {
+    if (item.track === "nonTechnical")
+      assert.ok(item.steps?.length >= 2, `${item.id} needs steps`);
+  }
 });
