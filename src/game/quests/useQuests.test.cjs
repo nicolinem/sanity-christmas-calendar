@@ -12,7 +12,10 @@ require("sucrase/register");
 const previousStart = process.env.NEXT_PUBLIC_CALENDAR_START;
 let engine;
 try {
-  delete process.env.NEXT_PUBLIC_CALENDAR_START;
+  // Empty, not missing: missing falls back to the release date.
+  process.env.NEXT_PUBLIC_CALENDAR_START = "";
+  process.env.NEXT_PUBLIC_SETUP_DAY = "";
+  delete require.cache[require.resolve("../release.ts")];
   delete require.cache[require.resolve("./engine.ts")];
   engine = require("./engine.ts");
 } finally {
@@ -31,7 +34,9 @@ const STUDIO_NEXT = "the-guilds-law";
 function loadEngineWithCalendar(calendarStart) {
   const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
   process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart;
+  process.env.NEXT_PUBLIC_SETUP_DAY = "";
   try {
+    delete require.cache[require.resolve("../release.ts")];
     delete require.cache[require.resolve("./engine.ts")];
     return require("./engine.ts");
   } finally {

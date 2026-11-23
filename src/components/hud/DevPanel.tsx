@@ -12,7 +12,7 @@ type Props = {
   board: QuestBoard;
   forgeLevel: number;
   liveMode: LiveMode;
-  codeChecks: Record<string, CodeCheck>; // what `npm run quest` reported
+  codeChecks: Record<string, CodeCheck>; // dev overrides in effect
   devChecks: Record<string, boolean>; // overrides set here
   onDevCheck: (questId: string, done: boolean | null) => void;
   onJump: (questId: string, briefed: boolean) => void;
@@ -207,7 +207,7 @@ export default function DevPanel({
                           : e.target.value === "pass",
                       )
                     }
-                    title={`npm run quest sa: ${codeChecks[s.quest.id]?.done ? "bestått" : "ikke bestått"}`}
+                    title={`Nå: ${codeChecks[s.quest.id]?.done ? "bestått" : "ikke bestått"}`}
                   >
                     <option value="">Ekte sjekk</option>
                     <option value="pass">Lat som bestått</option>

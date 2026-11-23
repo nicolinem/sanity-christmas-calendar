@@ -27,6 +27,16 @@ export const EMPTY_PROGRESS: Progress = {
 export const PROGRESS_PROJECT =
   process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo";
 
+// Set by `npm run setup -- --new` when the old project expired: the first time
+// the new project has no progress, the old project's is copied over once.
+export const PREVIOUS_PROJECT =
+  process.env.NEXT_PUBLIC_SANITY_PREVIOUS_PROJECT_ID || null;
+
+// Who you are on «Hvem er med». Your first project, so starting over with a
+// new project doesn't make you a new player.
+export const PLAYER_ID =
+  process.env.NEXT_PUBLIC_WINTER_QUEST_PLAYER_ID || PROGRESS_PROJECT;
+
 // Exported for the Studio, which reads `solved` from the same record.
 export const storageKey = (project: string) =>
   `winter-quest:progress:${project}`;
@@ -45,7 +55,13 @@ export function readProgress(project: string): Progress {
   if (cache?.project === project) return cache.value;
   let value = EMPTY_PROGRESS;
   try {
-    const raw = window.localStorage.getItem(storageKey(project));
+    const storage = window.localStorage;
+    let raw = storage.getItem(storageKey(project));
+    if (!raw && project === PROGRESS_PROJECT && PREVIOUS_PROJECT) {
+      raw = storage.getItem(storageKey(PREVIOUS_PROJECT));
+      // Saved under the new project, so the Studio sees it too.
+      if (raw) storage.setItem(storageKey(project), raw);
+    }
     if (raw) {
       const saved = JSON.parse(raw) as
         (Partial<Progress> & { skipped?: unknown }) | null;

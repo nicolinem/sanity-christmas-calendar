@@ -1,117 +1,148 @@
-# Sanity Winter Quest
+# Sanity-julekalenderen
 
-A **Sanity** advent calendar: one small Sanity task behind each door, solved in
-your own Sanity Studio, with a little pixel-art game that shows the result.
-Publish a weapon and the knight carries it, add validation, build new inputs
-and views. Each week digs a little deeper into Sanity.
+En julekalender der du lærer Sanity ved å hjelpe bygda med å få julemarkedet
+klart. Hver mandag i tre uker åpner en ny uke med luker. Du løser dem i ditt
+eget Sanity Studio, og ser resultatet i et lite pikselspill.
 
-You play against **your own Sanity project**. You own everything in it
-(content, schema, Studio), so experiment freely: the game only ever *reads*
-your published content.
+Du velger løype når du starter:
 
-## Get started
+- **Teknisk:** du skriver kode i kodevinduet i spillet og bygger ting i Studio.
+- **Ikke-teknisk:** du jobber med innhold i Studio. Ingen kode.
 
-You need **Node.js 22.12+** (the Sanity CLI requires it).
+Du spiller mot **ditt eget Sanity-prosjekt**. Alt i det er ditt, så prøv deg
+fram. Spillet leser bare innhold du har publisert.
+
+## Kom i gang
+
+Du trenger:
+
+- **Node.js 22.12 eller nyere.** Sjekk med `node -v`. Last ned fra
+  [nodejs.org](https://nodejs.org) hvis du ikke har det.
+- **git.**
+
+Kjør dette i en terminal, én linje om gangen:
 
 ```bash
-git clone <this repo> && cd sanity-christmas-calendar
+git clone <lenke til repoet>
+```
+
+```bash
+cd sanity-christmas-calendar
+```
+
+```bash
 npm install
+```
+
+```bash
 npm run setup
+```
+
+```bash
 npm run dev
 ```
 
-`npm run setup` creates a Sanity project for you with **no account needed**,
-writes `.env.local`, checks that the game can read it, and prints two links:
+`npm run setup` lager et Sanity-prosjekt til deg, uten at du trenger konto. Den
+skriver innstillingene til `.env.local` og sjekker at spillet kan lese
+prosjektet.
 
-- **A claim link.** Open it and sign in to Sanity (free) within **72 hours**,
-  or the project and its content are deleted. Anyone who opens the link
-  becomes the owner, so keep it to yourself.
-- **A Studio sign-in link** (`http://localhost:3000/studio#token=…`). Open it
-  once after `npm run dev`; the Studio remembers you after that.
+Åpne så **http://localhost:3000**. Knappen **Oppsett** øverst til høyre viser
+hva som gjenstår, med en knapp for hvert steg:
 
-Then open http://localhost:3000, walk to Brann at the forge and press **E**.
-The **Sanity Studio** button (top right) opens the Studio beside the game in the
-same tab, so you can publish and watch the forge at once. Drag its edge to
-resize, or pop it out into its own tab.
+1. Logg inn i Studio. Trykk **Sanity Studio** øverst til høyre, så logger
+   spillet deg inn.
+2. Gjør prosjektet til ditt (*claim*). Se under.
 
-> **Use port 3000 until you've claimed.** An unclaimed project only accepts
-> requests from `localhost:3000`. After claiming, run `npx sanity@latest login`
-> and `npm run setup -- --cors` to allow other ports too.
+Når alt i Oppsett er grønt, går du til Brann i smia og trykker **E**.
 
-> **Keep the setup output to yourself.** The claim link makes whoever opens it
-> the owner of your project, and the sign-in link contains your project's
-> access token, which can read and change everything in it. Don't paste them
-> into the channel, a ticket or an AI chat. If you already have: claim the
-> project right away, run `npx sanity@latest login`, remove `SANITY_AUTH_TOKEN`
-> from `.env.local`, and revoke the token under **API → Tokens** at
-> sanity.io/manage.
+## Gjør prosjektet til ditt innen 72 timer
 
-`.env.local` holds that token while the project is unclaimed. It's gitignored:
-keep it that way, and never rename the token to `NEXT_PUBLIC_*`.
+Et prosjekt fra `npm run setup` slettes etter 72 timer hvis ingen *claimer*
+det. Gå til **Oppsett** og trykk **Gjør prosjektet til mitt**. Du trenger en
+gratis Sanity-konto, og det tar et minutt. Etterpå logger Studio deg ut, og du
+logger inn igjen med kontoen din.
 
-Already have a Sanity project? `npm run setup -- --project <projectId>`.
-Run `npm run setup` again any time to see which project you're on and the
-claim deadline.
-
-## Playing
-
-**WASD / arrows** (or click) to walk, **E** to talk, **Space** to attack,
-**1–8** to equip, **J** for the map. The calendar and journal have their own
-button, and tasks can be opened from Brann without walking to their map location.
-
-- **Brann** the blacksmith hands out one door at a time. His dialogue says *where to work* and,
-  if you ask, gives hints one by one, with links to the exact docs.
-- **Some quests the game notices by itself**: publishing a weapon, beating the
-  snow monster.
-- **Code quests are checked from your code.** When you think you're done:
-
-  ```bash
-  npm run quest
-  ```
-
-  It loads your Studio config the way the Studio does, tries what you built
-  and writes the result. Press **Sjekk på nytt** in the game afterwards.
-  Any working solution passes: it checks behaviour, not style.
-- **Look for `QUEST:` comments** in the code: they mark where each quest's
-  work happens (`grep -rn "QUEST:" src sanity.config.ts`).
-- Progress is saved in your browser, per Sanity project. Finishing some quests
-  heats the forge, and every blade you've forged hits harder.
-
-## Your files and the game's files
-
-| Yours: change them as much as you like | The game's: leave them be |
-| --- | --- |
-| `src/sanity/schemaTypes/**` | `src/game/**`, `src/components/**`, `src/app/**` |
-| `sanity.config.ts` | `scripts/**`, `public/**` |
-| `src/sanity/studio/**` (anything you add) | `src/sanity/lib/**` (helpers for you to import) |
-
-New doors arrive with `git pull`. They only add files and never touch
-yours, so your solutions stay put.
-
-## Solutions
-
-Reference solutions are released the day after a quest opens, as git tags:
+**Rakk du det ikke?** Da sletter Sanity prosjektet og innholdet i det. Spillet
+sier fra. Lag et nytt prosjekt, og start spillet på nytt:
 
 ```bash
-git fetch --tags
-git show solution/the-guilds-law
+npm run setup -- --new
 ```
 
-Try first. Then compare, and bring your own version to the channel.
+Lukene du har klart, blir med. Innhold du har laget i Studio, må du lage på
+nytt.
 
-## Under the hood
+**Hold det hemmelig.** Claim-lenken gjør den som åpner den til eier av
+prosjektet ditt, og `.env.local` inneholder en nøkkel som kan endre alt i det.
+Ikke lim dem inn i kanalen, i en sak eller i en AI-chat. Har du gjort det?
+Claim prosjektet med en gang, og slett nøkkelen under **API → Tokens** på
+[sanity.io/manage](https://www.sanity.io/manage).
 
-Next.js 16 (App Router), TypeScript, Phaser 4 for the world, Sanity Studio
-embedded at `/studio`, GROQ for queries. Sprites are Kenney's
-[Tiny Town](https://kenney.nl/assets/tiny-town) and
-[Tiny Dungeon](https://kenney.nl/assets/tiny-dungeon) (CC0, licences in
-`public/assets/kenney/`); the winter palette is made by
-`scripts/winterize-tiles.py` without redrawing any pixels.
+## Hvis noe ikke virker
 
-**Sanity describes, the game decides.** There are no numbers to fill in in the
-Studio: damage comes from the forge level, and a weapon's element from its
-name. Your Studio chooses *what* things are; the rules live in `src/game/`.
+Start med **Oppsett** i spillet. Den sier hva som er galt, og hvordan du
+fikser det. Her er det vanligste:
 
-Organizing the calendar? See [docs/arrangor.md](docs/arrangor.md).
-The first optional shared-progress prototype and its safety limitations are
-documented in [docs/fellesskap.md](docs/fellesskap.md).
+| Det som skjer                                                   | Det du gjør                                                                                                                                                |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev` sier at port 3000 er i bruk                       | Kjører spillet allerede i en annen terminal? Åpne bare http://localhost:3000. Hvis ikke, stopp det som bruker porten. Meldingen sier hva det er.          |
+| Studio viser Sanitys innlogging, eller «avviste tilkoblingen»   | Trykk **Logg inn i egen fane**. Innloggingen virker ikke inne i spillet, men Studio åpner seg der av seg selv når du er inne.                               |
+| Det du lagde i Studio, vises ikke i spillet                     | Trykk **Publish**. Spillet viser bare publisert innhold, ikke *drafts*.                                                                                    |
+| Startskjermen sier «Får ikke lest prosjektet»                   | Åpne **Oppsett**. Der står kommandoen som fikser det.                                                                                                      |
+| Du står fast på en luke                                         | Be om hint hos den som ga deg luka. Står du fortsatt fast, spør i kanalen.                                                                                 |
+| Du vil bruke en annen port enn 3000                             | Først etter at prosjektet er claimet: kjør `npx sanity@latest login`, så `npm run setup -- --cors`.                                                        |
+| Du har allerede et Sanity-prosjekt du vil bruke                 | `npm run setup -- --project <prosjekt-id>`                                                                                                                 |
+
+`npm run setup` kan kjøres på nytt når som helst. Den viser hvilket prosjekt
+du er koblet til, og om det er claimet.
+
+## Slik spiller du
+
+| Tast                       | Hva den gjør           |
+| -------------------------- | ---------------------- |
+| WASD, piltastene eller klikk | Gå                   |
+| E                          | Snakk, eller åpne noe  |
+| Mellomrom                  | Angrip                 |
+| 1–8                        | Bytt utstyr            |
+| J                          | Journalen og lukene    |
+| M                          | Kartet                 |
+| C                          | Figuren din            |
+| I                          | Tingene dine           |
+
+- Personene i bygda gir deg én luke om gangen. De sier hva du skal lage, hvor
+  du skal jobbe og hvorfor. Hint får du hvis du ber om det.
+- Neste luke åpner når du har klart den du holder på med. En ny uke åpner hver
+  mandag, og alt står åpent ut desember.
+- **Sanity Studio** øverst til høyre åpner Studio ved siden av spillet, så du
+  ser endringene med en gang. Dra i kanten for å endre bredden.
+- Framgangen lagres i nettleseren, per Sanity-prosjekt.
+
+## Hvem er med
+
+Vil du, kan de andre se figuren din, navnet ditt, hvor langt du har kommet og
+hvor mange hint du brukte. Du velger det første gang du lager figuren, og kan
+skru det av og på i figurarket (**C**). Ingenting deles før du sier ja.
+
+## Oppdateringer
+
+Rettelser og nye luker kommer med git. Hent dem, og start spillet på nytt:
+
+```bash
+git pull
+```
+
+## Under panseret
+
+Next.js 16 (App Router), TypeScript, Phaser 4 for spillverdenen, Sanity Studio
+på `/studio` og GROQ for spørringer. Grafikken er Kenneys
+[Tiny Town](https://kenney.nl/assets/tiny-town) og
+[Tiny Dungeon](https://kenney.nl/assets/tiny-dungeon) (CC0, lisenser i
+`public/assets/kenney/`). Vinterfargene lages av `scripts/winterize-tiles.py`
+uten at noen piksler tegnes om.
+
+**Sanity beskriver, spillet bestemmer.** Du fyller ikke inn tall i Studio:
+skaden kommer fra nivået på smia, og elementet til et våpen fra navnet. Studio
+sier *hva* ting er, og reglene ligger i `src/game/`.
+
+Arrangerer du kalenderen? Se [docs/arrangor.md](docs/arrangor.md). Hvordan
+«Hvem er med» virker, står i [docs/fellesskap.md](docs/fellesskap.md).

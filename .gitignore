@@ -34,9 +34,6 @@ yarn-error.log*
 .env*
 !.env.local.example
 
-# results of `npm run quest` (per player)
-/.quest
-
 # vercel
 .vercel
 

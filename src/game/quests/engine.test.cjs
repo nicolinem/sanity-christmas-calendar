@@ -6,10 +6,11 @@ require("sucrase/register");
 // engine.ts captures the calendar environment at import time.
 function loadEngine(calendarStart) {
   const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
-  if (calendarStart === undefined)
-    delete process.env.NEXT_PUBLIC_CALENDAR_START;
-  else process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart;
+  // Empty, not missing: missing falls back to the release date.
+  process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart ?? "";
+  process.env.NEXT_PUBLIC_SETUP_DAY = "";
   try {
+    delete require.cache[require.resolve("../release.ts")];
     delete require.cache[require.resolve("./engine.ts")];
     return require("./engine.ts");
   } finally {
@@ -743,5 +744,51 @@ test("every luke says what you build and why", () => {
   for (const item of CHAPTERS.flatMap((c) => c.quests)) {
     assert.ok(item.explain.what.length > 40, `${item.id}: hva`);
     assert.ok(item.explain.why.length > 40, `${item.id}: hvorfor`);
+  }
+});
+
+test("the release opens week 1 on 1 December and weeks 2 and 3 on the Mondays after", () => {
+  const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
+  delete process.env.NEXT_PUBLIC_CALENDAR_START;
+  delete process.env.NEXT_PUBLIC_SETUP_DAY;
+  try {
+    delete require.cache[require.resolve("../release.ts")];
+    delete require.cache[require.resolve("./engine.ts")];
+    const { chapterOpensAt } = require("./engine.ts");
+    const day = (n) => {
+      const d = chapterOpensAt({ number: n, title: "", quests: [] });
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    };
+    assert.deepEqual([1, 2, 3].map(day), [
+      "2026-12-1",
+      "2026-12-7",
+      "2026-12-14",
+    ]);
+
+    // Luke 1 opens on the setup day; the next luke waits for 1 December.
+    const engine = require("./engine.ts");
+    const week1 = CHAPTERS.find((c) => c.number === 1);
+    const first = week1.quests[0].id;
+    const at = (day) => new Date(`2026-11-${day}T12:00:00`);
+    assert.equal(
+      engine.evaluateQuests([week1], context(), at(25)).current,
+      null,
+    );
+    assert.equal(
+      engine.evaluateQuests([week1], context(), at(26)).current.quest.id,
+      first,
+    );
+    const afterLuke1 = engine.evaluateQuests(
+      [week1],
+      context({ completed: { [first]: COMPLETED_AT } }),
+      at(26),
+    );
+    assert.equal(afterLuke1.current, null);
+    assert.equal(afterLuke1.states.find((s) => s.opensAt).opensAt.getDate(), 1);
+  } finally {
+    if (previous !== undefined)
+      process.env.NEXT_PUBLIC_CALENDAR_START = previous;
+    delete require.cache[require.resolve("../release.ts")];
+    delete require.cache[require.resolve("./engine.ts")];
   }
 });

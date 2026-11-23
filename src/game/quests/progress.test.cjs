@@ -262,3 +262,25 @@ test("legacy Studio confirmations are discarded without losing completed quests 
     "branns-ledger": { at: COMPLETED_AT },
   });
 });
+
+test("a new project after an expired one takes the old progress once", () => {
+  records.set(
+    "winter-quest:progress:oldproj1",
+    JSON.stringify({ track: "nonTechnical", completed: { a: COMPLETED_AT } }),
+  );
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID = "newproj2";
+  process.env.NEXT_PUBLIC_SANITY_PREVIOUS_PROJECT_ID = "oldproj1";
+  try {
+    progress = loadProgress();
+    const moved = progress.readProgress("newproj2");
+    assert.equal(moved.track, "nonTechnical");
+    assert.deepEqual(moved.completed, { a: COMPLETED_AT });
+    assert.ok(records.has("winter-quest:progress:newproj2"));
+    // Other projects don't borrow it.
+    assert.deepEqual(progress.readProgress("other").completed, {});
+    assert.equal(progress.PLAYER_ID, "newproj2");
+  } finally {
+    delete process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+    delete process.env.NEXT_PUBLIC_SANITY_PREVIOUS_PROJECT_ID;
+  }
+});

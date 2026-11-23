@@ -93,8 +93,12 @@ export default function QuestTracker({
   }
 
   const giverName = current ? giverOf(current.quest).name : "";
+  // Before the calendar starts nothing is done yet, so "finished" would be odd.
+  const notStarted = !current && board.completedCount === 0 && waiting;
   const title = !current
-    ? "Ferdig for nå"
+    ? notStarted
+      ? "Kalenderen åpner snart"
+      : "Ferdig for nå"
     : offered
       ? `Snakk med ${giverName}`
       : current.quest.title;
@@ -163,13 +167,9 @@ export default function QuestTracker({
                   ))}
                 </ul>
               )}
-              {(current.result.message ||
-                current.quest.checkedBy === "code") && (
+              {current.result.message && (
                 <p className="tracker-note">
-                  {renderText(
-                    current.result.message ??
-                      "Kriteriene avgjøres av koden din: kjør `npm run quest` når du er klar.",
-                  )}
+                  {renderText(current.result.message)}
                 </p>
               )}
             </>
@@ -177,7 +177,7 @@ export default function QuestTracker({
           {!current && (
             <p className="tracker-goal">
               {waiting?.opensAt
-                ? `Neste luke åpner ${waiting.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
+                ? `${notStarted ? "Første" : "Neste"} luke åpner ${waiting.opensAt.toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}.`
                 : "Ingen flere luker ennå. Nye kommer med kalenderen."}
             </p>
           )}

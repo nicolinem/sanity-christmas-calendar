@@ -1,12 +1,14 @@
 const windows = new Map<string, { started: number; count: number }>();
 const WINDOW_MS = 60_000;
-const MAX_REQUESTS = 30;
+// Generous: at the setup session everyone shares the office's one IP address.
+const MAX_REQUESTS = 300;
 
 export function allowedCommunityOrigin(origin: string | null, url: string) {
   if (!origin) return false;
   const allowed = [
     new URL(url).origin,
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "http://localhost:3001",
     ...(process.env.COMMUNITY_ALLOWED_ORIGINS || "")
       .split(",")

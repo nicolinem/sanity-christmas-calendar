@@ -1,3 +1,4 @@
+import { CALENDAR_START, SETUP_DAY } from "../release";
 import { clampForgeLevel } from "../rules";
 import { giverOf } from "./label";
 import type {
@@ -21,10 +22,10 @@ export function chaptersForTrack(
   }));
 }
 
-// Quests unlock one after another. Chapter 1 opens on
-// NEXT_PUBLIC_CALENDAR_START (Tuesday 1 December); later chapters open on the
-// Mondays after it (7 and 14 December). Without it, dates are ignored.
-const CALENDAR_START = process.env.NEXT_PUBLIC_CALENDAR_START;
+// Quests unlock one after another. Chapter 1 opens on CALENDAR_START (see
+// release.ts: Tuesday 1 December); later chapters open on the Mondays after it
+// (7 and 14 December). Empty: dates are ignored. Luke 1 alone opens earlier,
+// on SETUP_DAY (the setup session).
 
 export function chapterOpensAt(chapter: Chapter): Date | undefined {
   if (!CALENDAR_START) return undefined;
@@ -35,6 +36,14 @@ export function chapterOpensAt(chapter: Chapter): Date | undefined {
   monday.setDate(start.getDate() - ((start.getDay() + 6) % 7));
   monday.setDate(monday.getDate() + (chapter.number - 1) * 7);
   return monday;
+}
+
+function firstLukeOpensAt(chapterStart: Date | undefined): Date | undefined {
+  if (!chapterStart || !SETUP_DAY) return chapterStart;
+  const setup = new Date(`${SETUP_DAY}T00:00:00`);
+  return Number.isNaN(setup.getTime()) || setup > chapterStart
+    ? chapterStart
+    : setup;
 }
 
 export type QuestBoard = {
@@ -59,8 +68,12 @@ export function evaluateQuests(
   let previousResolved = true;
 
   for (const chapter of chapters) {
-    for (const quest of chapter.quests) {
-      const opensAt = chapterOpensAt(chapter);
+    for (const [index, quest] of chapter.quests.entries()) {
+      const chapterStart = chapterOpensAt(chapter);
+      const opensAt =
+        chapter.number <= 1 && index === 0
+          ? firstLukeOpensAt(chapterStart)
+          : chapterStart;
       const dateOpen = devUnlock || !opensAt || opensAt <= now;
       const result = quest.check(ctx);
       const done = Boolean(ctx.progress.completed[quest.id]);

@@ -225,11 +225,26 @@ function buildPages(
       ? [<Reaction key="r" state={previous} />]
       : [];
   if (!current) {
+    const opensAt = board.states.find((s) => s.opensAt)?.opensAt;
+    const when = opensAt?.toLocaleDateString("nb-NO", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    // Before the calendar starts (the setup session): nothing done yet.
+    if (board.completedCount === 0 && when)
+      return [
+        <>
+          Den første luka åpner {when}. Til da kan du lage figuren din (C), se
+          deg rundt i bygda og prøve Studio.
+        </>,
+      ];
     return [
       ...reaction,
       <>
         Det var alle lukene som er åpne nå. Se det du har gjort i journalen (J),
-        og kom tilbake når neste luke åpner.
+        og kom tilbake{" "}
+        {when ? `når neste luke åpner ${when}` : "når neste luke åpner"}.
       </>,
     ];
   }
@@ -381,9 +396,9 @@ function Details({
 
       {unclaimed && firstForging && (
         <p className="dialogue-hint">
-          Første gang i Studio? Åpne innloggingslenken som{" "}
-          <code>npm run setup</code> skrev ut. Kjør den på nytt for å se lenken.
-          Studio husker deg etterpå.
+          Første gang i Studio? Trykk «Sanity Studio» øverst til høyre, så
+          logger spillet deg inn. Husk å gjøre prosjektet til ditt under
+          «Oppsett».
         </p>
       )}
 

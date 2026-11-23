@@ -3,14 +3,14 @@
 Hvordan julekalenderen slippes og vedlikeholdes. Hele planen og beslutningene
 står i [utviklingsplan.md](utviklingsplan.md).
 
-## Oppsettøkt 27. november
+## Oppsettøkt 26. november
 
 ### Arrangør: før deltakerne kommer
 
 - [ ] Velg og dokumenter hvem som eier fellesprosjektet, hvem som kan slette
       deltakerdata, og når dataene skal slettes. Avklar samtykke og avmelding
-      før virkelig deling åpnes. **Blokkering:** Tekst ved navnefeltet som sier
-      at navn og figur deles er ikke bygget ennå (oppstartsdelen).
+      før virkelig deling åpnes. Figurarket sier ved «Vis for andre» at navn
+      og figur deles, og ingenting deles før deltakeren sier ja.
 - [ ] Kontroller `production`-dataset i fellesprosjektet. Et separat `test`-
       dataset er anbefalt for videre utprøving, men er ikke opprettet ennå;
       det krever en konto med Developer/Admin-rettigheter. Ikke skriv
@@ -40,79 +40,79 @@ står i [utviklingsplan.md](utviklingsplan.md).
       minutt/IP og Vercel må få en plattformdekkende rate limit før åpen
       lansering. Klientmeldt fullføring er fortsatt ikke kontrollert av
       serveren; ikke bruk fellespoeng til premier eller konkurranse.
+- [ ] Sett adressen til den publiserte serveren i `src/game/release.ts`
+      (`RELEASE_COMMUNITY_URL`, hele adressen som slutter på
+      `/api/community`), og sjekk startdatoen (`RELEASE_CALENDAR_START`).
+      Deltakerne får begge med `git pull`; ingen trenger å endre `.env.local`.
+      `npm run verify-release` stopper hvis adressen mangler.
 - [ ] Prøv én fersk klone på kontornett (og Windows/Codespaces): `npm install`,
-      `npm run setup`, `npm run dev`, innlogging på `/studio`, publiser et
-      våpen og se det i `/api/items`. Prøv arkiv-seeding og `/api/archive` på
-      **eget** prosjekt uten å overskrive redigerte dokumenter.
+      `npm run setup`, `npm run dev`, og følg «Oppsett» i spillet til alt er
+      grønt. Publiser et våpen og se det i spillet.
 
 ### Deltaker: på økta
 
 - [ ] Klon repoet og installer Node.js 22.12+ og avhengighetene med
       `npm install`. Kjør `npm run setup` for ditt **eget** Sanity-prosjekt,
       eller `npm run setup -- --project <id>` for et du allerede eier.
-- [ ] Claim nyopprettet prosjekt innen 72 timer. Hold claim-lenke og
-      eventuell `SANITY_AUTH_TOKEN` privat. Logg inn i Studio via lenken
-      fra setup; etter claim: logg inn med Sanity CLI, fjern gamle
-      claim-verdier og tilbakekall midlertidig token ved behov.
-- [ ] Kontroller at eget dataset er offentlig lesbart for publisert innhold.
-      Kjør `npm run setup -- --cors` etter claim slik at ditt Studio får
-      `localhost:3000` og `:3001` med credentials. Velg samme port som ved
-      testing; en annen port må legges til separat.
-- [ ] Sett `NEXT_PUBLIC_COMMUNITY_URL` i gitignorert `.env.local` til
-      arrangørens **hele** HTTPS-adresse som slutter på `/api/community`.
-      Ingen felles token eller prosjekt-ID trengs hos deg. Start `npm run dev`
-      på nytt etter endring i `.env.local`.
-- [ ] Åpne spillet og `/studio` på samme localhost-port. Publiser et våpen,
-      se det i inventaret, og sjekk at «Hvem er med» henter fra arrangørens
-      server. Lag figur og velg spor når den samlede oppstartsflyten er klar.
-      Dersom fellesskapet er nede, kan du fortsatt spille alene.
+- [ ] Kjør `npm run dev` og åpne http://localhost:3000. Følg **Oppsett**
+      øverst til høyre til alt er grønt: logg inn i Studio (trykk «Sanity
+      Studio», så logger spillet deg inn), og gjør prosjektet til ditt
+      (*claim*) med knappen der. Etter claim logger Studio deg ut, og du logger
+      inn igjen med kontoen din. Hold claim-lenken og `.env.local` private.
+- [ ] Velg løype, lag figuren, publiser et våpen og se det i spillet. Sjekk at
+      «Hvem er med» henter fra arrangørens server. Dersom fellesskapet er
+      nede, kan du fortsatt spille alene.
 
-## Grener
+### Hvis en deltaker står fast
 
-- **`main`** er det spillerne kloner: spillet og spillerfilene i _startform_
-  (uløste, med `QUEST:`-kommentarer). Ingen løsninger her.
-- **`solutions`** følger `main` og har én commit per kode-quest, tagget
-  `solution/<quest-id>`. Grenen og taggene pushes ikke til det felles repoet
-  før løsningen skal slippes. Spillerne ser en løsning med
-  `git show solution/<quest-id>` (akkurat den questens commit; `git diff main …`
-  ville også vist senere endringer på `main`).
+- **Oppsett** i spillet sier hva som er galt og hvordan det fikses. Be om et
+  skjermbilde av den først.
+- `npm run setup` kan kjøres på nytt og viser hvilket prosjekt deltakeren er
+  koblet til, og om det er claimet.
+- **Ikke claimet i tide:** `npm run setup -- --new` lager et nytt prosjekt.
+  Lukene deltakeren har klart, blir med; innhold i Studio må lages på nytt.
+- README har en tabell over de vanligste problemene.
 
-Spillerfiler (spilleren eier dem): `src/sanity/schemaTypes/**`,
-`sanity.config.ts`, `src/sanity/studio/**`. Etter lansering endrer vi dem
-aldri på `main`, ellers får spillerne konflikter ved `git pull`. Nye kapitler
-legger til nye filer (spillkode, hjelpere i `src/sanity/lib/`, sjekker i
-`scripts/quest.ts`).
+## Hva spillerne kloner
+
+`main` er det spillerne kloner. All koding i den tekniske løypa skjer i
+kodevinduet i spillet, så spillerne endrer ikke filer i repoet, og `git pull`
+gir ingen konflikter. Når en kodeoppgave er løst, slår Studio på vår egen
+versjon av samme kode (`src/sanity/lib/solved.tsx`).
+
+Den gamle `solutions`-grenen og `solution/*`-taggene er fra da oppgavene ble
+løst i repoet. De brukes ikke lenger. Ikke push dem.
 
 ## Kontroll før lansering
 
 ```bash
-npm run verify-release          # typecheck, skjemasjekk og quest-sjekker på begge grenene
-npm run verify-release -- --build   # også next build
+npm run verify-release              # typecheck, skjemasjekk og tester
+npm run verify-release -- --build   # også en ren npm ci og next build
 ```
 
-Den sjekker ut `main` og `solutions` i midlertidige worktrees, så din egen
-arbeidskopi blir ikke rørt. Den feiler hvis en kode-quest er løst på `main`
-(en løsning har lekket) eller ikke er løst på `solutions`. Bruker `.env.local`,
-så luke 3 (validation) kan teste duplikater mot datasettet ditt (publiser minst én
-gjenstand først).
+Den sjekker ut `main` i en midlertidig worktree, slik en spiller får den, så
+din egen arbeidskopi blir ikke rørt.
 
-## Slippe et kapittel
+## Slippe en rettelse eller en ny luke
 
-1. Bygg kapitlet på `main`: quester i `src/game/quests/chapters.ts`, sjekker i
-   `scripts/quest.ts`, hjelpere i `src/sanity/lib/`. Startform for nye
-   spillerfiler, med `QUEST:`-kommentarer.
-2. `git checkout solutions && git merge main`, skriv én løsning per quest:
-   én commit og `git tag solution/<quest-id>` for hver.
-3. `npm run verify-release`.
-4. Push `main`. Kapitlet åpner på datoen.
-5. Dagen etter: `git push origin solution/<quest-id>` for kapitlets quester.
+1. Lag endringen på en gren, med tester (`npm test`), og merg til `main`.
+2. `npm run verify-release -- --build`.
+3. Post i kanalen at deltakerne skal kjøre `git pull` og starte spillet på
+   nytt.
 
 ## Kalender og testing
 
-- `NEXT_PUBLIC_CALENDAR_START=2026-12-01` i `.env.local` (eller i hostingen)
-  åpner kapittel 1 tirsdag 1. desember og de neste kapitlene på mandagene
-  etter (7. og 14. desember). Uten den er alt åpent.
-- `?dev` på adressen viser **utviklerpanelet** og åpner alle oppdrag uansett rekkefølge og dato: hopp til et oppdrag, fullfør et oppdrag med ett klikk, les alle stegene, lat som en kodesjekk er bestått, spill av effekter, se om sanntid lytter eller sjekker. Sjekklista for en gjennomspilling ligger i [gjennomspilling.md](gjennomspilling.md).
+- `RELEASE_CALENDAR_START` i `src/game/release.ts` (nå `2026-12-01`) åpner
+  uke 1 tirsdag 1. desember og de neste ukene på mandagene etter (7. og 14.
+  desember). Luke 1 åpner tidligere, på oppsettøkta (`RELEASE_SETUP_DAY`, nå
+  `2026-11-26`), så alle kan publisere sitt første våpen der. Resten av uke 1
+  venter til 1. desember. `NEXT_PUBLIC_CALENDAR_START` og
+  `NEXT_PUBLIC_SETUP_DAY` i `.env.local` overstyrer dem; tom verdi åpner alt.
+- Når `RELEASE_COMMUNITY_URL` er satt, sender også din lokale kopi framgang
+  til den publiserte serveren. Bruk `?dev` (sender ingenting), eller sett
+  `NEXT_PUBLIC_COMMUNITY_URL=/api/community` i `.env.local` for å bruke din
+  lokale server.
+- `?dev` på adressen viser **utviklerpanelet** og åpner alle oppdrag uansett rekkefølge og dato: hopp til et oppdrag, fullfør et oppdrag med ett klikk, les alle stegene, lat som en sjekk er bestått, spill av effekter, se om sanntid lytter eller sjekker. Sjekklista for en gjennomspilling ligger i [gjennomspilling.md](gjennomspilling.md).
 - «Reset progress» nederst i questloggen (J) nullstiller fremgangen i nettleseren.
-- Spill selv fra en egen klone, ikke i utviklingsmappa, så løsningene dine ikke
-  havner på `main`. Kopier `.env.local` dit for å bruke samme Sanity-prosjekt.
+- Spill selv fra en egen klone, ikke i utviklingsmappa, så du ser det samme
+  som deltakerne. Kopier `.env.local` dit for å bruke samme Sanity-prosjekt.
