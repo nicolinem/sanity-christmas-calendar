@@ -771,17 +771,17 @@ test("the release opens week 1 on 1 December and weeks 2 and 3 on the Mondays af
     const first = week1.quests[0].id;
     const at = (day) => new Date(`2026-11-${day}T12:00:00`);
     assert.equal(
-      engine.evaluateQuests([week1], context(), at(26)).current,
+      engine.evaluateQuests([week1], context(), at(25)).current,
       null,
     );
     assert.equal(
-      engine.evaluateQuests([week1], context(), at(27)).current.quest.id,
+      engine.evaluateQuests([week1], context(), at(26)).current.quest.id,
       first,
     );
     const afterLuke1 = engine.evaluateQuests(
       [week1],
       context({ completed: { [first]: COMPLETED_AT } }),
-      at(27),
+      at(26),
     );
     assert.equal(afterLuke1.current, null);
     assert.equal(afterLuke1.states.find((s) => s.opensAt).opensAt.getDate(), 1);

@@ -56,7 +56,7 @@ Fordi det er på egen tid, er det verste som kan skje ikke at noen står fast
 | Påmelding                   | Vi vet ikke hvem som kommer      | Påmelding gir antall til oppsettøkta og deltakerlista                                       |
 | Deltakeren sjekker maskinen | Feil versjon av Node, ingen git  | Invitasjonen lenker til en sjekkliste, og «Oppsett» i spillet sier hva som mangler          |
 
-### Oppsett (fredag 27. november)
+### Oppsett (torsdag 26. november)
 
 | Hva skjer                              | Hva kan gå galt                                                                                                                                                                                                      | Hva vi gjør                                                                                         |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |

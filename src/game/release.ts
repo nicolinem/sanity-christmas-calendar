@@ -14,7 +14,7 @@ const RELEASE_CALENDAR_START = "2026-12-01";
 
 // Luke 1 opens early, on the day of the setup session, so everyone can
 // publish their first weapon there. The rest of week 1 waits for the start.
-const RELEASE_SETUP_DAY = "2026-11-27";
+const RELEASE_SETUP_DAY = "2026-11-26";
 
 export const COMMUNITY_URL =
   process.env.NEXT_PUBLIC_COMMUNITY_URL || RELEASE_COMMUNITY_URL;
