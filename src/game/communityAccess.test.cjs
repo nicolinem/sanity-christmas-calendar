@@ -27,9 +27,16 @@ test("only same-origin, configured origins and expected localhost ports get CORS
 });
 
 test("rate limit applies to a client for one minute, not to another client", () => {
-  for (let i = 0; i < 30; i++)
+  for (let i = 0; i < 300; i++)
     assert.equal(communityRateLimited("limit-a", 1000), false);
   assert.equal(communityRateLimited("limit-a", 1000), true);
   assert.equal(communityRateLimited("limit-b", 1000), false);
   assert.equal(communityRateLimited("limit-a", 61_000), false);
+});
+
+test("the shipped community URL is empty or a full https /api/community address", () => {
+  const { RELEASE } = require("./release.ts");
+  if (RELEASE.communityUrl)
+    assert.match(RELEASE.communityUrl, /^https:\/\/[^/]+\/api\/community$/);
+  assert.match(RELEASE.calendarStart, /^\d{4}-\d{2}-\d{2}$/);
 });

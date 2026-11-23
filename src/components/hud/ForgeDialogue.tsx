@@ -225,11 +225,26 @@ function buildPages(
       ? [<Reaction key="r" state={previous} />]
       : [];
   if (!current) {
+    const opensAt = board.states.find((s) => s.opensAt)?.opensAt;
+    const when = opensAt?.toLocaleDateString("nb-NO", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    // Before the calendar starts (the setup session): nothing done yet.
+    if (board.completedCount === 0 && when)
+      return [
+        <>
+          Den første luka åpner {when}. Til da kan du lage figuren din (C), se
+          deg rundt i bygda og prøve Studio.
+        </>,
+      ];
     return [
       ...reaction,
       <>
         Det var alle lukene som er åpne nå. Se det du har gjort i journalen (J),
-        og kom tilbake når neste luke åpner.
+        og kom tilbake{" "}
+        {when ? `når neste luke åpner ${when}` : "når neste luke åpner"}.
       </>,
     ];
   }

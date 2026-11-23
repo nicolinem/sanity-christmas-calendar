@@ -40,10 +40,11 @@ står i [utviklingsplan.md](utviklingsplan.md).
       minutt/IP og Vercel må få en plattformdekkende rate limit før åpen
       lansering. Klientmeldt fullføring er fortsatt ikke kontrollert av
       serveren; ikke bruk fellespoeng til premier eller konkurranse.
-- [ ] Bestem hvordan deltakerne får `NEXT_PUBLIC_COMMUNITY_URL` og
-      `NEXT_PUBLIC_CALENDAR_START`. I dag må begge legges i hver klones
-      `.env.local` for hånd. Uten den første er «Hvem er med» tom, og uten den
-      andre er alle tre ukene åpne fra første dag.
+- [ ] Sett adressen til den publiserte serveren i `src/game/release.ts`
+      (`RELEASE_COMMUNITY_URL`, hele adressen som slutter på
+      `/api/community`), og sjekk startdatoen (`RELEASE_CALENDAR_START`).
+      Deltakerne får begge med `git pull`; ingen trenger å endre `.env.local`.
+      `npm run verify-release` stopper hvis adressen mangler.
 - [ ] Prøv én fersk klone på kontornett (og Windows/Codespaces): `npm install`,
       `npm run setup`, `npm run dev`, og følg «Oppsett» i spillet til alt er
       grønt. Publiser et våpen og se det i spillet.
@@ -58,10 +59,6 @@ står i [utviklingsplan.md](utviklingsplan.md).
       Studio», så logger spillet deg inn), og gjør prosjektet til ditt
       (*claim*) med knappen der. Etter claim logger Studio deg ut, og du logger
       inn igjen med kontoen din. Hold claim-lenken og `.env.local` private.
-- [ ] Sett `NEXT_PUBLIC_COMMUNITY_URL` i gitignorert `.env.local` til
-      arrangørens **hele** HTTPS-adresse som slutter på `/api/community`.
-      Ingen felles token eller prosjekt-ID trengs hos deg. Start `npm run dev`
-      på nytt etter endring i `.env.local`.
 - [ ] Velg løype, lag figuren, publiser et våpen og se det i spillet. Sjekk at
       «Hvem er med» henter fra arrangørens server. Dersom fellesskapet er
       nede, kan du fortsatt spille alene.
@@ -105,9 +102,14 @@ din egen arbeidskopi blir ikke rørt.
 
 ## Kalender og testing
 
-- `NEXT_PUBLIC_CALENDAR_START=2026-12-01` i `.env.local` (eller i hostingen)
-  åpner kapittel 1 tirsdag 1. desember og de neste kapitlene på mandagene
-  etter (7. og 14. desember). Uten den er alt åpent.
+- `RELEASE_CALENDAR_START` i `src/game/release.ts` (nå `2026-12-01`) åpner
+  uke 1 tirsdag 1. desember og de neste ukene på mandagene etter (7. og 14.
+  desember). `NEXT_PUBLIC_CALENDAR_START` i `.env.local` overstyrer den;
+  tom verdi åpner alt.
+- Når `RELEASE_COMMUNITY_URL` er satt, sender også din lokale kopi framgang
+  til den publiserte serveren. Bruk `?dev` (sender ingenting), eller sett
+  `NEXT_PUBLIC_COMMUNITY_URL=/api/community` i `.env.local` for å bruke din
+  lokale server.
 - `?dev` på adressen viser **utviklerpanelet** og åpner alle oppdrag uansett rekkefølge og dato: hopp til et oppdrag, fullfør et oppdrag med ett klikk, les alle stegene, lat som en sjekk er bestått, spill av effekter, se om sanntid lytter eller sjekker. Sjekklista for en gjennomspilling ligger i [gjennomspilling.md](gjennomspilling.md).
 - «Reset progress» nederst i questloggen (J) nullstiller fremgangen i nettleseren.
 - Spill selv fra en egen klone, ikke i utviklingsmappa, så du ser det samme

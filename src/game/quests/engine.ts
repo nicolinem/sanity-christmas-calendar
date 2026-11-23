@@ -1,3 +1,4 @@
+import { CALENDAR_START } from "../release";
 import { clampForgeLevel } from "../rules";
 import { giverOf } from "./label";
 import type {
@@ -21,10 +22,9 @@ export function chaptersForTrack(
   }));
 }
 
-// Quests unlock one after another. Chapter 1 opens on
-// NEXT_PUBLIC_CALENDAR_START (Tuesday 1 December); later chapters open on the
-// Mondays after it (7 and 14 December). Without it, dates are ignored.
-const CALENDAR_START = process.env.NEXT_PUBLIC_CALENDAR_START;
+// Quests unlock one after another. Chapter 1 opens on CALENDAR_START (see
+// release.ts: Tuesday 1 December); later chapters open on the Mondays after it
+// (7 and 14 December). Empty: dates are ignored.
 
 export function chapterOpensAt(chapter: Chapter): Date | undefined {
   if (!CALENDAR_START) return undefined;

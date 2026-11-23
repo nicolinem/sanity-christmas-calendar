@@ -53,6 +53,25 @@ function step(name, cwd, cmd, args) {
   }
 }
 
+// The values every player's clone gets from src/game/release.ts.
+function checkRelease(dir) {
+  const file = join(dir, "src/game/release.ts");
+  if (!existsSync(file)) return fail("src/game/release.ts is missing");
+  const source = readFileSync(file, "utf8");
+  const value = (name) => source.match(new RegExp(`${name} = "([^"]*)"`))?.[1];
+  const url = value("RELEASE_COMMUNITY_URL");
+  if (!url)
+    fail(
+      "community URL isn't set in src/game/release.ts: «Hvem er med» will be empty for everyone",
+    );
+  else if (!/^https:\/\/[^/]+\/api\/community$/.test(url))
+    fail(`community URL should be https://<host>/api/community, not ${url}`);
+  else pass(`community URL ${dim(url)}`);
+  const start = value("RELEASE_CALENDAR_START");
+  if (!start) fail("calendar start isn't set: every week is open from day one");
+  else pass(`calendar starts ${dim(start)}`);
+}
+
 for (const target of TARGETS) {
   console.log(`\n${target.label} (${target.ref})`);
   try {
@@ -86,6 +105,7 @@ for (const target of TARGETS) {
     step("Sanity schema check", dir, "npx", ["sanity", "schema", "validate"]);
 
     step("tests", dir, "npm", ["test"]);
+    checkRelease(dir);
 
     if (BUILD) step("next build", dir, "npx", ["next", "build"]);
   } catch (err) {

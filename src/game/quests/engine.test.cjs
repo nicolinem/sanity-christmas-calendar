@@ -6,10 +6,10 @@ require("sucrase/register");
 // engine.ts captures the calendar environment at import time.
 function loadEngine(calendarStart) {
   const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
-  if (calendarStart === undefined)
-    delete process.env.NEXT_PUBLIC_CALENDAR_START;
-  else process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart;
+  // Empty, not missing: missing falls back to the release date.
+  process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart ?? "";
   try {
+    delete require.cache[require.resolve("../release.ts")];
     delete require.cache[require.resolve("./engine.ts")];
     return require("./engine.ts");
   } finally {
@@ -743,5 +743,29 @@ test("every luke says what you build and why", () => {
   for (const item of CHAPTERS.flatMap((c) => c.quests)) {
     assert.ok(item.explain.what.length > 40, `${item.id}: hva`);
     assert.ok(item.explain.why.length > 40, `${item.id}: hvorfor`);
+  }
+});
+
+test("the release opens week 1 on 1 December and weeks 2 and 3 on the Mondays after", () => {
+  const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
+  delete process.env.NEXT_PUBLIC_CALENDAR_START;
+  try {
+    delete require.cache[require.resolve("../release.ts")];
+    delete require.cache[require.resolve("./engine.ts")];
+    const { chapterOpensAt } = require("./engine.ts");
+    const day = (n) => {
+      const d = chapterOpensAt({ number: n, title: "", quests: [] });
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    };
+    assert.deepEqual([1, 2, 3].map(day), [
+      "2026-12-1",
+      "2026-12-7",
+      "2026-12-14",
+    ]);
+  } finally {
+    if (previous !== undefined)
+      process.env.NEXT_PUBLIC_CALENDAR_START = previous;
+    delete require.cache[require.resolve("../release.ts")];
+    delete require.cache[require.resolve("./engine.ts")];
   }
 });
