@@ -13,6 +13,7 @@ type Props = {
   track: QuestTrack;
   projectId: string;
   sanityConfigured: boolean | null;
+  problem?: string | null; // from the setup check, shown instead of «Koblet til»
   onStart: () => void;
   onContinue: () => void;
   onChooseTrack: (track: QuestTrack) => void;
@@ -27,6 +28,7 @@ export default function Opening({
   track,
   projectId,
   sanityConfigured,
+  problem,
   onStart,
   onContinue,
   onChooseTrack,
@@ -110,7 +112,9 @@ export default function Opening({
             </button>
           )}
           <p className="opening-status" aria-live="polite">
-            {sanityConfigured === null ? (
+            {problem ? (
+              problem
+            ) : sanityConfigured === null ? (
               "Sjekker tilkobling …"
             ) : sanityConfigured ? (
               <>

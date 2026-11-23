@@ -4,6 +4,8 @@
 //   npm run setup                     create a project, no account needed
 //   npm run setup -- --project <id>   use a project you already have
 //   npm run setup -- --cors           after claiming: allow the Studio on more ports
+//   npm run setup -- --new            start over with a new project (the old one
+//                                     expired); finished lukes come along
 //
 // Every player gets their own project, so you own everything in it: content,
 // schema and Studio. The game only ever reads published content.
@@ -52,6 +54,10 @@ const COMMENTS = {
     "SECRET. Lets the Sanity CLI act on the project until you claim it and run `sanity login`.\n# Never rename it to NEXT_PUBLIC_*, that would ship it to every browser.",
   SANITY_CLAIM_URL:
     "SECRET. Whoever opens this link becomes the owner. Claim it before the date below.",
+  NEXT_PUBLIC_SANITY_PREVIOUS_PROJECT_ID:
+    "Your project before `npm run setup -- --new`. The game copies your finished lukes from it once.",
+  NEXT_PUBLIC_WINTER_QUEST_PLAYER_ID:
+    "Who you are on «Hvem er med»: your first project, so a new project doesn't make you a new player.",
 };
 
 // Updates keys in place and appends new ones, keeping anything else the
@@ -103,12 +109,24 @@ function checkNode() {
   }
 }
 
+// On Windows npx is npx.cmd, which Node only starts through a shell. The shell
+// gets one command line, so arguments with spaces are quoted.
+const WINDOWS = process.platform === "win32";
+const quote = (arg) =>
+  /[\s()&|<>^"]/.test(arg) ? `"${arg.replace(/"/g, '""')}"` : arg;
+
 function sanity(args, { capture = false, env = {} } = {}) {
-  return spawnSync("npx", ["--yes", "sanity@latest", ...args], {
-    stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit",
-    encoding: "utf8",
-    env: { ...process.env, ...env },
-  });
+  const all = ["--yes", "sanity@latest", ...args];
+  return spawnSync(
+    WINDOWS ? "npx.cmd" : "npx",
+    WINDOWS ? all.map(quote) : all,
+    {
+      stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit",
+      encoding: "utf8",
+      env: { ...process.env, ...env },
+      shell: WINDOWS,
+    },
+  );
 }
 
 // The game reads published content without a token, so the dataset must be public.
@@ -122,6 +140,23 @@ async function checkPublicRead(projectId, dataset) {
     return `http ${res.status}`;
   } catch {
     return "offline";
+  }
+}
+
+// A project from `sanity new` has only the setup's robot token as a member;
+// whoever claims it is the first person in the list. null: couldn't tell.
+async function isClaimed(projectId, token) {
+  if (!token) return null;
+  try {
+    const res = await fetch(
+      `https://api.sanity.io/v2021-06-07/projects/${projectId}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!res.ok) return null;
+    const { members } = await res.json();
+    return Array.isArray(members) && members.some((m) => m && !m.isRobot);
+  } catch {
+    return null;
   }
 }
 
@@ -180,7 +215,8 @@ function nextSteps() {
           `${c.cyan("npm install")}  ${c.dim("(the game's dependencies aren't installed yet)")}`,
         ]),
     `${c.cyan("npm run dev")}  ${c.dim("(on port 3000, the only one allowed until you claim)")}`,
-    `Open ${c.cyan("http://localhost:3000")}, find Brann at the forge and press ${c.bold("E")}.`,
+    `Open ${c.cyan("http://localhost:3000")}. The ${c.bold("Oppsett")} button (top right) shows what's left, with a button for each step.`,
+    `Find Brann at the forge and press ${c.bold("E")}.`,
   ];
   say();
   say(c.bold("Next"));
@@ -191,7 +227,10 @@ function nextSteps() {
 // --- commands -----------------------------------------------------------------
 
 async function createProject() {
-  const name = `Winter Quest (${userInfo().username})`;
+  // Plain characters only: the name goes through a shell on Windows.
+  const user =
+    userInfo().username.replace(/[^\p{L}\p{N} _.-]/gu, "") || "player";
+  const name = `Winter Quest (${user})`;
   say(`Creating ${c.bold(name)} on Sanity. No account needed…`);
   const run = sanity(["new", name, "--json", "--yes"], { capture: true });
   if (run.status !== 0)
@@ -304,8 +343,33 @@ async function status(env) {
   say(
     `${c.green("✓")} Already connected to project ${c.bold(projectId)} (${dataset}).`,
   );
-  explainRead(await checkPublicRead(projectId, dataset), projectId, dataset);
-  if (env.SANITY_CLAIM_URL && env.SANITY_CLAIM_EXPIRES) {
+  const read = await checkPublicRead(projectId, dataset);
+  if (
+    read === "missing" &&
+    env.SANITY_CLAIM_EXPIRES &&
+    new Date(env.SANITY_CLAIM_EXPIRES).getTime() < Date.now()
+  ) {
+    say();
+    say(
+      `${c.red("✗")} The project wasn't claimed in time, so Sanity has deleted it.`,
+    );
+    say(
+      `  Make a new one. Your finished lukes come along; content you made in the Studio doesn't:`,
+    );
+    say(`  ${c.cyan("npm run setup -- --new")}`);
+    say();
+    return;
+  }
+  explainRead(read, projectId, dataset);
+  const claimed =
+    env.SANITY_CLAIM_URL &&
+    (await isClaimed(projectId, env.SANITY_AUTH_TOKEN)) === true;
+  if (claimed) {
+    say(`${c.green("✓")} The project is claimed: it's yours.`);
+    say(
+      `  ${c.dim("Tidy up: delete the SANITY_CLAIM_* lines from .env.local. To use other ports than 3000:")} ${c.cyan("npm run setup -- --cors")}`,
+    );
+  } else if (env.SANITY_CLAIM_URL && env.SANITY_CLAIM_EXPIRES) {
     printClaim(env.SANITY_CLAIM_URL, env.SANITY_CLAIM_EXPIRES);
     say(
       `${c.dim("Claimed already? Delete the SANITY_CLAIM_* lines from .env.local, then run")} ${c.cyan("npm run setup -- --cors")}${c.dim(".")}`,
@@ -325,6 +389,42 @@ async function status(env) {
   nextSteps();
 }
 
+// Leaves the current project behind and makes a new one. The game copies the
+// finished lukes from the old project's progress, and you stay the same player
+// on «Hvem er med».
+async function startOver(env) {
+  const old = env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+  if (old) {
+    if (
+      (await checkPublicRead(
+        old,
+        env.NEXT_PUBLIC_SANITY_DATASET || "production",
+      )) === "ok"
+    ) {
+      say(
+        `${c.amber("!")} Project ${c.bold(old)} still works. It stays as it is, but the game will use the new one.`,
+      );
+      say(
+        `  ${c.dim("Changed your mind? Go back with")} ${c.cyan(`npm run setup -- --project ${old}`)}`,
+      );
+      say();
+    }
+    writeEnv({
+      NEXT_PUBLIC_SANITY_PREVIOUS_PROJECT_ID: old,
+      NEXT_PUBLIC_WINTER_QUEST_PLAYER_ID:
+        env.NEXT_PUBLIC_WINTER_QUEST_PLAYER_ID || old,
+      SANITY_AUTH_TOKEN: null,
+      SANITY_CLAIM_URL: null,
+      SANITY_CLAIM_EXPIRES: null,
+    });
+  }
+  await createProject();
+  say(
+    `${c.amber("!")} Restart the game (Ctrl+C, then ${c.cyan("npm run dev")}) so it picks up the new project.`,
+  );
+  say();
+}
+
 // --- main ---------------------------------------------------------------------
 
 const args = process.argv.slice(2);
@@ -340,6 +440,7 @@ say();
 
 const env = readEnv();
 if (args.includes("--cors")) addCors(env);
+else if (args.includes("--new")) await startOver(env);
 else if (flag("--project") !== undefined)
   await connectProject(flag("--project"), flag("--dataset") || "production");
 else if (env.NEXT_PUBLIC_SANITY_PROJECT_ID) await status(env);

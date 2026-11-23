@@ -48,7 +48,11 @@ import {
 } from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
-import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
+import {
+  PLAYER_ID,
+  PROGRESS_PROJECT,
+  updateProgress,
+} from "@/game/quests/progress";
 import { ARCHIVE_IDS, type OwnArchiveDoc, type OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
@@ -73,6 +77,9 @@ import {
   useStudioPane,
 } from "./hud/studioPane";
 import StudioPane from "./StudioPane";
+import SetupPanel, { setupProgress } from "./hud/SetupPanel";
+import { setupUrgent } from "./hud/setupSteps";
+import { useSetup } from "./hud/setup";
 
 // Phaser is browser-only: load it with no SSR.
 const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
@@ -118,6 +125,8 @@ function useZone() {
     () => null,
   );
 }
+
+const SETUP_SEEN = "winter-quest:setup-seen";
 
 export default function GameClient() {
   const [sanityItems, setSanityItems] = useState<SanityItem[]>([]);
@@ -243,7 +252,7 @@ export default function GameClient() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        playerId: PROGRESS_PROJECT,
+        playerId: PLAYER_ID,
         questIds: [],
         character: { visible: false },
       }),
@@ -305,6 +314,27 @@ export default function GameClient() {
     withdrawCommunityProfile,
   ]);
   const studio = useStudioPane();
+  const setup = useSetup();
+  const setupLeft = setupProgress(setup);
+  const [setupOpen, setSetupOpen] = useState(false);
+  // Opens by itself once per visit when it matters: no project, the claim
+  // deadline is under a day away, or the project is gone.
+  const [setupDismissed, setSetupDismissed] = useState(() => {
+    try {
+      return window.sessionStorage.getItem(SETUP_SEEN) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const closeSetup = useCallback(() => {
+    setSetupOpen(false);
+    setSetupDismissed(true);
+    try {
+      window.sessionStorage.setItem(SETUP_SEEN, "1");
+    } catch {
+      // Then it opens again next visit too.
+    }
+  }, []);
   const studioFocused = useStudioFocused() && studio.open;
   // Dev panel overrides for code checks: true/false wins over npm run quest.
   const [devChecks, setDevChecks] = useState<Record<string, boolean>>({});
@@ -426,7 +456,7 @@ export default function GameClient() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        playerId: PROGRESS_PROJECT,
+        playerId: PLAYER_ID,
         questIds: Object.keys(progress.completed),
         // Hints used per finished luke, or null to take them back.
         hints: progress.shareHints
@@ -924,6 +954,17 @@ export default function GameClient() {
           </div>
 
           <div className="hud-tr">
+            {setupLeft && (
+              <button
+                type="button"
+                className={`studio-link${setupLeft.done < setupLeft.total ? " is-todo" : ""}`}
+                onClick={() => setSetupOpen(true)}
+              >
+                Oppsett
+                {setupLeft.done < setupLeft.total &&
+                  ` ${setupLeft.done}/${setupLeft.total}`}
+              </button>
+            )}
             <button
               type="button"
               className="studio-link"
@@ -1147,6 +1188,13 @@ export default function GameClient() {
             track={progress.track}
             projectId={process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "demo"}
             sanityConfigured={configured}
+            problem={
+              setup.status?.expired
+                ? "Prosjektet er slettet: se Oppsett i spillet"
+                : setup.status?.read && setup.status.read !== "ok"
+                  ? "Får ikke lest prosjektet: se Oppsett i spillet"
+                  : null
+            }
             onStart={begin}
             onContinue={() =>
               setEntryStage(
@@ -1255,7 +1303,15 @@ export default function GameClient() {
       )}
 
       {!showOpening && studio.loaded && (
-        <StudioPane width={studio.width} open={studio.open} />
+        <StudioPane width={studio.width} open={studio.open} setup={setup} />
+      )}
+
+      {(setupOpen ||
+        (!showOpening &&
+          !setupDismissed &&
+          setup.status &&
+          setupUrgent(setup.status))) && (
+        <SetupPanel setup={setup} onClose={closeSetup} />
       )}
     </div>
   );

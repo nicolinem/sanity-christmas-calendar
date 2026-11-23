@@ -381,9 +381,9 @@ function Details({
 
       {unclaimed && firstForging && (
         <p className="dialogue-hint">
-          Første gang i Studio? Åpne innloggingslenken som{" "}
-          <code>npm run setup</code> skrev ut. Kjør den på nytt for å se lenken.
-          Studio husker deg etterpå.
+          Første gang i Studio? Trykk «Sanity Studio» øverst til høyre, så
+          logger spillet deg inn. Husk å gjøre prosjektet til ditt under
+          «Oppsett».
         </p>
       )}
 

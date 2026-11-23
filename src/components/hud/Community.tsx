@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { CommunityEvent, CommunityPlayer } from "@/game/community";
-import { PROGRESS_PROJECT } from "@/game/quests/progress";
+import { PLAYER_ID } from "@/game/quests/progress";
 import { MAX_FORGE_LEVEL } from "@/game/rules";
 import { normalizeFigure } from "@/game/figure";
 import { communityEndpoint } from "@/game/communityEndpoint";
@@ -57,7 +57,7 @@ export default function Community() {
 
   const names = new Map(players.map((p) => [p.playerId, p.name]));
   const label = (id: string) =>
-    names.get(id) ?? (id === PROGRESS_PROJECT ? "Du" : `Spiller ${id}`);
+    names.get(id) ?? (id === PLAYER_ID ? "Du" : `Spiller ${id}`);
 
   return (
     <div className="log-book log-community" aria-live="polite">
@@ -80,7 +80,7 @@ export default function Community() {
         <div className="community-layout">
           <div className="community-players">
             {players.map((player) => {
-              const me = player.playerId === PROGRESS_PROJECT;
+              const me = player.playerId === PLAYER_ID;
               return (
                 <article
                   className={`community-player${me ? " is-me" : ""}`}
