@@ -11,10 +11,8 @@ const questTitles = new Map(
 
 export type CommunityEvent = {
   playerId: string;
-  kind?: "quest" | "weapon"; // missing on older milestones: a finished luke
-  questId?: string;
-  title?: string; // the luke's title (quest)
-  label?: string; // the weapon's name (weapon)
+  questId: string;
+  title: string;
   hints?: number | null; // hints used, only when the player shares them
   at: string;
 };
@@ -192,24 +190,4 @@ function isHintCounts(value: unknown) {
         (n as number) <= MAX_HINTS,
     )
   );
-}
-
-// "smidde Frostbit": one event per weapon name the player has shared.
-export function weaponEventFor(playerId: string, weapon: CommunityWeapon) {
-  const slug = weapon.name
-    .toLowerCase()
-    .replace(/æ/g, "ae")
-    .replace(/ø/g, "o")
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40);
-  if (!slug) return null;
-  return {
-    _id: `communityEvent.${playerId}.weapon.${slug}`,
-    _type: "communityEvent" as const,
-    playerId,
-    kind: "weapon" as const,
-    label: weapon.name,
-  };
 }

@@ -141,22 +141,14 @@ export default function Community() {
             ) : (
               <ul>
                 {events.slice(0, 12).map((event) => (
-                  <li
-                    key={`${event.playerId}:${event.kind}:${event.questId ?? event.label}`}
-                  >
-                    <strong>{label(event.playerId)}</strong>{" "}
-                    {event.kind === "weapon" ? (
-                      <>smidde «{event.label}»</>
-                    ) : (
-                      <>
-                        fullførte «{event.title}»
-                        {event.hints === 0
-                          ? " uten hint"
-                          : typeof event.hints === "number"
-                            ? ` med ${event.hints} hint`
-                            : ""}
-                      </>
-                    )}
+                  <li key={`${event.playerId}:${event.questId}`}>
+                    <strong>{label(event.playerId)}</strong> fullførte «
+                    {event.title}»
+                    {event.hints === 0
+                      ? " uten hint"
+                      : typeof event.hints === "number"
+                        ? ` med ${event.hints} hint`
+                        : ""}
                     <time dateTime={event.at}>
                       {new Date(event.at).toLocaleDateString("nb-NO")}
                     </time>
