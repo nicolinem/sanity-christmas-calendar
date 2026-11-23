@@ -113,7 +113,8 @@ export default function SetupPanel({ setup, onClose }: Props) {
           </ol>
         )}
         <div className="setup-links">
-          {status?.projectId && !status.expired && (
+          {/* Before claiming the project has no users, so sanity.io shows nothing. */}
+          {status?.projectId && status.claim === "claimed" && (
             <a
               href={manageUrl(status.projectId)}
               target="_blank"
