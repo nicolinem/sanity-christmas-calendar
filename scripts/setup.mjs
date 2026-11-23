@@ -198,12 +198,6 @@ function formatDeadline(iso) {
   return hours > 0 ? `${when} (in about ${hours} h)` : `${when} (passed)`;
 }
 
-function studioSignInUrl(token, claimUrl) {
-  // An unclaimed project has no users, so the Studio signs in with the token in
-  // the URL hash. Only localhost:3000 (and 3333) are allowed before claiming.
-  return `http://localhost:3000/studio#token=${encodeURIComponent(token)}&claim=${encodeURIComponent(claimUrl)}`;
-}
-
 function nextSteps() {
   // Setup runs fine without dependencies (it fetches the Sanity CLI itself),
   // so a fresh clone can get here before `npm install`.
@@ -262,11 +256,7 @@ async function createProject() {
   );
   explainRead(await checkPublicRead(projectId, dataset), projectId, dataset);
   printClaim(claimUrl, expiresAt);
-  say(c.bold("Sign in to your Studio"));
-  say(
-    `  Start the game, then open this once. It holds your project's access token, so keep it private:`,
-  );
-  say(`  ${c.cyan(studioSignInUrl(token, claimUrl))}`);
+  // No sign-in link: the game signs the Studio in by itself until you claim.
   nextSteps();
 }
 
@@ -372,15 +362,8 @@ async function status(env) {
   } else if (env.SANITY_CLAIM_URL && env.SANITY_CLAIM_EXPIRES) {
     printClaim(env.SANITY_CLAIM_URL, env.SANITY_CLAIM_EXPIRES);
     say(
-      `${c.dim("Claimed already? Delete the SANITY_CLAIM_* lines from .env.local, then run")} ${c.cyan("npm run setup -- --cors")}${c.dim(".")}`,
+      `  ${c.dim("Or use the button under Oppsett in the game. Run this again after claiming to check.")}`,
     );
-    if (env.SANITY_AUTH_TOKEN) {
-      say();
-      say(c.bold("Studio sign-in link"));
-      say(
-        `  ${c.cyan(studioSignInUrl(env.SANITY_AUTH_TOKEN, env.SANITY_CLAIM_URL))}`,
-      );
-    }
   }
   say();
   say(

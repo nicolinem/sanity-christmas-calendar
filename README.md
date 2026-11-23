@@ -92,6 +92,7 @@ fikser det. Her er det vanligste:
 | Du står fast på en luke                                         | Be om hint hos den som ga deg luka. Står du fortsatt fast, spør i kanalen.                                                                                 |
 | Du vil bruke en annen port enn 3000                             | Først etter at prosjektet er claimet: kjør `npx sanity@latest login`, så `npm run setup -- --cors`.                                                        |
 | Du har allerede et Sanity-prosjekt du vil bruke                 | `npm run setup -- --project <prosjekt-id>`                                                                                                                 |
+| Terminalen viser advarsler om «install scripts» eller `localStorage` | De er ufarlige. Spillet virker likevel.                                                                                                       |
 
 `npm run setup` kan kjøres på nytt når som helst. Den viser hvilket prosjekt
 du er koblet til, og om det er claimet.
