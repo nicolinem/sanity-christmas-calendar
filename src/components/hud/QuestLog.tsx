@@ -711,16 +711,9 @@ function QuestDetail({
       )}
 
       <p className="log-checked">
-        {quest.checkedBy === "code" ? (
-          <>
-            Når det virker: kjør <code>npm run quest</code> i terminalen, og
-            trykk «Sjekk på nytt».
-          </>
-        ) : quest.checkedBy === "window" ? (
-          "Kodevinduet prøver koden din mens du skriver."
-        ) : (
-          "Spillet merker dette av seg selv."
-        )}
+        {quest.checkedBy === "window"
+          ? "Kodevinduet prøver koden din mens du skriver."
+          : "Spillet merker dette av seg selv."}
         {quest.reward && " Belønning: våpnene dine blir sterkere."}
       </p>
       {state.pickup ? (

@@ -1,34 +1,19 @@
 #!/usr/bin/env node
 // Release check for organizers: `npm run verify-release [-- --build]`
 //
-// Makes sure no solution leaks into what players clone, and that every
-// reference solution still passes. Each branch is checked out into a
-// temporary git worktree (your working copy is left alone):
-//
-//   main       the starter players clone: no code quest may pass
-//   solutions  the reference solutions: every code quest must pass
-//
-// Both must typecheck and pass Sanity's schema check. With --build each branch
-// also gets a clean `npm ci` and `next build`, like a fresh clone (slower). Uses your .env.local so the Guild's Law check can query the dataset.
+// Checks out main into a temporary git worktree (your working copy is left
+// alone), the way a player gets it, and makes sure it typechecks, passes
+// Sanity's schema check and the tests. With --build it also gets a clean
+// `npm ci` and `next build`, like a fresh clone (slower).
 
 import { execFileSync } from "node:child_process";
-import {
-  cpSync,
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  symlinkSync,
-} from "node:fs";
+import { cpSync, existsSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const ROOT = resolve(process.cwd());
 const BUILD = process.argv.includes("--build");
-const TARGETS = [
-  { ref: "main", expect: "none", label: "starter" },
-  { ref: "solutions", expect: "all", label: "solutions" },
-];
+const TARGETS = [{ ref: "main", label: "what players clone" }];
 
 const green = (s) => `\x1b[32m${s}\x1b[0m`;
 const red = (s) => `\x1b[31m${s}\x1b[0m`;
@@ -100,21 +85,7 @@ for (const target of TARGETS) {
     step("typecheck", dir, "npx", ["tsc", "--noEmit"]);
     step("Sanity schema check", dir, "npx", ["sanity", "schema", "validate"]);
 
-    if (
-      step("npm run quest", dir, "npx", ["sanity", "exec", "scripts/quest.ts"])
-    ) {
-      const { checks } = JSON.parse(
-        readFileSync(join(dir, ".quest", "results.json"), "utf8"),
-      );
-      for (const [id, check] of Object.entries(checks)) {
-        if (target.expect === "none" && check.done)
-          fail(`${id} already passes: a solution leaked into ${target.ref}`);
-        else if (target.expect === "all" && !check.done)
-          fail(`${id} doesn't pass: ${check.message}`);
-        else
-          pass(`${id} ${dim(target.expect === "none" ? "is open" : "passes")}`);
-      }
-    }
+    step("tests", dir, "npm", ["test"]);
 
     if (BUILD) step("next build", dir, "npx", ["next", "build"]);
   } catch (err) {

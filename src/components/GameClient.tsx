@@ -145,7 +145,6 @@ export default function GameClient() {
   const [bakerySign, setBakerySign] = useState<
     import("@/game/bakery").BakerySign | null
   >(null);
-  const [codeChecks, setCodeChecks] = useState<Record<string, CodeCheck>>({});
   const [communityReady, setCommunityReady] = useState(false);
   const [equippedId, setEquippedId] = useState<string | null>(null);
   // While true, the game keeps the strongest weapon equipped as content loads.
@@ -336,17 +335,14 @@ export default function GameClient() {
     }
   }, []);
   const studioFocused = useStudioFocused() && studio.open;
-  // Dev panel overrides for code checks: true/false wins over npm run quest.
+  // Dev panel overrides for checks: pretend a quest passes or fails.
   const [devChecks, setDevChecks] = useState<Record<string, boolean>>({});
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, checks, own, bakery] = await Promise.all([
+      const [res, own, bakery] = await Promise.all([
         fetch("/api/items", { cache: "no-store" }),
-        fetch("/api/quest-checks", { cache: "no-store" })
-          .then((r) => r.json())
-          .catch(() => ({ checks: {} })),
         fetch("/api/archive", { cache: "no-store" })
           .then((r) => r.json())
           .catch(() => null),
@@ -366,7 +362,6 @@ export default function GameClient() {
         items: SanityItem[];
         error?: string;
       } = await res.json();
-      setCodeChecks(checks.checks ?? {});
       setConfigured(data.configured);
       setUnclaimed(Boolean(data.unclaimed));
       setUnpublishedDrafts(data.unpublishedDrafts ?? 0);
@@ -507,7 +502,7 @@ export default function GameClient() {
   const forged = findForgedWeapon(items);
   const combat = useCombat(equipped);
   const checks = useMemo(() => {
-    const merged = { ...codeChecks };
+    const merged: Record<string, CodeCheck> = {};
     for (const [id, done] of Object.entries(devChecks))
       merged[id] = {
         done,
@@ -516,7 +511,7 @@ export default function GameClient() {
           : "Utviklerpanelet later som kriteriene ikke er oppfylt.",
       };
     return merged;
-  }, [codeChecks, devChecks]);
+  }, [devChecks]);
   const board = useQuestBoard({
     items,
     codeChecks: checks,
@@ -1240,7 +1235,7 @@ export default function GameClient() {
               board={board}
               forgeLevel={forgeLevel}
               liveMode={liveMode}
-              codeChecks={codeChecks}
+              codeChecks={checks}
               devChecks={devChecks}
               onDevCheck={(id, done) =>
                 setDevChecks((prev) => {

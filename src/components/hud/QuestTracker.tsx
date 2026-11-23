@@ -163,13 +163,9 @@ export default function QuestTracker({
                   ))}
                 </ul>
               )}
-              {(current.result.message ||
-                current.quest.checkedBy === "code") && (
+              {current.result.message && (
                 <p className="tracker-note">
-                  {renderText(
-                    current.result.message ??
-                      "Kriteriene avgjøres av koden din: kjør `npm run quest` når du er klar.",
-                  )}
+                  {renderText(current.result.message)}
                 </p>
               )}
             </>

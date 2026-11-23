@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "setup": "node scripts/setup.mjs",
-    "quest": "sanity exec scripts/quest.ts",
     "verify-release": "node scripts/verify-release.mjs",
     "predev": "node scripts/check-port.mjs",
     "dev": "next dev --port 3000",

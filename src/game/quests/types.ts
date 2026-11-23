@@ -41,7 +41,8 @@ export type Progress = {
 // on our own version of the same code (src/sanity/lib/solved.tsx).
 export type SolvedTask = { at: string; icon?: string };
 
-// Result of `npm run quest` for quests that can only be judged from code.
+// A pass/fail a quest can read from outside the game's own data. Only the dev
+// panel sets it today; the engine tests use it as a simple switch.
 export type CodeCheck = { done: boolean; message?: string; checkedAt?: string };
 
 export type QuestContext = {
@@ -107,8 +108,9 @@ export type Quest = {
   // What the player just learned, in plain words. Shown when the quest is done
   // and collected in Brann's book.
   lesson: { title: string; text: string; atWork?: string };
-  // game: the game sees it in your content. code: `npm run quest` judges your
-  // files. window: you write it in the game's code window, which checks it.
+  // game: the game sees it in your content. window: you write it in the game's
+  // code window, which checks it. board: the model board checks it. code: no
+  // quest uses it now; it's kept for the engine tests.
   checkedBy: "game" | "code" | "window" | "board";
   // Optional: shown with a ☆ and left out of the "N av M" totals.
   bonus?: true;
