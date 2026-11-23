@@ -12,14 +12,21 @@ const RELEASE_COMMUNITY_URL = "";
 // December). Empty opens everything at once.
 const RELEASE_CALENDAR_START = "2026-12-01";
 
+// Luke 1 opens early, on the day of the setup session, so everyone can
+// publish their first weapon there. The rest of week 1 waits for the start.
+const RELEASE_SETUP_DAY = "2026-11-27";
+
 export const COMMUNITY_URL =
   process.env.NEXT_PUBLIC_COMMUNITY_URL || RELEASE_COMMUNITY_URL;
 
 export const CALENDAR_START =
   process.env.NEXT_PUBLIC_CALENDAR_START ?? RELEASE_CALENDAR_START;
 
+export const SETUP_DAY = process.env.NEXT_PUBLIC_SETUP_DAY ?? RELEASE_SETUP_DAY;
+
 // For verify-release and the tests: what ships, without env overrides.
 export const RELEASE = {
   communityUrl: RELEASE_COMMUNITY_URL,
   calendarStart: RELEASE_CALENDAR_START,
+  setupDay: RELEASE_SETUP_DAY,
 };

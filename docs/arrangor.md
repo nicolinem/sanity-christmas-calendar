@@ -104,8 +104,10 @@ din egen arbeidskopi blir ikke rørt.
 
 - `RELEASE_CALENDAR_START` i `src/game/release.ts` (nå `2026-12-01`) åpner
   uke 1 tirsdag 1. desember og de neste ukene på mandagene etter (7. og 14.
-  desember). `NEXT_PUBLIC_CALENDAR_START` i `.env.local` overstyrer den;
-  tom verdi åpner alt.
+  desember). Luke 1 åpner tidligere, på oppsettøkta (`RELEASE_SETUP_DAY`, nå
+  `2026-11-27`), så alle kan publisere sitt første våpen der. Resten av uke 1
+  venter til 1. desember. `NEXT_PUBLIC_CALENDAR_START` og
+  `NEXT_PUBLIC_SETUP_DAY` i `.env.local` overstyrer dem; tom verdi åpner alt.
 - Når `RELEASE_COMMUNITY_URL` er satt, sender også din lokale kopi framgang
   til den publiserte serveren. Bruk `?dev` (sender ingenting), eller sett
   `NEXT_PUBLIC_COMMUNITY_URL=/api/community` i `.env.local` for å bruke din

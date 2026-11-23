@@ -8,6 +8,7 @@ function loadEngine(calendarStart) {
   const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
   // Empty, not missing: missing falls back to the release date.
   process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart ?? "";
+  process.env.NEXT_PUBLIC_SETUP_DAY = "";
   try {
     delete require.cache[require.resolve("../release.ts")];
     delete require.cache[require.resolve("./engine.ts")];
@@ -749,6 +750,7 @@ test("every luke says what you build and why", () => {
 test("the release opens week 1 on 1 December and weeks 2 and 3 on the Mondays after", () => {
   const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
   delete process.env.NEXT_PUBLIC_CALENDAR_START;
+  delete process.env.NEXT_PUBLIC_SETUP_DAY;
   try {
     delete require.cache[require.resolve("../release.ts")];
     delete require.cache[require.resolve("./engine.ts")];
@@ -762,6 +764,27 @@ test("the release opens week 1 on 1 December and weeks 2 and 3 on the Mondays af
       "2026-12-7",
       "2026-12-14",
     ]);
+
+    // Luke 1 opens on the setup day; the next luke waits for 1 December.
+    const engine = require("./engine.ts");
+    const week1 = CHAPTERS.find((c) => c.number === 1);
+    const first = week1.quests[0].id;
+    const at = (day) => new Date(`2026-11-${day}T12:00:00`);
+    assert.equal(
+      engine.evaluateQuests([week1], context(), at(26)).current,
+      null,
+    );
+    assert.equal(
+      engine.evaluateQuests([week1], context(), at(27)).current.quest.id,
+      first,
+    );
+    const afterLuke1 = engine.evaluateQuests(
+      [week1],
+      context({ completed: { [first]: COMPLETED_AT } }),
+      at(27),
+    );
+    assert.equal(afterLuke1.current, null);
+    assert.equal(afterLuke1.states.find((s) => s.opensAt).opensAt.getDate(), 1);
   } finally {
     if (previous !== undefined)
       process.env.NEXT_PUBLIC_CALENDAR_START = previous;

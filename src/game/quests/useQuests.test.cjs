@@ -14,6 +14,7 @@ let engine;
 try {
   // Empty, not missing: missing falls back to the release date.
   process.env.NEXT_PUBLIC_CALENDAR_START = "";
+  process.env.NEXT_PUBLIC_SETUP_DAY = "";
   delete require.cache[require.resolve("../release.ts")];
   delete require.cache[require.resolve("./engine.ts")];
   engine = require("./engine.ts");
@@ -33,6 +34,7 @@ const STUDIO_NEXT = "the-guilds-law";
 function loadEngineWithCalendar(calendarStart) {
   const previous = process.env.NEXT_PUBLIC_CALENDAR_START;
   process.env.NEXT_PUBLIC_CALENDAR_START = calendarStart;
+  process.env.NEXT_PUBLIC_SETUP_DAY = "";
   try {
     delete require.cache[require.resolve("../release.ts")];
     delete require.cache[require.resolve("./engine.ts")];
