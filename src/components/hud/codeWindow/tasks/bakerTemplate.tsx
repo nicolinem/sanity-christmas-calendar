@@ -81,6 +81,10 @@ export const bakerTemplateTask: WindowTask = {
   id: "baker-template",
   file: "bakeryOrder.ts",
   starter,
+  solution: starter.replace(
+    "    // Bruk bakeryToday() for datoen, ikke en fast dato.",
+    '    status: "ny",\n    date: bakeryToday(),',
+  ),
   modules,
   judge: judgeBakerTemplate,
   resultTitle: "En ny bestilling i Studio",

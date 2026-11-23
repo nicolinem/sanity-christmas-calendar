@@ -50,6 +50,9 @@ export type WindowTask = {
   resultTitle: string;
   Result: ComponentType<{ verdict: Verdict | null }>;
   ours: string; // our version of the code, shown once solved
+  // A whole file that passes, for «Vis løsning» after the last hint. The
+  // player still runs it: pasting it in is what solves the luke.
+  solution: string;
   references: Reference[];
   extend?: Extend; // left out when there's no repo file to go on in
   // false: nothing switches on in the Studio (a GROQ answer, say), so the

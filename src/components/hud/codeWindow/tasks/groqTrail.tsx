@@ -261,6 +261,10 @@ export const trailTask: WindowTask = {
   id: "follow-the-trail",
   file: "spor.groq.ts",
   starter: STARTER,
+  solution: STARTER.replace(
+    /export const query = `[\s\S]*`/,
+    () => `export const query = \`\n  ${OURS.replace(/\n/g, "\n  ")}\n\``,
+  ),
   modules: {},
   judge: judgeTrail,
   resultTitle: "Kartet over bygda",

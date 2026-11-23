@@ -116,6 +116,15 @@ export const bakerFunctionTask: WindowTask = {
   id: "baker-function",
   file: "onOrderPublished.ts",
   starter,
+  solution: starter
+    .replace(
+      "  // Sjekk at dette er en publisert bakeryOrder med en vare.\n",
+      '  if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return\n',
+    )
+    .replace(
+      "  // Ikke skriv hvis skiltet allerede viser denne teksten.\n",
+      "  if (sign?.text?.[0]?.children?.[0]?.text === text) return\n",
+    ),
   modules: {},
   judge: judgeBakerFunction,
   resultTitle: "Simulert Sanity Function",

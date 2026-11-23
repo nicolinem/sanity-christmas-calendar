@@ -554,6 +554,7 @@ export const drawingBoardTask: WindowTask = {
   id: "the-drawing-board",
   file: "SpritePicker.tsx",
   starter: DRAWING_BOARD_STARTER,
+  solution: spritePickerSource,
   modules: DRAWING_BOARD_MODULES,
   importHelp: spriteInputHelp,
   judge: judgeSpritePicker,

@@ -246,10 +246,27 @@ export default function CodeWindow({
   };
 
   const hints = quest.hints.slice(0, hintsShown);
+  // One more than the hints: the solution was shown (it counts as a hint).
+  const solutionShown = hintsShown > quest.hints.length;
   const activeHint =
-    hintsShown > 0
-      ? Math.min(hintsShown - 1, Math.max(0, selectedHint ?? hintsShown - 1))
+    hints.length > 0
+      ? Math.min(
+          hints.length - 1,
+          Math.max(0, selectedHint ?? hints.length - 1),
+        )
       : 0;
+  const [solutionCopied, setSolutionCopied] = useState(false);
+
+  // Puts the solution in the editor. Running it is what passes the luke.
+  const insertSolution = () => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: task.solution },
+    });
+    setSolutionCopied(true);
+    view.focus();
+  };
   // Passing now, or (before the first run finishes) passed earlier.
   const passed = !taskError && (verdict ? verdict.done : solved);
   const passedRequirements =
@@ -500,6 +517,34 @@ export default function CodeWindow({
                     >
                       {hintsShown === 0 ? "Vis et hint" : "Vis et hint til"}
                     </button>
+                  )}
+                  {hintsShown === quest.hints.length && (
+                    <button
+                      type="button"
+                      className="btn btn--quiet cw-reveal-hint"
+                      onClick={onRevealHint}
+                    >
+                      Vis løsning
+                    </button>
+                  )}
+                  {solutionShown && (
+                    <details className="cw-solution" open>
+                      <summary>Løsning</summary>
+                      <p>
+                        Les den, eller sett den inn i koden din. Luka er klar
+                        når koden kjører og alt over er grønt.
+                      </p>
+                      <pre className="cw-ours">{task.solution}</pre>
+                      <button
+                        type="button"
+                        className="btn btn--amber"
+                        onClick={insertSolution}
+                      >
+                        {solutionCopied
+                          ? "Satt inn. Sett inn på nytt"
+                          : "Sett inn løsningen"}
+                      </button>
+                    </details>
                   )}
                 </section>
               )}
