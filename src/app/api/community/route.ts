@@ -8,7 +8,6 @@ import {
   milestonesFor,
   playersFromMilestones,
   sharesHints,
-  weaponEventFor,
   type CommunityEvent,
   type CommunityPlayer,
 } from "@/game/community";
@@ -87,7 +86,7 @@ export async function GET(request: Request) {
       });
     const [events, milestones] = await Promise.all([
       reader.fetch<CommunityEvent[]>(
-        '*[_type in ["questMilestone", "communityEvent"] && playerId in $playerIds] | order(_createdAt desc)[0...100]{playerId, "kind": coalesce(kind, "quest"), questId, title, label, hints, "at": _createdAt}',
+        '*[_type == "questMilestone" && playerId in $playerIds] | order(_createdAt desc)[0...100]{playerId, questId, title, hints, "at": _createdAt}',
         { playerIds },
       ),
       reader.fetch<{ playerId: string; questId: string; hints?: number }[]>(
@@ -187,9 +186,6 @@ export async function POST(request: Request) {
           patch.unset(["hints"]),
         );
     }
-    const weaponEvent =
-      character?.weapon && weaponEventFor(character.playerId, character.weapon);
-    if (weaponEvent) transaction = transaction.createIfNotExists(weaponEvent);
     if (character) {
       transaction = transaction.createIfNotExists(character);
       transaction = transaction.patch(character._id, (patch) =>

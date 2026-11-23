@@ -32,8 +32,8 @@ Regler:
 
 ## 3. Hendelser og «Hvem er med»
 
-- Flere hendelser enn «fullførte luke»: «smidde Frostbit», «hengte opp en
-  kule», «klarte luke 6 uten hint».
+- «Siste nytt» viser bare fullførte luker, med hint-tall når det deles:
+  «fullførte «X» uten hint». Ikke våpen eller andre ting man lager.
 - «Hvem er med» viser figur, navn, hvor langt man har kommet, våpenet og
   kula (under rim til julaften).
 
@@ -90,7 +90,7 @@ treet. Ingen oppgave, bare en scene. Se `docs/historie.md`.
 | --- | --- |
 | 1. Hintene | ferdig |
 | 2. Hint-tall per person | bygget; virker når felles prosjekt kjører denne koden |
-| 3. Hendelser og «Hvem er med» | våpen-hendelser og hint bygget; kule-hendelse kommer med luke 4 |
+| 3. Hendelser og «Hvem er med» | ferdig; bare fullførte luker vises |
 | 4. Siste luke | ikke startet |
 | 5. Treet | ikke startet; kulene til personene må tegnes |
 | 6. Finalen | ikke startet |

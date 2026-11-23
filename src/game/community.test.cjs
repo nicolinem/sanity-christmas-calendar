@@ -8,7 +8,6 @@ const {
   characterFor,
   playersFromMilestones,
   sharesHints,
-  weaponEventFor,
 } = require("./community.ts");
 const { DEFAULT_FIGURE } = require("./figure.ts");
 
@@ -244,25 +243,4 @@ test("hint counts are stored per luke only when shared, and stay small", () => {
   );
   assert.deepEqual(players[0].hints, { "the-broken-forge": 0 });
   assert.equal(players[1].hints, null);
-});
-
-test("a shared weapon becomes one stable event", () => {
-  assert.deepEqual(
-    weaponEventFor("abcdefgh", { name: "Frostbit Æ 2", spriteId: "sword" }),
-    {
-      _id: "communityEvent.abcdefgh.weapon.frostbit-ae-2",
-      _type: "communityEvent",
-      playerId: "abcdefgh",
-      kind: "weapon",
-      label: "Frostbit Æ 2",
-    },
-  );
-  assert.equal(
-    weaponEventFor("abcdefgh", { name: "Øks på Å", spriteId: null })._id,
-    "communityEvent.abcdefgh.weapon.oks-pa-a",
-  );
-  assert.equal(
-    weaponEventFor("abcdefgh", { name: "!!!", spriteId: null }),
-    null,
-  );
 });
