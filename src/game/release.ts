@@ -6,7 +6,8 @@
 // The organizers' deployed copy of this repo, ending in /api/community. Empty
 // until it's deployed: then «Hvem er med» says the community isn't connected,
 // and everything else works as usual.
-const RELEASE_COMMUNITY_URL = "";
+const RELEASE_COMMUNITY_URL =
+  "https://sanity-christmas-calendar-three.vercel.app/api/community";
 
 // Week 1 opens this day; weeks 2 and 3 on the Mondays after (7 and 14
 // December). Empty opens everything at once.
