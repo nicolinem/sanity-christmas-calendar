@@ -68,7 +68,7 @@ export class WinterQuestScene extends Phaser.Scene {
   >;
   private solids: Box[] = [];
   private moveTarget: Phaser.Math.Vector2 | null = null;
-  private pendingSite: QuestSiteId | null = null;
+  private pendingSite: QuestSiteId | "wraith" | null = null;
   private stuckFrames = 0;
   private route: Phaser.Math.Vector2[] = []; // legs still to walk after moveTarget
   private walkClock = 0;
@@ -622,8 +622,13 @@ export class WinterQuestScene extends Phaser.Scene {
     this.weapon.setTexture(sprite.sheet, sprite.frame).setVisible(true);
   }
 
-  private moveToSite(id: QuestSiteId) {
-    const destination = QUEST_SITES[id];
+  private moveToSite(id: QuestSiteId | "wraith") {
+    // The wraith wanders, so walk to where it is now and stop just short of
+    // it, inside its range, where Space strikes.
+    const destination =
+      id === "wraith"
+        ? { x: this.wraithBase.x - 24, y: this.wraithBase.y }
+        : QUEST_SITES[id];
     this.route = pathRoute(this.knight, destination).map(
       (p) => new Phaser.Math.Vector2(p.x, p.y),
     );

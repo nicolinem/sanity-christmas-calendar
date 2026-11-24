@@ -281,6 +281,17 @@ export function isPath(x: number, y: number) {
   return x >= 0 && y >= 0 && x < MAP_W && y < MAP_H && pathGrid[y][x];
 }
 
+// Path tiles a solid prop stands on (the well on the square): a walk along
+// the paths has to go round them, or the knight gets stuck against them.
+const propOnPath = new Set(
+  PROPS.filter((p) => p.solid && isPath(p.x, p.y)).map(
+    (p) => p.y * MAP_W + p.x,
+  ),
+);
+function walkable(x: number, y: number) {
+  return isPath(x, y) && !propOnPath.has(y * MAP_W + x);
+}
+
 // A walking route along the village paths (px points), for «Gå til …»: step
 // onto the nearest path, follow the paths to the one nearest the goal, then
 // step off. Straight lines get stuck on fences and trees.
@@ -293,7 +304,7 @@ export function pathRoute(
     let bestD = Infinity;
     for (let y = 0; y < MAP_H; y++)
       for (let x = 0; x < MAP_W; x++) {
-        if (!pathGrid[y][x]) continue;
+        if (!walkable(x, y)) continue;
         const d = Math.hypot(x * 16 + 8 - px.x, y * 16 + 8 - px.y);
         if (d < bestD) {
           bestD = d;
@@ -318,7 +329,7 @@ export function pathRoute(
       [x, y + 1],
       [x, y - 1],
     ] as [number, number][]) {
-      if (!isPath(nx, ny) || cameFrom.has(key(nx, ny))) continue;
+      if (!walkable(nx, ny) || cameFrom.has(key(nx, ny))) continue;
       cameFrom.set(key(nx, ny), key(x, y));
       queue.push([nx, ny]);
     }

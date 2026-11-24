@@ -28,9 +28,7 @@ type Props = {
   fetchFailed: boolean; // configured, but the project couldn't be read
   unclaimed: boolean; // made by `npm run setup` and not claimed yet
   refreshing: boolean;
-  checked: boolean; // the player has asked the forge at least once
-  onCheck: () => void;
-  onTravelToSite: (siteId: QuestSiteId) => void;
+  onTravelToSite: (siteId: QuestSiteId | "wraith") => void;
   onOpenCode: (questId: string) => void;
   onOpenBoard: (questId: string) => void;
   onClose: () => void;
@@ -171,7 +169,7 @@ export default function ForgeDialogue(props: Props) {
               className="btn btn--quiet"
               onClick={props.onClose}
             >
-              Gå <kbd>Esc</kbd>
+              Lukk <kbd>Esc</kbd>
             </button>
           </div>
         ) : last ? (
@@ -197,7 +195,7 @@ export default function ForgeDialogue(props: Props) {
               className="btn btn--quiet"
               onClick={props.onClose}
             >
-              Gå <kbd>Esc</kbd>
+              Lukk <kbd>Esc</kbd>
             </button>
           </div>
         )}
@@ -368,8 +366,6 @@ function Details({
   fetchFailed,
   unclaimed,
   refreshing,
-  checked,
-  onCheck,
   onTravelToSite,
   onOpenCode,
   onOpenBoard,
@@ -407,17 +403,6 @@ function Details({
           det. Kjør <code>npm run setup</code> for å sjekke.
         </p>
       )}
-
-      {firstForging &&
-        checked &&
-        !refreshing &&
-        !fetchFailed &&
-        sanityConfigured !== false && (
-          <p className="dialogue-feedback" role="status">
-            Ingen våpen ennå. Bare publiserte våpen kommer med, ikke{" "}
-            <span className="term">drafts</span>.
-          </p>
-        )}
 
       {unclaimed && firstForging && (
         <p className="dialogue-hint">
@@ -466,32 +451,35 @@ function Details({
               <IconQuill />
               Åpne Sanity Studio
             </button>
-            {/* Publishing shows up by itself; before the first weapon it
-                also says what's missing. */}
+            {/* Publishing shows up by itself, so there's nothing to check:
+                the next thing is the snow monster. */}
             {firstForging && (
               <button
                 type="button"
                 className="btn"
-                onClick={onCheck}
-                disabled={refreshing}
+                onClick={() => onTravelToSite("wraith")}
               >
-                {refreshing ? "Sjekker…" : "Sjekk på nytt"}
+                Gå til snømonsteret
               </button>
             )}
           </>
+        ) : outInVillage ? (
+          <button
+            ref={studioRef}
+            type="button"
+            className="btn btn--amber"
+            onClick={() => onTravelToSite("wraith")}
+          >
+            Gå til snømonsteret
+          </button>
         ) : null}
         {onReplay && (
           <button type="button" className="btn btn--quiet" onClick={onReplay}>
             Hør samtalen igjen
           </button>
         )}
-        <button
-          ref={outInVillage ? studioRef : undefined}
-          type="button"
-          className={`btn ${outInVillage ? "btn--amber" : "btn--quiet"}`}
-          onClick={onClose}
-        >
-          Gå <kbd>Esc</kbd>
+        <button type="button" className="btn btn--quiet" onClick={onClose}>
+          Lukk <kbd>Esc</kbd>
         </button>
       </div>
     </>

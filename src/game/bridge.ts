@@ -76,7 +76,8 @@ type EventMap = {
   itemForged: SpriteDef; // a new blade was published: it rises from the forge
   forgeFlare: void; // a blade was stamped by the Forge button
   moved: void; // the knight took its first steps (scene → HUD)
-  travelToSite: QuestSiteId; // the player chose a destination on the village map
+  // The player chose a destination: a place, or the snow monster (luke 1).
+  travelToSite: QuestSiteId | "wraith";
   readSign: void; // the player clicked the bakery sign while standing beside it
 };
 

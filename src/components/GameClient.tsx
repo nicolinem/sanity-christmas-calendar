@@ -184,7 +184,6 @@ export default function GameClient() {
   >();
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
   const [modelQuestId, setModelQuestId] = useState<string | null>(null);
-  const [checkedForge, setCheckedForge] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
   useEffect(
     () =>
@@ -593,11 +592,6 @@ export default function GameClient() {
         )
       : undefined;
 
-  const checkForge = useCallback(() => {
-    setCheckedForge(true);
-    refresh();
-  }, [refresh]);
-
   // Who the knight is standing by, if anyone. Walking away ends the talk.
   // When a luke waits at the same place, E is for the luke, unless the luke
   // in hand asks for this person.
@@ -712,7 +706,7 @@ export default function GameClient() {
     setLogOpen(true);
   }, []);
 
-  const travelToSite = useCallback((siteId: QuestSiteId) => {
+  const travelToSite = useCallback((siteId: QuestSiteId | "wraith") => {
     setTalking(false);
     setLogOpen(false);
     bridge.emit("travelToSite", siteId);
@@ -1209,8 +1203,6 @@ export default function GameClient() {
                 fetchFailed={fetchFailed}
                 unclaimed={unclaimed}
                 refreshing={loading}
-                checked={checkedForge}
-                onCheck={checkForge}
                 onTravelToSite={travelToSite}
                 onOpenCode={openCode}
                 onOpenBoard={openBoard}

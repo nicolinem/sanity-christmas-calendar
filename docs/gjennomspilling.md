@@ -33,7 +33,7 @@ late som en kodesjekk er bestått, spille av effekter og nullstille. `?dev`
 - [ ] Ved Brann: «E Snakk med Brann». E åpner samtalen.
 - [ ] To sider (1/2, 2/2), E eller «Fortsett» blar. Han forklarer kalenderen og
       ber om et våpen.
-- [ ] Siste side har steg-lista og «Åpne Sanity Studio», «Sjekk på nytt», «Gå».
+- [ ] Siste side har steg-lista og «Åpne Sanity Studio», «Gå til snømonsteret» og «Lukk».
 - [ ] «!» over Brann forsvinner. Øverst til venstre står «Lag og publiser et
       våpen» med to delmål.
 - [ ] Første gang i Studio: innloggingslenken fra `npm run setup` slipper deg inn.

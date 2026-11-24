@@ -184,7 +184,7 @@ export default function SideQuestDialogue({
             className="btn btn--quiet"
             onClick={onClose}
           >
-            {status === "available" && last ? "Ikke nå" : "Gå"} <kbd>Esc</kbd>
+            {status === "available" && last ? "Ikke nå" : "Lukk"} <kbd>Esc</kbd>
           </button>
         </div>
       </div>

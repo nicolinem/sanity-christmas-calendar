@@ -70,3 +70,31 @@ test("walking to a place follows the paths and ends at the place", () => {
       );
   }
 });
+
+test("walks along the paths go round the well and other solid props", () => {
+  const { PROPS, WRAITH_HOME } = require("./village.ts");
+  const solid = new Set(
+    PROPS.filter((p) => p.solid).map((p) => `${p.x},${p.y}`),
+  );
+  const trips = [
+    [BLACKSMITH, { x: WRAITH_HOME.x - 24, y: WRAITH_HOME.y }],
+    [QUEST_SITES.bakery, BLACKSMITH],
+    [QUEST_SITES.westHouse, QUEST_SITES.bakery],
+  ];
+  for (const [from, to] of trips) {
+    const route = [from, ...pathRoute(from, to)];
+    // Every point on the way, a few pixels apart, stays off a solid prop.
+    for (let i = 1; i < route.length - 1; i++) {
+      const a = route[i - 1];
+      const b = route[i];
+      const steps = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 4);
+      for (let s = 0; s <= steps; s++) {
+        const x = a.x + ((b.x - a.x) * s) / Math.max(1, steps);
+        const y = a.y + ((b.y - a.y) * s) / Math.max(1, steps);
+        const tile = `${Math.floor(x / 16)},${Math.floor(y / 16)}`;
+        if (i > 1)
+          assert.equal(solid.has(tile), false, `ruta går gjennom ${tile}`);
+      }
+    }
+  }
+});
