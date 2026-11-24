@@ -1,5 +1,6 @@
 "use client";
 
+import HintPager from "./HintPager";
 import { useEffect, useRef, useState } from "react";
 import { EditorView, basicSetup } from "codemirror";
 import { EditorState } from "@codemirror/state";
@@ -464,38 +465,13 @@ export default function CodeWindow({
                 <section className="cw-panel cw-hint-panel" aria-label="Hint">
                   <header className="cw-panel-head cw-hint-head">
                     <p className="cw-label">Hint</p>
-                    {hintsShown > 0 && (
-                      <div
-                        className="cw-hint-controls"
-                        aria-label="Navigasjon for hint"
-                      >
-                        <button
-                          type="button"
-                          className="cw-hint-arrow"
-                          aria-label="Forrige hint"
-                          disabled={activeHint === 0}
-                          onClick={() => setSelectedHint(activeHint - 1)}
-                        >
-                          ‹
-                        </button>
-                        <span
-                          className="cw-hint-count"
-                          aria-live="polite"
-                          aria-atomic="true"
-                        >
-                          {activeHint + 1} / {quest.hints.length}
-                        </span>
-                        <button
-                          type="button"
-                          className="cw-hint-arrow"
-                          aria-label="Neste hint"
-                          disabled={activeHint === hintsShown - 1}
-                          onClick={() => setSelectedHint(activeHint + 1)}
-                        >
-                          ›
-                        </button>
-                      </div>
-                    )}
+                    <HintPager
+                      total={quest.hints.length}
+                      shown={hintsShown}
+                      active={activeHint}
+                      onSelect={setSelectedHint}
+                      onReveal={onRevealHint}
+                    />
                   </header>
                   {hints.length > 0 && (
                     <div className="cw-hint-content">
@@ -506,16 +482,16 @@ export default function CodeWindow({
                       />
                     </div>
                   )}
-                  {hintsShown < quest.hints.length && (
+                  {hintsShown === 0 && (
                     <button
                       type="button"
                       className="btn btn--quiet cw-reveal-hint"
                       onClick={() => {
-                        setSelectedHint(hintsShown);
+                        setSelectedHint(0);
                         onRevealHint();
                       }}
                     >
-                      {hintsShown === 0 ? "Vis et hint" : "Vis et hint til"}
+                      Vis et hint
                     </button>
                   )}
                   {hintsShown === quest.hints.length && (

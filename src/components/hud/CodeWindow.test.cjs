@@ -54,7 +54,11 @@ function renderCodeWindow(initiallySolved) {
         return {
           lukeName: (q) => (q.bonus ? "☆ Frivillig" : `Luke ${q.door}`),
         };
-      if (name === "../StudioPractice" || name === "../QuestHint")
+      if (
+        name === "../StudioPractice" ||
+        name === "../QuestHint" ||
+        name === "./HintPager"
+      )
         return () => null;
       if (
         name === "codemirror" ||

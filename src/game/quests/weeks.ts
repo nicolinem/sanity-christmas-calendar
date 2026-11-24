@@ -99,7 +99,10 @@ export function weekSummary(
 
 // Wordle-style text for the team channel: how far, how, never what. No emoji,
 // no task names, so it can't spoil anything.
-export function shareText(summary: WeekSummary, forgeLevel: number): string {
+export function shareText(
+  summary: WeekSummary,
+  forgeLevel: number | null,
+): string {
   const lights = Array.from({ length: summary.doors }, () => "■").join(" ");
   const day = summary.finishedAt
     ? summary.finishedAt.toLocaleDateString("nb-NO", { weekday: "long" })
@@ -113,6 +116,12 @@ export function shareText(summary: WeekSummary, forgeLevel: number): string {
   return [
     `Julekalenderen · Uke ${summary.number} · ${summary.title}`,
     `${lights}  ${summary.doors} av ${summary.doors} luker`,
-    `Nivå ${forgeLevel}${day ? ` · ferdig ${day}` : ""} · ${hints}`,
+    [
+      forgeLevel === null ? null : `Nivå ${forgeLevel}`,
+      day ? `ferdig ${day}` : null,
+      hints,
+    ]
+      .filter(Boolean)
+      .join(" · "),
   ].join("\n");
 }

@@ -1113,7 +1113,6 @@ export default function GameClient() {
         </div>
         {!showOpening && logOpen && (
           <QuestLog
-            key={progress.track}
             board={board}
             initialTab={logInitialTab}
             initialQuestId={logInitialQuestId}

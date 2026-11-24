@@ -1,5 +1,6 @@
 import { normalizeFigure, type FigureChoice } from "./figure";
 import { CHAPTERS } from "./quests/chapters";
+import type { QuestTrack } from "./quests/types";
 import { clampForgeLevel } from "./rules";
 import { hasKnownSprite, isSpriteAllowedForKind } from "./sprites";
 
@@ -7,6 +8,10 @@ const questTitles = new Map(
   CHAPTERS.flatMap((chapter) =>
     chapter.quests.map((quest) => [quest.id, quest.title] as const),
   ),
+);
+
+const QUEST_ORDER = CHAPTERS.flatMap((chapter) =>
+  chapter.quests.map((quest) => quest.id),
 );
 
 export type CommunityEvent = {
@@ -24,6 +29,8 @@ export type CommunityWeapon = { name: string; spriteId: string | null };
 export type CommunityPlayer = {
   playerId: string;
   completedCount: number;
+  // The lukes done, in calendar order. Missing from servers before Dec 2026.
+  completed?: string[];
   forgeLevel: number;
   weapon: CommunityWeapon | null;
   figure: FigureChoice | null;
@@ -65,6 +72,7 @@ export function playersFromMilestones(
     .map((playerId) => ({
       playerId,
       completedCount: completed.get(playerId)?.size ?? 0,
+      completed: QUEST_ORDER.filter((id) => completed.get(playerId)?.has(id)),
       forgeLevel: forgeLevelFromMilestones(completed.get(playerId) ?? []),
       weapon: byId.get(playerId)?.weapon ?? null,
       figure: byId.get(playerId)?.figure ?? null,
@@ -190,4 +198,34 @@ function isHintCounts(value: unknown) {
         (n as number) <= MAX_HINTS,
     )
   );
+}
+
+export type WeekProgress = { week: number; done: number; total: number };
+
+// The track a player's lukes belong to, or null before they've done one that
+// only one track has.
+export function trackOf(completed: string[]): QuestTrack | null {
+  const done = new Set(completed);
+  return (
+    CHAPTERS.flatMap((chapter) => chapter.quests).find(
+      (quest) => quest.track && done.has(quest.id),
+    )?.track ?? null
+  );
+}
+
+// A player's lukes week by week, for the bars on «Andre». The track is the one
+// their lukes belong to; optional lukes are left out.
+export function weekProgress(completed: string[]): WeekProgress[] {
+  const done = new Set(completed);
+  const track = trackOf(completed) ?? "technical";
+  return CHAPTERS.map((chapter) => {
+    const core = chapter.quests.filter(
+      (quest) => !quest.bonus && (!quest.track || quest.track === track),
+    );
+    return {
+      week: chapter.number,
+      done: core.filter((quest) => done.has(quest.id)).length,
+      total: core.length,
+    };
+  });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import HintPager from "../codeWindow/HintPager";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { QuestState, SolvedTask } from "@/game/quests/types";
 import {
@@ -256,27 +257,29 @@ export default function ModelBoard({
             <section className="cw-panel cw-hint-panel" aria-label="Hint">
               <header className="cw-panel-head cw-hint-head">
                 <p className="cw-label">Hint</p>
-                {hintsShown > 0 && (
-                  <span className="cw-hint-count" aria-live="polite">
-                    {activeHint + 1} / {quest.hints.length}
-                  </span>
-                )}
+                <HintPager
+                  total={quest.hints.length}
+                  shown={hintsShown}
+                  active={activeHint}
+                  onSelect={setSelectedHint}
+                  onReveal={onRevealHint}
+                />
               </header>
               {hints.length > 0 && (
                 <div className="cw-hint-content">
                   <QuestHint hint={hints[activeHint]} number={activeHint + 1} />
                 </div>
               )}
-              {hintsShown < quest.hints.length && (
+              {hintsShown === 0 && (
                 <button
                   type="button"
                   className="btn btn--quiet cw-reveal-hint"
                   onClick={() => {
-                    setSelectedHint(hintsShown);
+                    setSelectedHint(0);
                     onRevealHint();
                   }}
                 >
-                  {hintsShown === 0 ? "Vis et hint" : "Vis et hint til"}
+                  Vis et hint
                 </button>
               )}
             </section>

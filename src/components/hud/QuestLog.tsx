@@ -7,6 +7,7 @@ import { chapterOpensAt, type QuestBoard } from "@/game/quests/engine";
 import { fridayOf } from "@/game/quests/weeks";
 import type { Progress, QuestState, QuestTrack } from "@/game/quests/types";
 import { NPCS, QUEST_SITES, type QuestSiteId } from "@/game/village";
+import { FEATURES } from "@/game/features";
 import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
@@ -83,8 +84,11 @@ export default function QuestLog({
     closeRef.current?.focus({ preventScroll: true });
   }, []);
 
+  // After a switch of track the picked luke may be gone: show the current one.
   const selected =
-    board.states.find((s) => s.quest.id === selectedId) ?? board.states[0];
+    board.states.find((s) => s.quest.id === selectedId) ??
+    board.current ??
+    board.states[0];
 
   return (
     <div className="log-backdrop" onClick={onClose}>
@@ -134,23 +138,25 @@ export default function QuestLog({
               Andre
             </button>
           </div>
-          <p
-            className="log-forge"
-            title="Smia blir sterkere når du fullfører luker"
-          >
-            <span className="log-forge-label">Nivå {forgeLevel}</span>
-            <span className="log-forge-pips" aria-hidden="true">
-              {Array.from({ length: MAX_FORGE_LEVEL }, (_, i) => (
-                <span
-                  key={i}
-                  className={i < forgeLevel ? "is-on" : undefined}
-                />
-              ))}
-            </span>
-            <span className="log-forge-damage">
-              {forgedPower(forgeLevel).damage} skade
-            </span>
-          </p>
+          {FEATURES.rpg && (
+            <p
+              className="log-forge"
+              title="Smia blir sterkere når du fullfører luker"
+            >
+              <span className="log-forge-label">Nivå {forgeLevel}</span>
+              <span className="log-forge-pips" aria-hidden="true">
+                {Array.from({ length: MAX_FORGE_LEVEL }, (_, i) => (
+                  <span
+                    key={i}
+                    className={i < forgeLevel ? "is-on" : undefined}
+                  />
+                ))}
+              </span>
+              <span className="log-forge-damage">
+                {forgedPower(forgeLevel).damage} skade
+              </span>
+            </p>
+          )}
           <button
             ref={closeRef}
             type="button"
@@ -161,23 +167,29 @@ export default function QuestLog({
           </button>
         </header>
 
-        <div className="log-track-switch" role="group" aria-label="Læringsspor">
-          <span>Spor</span>
-          <button
-            type="button"
-            aria-pressed={track === "technical"}
-            onClick={() => onTrack("technical")}
+        {tab === "quests" && (
+          <div
+            className="log-track-switch"
+            role="group"
+            aria-label="Læringsspor"
           >
-            Teknisk
-          </button>
-          <button
-            type="button"
-            aria-pressed={track === "nonTechnical"}
-            onClick={() => onTrack("nonTechnical")}
-          >
-            Ikke-teknisk
-          </button>
-        </div>
+            <span>Spor</span>
+            <button
+              type="button"
+              aria-pressed={track === "technical"}
+              onClick={() => onTrack("technical")}
+            >
+              Teknisk
+            </button>
+            <button
+              type="button"
+              aria-pressed={track === "nonTechnical"}
+              onClick={() => onTrack("nonTechnical")}
+            >
+              Ikke-teknisk
+            </button>
+          </div>
+        )}
 
         {tab === "quests" ? (
           <div className="log-quests">
@@ -747,7 +759,7 @@ function QuestDetail({
               className="btn btn--quiet"
               onClick={onMoreHint}
             >
-              {shown === 0 ? "Vis et hint" : "Vis et hint til"}
+              {shown === 0 ? "Vis et hint" : `Vis hint ${shown + 1}`}
             </button>
           )}
         </div>
