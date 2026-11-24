@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 // refused the stream, so the game checks every few seconds instead.
 export type LiveMode = "off" | "live" | "polling";
 
-const QUERY = '*[_type in ["item", "observation", "case"]]';
+const QUERY =
+  '*[_type in ["item", "observation", "case", "bakeryOrder", "bakerySign"]]';
 
 // Sanity pushes every change to the browser as it happens. The game listens
 // for published items and refetches, so a blade appears the moment you press
@@ -15,9 +16,12 @@ const QUERY = '*[_type in ["item", "observation", "case"]]';
 // The listener needs the page's origin in the project's CORS list. An
 // unclaimed project only allows localhost:3000; anywhere else the stream is
 // refused, and the game quietly falls back to checking every few seconds.
+// `onPublish` hears about each published change (not drafts), so the game can
+// clear the view for what happens next.
 export function useLiveRefresh(
   refresh: () => void,
   enabled: boolean,
+  onPublish?: () => void,
 ): LiveMode {
   const [mode, setMode] = useState<LiveMode>("off");
 
@@ -39,7 +43,16 @@ export function useLiveRefresh(
       `?query=${encodeURIComponent(QUERY)}&includeResult=false`;
     const stream = new EventSource(url);
     stream.onopen = () => setMode("live");
-    stream.addEventListener("mutation", soon);
+    stream.addEventListener("mutation", (event) => {
+      soon();
+      try {
+        const { documentId } = JSON.parse((event as MessageEvent).data);
+        if (typeof documentId === "string" && !documentId.startsWith("drafts."))
+          onPublish?.();
+      } catch {
+        // Not the shape we expect: just refresh.
+      }
+    });
     stream.onerror = () => {
       if (stream.readyState === EventSource.CLOSED && !poll) {
         poll = window.setInterval(refresh, 4000);
@@ -53,7 +66,7 @@ export function useLiveRefresh(
       window.clearInterval(poll);
       setMode("off");
     };
-  }, [enabled, refresh]);
+  }, [enabled, refresh, onPublish]);
 
   return mode;
 }

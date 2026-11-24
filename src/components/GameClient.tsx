@@ -390,8 +390,18 @@ export default function GameClient() {
     studioWasOpen.current = studio.open;
   }, [refresh, studio.open]);
 
-  // Publish in the Studio and the game hears about it straight away.
-  const liveMode = useLiveRefresh(refresh, configured === true);
+  // Publish in the Studio and the game hears about it straight away. Open
+  // panels step aside so the result shows (see clearForPublish below). The
+  // game's own writes (starting documents) don't count.
+  const ownWriteUntil = useRef(0);
+  const markOwnWrite = () => {
+    ownWriteUntil.current = Date.now() + 8000;
+  };
+  const onPublishRef = useRef<() => void>(() => {});
+  const onPublish = useCallback(() => {
+    if (Date.now() > ownWriteUntil.current) onPublishRef.current();
+  }, []);
+  const liveMode = useLiveRefresh(refresh, configured === true, onPublish);
 
   useEffect(() => bridge.on("moved", () => setHasMoved(true)), []);
 
@@ -666,6 +676,7 @@ export default function GameClient() {
       return;
     if (archiveSeeded.current) return;
     archiveSeeded.current = true;
+    markOwnWrite();
     fetch("/api/archive", { method: "POST" })
       .then((r) => (r.ok ? refresh() : undefined))
       .catch(() => {});
@@ -686,6 +697,7 @@ export default function GameClient() {
     )
       return;
     bakerySeeded.current = true;
+    markOwnWrite();
     fetch("/api/bakery", { method: "POST" })
       .then((r) => (r.ok ? refresh() : undefined))
       .catch(() => {});
@@ -701,10 +713,64 @@ export default function GameClient() {
     if (!needsApprentice || apprenticeHammer || apprenticeSeeded.current)
       return;
     apprenticeSeeded.current = true;
+    markOwnWrite();
     fetch("/api/apprentice", { method: "POST" })
       .then((response) => (response.ok ? refresh() : undefined))
       .catch(() => {});
   }, [needsApprentice, apprenticeHammer, refresh]);
+
+  // A publish in Studio closes what's open in the game, so the weapon, the
+  // sign or the celebration can be seen, and offers the way back.
+  const [reopen, setReopen] = useState<{
+    label: string;
+    open: () => void;
+  } | null>(null);
+  useEffect(() => {
+    onPublishRef.current = () => {
+      const back = codeQuestId
+        ? { label: "kodevinduet", open: () => openCode(codeQuestId) }
+        : modelQuestId
+          ? { label: "modellbrettet", open: () => openBoard(modelQuestId) }
+          : logOpen
+            ? { label: "journalen", open: openLog }
+            : caseOpen
+              ? { label: "saksmappa", open: openCaseBoard }
+              : sheetOpen
+                ? { label: "figuren", open: () => openSheet(sheetTab) }
+                : signOpen
+                  ? { label: "bodskiltet", open: () => setSignOpen(true) }
+                  : talking
+                    ? { label: "samtalen", open: () => setTalking(true) }
+                    : null;
+      if (!back) return;
+      setCodeQuestId(null);
+      setModelQuestId(null);
+      setLogOpen(false);
+      setCaseOpen(false);
+      setSheetOpen(false);
+      setSignOpen(false);
+      setTalking(false);
+      setReopen(back);
+    };
+  });
+  useEffect(() => {
+    if (!reopen) return;
+    const t = window.setTimeout(() => setReopen(null), 15000);
+    return () => window.clearTimeout(t);
+  }, [reopen]);
+  // Opening something else answers the offer.
+  const anyPanel =
+    logOpen ||
+    Boolean(codeQuestId) ||
+    Boolean(modelQuestId) ||
+    caseOpen ||
+    sheetOpen ||
+    signOpen ||
+    talking;
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (anyPanel) setReopen(null);
+  }, [anyPanel]);
 
   const codeState = board.states.find((s) => s.quest.id === codeQuestId);
   const codeOpen = Boolean(codeState);
@@ -1026,6 +1092,18 @@ export default function GameClient() {
                 onOpenBoard={openBoard}
                 onClose={() => setTalking(false)}
               />
+            )}
+            {reopen && (
+              <button
+                type="button"
+                className="prompt prompt--back"
+                onClick={() => {
+                  reopen.open();
+                  setReopen(null);
+                }}
+              >
+                ↩ Tilbake til {reopen.label}
+              </button>
             )}
             {talkTo && !dialogueOpen && (
               <button type="button" className="prompt" onClick={openDialogue}>

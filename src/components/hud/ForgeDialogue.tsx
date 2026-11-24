@@ -12,6 +12,7 @@ import {
   type QuestSiteId,
 } from "@/game/village";
 import { giverOf, lukeName } from "@/game/quests/label";
+import { FEATURES } from "@/game/features";
 import SpriteIcon from "./SpriteIcon";
 import GoalPreview from "./goalPreviews";
 import Explain from "./Explain";
@@ -199,6 +200,15 @@ export default function ForgeDialogue(props: Props) {
           </div>
         )}
       </div>
+      <button
+        type="button"
+        className="dialogue-x"
+        aria-label="Lukk"
+        title="Lukk (Esc)"
+        onClick={props.onClose}
+      >
+        ×
+      </button>
     </section>
   );
 }
@@ -267,9 +277,9 @@ function buildPages(
     return [
       forged ? (
         <>
-          <strong>{forged.name}</strong> er klart, og gjør{" "}
-          {forged.power?.damage ?? 0} skade. Nå gjenstår bare snømonsteret øst
-          for brønnen.
+          <strong>{forged.name}</strong> er klart
+          {FEATURES.rpg && `, og gjør ${forged.power?.damage ?? 0} skade`}. Nå
+          gjenstår bare snømonsteret øst for brønnen.
         </>
       ) : (
         <>{current.quest.intro[current.quest.intro.length - 1]}</>
@@ -359,6 +369,8 @@ function Details({
 }) {
   const current = board.current;
   const firstForging = current?.quest.id === FIRST_QUEST && !forged;
+  // Luke 1 with the weapon published: what's left happens in the village.
+  const outInVillage = current?.quest.id === FIRST_QUEST && Boolean(forged);
   // Waiting at its place: send the player there to pick it up.
   const remoteSite = current?.pickup;
   // Written in the game's code window, not in the Studio or the repo.
@@ -430,7 +442,7 @@ function Details({
           >
             Åpne modellbrettet
           </button>
-        ) : current ? (
+        ) : current && !outInVillage ? (
           <>
             <button
               ref={studioRef}
@@ -441,14 +453,18 @@ function Details({
               <IconQuill />
               Åpne Sanity Studio
             </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={onCheck}
-              disabled={refreshing}
-            >
-              {refreshing ? "Sjekker…" : "Sjekk på nytt"}
-            </button>
+            {/* Publishing shows up by itself; before the first weapon it
+                also says what's missing. */}
+            {firstForging && (
+              <button
+                type="button"
+                className="btn"
+                onClick={onCheck}
+                disabled={refreshing}
+              >
+                {refreshing ? "Sjekker…" : "Sjekk på nytt"}
+              </button>
+            )}
           </>
         ) : null}
         {onReplay && (
@@ -456,7 +472,12 @@ function Details({
             Hør samtalen igjen
           </button>
         )}
-        <button type="button" className="btn btn--quiet" onClick={onClose}>
+        <button
+          ref={outInVillage ? studioRef : undefined}
+          type="button"
+          className={`btn ${outInVillage ? "btn--amber" : "btn--quiet"}`}
+          onClick={onClose}
+        >
           Gå <kbd>Esc</kbd>
         </button>
       </div>
