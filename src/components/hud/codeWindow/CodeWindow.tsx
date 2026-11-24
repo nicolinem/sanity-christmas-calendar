@@ -1,6 +1,7 @@
 "use client";
 
 import HintPager from "./HintPager";
+import { draftKey, loadDraft } from "./drafts";
 import { useEffect, useRef, useState } from "react";
 import { EditorView, basicSetup } from "codemirror";
 import { EditorState } from "@codemirror/state";
@@ -73,16 +74,6 @@ async function format(source: string): Promise<string> {
     plugins: [typescript, estree],
     printWidth: 72,
   });
-}
-
-const draftKey = (questId: string) => `winter-quest:code:${questId}`;
-
-function loadDraft(questId: string, starter: string) {
-  try {
-    return window.localStorage.getItem(draftKey(questId)) ?? starter;
-  } catch {
-    return starter;
-  }
 }
 
 function saveDraft(questId: string, source: string) {

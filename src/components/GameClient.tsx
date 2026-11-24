@@ -6,6 +6,7 @@ import {
   type FigureChoice,
 } from "@/game/figure";
 import { communityEndpoint } from "@/game/communityEndpoint";
+import { useOrderFunction } from "./hud/useOrderFunction";
 import { MAX_HINTS } from "@/game/community";
 import { ownedGear, wearable } from "@/game/wardrobe";
 import CharacterSheet from "./figure/CharacterSheet";
@@ -533,6 +534,14 @@ export default function GameClient() {
     () => nextStepPoint(board, villageDoors),
     [board, villageDoors],
   );
+  // Luke 11: once solved, publishing an order in Studio runs the player's
+  // function, and the sign shows what it wrote.
+  const functionSign = useOrderFunction(
+    Boolean(progress.solved["baker-function"]),
+    bakeryOrders,
+    bakerySign,
+  );
+
   const siteQuest =
     zone && zone !== "forge"
       ? board.states.find(
@@ -1138,7 +1147,11 @@ export default function GameClient() {
           />
         )}
         {!showOpening && signOpen && (
-          <BakerySign sign={bakerySign} onClose={() => setSignOpen(false)} />
+          <BakerySign
+            sign={functionSign.sign}
+            byFunction={functionSign.byFunction}
+            onClose={() => setSignOpen(false)}
+          />
         )}
         {!showOpening && caseOpen && (
           <ArchiveNoticeboard

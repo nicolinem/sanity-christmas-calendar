@@ -1,11 +1,6 @@
 import { caseFileResult, linkScore, sourceCheckScore } from "../archive";
 import { APPRENTICE_ITEM_ID, isRestoredHammer } from "../apprentice";
-import {
-  isNewOrder,
-  morningRushReadyCount,
-  signHasHttpsLink,
-  signHasStrong,
-} from "../bakery";
+import { isNewOrder, morningRushReadyCount, signHasStrong } from "../bakery";
 import type { GameItemView } from "../items";
 import type { Chapter, CheckResult, Quest, QuestContext } from "./types";
 
@@ -522,7 +517,7 @@ const followTheTrail: Quest = {
   door: 5,
   title: "GROQ: følg sporet",
   intro: [
-    "I morges sto folk i kø utenfor arkivet, og alle hadde sin egen versjon. Nå har jeg femti observasjoner og ingen svar.",
+    "Femti observasjoner ligger i arkivet, rykter og fakta om hverandre. Vi begynner med det som er bekreftet.",
     "Skriv én GROQ-spørring mot observasjonene mine: bare det som er bekreftet, i tidsrekkefølge, og med stedet. Kartet viser hvor sporet går.",
   ],
   outro: [
@@ -918,39 +913,38 @@ const bakerTemplate: Quest = {
   giver: "bakeren",
   track: "technical",
   door: 9,
-  title: "Initial value: ny bestilling",
+  title: "Initial value: faste kunder",
   intro: [
-    "Hver ny bestilling begynner likt. Jeg skriver status og dato om igjen, selv om de allerede er kjent.",
-    "Brann vil ha lussekatter, Arkivaren pepperkaker og Kari julekake. De ligger allerede som eksempler, men nye lapper kommer hele tiden.",
-    "Kan du gi meg en *initial value* som fyller dem ut når jeg lager en ny bestilling? Åpne kodevinduet.",
+    "Brann vil alltid ha lussekatter, Arkivaren pepperkaker og Kari julekake. Likevel skriver jeg navn, vare, status og dato for hånd på hver eneste lapp.",
+    "Kan du lage en mal for hver av dem? Da velger jeg «Bestilling fra Kari», og resten står der allerede. Åpne kodevinduet.",
   ],
   outro: [
-    "Nå slipper jeg å skrive datoen på hver nye lapp.",
-    "Neste gang jeg åpner en bestilling, står startverdiene der allerede.",
+    "Nå velger jeg bare kunden, så er lappen ferdig utfylt.",
+    "Trykk + i Studio og se: malene står der, med dagens dato.",
   ],
-  goal: "Gi en ny bestilling status «ny» og dagens dato fra start.",
+  goal: "Lag en mal for hver fast kunde, med varen deres, status «ny» og dagens dato.",
   explain: {
-    what: "En *initial value* for bestillinger: når Bakeren lager en ny, står status «ny» og dagens dato der allerede.",
-    why: "Det som nesten alltid er likt, bør ikke skrives for hånd. Færre tastetrykk gir færre feil.",
+    what: "*Initial value templates* for bestillinger: «Bestilling fra Brann», «… fra Arkivaren» og «… fra Kari» i Studios +-meny, ferdig utfylt.",
+    why: "Det som nesten alltid er likt, bør ikke skrives for hånd. En mal per vanlig tilfelle gir færre tastetrykk og færre feil.",
   },
   goalPreview: {
-    before: "En ny lapp mangler dato og status.",
-    after: "Nye lapper starter med dagens dato og «ny».",
+    before: "Bare «Ny bestilling», med tomme felt.",
+    after: "En mal per kunde, ferdig utfylt.",
   },
-  where: "I kodevinduet hos Bakeren. Prøv den ferdige malen i Studio etterpå.",
+  where: "I kodevinduet hos Bakeren. Prøv malene i Studio etterpå.",
   hints: [
     {
-      text: "`initialValue` på en *document type* brukes når et nytt dokument opprettes, ikke når et gammelt redigeres.",
+      text: "En mal er et objekt med `id`, `title`, `schemaType` og `value`. `templates` får malene som finnes fra før, og skal returnere dem sammen med dine.",
       link: {
         label: "Initial Value Templates",
         url: `${DOCS}/initial-value-templates`,
       },
     },
     {
-      text: 'Returner et objekt med `status` og `date` fra funksjonen. Statusen skal være `"ny"`.',
+      text: "Du trenger ikke skrive tre maler for hånd: `CUSTOMERS.map(...)` kan lage én per kunde. Bruk kundens navn i både `id` og `title`.",
     },
     {
-      text: "Kall `bakeryToday()` inne i `initialValue`-funksjonen, så datoen ikke låses til dagen du skrev koden.",
+      text: "La `value` være en funksjon, `() => ({ ... })`, og kall `bakeryToday()` inne i den. Da får hver bestilling datoen den lages, ikke datoen du skrev koden.",
     },
   ],
   learn: {
@@ -958,12 +952,12 @@ const bakerTemplate: Quest = {
     url: `${DOCS}/initial-value-templates`,
   },
   lesson: {
-    title: "*Initial value*",
-    text: "En *initial value* fyller ut nye dokumenter når de opprettes. Endrer du et eksisterende dokument, beholder det verdiene sine. Kodevinduet testet malen din; Studio bruker vår ferdige versjon.",
+    title: "*Initial value templates*",
+    text: "En mal fyller ut et nytt dokument når det opprettes. Flere maler for samme *document type* gir flere valg i +-menyen. Eksisterende dokumenter beholder verdiene sine. Kodevinduet testet malene dine; Studio bruker vår ferdige versjon.",
   },
   checkedBy: "window",
   studioPractice:
-    "Åpne en ny bestilling i Studio. Status og dagens dato skal allerede stå der; fyll inn en vare hvis du vil.",
+    "Trykk + i Studio og velg «Bestilling fra Kari». Varen, Kari, status og dagens dato skal allerede stå der.",
   check: fromWindow("baker-template"),
 };
 
@@ -1023,23 +1017,24 @@ const bakerFunction: Quest = {
   title: "Sanity Function: skiltet",
   intro: [
     "I går publiserte jeg en ny bestilling, men skiltet ved boden sto fortsatt med gårsdagens tekst. Folk spurte meg om det samme hele dagen.",
-    "Tenk om skiltet kunne oppdatere seg selv når en bestilling publiseres, men bare én gang per bestilling, selv om beskjeden kommer to ganger.",
-    "Lag hendelseslogikken i kodevinduet. Vi simulerer publiseringen med en falsk klient; ingenting deployes til prosjektet ditt.",
+    "Tenk om skiltet kunne oppdatere seg selv når en bestilling publiseres, men bare når det trengs, selv om beskjeden kommer to ganger.",
+    "Skriv funksjonen i kodevinduet. Når den består, kjører jeg den hver gang du publiserer en bestilling i Studio.",
   ],
   outro: [
-    "Simuleringen reagerte på riktig publisering.",
-    "Ingen bestilling eller skilt ble endret i prosjektet ditt.",
+    "Nå skriver skiltet seg selv. Folk ved boden ser dagens bestilling uten å spørre meg.",
+    "Prøv: publiser en bestilling i Studio og se på bodskiltet. Publiserer du den samme igjen, lar funksjonen din skiltet være.",
   ],
-  goal: "Oppdater skiltet ved publisering av en bestilling, men ikke ved andre hendelser eller gjentakelser.",
+  goal: "Oppdater skiltet når en bestilling publiseres, men ikke ved andre hendelser eller når skiltet allerede stemmer.",
   explain: {
-    what: "Logikken i en Sanity Function: kode som kjører når en bestilling publiseres og oppdaterer skiltet, men bare én gang per bestilling. Du tester den mot en simulert klient.",
-    why: "En Function gjør jobben av seg selv når innhold endres. Vakten mot gjentakelser hindrer at samme hendelse gjør arbeidet to ganger.",
+    what: "En Sanity Function: kode som kjører av seg selv når en bestilling publiseres, og skriver dagens bestilling på bodskiltet. Etterpå kjører spillet funksjonen din på bestillingene du publiserer i Studio.",
+    why: "En Function gjør jobben når innhold endres, uten at noen trykker på noe. Vakten mot gjentakelser hindrer at samme beskjed gjør arbeidet to ganger.",
   },
   goalPreview: {
-    before: "Hver hendelse ville skrevet om skiltet.",
-    after: "Bare nye publiseringer endrer det – i simuleringen.",
+    before: "Skiltet står med gårsdagens tekst.",
+    after: "Du publiserer en bestilling, og skiltet endrer seg.",
   },
-  where: "I kodevinduet hos Bakeren – ikke i Sanity Studio.",
+  where:
+    "I kodevinduet hos Bakeren. Etterpå publiserer du en bestilling i Studio og ser på bodskiltet.",
   hints: [
     {
       text: "Sjekk `event.transition` og `event.document._type` før du henter skiltet. Tom vare må ignoreres.",
@@ -1054,7 +1049,7 @@ const bakerFunction: Quest = {
   learn: { label: "Sanity Functions", url: `${DOCS}/functions` },
   lesson: {
     title: "Hendelser uten dobbeltarbeid",
-    text: "Dette var en simulering av hvordan en ekte Sanity Function ville reagert på en publisering. Ingen Function ble deployet eller kjørt i prosjektet ditt. Sanity Functions finnes også på Free-planen, men skiltet i bygda endres bare når du publiserer et ekte bodskilt i Studio.",
+    text: "En Function får en hendelse og en *client*, og bestemmer selv om den skal gjøre noe. Her spilte spillet rollen som Sanity: funksjonen din kjører i nettleseren og skriver bare til skiltet i bygda. En ekte Function deployes med `sanity blueprints deploy` og kjører i Sanity.",
   },
   checkedBy: "window",
   check: fromWindow("baker-function"),
@@ -1269,58 +1264,6 @@ const morningRush: Quest = {
   },
 };
 
-const bakerLink: Quest = {
-  id: "baker-link",
-  giver: "bakeren",
-  villageSite: "bakerySign",
-  bonus: true,
-  door: 0,
-  title: "☆ En lenke på skiltet",
-  intro: [
-    "Noen gjester vil vite mer om det vi selger. Et lenket ord på skiltet kan vise dem veien.",
-    "De som spør om oppskriftene, trenger en vei videre enn selve boden.",
-    "Dette er frivillig ☆: legg en relevant HTTPS-lenke på tekst i bodskiltet og publiser.",
-  ],
-  outro: [
-    "Nå kan folk følge et ord på skiltet videre.",
-    "En lenke i et tekstspenn er noe mer enn en adresse skrevet med bokstaver.",
-  ],
-  goal: "Legg en HTTPS-lenke på et ord i bodskiltet og publiser. Frivillig ☆.",
-  explain: {
-    what: "En lenke, en *annotation*, på et ord i skiltet, som peker til en side med mer informasjon.",
-    why: "En lenke er data knyttet til et ord, ikke en adresse skrevet med bokstaver. Da kan hver flate vise den på sin måte.",
-  },
-  goalPreview: {
-    before: "Skiltet har bare vanlig tekst.",
-    after: "Et markert ord har en publisert HTTPS-lenke.",
-  },
-  where:
-    "Hent ☆ ved bodskiltet utenfor bakeriet. Legg deretter lenken til i ditt eget Sanity Studio.",
-  hints: [
-    {
-      text: "Åpne skiltet i Studio, marker et ord og legg på *Lenke* (annotation).",
-      link: { label: "Portable Text", url: `${DOCS}/block-content` },
-    },
-    {
-      text: "Bruk en relevant adresse som begynner med `https://`. En URL skrevet som vanlig tekst teller ikke.",
-    },
-    {
-      text: "Publiser skiltet etter endringen. Bare publiserte lenker kan sjekkes.",
-    },
-  ],
-  learn: { label: "Portable Text annotations", url: `${DOCS}/block-content` },
-  lesson: {
-    title: "☆ En annotert lenke",
-    text: "En *annotation* knytter lenke-data til et markert tekstspenn. Spillet sjekket den publiserte lenken; om målet er nyttig for gjestene må du vurdere selv.",
-  },
-  checkedBy: "game",
-  check: ({ bakerySign }) => ({
-    done: signHasHttpsLink(bakerySign ?? null),
-    message:
-      "Publiser skiltet med en HTTPS-lenke på et markert ord. Ren URL i teksten teller ikke.",
-  }),
-};
-
 export const CHAPTERS: Chapter[] = [
   {
     number: 1,
@@ -1371,7 +1314,6 @@ export const CHAPTERS: Chapter[] = [
       bakerModel,
       bakerSign,
       morningRush,
-      bakerLink,
     ],
   },
 ];

@@ -47,6 +47,8 @@ function renderCodeWindow(initiallySolved) {
             },
           },
         };
+      if (name === "./drafts")
+        return { draftKey: (id) => id, loadDraft: (_id, fallback) => fallback };
       if (name === "../icons")
         return { IconCheck: () => React.createElement("span", null, "✓") };
       if (name === "../richText") return { renderText: (text) => text };

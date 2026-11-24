@@ -1,95 +1,181 @@
 import type { Modules } from "../runCode";
 import bakeryDateSource from "@/sanity/lib/bakeryDate?raw";
+import { BAKERY_CUSTOMERS } from "@/sanity/lib/bakeryTemplates";
 import type { Verdict, WindowTask } from "./types";
 
 // The fake clock makes the second new order a different day. The learner's
-// schema runs here; the real Studio switches to our own safe implementation.
+// templates run here; the real Studio switches to our own safe version.
 let clock = "2026-12-14";
 const modules: Modules = {
-  sanity: { defineType: <T,>(value: T) => value },
   "./bakeryDate": { bakeryToday: () => clock },
 };
 
-const starter = `import { defineType } from "sanity"
-import { bakeryToday } from "./bakeryDate"
+const starter = `import { bakeryToday } from "./bakeryDate"
 
-// Bakeren trenger status «ny» og dagens dato på hver NY bestilling.
-export const bakeryOrder = defineType({
-  name: "bakeryOrder",
-  type: "document",
-  initialValue: () => ({
-    // Bruk bakeryToday() for datoen, ikke en fast dato.
-  }),
-})
+// Bakerens faste kunder, og det de alltid bestiller.
+const CUSTOMERS = [
+  { name: "Brann", item: "Lussekatter" },
+  { name: "Arkivaren", item: "Pepperkaker" },
+  { name: "Kari", item: "Julekake" },
+]
+
+// Studio kaller denne med malene som finnes fra før, som «Ny bestilling».
+export function templates(previous) {
+  return [
+    ...previous,
+    // Én mal per kunde: «Bestilling fra Brann» med vare, kunde,
+    // status «ny» og dagens dato.
+  ]
+}
 `;
 
-type InitialValue = { status?: unknown; date?: unknown };
+type Template = {
+  id?: unknown;
+  title?: unknown;
+  schemaType?: unknown;
+  value?: unknown;
+};
+type Order = {
+  item?: unknown;
+  orderedBy?: unknown;
+  status?: unknown;
+  date?: unknown;
+};
+
+const DEFAULT: Template = {
+  id: "bakeryOrder",
+  title: "Ny bestilling",
+  schemaType: "bakeryOrder",
+};
+
+// A template's value is an object or a function Studio calls when the order
+// is created.
+function valueOf(template: Template): Order {
+  const value = template.value;
+  return ((typeof value === "function" ? value() : value) ?? {}) as Order;
+}
 
 export function judgeBakerTemplate(exports: Record<string, unknown>): Verdict {
-  const schema = exports.bakeryOrder as
-    { name?: unknown; initialValue?: unknown } | undefined;
-  const create = schema?.initialValue;
-  let first: InitialValue = {};
-  let second: InitialValue = {};
+  const make = exports.templates;
+  let list: Template[] = [];
+  let first: Order[] = [];
+  let second: Order[] = [];
   let error: string | undefined;
-  if (typeof create === "function") {
+  if (typeof make === "function") {
     try {
+      const result = (make as (previous: Template[]) => unknown)([DEFAULT]);
+      list = Array.isArray(result) ? (result as Template[]) : [];
+      const orders = list.filter(
+        (t) => t && t.schemaType === "bakeryOrder" && t !== DEFAULT,
+      );
       clock = "2026-12-14";
-      first = (create as () => InitialValue)() ?? {};
+      first = orders.map(valueOf);
       clock = "2026-12-15";
-      second = (create as () => InitialValue)() ?? {};
+      second = orders.map(valueOf);
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
     } finally {
       clock = "2026-12-14";
     }
   }
+  const forCustomer = (orders: Order[], name: string) =>
+    orders.find((order) => order.orderedBy === name);
+  const everyCustomer = (test: (order: Order, item: string) => boolean) =>
+    BAKERY_CUSTOMERS.every(({ name, item }) => {
+      const order = forCustomer(first, name);
+      return Boolean(order && test(order, item));
+    });
+  const titled = BAKERY_CUSTOMERS.every(({ name }) =>
+    list.some(
+      (t) =>
+        t?.schemaType === "bakeryOrder" &&
+        typeof t.title === "string" &&
+        t.title.includes(name) &&
+        typeof t.id === "string" &&
+        t.id !== DEFAULT.id,
+    ),
+  );
   const requirements = [
     {
-      label: "En initialValue for bakeryOrder",
-      done: schema?.name === "bakeryOrder" && typeof create === "function",
+      label: "«Ny bestilling» er fortsatt med",
+      done: list.includes(DEFAULT),
     },
     {
-      label: "Nye bestillinger starter som «ny»",
-      done: first.status === "ny" && second.status === "ny",
+      label: "En mal for hver kunde, med navnet i tittelen",
+      done: titled,
     },
     {
-      label: "Datoen hentes når bestillingen opprettes",
-      done: first.date === "2026-12-14" && second.date === "2026-12-15",
+      label: "Malen fyller inn kunden og varen deres",
+      done: everyCustomer((order, item) => order.item === item),
+    },
+    {
+      label: "Status «ny» og datoen fra når bestillingen lages",
+      done:
+        everyCustomer((order) => order.status === "ny") &&
+        BAKERY_CUSTOMERS.every(
+          ({ name }) =>
+            forCustomer(first, name)?.date === "2026-12-14" &&
+            forCustomer(second, name)?.date === "2026-12-15",
+        ),
     },
   ];
+  const done = requirements.every((r) => r.done);
   return {
-    done: requirements.every((r) => r.done),
+    done,
     requirements,
     error,
-    data: { status: first.status, date: first.date },
+    solvedAs: done ? {} : undefined,
+    data: { titles: list.map((t) => t?.title), orders: first },
   };
 }
 
 function Result({ verdict }: { verdict: Verdict | null }) {
-  const value = verdict?.data as InitialValue | undefined;
+  const data = verdict?.data as
+    { titles?: unknown[]; orders?: Order[] } | undefined;
+  const titles = (data?.titles ?? []).filter(
+    (title): title is string => typeof title === "string",
+  );
   return (
     <div className="cw-groq-result">
-      <p>Ny bestilling</p>
-      <p>Status: {typeof value?.status === "string" ? value.status : "—"}</p>
-      <p>Dato: {typeof value?.date === "string" ? value.date : "—"}</p>
+      <p>Ny … i Studio</p>
+      {titles.length ? (
+        titles.map((title) => <p key={title}>+ {title}</p>)
+      ) : (
+        <p>Ingen maler ennå</p>
+      )}
     </div>
   );
 }
 
 export const bakerTemplateTask: WindowTask = {
   id: "baker-template",
-  file: "bakeryOrder.ts",
+  file: "bakeryTemplates.ts",
   starter,
   solution: starter.replace(
-    "    // Bruk bakeryToday() for datoen, ikke en fast dato.",
-    '    status: "ny",\n    date: bakeryToday(),',
+    `    // Én mal per kunde: «Bestilling fra Brann» med vare, kunde,
+    // status «ny» og dagens dato.
+`,
+    `    ...CUSTOMERS.map((customer) => ({
+      id: "order-" + customer.name,
+      title: "Bestilling fra " + customer.name,
+      schemaType: "bakeryOrder",
+      value: () => ({
+        item: customer.item,
+        orderedBy: customer.name,
+        status: "ny",
+        date: bakeryToday(),
+      }),
+    })),
+`,
   ),
   modules,
   judge: judgeBakerTemplate,
-  resultTitle: "En ny bestilling i Studio",
+  resultTitle: "Når du trykker + i Studio",
   Result,
-  ours: `initialValue: () => ({ status: "ny", date: bakeryToday() })`,
+  ours: `CUSTOMERS.map((c) => ({
+  id: "order-" + c.name, title: "Bestilling fra " + c.name, schemaType: "bakeryOrder",
+  value: () => ({ item: c.item, orderedBy: c.name, status: "ny", date: bakeryToday() }),
+}))`,
   references: [
     {
       file: "bakeryDate.ts",
@@ -101,8 +187,8 @@ export const bakerTemplateTask: WindowTask = {
     },
   ],
   extend: {
-    file: "src/sanity/schemaTypes/bakeryOrder.ts",
+    file: "src/sanity/lib/bakeryTemplates.ts",
     marker: "QUEST: Luke 9",
-    idea: "Prøv å åpne en ny bestilling i Studio etter at du har løst luka.",
+    idea: "Trykk + i Studio etter at du har løst luka, og velg «Bestilling fra Kari».",
   },
 };

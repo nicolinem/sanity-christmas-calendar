@@ -1,6 +1,7 @@
 import type { Verdict, WindowTask } from "./types";
 
-const starter = `// Simulering: event og client kommer fra kodevinduet, ikke ditt Sanity-prosjekt.
+const starter = `// Kjører når en bestilling publiseres. Spillet gir deg event og client:
+// client skriver til bodskiltet i bygda, ikke til Sanity-prosjektet ditt.
 export async function onOrderPublished(event, { client }) {
   const order = event.document
   // Sjekk at dette er en publisert bakeryOrder med en vare.
@@ -99,14 +100,15 @@ export async function judgeBakerFunction(
     },
     { label: "Ikke oppdater samme skilt to ganger", done: idempotent },
   ];
-  return { done: requirements.every((r) => r.done), requirements, error };
+  const done = requirements.every((r) => r.done);
+  return { done, requirements, error, solvedAs: done ? {} : undefined };
 }
 
 function Result({ verdict }: { verdict: Verdict | null }) {
   return (
     <p>
       {verdict?.done
-        ? "Publisert bestilling oppdaterte skiltet én gang – i simuleringen."
+        ? "Bestått. Publiser en bestilling i Studio og se på bodskiltet."
         : "Hvilke hendelser skal endre skiltet?"}
     </p>
   );
@@ -127,7 +129,7 @@ export const bakerFunctionTask: WindowTask = {
     ),
   modules: {},
   judge: judgeBakerFunction,
-  resultTitle: "Simulert Sanity Function",
+  resultTitle: "Sanity Function",
   Result,
   ours: `if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return;
 // Etter getDocument:

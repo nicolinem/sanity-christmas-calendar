@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { BakerySign as Sign } from "@/game/bakery";
 
-type Props = { sign: Sign | null; onClose: () => void };
+type Props = { sign: Sign | null; byFunction?: boolean; onClose: () => void };
 
 export function BakeryText({
   sign,
@@ -51,7 +51,7 @@ export function BakeryText({
   ));
 }
 
-export default function BakerySign({ sign, onClose }: Props) {
+export default function BakerySign({ sign, byFunction, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     closeRef.current?.focus({ preventScroll: true });
@@ -66,6 +66,12 @@ export default function BakerySign({ sign, onClose }: Props) {
         onClick={(event) => event.stopPropagation()}
       >
         <p className="bakery-sign-heading">Bakerens bod</p>
+        {byFunction && (
+          <p className="bakery-sign-note">
+            Skrevet av funksjonen din fra luke 11 da du publiserte en
+            bestilling. Publiserer du skiltet i Studio, vises det i stedet.
+          </p>
+        )}
         <div className="bakery-sign-views">
           <figure className="bakery-sign-view">
             <figcaption>Skiltet ved boden</figcaption>

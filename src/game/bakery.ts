@@ -5,6 +5,8 @@ export type BakeryOrder = {
   date?: string | null;
   status?: string | null;
   createdAt?: string | null;
+  // Changes on every publish: how the game sees a new publish (luke 11).
+  updatedAt?: string | null;
 };
 
 export const SAMPLE_ORDERS: (BakeryOrder & { _type: "bakeryOrder" })[] = [
@@ -63,27 +65,6 @@ export const signHasStrong = (sign: BakerySign | null) =>
       block.children?.some(
         (span) => span.text?.trim() && span.marks?.includes("strong"),
       ),
-    ),
-  );
-
-export const signHasHttpsLink = (sign: BakerySign | null) =>
-  Boolean(
-    sign?.text?.some(
-      (block) =>
-        block._type === "block" &&
-        block.children?.some(
-          (span) =>
-            span.text?.trim() &&
-            block.markDefs?.some((mark) => {
-              if (mark._type !== "link" || !span.marks?.includes(mark._key))
-                return false;
-              try {
-                return new URL(mark.href ?? "").protocol === "https:";
-              } catch {
-                return false;
-              }
-            }),
-        ),
     ),
   );
 
