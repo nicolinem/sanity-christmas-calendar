@@ -464,14 +464,21 @@ function Details({
             )}
           </>
         ) : outInVillage ? (
-          <button
-            ref={studioRef}
-            type="button"
-            className="btn btn--amber"
-            onClick={() => onTravelToSite("wraith")}
-          >
-            Gå til snømonsteret
-          </button>
+          <>
+            <button
+              ref={studioRef}
+              type="button"
+              className="btn btn--amber"
+              onClick={() => onTravelToSite("wraith")}
+            >
+              Gå til snømonsteret
+            </button>
+            {/* The weapon is made, but Studio is still where it lives. */}
+            <button type="button" className="btn" onClick={openStudio}>
+              <IconQuill />
+              Åpne Sanity Studio
+            </button>
+          </>
         ) : null}
         {onReplay && (
           <button type="button" className="btn btn--quiet" onClick={onReplay}>
