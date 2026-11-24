@@ -72,20 +72,20 @@ const theBrokenForge: Quest = {
   villageSite: "forge",
   intro: [
     "Først trenger jeg et våpen, så vi kan holde snømonsteret unna til lista er på plass igjen.",
-    "Luke 1: lag et våpen i Studio, gi det et navn og en sprite, og trykk *Publish*. Test det så på snømonsteret øst for brønnen.",
+    "Luke 1: lag et våpen i Studio, og test det på snømonsteret øst for brønnen.",
   ],
   outro: [
     "Der er det, første våpen på den nye lista! Og snømonsteret trakk seg tilbake til skogen, i alle fall for nå.",
   ],
   goal: "Lag et våpen i Sanity Studio, trykk *Publish*, og test det på snømonsteret.",
   explain: {
-    what: "Ditt første *document* i Studio: et våpen med navn og sprite. Når du publiserer det, dukker det opp i bygda, og du kan slå med det.",
-    why: "Alt i kalenderen bygger på dette: innhold lages i Studio, og spillet leser bare det som er publisert.",
+    what: "Ditt første *document* i Studio: et våpen med navn og sprite, som du kan slå med i bygda.",
+    why: "Du lærer det grunnleggende i Studio: lage et *document*, fylle det ut og publisere det. Våpenet ditt brukes også videre i de neste lukene.",
   },
   steps: [
     "Åpne Sanity Studio og lag et nytt *Item*-dokument.",
-    "Velg *Weapon*, gi det et navn og en sprite.",
-    "Trykk *Publish*, og se våpenet dukke opp i spillet.",
+    "Sett *Kind* til *Weapon*, og gi det et navn og en sprite.",
+    "Trykk *Publish*.",
     "Gå til snømonsteret øst for brønnen, og slå med mellomrom.",
   ],
   goalPreview: {
