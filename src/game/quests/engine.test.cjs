@@ -756,7 +756,10 @@ test("the release opens week 1 on 1 December and weeks 2 and 3 on the Mondays af
     delete require.cache[require.resolve("./engine.ts")];
     const { chapterOpensAt } = require("./engine.ts");
     const day = (n) => {
-      const d = chapterOpensAt({ number: n, title: "", quests: [] });
+      const d = chapterOpensAt(
+        { number: n, title: "", quests: [] },
+        new Date("2026-11-27T12:00:00"),
+      );
       return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
     };
     assert.deepEqual([1, 2, 3].map(day), [
@@ -770,9 +773,20 @@ test("the release opens week 1 on 1 December and weeks 2 and 3 on the Mondays af
     const week1 = CHAPTERS.find((c) => c.number === 1);
     const first = week1.quests[0].id;
     const at = (day) => new Date(`2026-11-${day}T12:00:00`);
+    // Before the setup day it's a test run: everything opens in order.
     assert.equal(
-      engine.evaluateQuests([week1], context(), at(25)).current,
-      null,
+      engine.evaluateQuests([week1], context(), at(25)).current.quest.id,
+      first,
+    );
+    const testRun = engine.evaluateQuests(
+      [week1],
+      context({ completed: { [first]: COMPLETED_AT } }),
+      at(25),
+    );
+    assert.equal(testRun.current.quest.id, week1.quests[1].id);
+    assert.equal(
+      testRun.states.find((s) => s.opensAt),
+      undefined,
     );
     assert.equal(
       engine.evaluateQuests([week1], context(), at(26)).current.quest.id,

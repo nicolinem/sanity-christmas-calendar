@@ -27,8 +27,19 @@ export function chaptersForTrack(
 // (7 and 14 December). Empty: dates are ignored. Luke 1 alone opens earlier,
 // on SETUP_DAY (the setup session).
 
-export function chapterOpensAt(chapter: Chapter): Date | undefined {
-  if (!CALENDAR_START) return undefined;
+// Before the setup day only the organizers and testers play, so the dates are
+// ignored and everything opens in order. From the setup day the calendar runs.
+export function inTestRun(now: Date): boolean {
+  if (!SETUP_DAY) return false;
+  const setup = new Date(`${SETUP_DAY}T00:00:00`);
+  return !Number.isNaN(setup.getTime()) && now < setup;
+}
+
+export function chapterOpensAt(
+  chapter: Chapter,
+  now = new Date(),
+): Date | undefined {
+  if (!CALENDAR_START || inTestRun(now)) return undefined;
   const start = new Date(`${CALENDAR_START}T00:00:00`);
   if (Number.isNaN(start.getTime())) return undefined;
   if (chapter.number <= 1) return start;
@@ -69,7 +80,7 @@ export function evaluateQuests(
 
   for (const chapter of chapters) {
     for (const [index, quest] of chapter.quests.entries()) {
-      const chapterStart = chapterOpensAt(chapter);
+      const chapterStart = chapterOpensAt(chapter, now);
       const opensAt =
         chapter.number <= 1 && index === 0
           ? firstLukeOpensAt(chapterStart)
