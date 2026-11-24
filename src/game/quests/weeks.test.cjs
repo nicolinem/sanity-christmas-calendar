@@ -6,7 +6,6 @@ require("sucrase/register");
 const {
   finishedWeeks,
   fridayOf,
-  shareText,
   weekSummary,
   weekNeedsSummary,
 } = require("./weeks.ts");
@@ -38,27 +37,6 @@ test("the solutions Friday falls in the week the chapter opens", () => {
   const friday = fridayOf(new Date("2026-12-01T00:00:00"));
   assert.equal(friday.getDate(), 4);
   assert.equal(friday.getDay(), 5);
-});
-
-test("the share text says how far and how, never what", () => {
-  const done = board(week1.quests.map(() => "done"));
-  const completed = Object.fromEntries(
-    week1.quests.map((q) => [q.id, "2026-12-03T12:00:00"]),
-  );
-  const summary = weekSummary(done, 1, {
-    completed,
-    hints: { [week1.quests[1].id]: 2 },
-  });
-  const text = shareText(summary, 3);
-  const lines = text.split("\n");
-  assert.equal(lines[0], "Julekalenderen · Uke 1 · Studio");
-  assert.match(
-    lines[1],
-    new RegExp(`${week1.quests.length} av ${week1.quests.length} luker`),
-  );
-  assert.match(lines[2], /Nivå 3 · ferdig torsdag · 2 hint brukt/);
-  for (const quest of week1.quests) assert.ok(!text.includes(quest.title));
-  assert.doesNotMatch(text, /\p{Extended_Pictographic}/u);
 });
 
 test("a week's summary shows once, and again if the week gets more doors", () => {

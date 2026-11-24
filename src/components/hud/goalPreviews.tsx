@@ -140,27 +140,6 @@ function DocumentCard({ blocked }: { blocked: boolean }) {
   );
 }
 
-function BakeryCard({
-  label,
-  lines,
-}: {
-  label: string;
-  lines: [string, string][];
-}) {
-  return (
-    <StudioCard label={label}>
-      <dl className="gp-fields">
-        {lines.map(([field, value]) => (
-          <div key={field}>
-            <dt>{field}</dt>
-            <dd>{value || <em>tom</em>}</dd>
-          </div>
-        ))}
-      </dl>
-    </StudioCard>
-  );
-}
-
 // --- Teknisk løype: luke 1, uke 2 og uke 3 ---------------------------------
 
 // Luke 1: the forge's list in Studio, empty after the storm.
@@ -620,8 +599,27 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   },
   "the-drawing-board": { before: <SelectBefore />, after: <GridAfter /> },
   "baker-template": {
-    before: <OrderForm />,
-    after: <OrderForm date="i dag" status="ny" />,
+    before: (
+      <TimedList
+        label="Ny …"
+        rows={[{ text: "Ny bestilling", status: "tomme felt" }]}
+      />
+    ),
+    after: (
+      <TimedList
+        label="Ny …"
+        rows={[
+          { text: "Ny bestilling" },
+          { text: "Bestilling fra Brann", status: "Lussekatter", tone: "ok" },
+          {
+            text: "Bestilling fra Arkivaren",
+            status: "Pepperkaker",
+            tone: "ok",
+          },
+          { text: "Bestilling fra Kari", status: "Julekake", tone: "ok" },
+        ]}
+      />
+    ),
   },
   "baker-model": {
     before: <OrderForm />,
@@ -634,20 +632,24 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   "baker-function": {
     before: (
       <TimedList
-        label="Simulert skilt"
+        label="Bodskiltet"
         rows={[
           { text: "Bestilling publisert", status: "skrevet", tone: "ok" },
-          { text: "Samme beskjed igjen", status: "skrevet igjen", tone: "bad" },
+          {
+            text: "Samme bestilling igjen",
+            status: "skrevet igjen",
+            tone: "bad",
+          },
           { text: "Utkast endret", status: "skrevet", tone: "bad" },
         ]}
       />
     ),
     after: (
       <TimedList
-        label="Simulert skilt"
+        label="Bodskiltet"
         rows={[
           { text: "Bestilling publisert", status: "skrevet", tone: "ok" },
-          { text: "Samme beskjed igjen", status: "hoppet over" },
+          { text: "Samme bestilling igjen", status: "hoppet over" },
           { text: "Utkast endret", status: "hoppet over" },
         ]}
       />
@@ -660,17 +662,6 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   "morning-rush": {
     before: <RushList ready={false} />,
     after: <RushList ready />,
-  },
-  "baker-link": {
-    before: (
-      <BakeryCard label="Bodskilt" lines={[["Skilttekst", "Julekaker"]]} />
-    ),
-    after: (
-      <BakeryCard
-        label="Bodskilt"
-        lines={[["Lenket ord", "Julekaker → https://…"]]}
-      />
-    ),
   },
 };
 

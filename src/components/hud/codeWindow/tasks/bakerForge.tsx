@@ -73,7 +73,8 @@ export function judgeBakerForge(exports: Record<string, unknown>): Verdict {
       done: calls.length === 2 && calls[1]?.op === "publish",
     },
   ];
-  return { done: requirements.every((r) => r.done), requirements, error };
+  const done = requirements.every((r) => r.done);
+  return { done, requirements, error, solvedAs: done ? {} : undefined };
 }
 
 export const bakerForgeTask: WindowTask = {

@@ -1213,6 +1213,12 @@ kbd {
   gap: 20px;
   color: var(--parchment);
 }
+.bakery-sign-note {
+  margin: -12px 0 0;
+  font-size: 13px;
+  color: var(--parchment);
+  opacity: 0.85;
+}
 .bakery-sign-heading {
   margin: 0;
   font-family: var(--font-display), var(--font-body);
@@ -5143,7 +5149,6 @@ kbd {
   line-height: 1.45;
   color: var(--frost);
 }
-.week-done-share,
 .week-done-next {
   display: grid;
   gap: 8px;
@@ -5158,15 +5163,6 @@ kbd {
   margin: 0;
   font-size: 13px;
   color: var(--frost-dim);
-}
-.week-done-share pre {
-  margin: 0;
-  font:
-    13px/1.5 ui-monospace,
-    monospace;
-  color: var(--snow);
-  white-space: pre-wrap;
-  user-select: all;
 }
 .week-done-next ul {
   display: flex;

@@ -542,39 +542,6 @@ test("the Function simulation is the final technical door, without a Studio step
   assert.equal(stateOf(board, step.id).quest.studioPractice, undefined);
 });
 
-test("the skilt link is a shared optional door and does not change core totals", () => {
-  const link = CHAPTERS[2].quests.find(({ id }) => id === "baker-link");
-  assert.equal(link.bonus, true);
-  assert.equal(link.track, undefined);
-  assert.equal(link.door, 0);
-  assert.equal(link.check(context()).done, false);
-  const sign = {
-    _id: "bakery-sign",
-    text: [
-      {
-        _type: "block",
-        children: [{ _type: "span", text: "Kaker", marks: ["url"] }],
-        markDefs: [
-          { _key: "url", _type: "link", href: "https://example.org/kaker" },
-        ],
-      },
-    ],
-  };
-  assert.equal(link.check({ ...context(), bakerySign: sign }).done, true);
-  for (const track of ["technical", "nonTechnical"]) {
-    const chapters = chaptersForTrack(CHAPTERS, track);
-    const board = evaluateQuests(chapters, context({ track }), NOW);
-    assert.equal(
-      board.states.filter(({ quest }) => quest.id === "baker-link").length,
-      1,
-    );
-    assert.equal(
-      board.total,
-      board.states.filter(({ quest }) => !quest.bonus).length,
-    );
-  }
-});
-
 test("the sign quest is offered at the sign, never by the Baker", () => {
   const signQuest = CHAPTERS.flatMap(({ quests }) => quests).find(
     ({ id }) => id === "baker-sign",

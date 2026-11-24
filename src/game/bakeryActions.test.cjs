@@ -26,10 +26,11 @@ function load(file, dependencies) {
   return mod.exports;
 }
 
-test("Publish is primary; Klar is an additional bakeryOrder action", () => {
-  const Publish = () => ({ label: "Publish" });
-  const Klar = () => ({ label: "Klar" });
-  const config = load("sanity.config.ts", {
+require("sucrase/register");
+const bakeryTemplates = require("../sanity/lib/bakeryTemplates.ts");
+
+function loadConfig({ Klar = () => {}, solved = () => false } = {}) {
+  return load("sanity.config.ts", {
     sanity: { defineConfig: (config) => config },
     "sanity/structure": { structureTool: () => ({}) },
     "@sanity/vision": { visionTool: () => ({}) },
@@ -43,12 +44,39 @@ test("Publish is primary; Klar is an additional bakeryOrder action", () => {
       defaultDocumentNode: () => {},
       structure: () => {},
     },
-    "./src/sanity/lib/solved": { isSolved: () => false },
+    "./src/sanity/lib/solved": { isSolved: solved },
     "./src/sanity/studio/BakeryActions": {
       ForgeAction: () => {},
       ReadyAction: Klar,
     },
+    "./src/sanity/lib/bakeryTemplates": bakeryTemplates,
   }).default;
+}
+
+test("the customer templates show in «+» only once luke 9 is solved", () => {
+  const options = [
+    { templateId: "bakeryOrder" },
+    ...bakeryTemplates.ORDER_TEMPLATE_IDS.map((templateId) => ({ templateId })),
+  ];
+  const before = loadConfig().document.newDocumentOptions(options);
+  assert.deepEqual(
+    before.map((o) => o.templateId),
+    ["bakeryOrder"],
+  );
+  const after = loadConfig({
+    solved: (id) => id === "baker-template",
+  }).document.newDocumentOptions(options);
+  assert.equal(after.length, 4);
+  const titles = loadConfig()
+    .schema.templates([{ id: "bakeryOrder" }])
+    .map((t) => t.title);
+  assert.ok(titles.includes("Bestilling fra Kari"));
+});
+
+test("Publish is primary; Klar is an additional bakeryOrder action", () => {
+  const Publish = () => ({ label: "Publish" });
+  const Klar = () => ({ label: "Klar" });
+  const config = loadConfig({ Klar });
   const actions = config.document.actions([Publish], {
     schemaType: "bakeryOrder",
   });

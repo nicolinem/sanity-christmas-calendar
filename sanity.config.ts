@@ -8,6 +8,10 @@ import { schema } from "./src/sanity/schemaTypes";
 import { defaultDocumentNode, structure } from "./src/sanity/studio/structure";
 import { isSolved } from "./src/sanity/lib/solved";
 import { ForgeAction, ReadyAction } from "./src/sanity/studio/BakeryActions";
+import {
+  ORDER_TEMPLATE_IDS,
+  orderTemplates,
+} from "./src/sanity/lib/bakeryTemplates";
 
 // Config for the Studio embedded at /studio. This file
 // is yours; the later chapter 1 quests happen here.
@@ -17,13 +21,21 @@ export default defineConfig({
   basePath: "/studio",
   projectId,
   dataset,
-  schema,
+  // QUEST: Luke 9. The customer templates are always registered, and only
+  // offered in «+» once the luke is solved (newDocumentOptions below).
+  schema: { ...schema, templates: (previous) => orderTemplates(previous) },
   plugins: [
     structureTool({ structure, defaultDocumentNode }),
     visionTool({ defaultApiVersion: apiVersion }),
   ],
   // QUEST: Luke 10. Our Smi action switches on after the code challenge.
   document: {
+    newDocumentOptions: (previous) =>
+      isSolved("baker-template")
+        ? previous
+        : previous.filter(
+            (item) => !ORDER_TEMPLATE_IDS.includes(item.templateId),
+          ),
     actions: (previous, { schemaType }) => {
       if (schemaType === "item" && isSolved("baker-forge"))
         return [...previous, ForgeAction];

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { FEATURES } from "@/game/features";
 import { forgedPower } from "@/game/rules";
-import { shareText, type WeekSummary } from "@/game/quests/weeks";
+import type { WeekSummary } from "@/game/quests/weeks";
 import SpriteIcon from "./SpriteIcon";
 
 type Props = {
@@ -17,8 +17,7 @@ const dateLabel = (date: Date) =>
   date.toLocaleDateString("nb-NO", { day: "numeric", month: "long" });
 
 // Shown once when the last door of a week is done (and again from the
-// journal): every window lit, what the week gave, a text to share with the
-// team, and what comes next.
+// journal): every window lit, what the week gave, and what comes next.
 export default function WeekComplete({
   summary,
   forgeLevel,
@@ -26,8 +25,6 @@ export default function WeekComplete({
   onOpenBook,
 }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [copied, setCopied] = useState(false);
-  const text = shareText(summary, FEATURES.rpg ? forgeLevel : null);
 
   useEffect(() => {
     closeRef.current?.focus({ preventScroll: true });
@@ -40,15 +37,6 @@ export default function WeekComplete({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-    } catch {
-      // No clipboard (insecure context or denied): the text is selectable.
-    }
-  };
 
   return (
     <div className="week-done-backdrop" onClick={onClose}>
@@ -83,20 +71,6 @@ export default function WeekComplete({
             </li>
           )}
         </ul>
-
-        <p className="week-done-friday">
-          {summary.friday
-            ? `Fredag ${dateLabel(summary.friday)} har Bakeren fredagskake, og løsningene ligger ved siden av.`
-            : "På fredag har Bakeren fredagskake, og løsningene ligger ved siden av."}
-        </p>
-
-        <div className="week-done-share">
-          <p className="week-done-label">Del med teamet</p>
-          <pre>{text}</pre>
-          <button type="button" className="btn" onClick={copy}>
-            {copied ? "Kopiert" : "Kopier"}
-          </button>
-        </div>
 
         <p className="week-done-friday">
           {summary.optional
