@@ -6,6 +6,8 @@
 
 import { DEFAULT_FIGURE, FIGURE_OPTIONS, type FigureChoice } from "./figure";
 import type { Progress } from "./quests/types";
+import { rewardGear } from "./reward";
+import { SIDE_QUESTS } from "./sideQuests/data";
 
 export type GearKey = `${keyof FigureChoice}:${string}`;
 
@@ -69,9 +71,10 @@ const ALL_GEAR: GearKey[] = KEYS.flatMap((key) =>
     .map((o) => `${key}:${o.id}` as GearKey),
 );
 
-// Gear from completed quests; in dev, all of it.
+// Gear from completed quests and delivered side quests; in dev, all of it.
+// Worked out from those facts every time, never stored.
 export function ownedGear(
-  progress: Pick<Progress, "completed">,
+  progress: Pick<Progress, "completed"> & Partial<Pick<Progress, "side">>,
   opts: { dev?: boolean } = {},
 ): Set<GearKey> {
   if (opts.dev) return new Set(ALL_GEAR);
@@ -82,6 +85,13 @@ export function ownedGear(
   for (const { gear, tracks } of WEEK_REWARDS)
     if (tracks.some((ids) => ids.every((id) => progress.completed[id])))
       owned.add(gear);
+  for (const quest of SIDE_QUESTS)
+    if (progress.side?.[quest.id]?.done)
+      for (const key of rewardGear(quest.reward)) {
+        const [part, id] = key.split(":") as [keyof FigureChoice, string];
+        if (FIGURE_OPTIONS[part] && isGear(part, id))
+          owned.add(`${part}:${id}`);
+      }
   return owned;
 }
 

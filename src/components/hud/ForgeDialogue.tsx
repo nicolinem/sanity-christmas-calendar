@@ -34,6 +34,8 @@ type Props = {
   onOpenCode: (questId: string) => void;
   onOpenBoard: (questId: string) => void;
   onClose: () => void;
+  // This person also has a side quest: offered after the luke talk.
+  onOther?: () => void;
 };
 
 const FIRST_QUEST = "the-broken-forge";
@@ -196,6 +198,17 @@ export default function ForgeDialogue(props: Props) {
               onClick={props.onClose}
             >
               Gå <kbd>Esc</kbd>
+            </button>
+          </div>
+        )}
+        {last && props.onOther && (
+          <div className="dialogue-actions dialogue-actions--other">
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={props.onOther}
+            >
+              Noe annet?
             </button>
           </div>
         )}

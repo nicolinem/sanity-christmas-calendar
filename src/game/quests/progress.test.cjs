@@ -284,3 +284,42 @@ test("a new project after an expired one takes the old progress once", () => {
     delete process.env.NEXT_PUBLIC_SANITY_PREVIOUS_PROJECT_ID;
   }
 });
+
+test("saves without side quests get empty side and found records", () => {
+  records.set(
+    progress.storageKey("before-side"),
+    JSON.stringify({ completed: { "the-broken-forge": COMPLETED_AT } }),
+  );
+  const restored = progress.readProgress("before-side");
+  assert.deepEqual(restored.side, {});
+  assert.deepEqual(restored.found, {});
+  for (const bad of [null, [], "invalid", 3]) {
+    const key = `bad-side-${String(bad)}`;
+    records.set(
+      progress.storageKey(key),
+      JSON.stringify({ side: bad, found: bad }),
+    );
+    assert.deepEqual(progress.readProgress(key).side, {});
+    assert.deepEqual(progress.readProgress(key).found, {});
+  }
+});
+
+test("side quests and found spots survive a reload and an unrelated update", () => {
+  const side = {
+    "warm-drink": { at: COMPLETED_AT, step: 1, done: COMPLETED_AT },
+  };
+  const found = { "flour-trail-1": true };
+  records.set(
+    progress.storageKey("with-side"),
+    JSON.stringify({ side, found }),
+  );
+  progress.updateProgress("with-side", (value) => ({
+    ...value,
+    introSeen: true,
+  }));
+  progress = loadProgress();
+  const restored = progress.readProgress("with-side");
+  assert.deepEqual(restored.side, side);
+  assert.deepEqual(restored.found, found);
+  assert.equal(restored.introSeen, true);
+});

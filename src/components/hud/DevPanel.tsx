@@ -5,6 +5,7 @@ import { bridge } from "@/game/bridge";
 import type { QuestBoard } from "@/game/quests/engine";
 import type { CodeCheck, QuestTrack } from "@/game/quests/types";
 import type { SpriteDef } from "@/game/sprites";
+import type { SideState } from "@/game/sideQuests/types";
 import type { LiveMode } from "./useLive";
 import { renderText } from "./richText";
 
@@ -21,6 +22,8 @@ type Props = {
   onTrack: (track: QuestTrack) => void;
   onReset: () => void;
   weaponSprite: SpriteDef | null;
+  sideQuests: SideState[]; // empty while the feature is off
+  onSide: (questId: string, action: "done" | "reset") => void;
 };
 
 const LIVE: Record<LiveMode, string> = {
@@ -52,6 +55,8 @@ export default function DevPanel({
   onTrack,
   onReset,
   weaponSprite,
+  sideQuests,
+  onSide,
 }: Props) {
   const current =
     board.current && board.current.status !== "done" ? board.current : null;
@@ -224,6 +229,36 @@ export default function DevPanel({
           Alt ferdig
         </button>
       </div>
+
+      {sideQuests.length > 0 && (
+        <>
+          <h3 className="dev-title">Sideoppdrag</h3>
+          <ol className="dev-quests">
+            {sideQuests.map((s) => (
+              <li key={s.quest.id}>
+                <span className="dev-quest-title">{s.quest.title}</span>{" "}
+                <span className={`dev-status is-${s.status}`}>{s.status}</span>
+                <div className="dev-actions">
+                  {s.status !== "done" && (
+                    <button
+                      type="button"
+                      onClick={() => onSide(s.quest.id, "done")}
+                    >
+                      Fullfør
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onSide(s.quest.id, "reset")}
+                  >
+                    Nullstill
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
 
       <h3 className="dev-title">Effekter</h3>
       <div className="dev-actions">

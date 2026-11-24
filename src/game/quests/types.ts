@@ -35,7 +35,15 @@ export type Progress = {
   figure?: Record<string, string>;
   // The player's chosen display name, shown on the community page.
   name?: string;
+  // Side quests the player has taken (src/game/sideQuests): when, the step
+  // in progress, and when delivered. Never in `completed`, which the
+  // community server only accepts luke ids in.
+  side: Record<string, SideRecord>;
+  // Spots found once: side quest steps now, «overraskelser» later.
+  found: Record<string, true>;
 };
+
+export type SideRecord = { at: string; step: number; done?: string };
 
 // A task solved in the game's code window. The Studio reads this and switches
 // on our own version of the same code (src/sanity/lib/solved.tsx).

@@ -23,6 +23,8 @@ type Props = {
   // A finished door whose celebration waits until the Studio pane closes.
   finished?: { door: number; title: string; bonus?: true } | null;
   onShowCelebration?: () => void;
+  // One line about side quests, only when no luke needs the space.
+  side?: { text: string; label: string; onClick: () => void } | null;
 };
 
 // The always-on corner of the quest log: the one thing to do next, and how far
@@ -41,6 +43,7 @@ export default function QuestTracker({
   onTravel,
   finished,
   onShowCelebration,
+  side,
 }: Props) {
   const [open, setOpen] = useState(!compact);
   const current = board.current;
@@ -189,6 +192,18 @@ export default function QuestTracker({
                 onClick={runStep}
               >
                 {step.label}
+              </button>
+            </div>
+          )}
+          {side && (
+            <div className="tracker-side">
+              <p className="tracker-note">{side.text}</p>
+              <button
+                type="button"
+                className="btn btn--quiet tracker-side-btn"
+                onClick={side.onClick}
+              >
+                {side.label}
               </button>
             </div>
           )}

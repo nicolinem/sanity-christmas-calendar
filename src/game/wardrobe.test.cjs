@@ -114,3 +114,20 @@ test("the scarf needs every core luke of week 1 on the same track", () => {
   ];
   assert.equal(ownedGear(progress(tech)).has("scarf:scarf"), true);
 });
+
+test("a delivered side quest gives its gear; one still in progress does not", () => {
+  const at = "2026-12-02T10:00:00.000Z";
+  const taken = { completed: {}, side: { "warm-drink": { at, step: 1 } } };
+  assert.equal(ownedGear(taken).has("hat:bobble"), false);
+  const done = {
+    completed: {},
+    side: { "warm-drink": { at, step: 1, done: at } },
+  };
+  assert.equal(ownedGear(done).has("hat:bobble"), true);
+  // Unknown or broken records give nothing.
+  assert.equal(
+    ownedGear({ completed: {}, side: { gone: { at, step: 0, done: at } } })
+      .size,
+    0,
+  );
+});

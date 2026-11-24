@@ -1,8 +1,13 @@
 # Plan: utforsking, belønning og smiing
 
-Status: idé og retning, ikke bygget.
+Status: idé og retning, ikke bygget. Oppdatert 2026-11-24.
 
-Dette kommer **etter** det som må på plass først: oppstarten, fellesdelen, oppsettøkta 27. november og uke 3. Planen ligger her så valgene vi tar nå ikke stenger for det som kommer senere.
+To deler har egne, godkjente planer som går foran det som står her:
+
+- [plan-sideoppdrag.md](plan-sideoppdrag.md): sideoppdrag i bygda og i områdene lenger ute.
+- [plan-grotta.md](plan-grotta.md): grotta, ville monstre og kamp begge veier (fase C og D).
+
+Dette kommer **etter** det som må på plass først: oppstarten, fellesdelen, oppsettøkta 26. november og uke 3. Planen ligger her så valgene vi tar nå ikke stenger for det som kommer senere.
 
 ## Kort fortalt
 
@@ -40,16 +45,17 @@ Ulempen er overgangene. De må være raske (under et halvt sekund) og gjøre det
 - NPC-er er data, som `NPCS` i `village.ts`: rolle, sprite, plass, replikker (én tilfeldig eller i rekkefølge) og eventuelt en `Reward` én gang.
 - Folk kalles det de er («fiskeren», «barnet ved vannet»). Ingen oppdiktede stedsnavn.
 - Overraskelser er usynlige punkter som gir en kort replikk eller en liten belønning én gang (`found` i `Progress`).
+- **Hvert område har sine egne sideoppdrag.** De bruker samme modell som sideoppdragene i bygda (`SideSpot.area`, `requires.area`), så et nytt område er mest kart og innhold, ikke ny kode. Se «Sideoppdrag lenger ute» i [plan-sideoppdrag.md](plan-sideoppdrag.md).
 
-**2. Grotta: én hule med etasjer, slik som gruvene i Stardew Valley.** Inngangen ligger i et av de rolige områdene. Hver etasje er et lite rom. Du går ned en trapp for å komme til neste etasje, og jo lenger ned, jo sterkere monstre og bedre funn.
+**2. Grotta: én hule med etasjer, slik som gruvene i Stardew Valley.** Inngangen ligger i skogkanten i bygda, så grotta ikke venter på et rolig område (besluttet i [plan-grotta.md](plan-grotta.md)). Hver etasje er et lite rom. Du går ned en trapp for å komme til neste etasje, og jo lenger ned, jo sterkere monstre og bedre funn.
 
 - **Etasjene er bygd av ferdige rommaler.** 6–8 håndlagde rom brukes om igjen og blandes, med monstre og materialer plassert tilfeldig innenfor faste regler. Det gir mye spill for lite kartarbeid.
 - **Dybden styrer vanskeligheten:** liv og skade for monstrene skaleres med etasjen. Nye monstertyper dukker opp ved etasje 5, 10 og 15, og materialene blir sjeldnere jo lenger ned du kommer.
 - **Hvert femte etasje er en hvileplass** med en sterkere fiende og en kiste. Når du har nådd den, kan du starte derfra neste gang (heis eller tau). Det lagres som `deepest` i `Progress`.
-- **Grafikk:** Kenney Tiny Dungeon (CC0), farget om til vinter (is, blått og hvitt) med et skript, på samme måte som vi gjorde med skogen. Hver tiende etasje kan få en ny fargepalett, så dybden synes.
+- **Grafikk:** Kenney Tiny Dungeon (CC0), som allerede ligger i repoet (`public/assets/kenney/tiny-dungeon.png`), farget om til vinter (is, blått og hvitt) med et skript, på samme måte som vi gjorde med skogen. Hver tiende etasje kan få en ny fargepalett, så dybden synes.
 - **Senere** kan en forhekset skog lages på samme måte: skogfliser med en annen palett og andre monstre. Byggemåten er den samme som i grotta, bare med et annet uttrykk.
 
-**Anbefalt rekkefølge:** først ett rolig område med NPC-er og overraskelser. Det er lite arbeid, koselig og viser at overgangene virker. Deretter grotta med de første ti etasjene.
+**Rekkefølge (besluttet 2026-11-24):** først sideoppdrag i bygda, så fase A, så grotta, etasje 1–5. Grotta trenger ikke et rolig område først, fordi inngangen ligger i bygda. Det rolige området (fase B) kan komme før eller etter grotta, og det tar med seg sine egne sideoppdrag.
 
 ## Hva vi bør legge til rette for nå
 
@@ -110,7 +116,7 @@ Hvorfor det går opp:
 - Skaden følger nivået. `FORGE_DAMAGE` utvides til 10 verdier.
 - Stripen under nivået på spillerplaten viser XP mot neste nivå. Ved maks nivå er den full og gylden.
 
-`Progress` lagrer bare `xp: number`. Nivå og stripe regnes ut. Eksisterende spillere får XP for luker de allerede har fullført første gang spillet starter med XP.
+Nivå og stripe regnes ut. **Endret 2026-11-24:** XP fra noe som skjer én gang, regnes ut av fakta som allerede er lagret: luker (`completed`), sideoppdrag (`side`), sjefer, kister og overraskelser. `Progress.xp` lagrer bare XP fra vanlige monstre, som kommer tilbake. Da trenger ikke eksisterende spillere noen migrering, og en endret belønning gjelder for alle. Se del 6 i [plan-grotta.md](plan-grotta.md).
 
 ### 3. Antall og opplåsinger i fremgangen
 
@@ -122,7 +128,7 @@ unlocked: Record<string, true>;    // gear, recipes, areas
 crafted: Record<string, string>;   // item _id → recipe id, for items already "made"
 ```
 
-- `ownedGear` i `wardrobe.ts` blir et filter på `unlocked`.
+- `ownedGear` i `wardrobe.ts` regner utstyr ut av fakta (`completed`, `side`, `chests`), slik den gjør for luker i dag. `unlocked` brukes bare for det som ikke har et fast faktum (besluttet i [plan-sideoppdrag.md](plan-sideoppdrag.md)).
 - Materialene er data i kode, `src/game/materials.ts`, på samme måte som figurdelene: id, navn, sprite og beskrivelse.
 
 ### 4. Kart som data i Phaser
@@ -205,7 +211,7 @@ type Move =
 
 ## Faser
 
-Fasene kommer i denne rekkefølgen, etter oppstarten, fellesdelen, 27. november og uke 3.
+Fasene kommer etter oppstarten, fellesdelen, 26. november og uke 3. Sideoppdragene i bygda (S0–S2 i [plan-sideoppdrag.md](plan-sideoppdrag.md)) kommer før fase A, og de lager `Reward`-typen som fase A fyller ut.
 
 **Fase A – belønning og XP** (ingen ny verden). Kan gjøres parallelt med uke 3.
 
@@ -217,18 +223,19 @@ Fasene kommer i denne rekkefølgen, etter oppstarten, fellesdelen, 27. november 
 **Fase B – ett rolig område.**
 
 - Lag område-data og overganger i kantene med toning.
-- Legg inn ett håndlaget område ved siden av bygda, med 3–4 NPC-er med replikker, ett sideoppdrag med gave og et par overraskelser.
-- Ferdig når spilleren kan gå ut og tilbake, snakke med alle og få gaven én gang.
+- Legg inn ett håndlaget område ved siden av bygda, med 3–4 NPC-er med replikker, sideoppdrag og et par overraskelser.
+- Sideoppdragene her er S7 «Isfiske» og S8 «Votten» fra [plan-sideoppdrag.md](plan-sideoppdrag.md). De gir hjelmen og ridderhjelmen.
+- Ferdig når spilleren kan gå ut og tilbake, snakke med alle og levere begge sideoppdragene én gang.
 
-**Fase C – kamp begge veier.**
+**Fase C – kamp begge veier.** Detaljene står i [plan-grotta.md](plan-grotta.md) (G2).
 
 - Gi spilleren liv, monstre angrep med varsel, og `Move`-typene `chase`, `charge` og `shoot`.
 - Spilleren våkner i bygda når livet er tomt.
-- Test det på «wraith» og én ny fiende før grotta bygges.
+- **Endret 2026-11-24:** kampen testes i grotta, ikke på snømonsteret. Snømonsteret er en del av historien og skal bli venn på julaften, så `useCombat.ts` får være som i dag.
 
-**Fase D – grotta, etasje 1–10.**
+**Fase D – grotta, etasje 1–10.** Detaljene står i [plan-grotta.md](plan-grotta.md) (G0, G1, G3 og G4).
 
-- Hent Kenney Tiny Dungeon (CC0, spør brukeren før nedlasting) og farg den om til vinter. Lag fargebyttet som et skript, ikke for hånd, så det kan kjøres på nytt.
+- Kenney Tiny Dungeon ligger allerede i repoet. Farg den om til vinter ved å utvide `scripts/winterize-tiles.py`, så fargebyttet kan kjøres på nytt.
 - Lag 6–8 rommaler, tilfeldige etasjer og trapp ned.
 - Monstre skaleres med dybden, og nye typer kommer ved etasje 5 og 10.
 - Lag hvileplass med sterkere fiende og kiste ved etasje 5 og 10. Kisten på etasje 5 gir den første oppskriften.
@@ -258,7 +265,11 @@ Fasene kommer i denne rekkefølgen, etter oppstarten, fellesdelen, 27. november 
 - **Verden består av** rolige faste områder med NPC-er, sideoppdrag, gaver og overraskelser, pluss én hule med etasjer. En forhekset skog kan komme senere.
 - **XP:** grunnenheten er 10, hvert nivå krever 100 mer enn det forrige, og maks nivå er 10. Se «XP og nivå».
 - **Død:** du mister det du fant på turen, og ingenting annet. XP mistes aldri.
-- **Grotta** er åpen fra start. En NPC ved inngangen advarer til du har nådd nivå 2.
+- **Grotta** er åpen fra start. Inngangen ligger i skogkanten i bygda, og Brann advarer til du har nådd nivå 2.
+- **Grotta har sin egen scene** (`CaveScene`). Rommaler, monstre, tall og tidsplan står i [plan-grotta.md](plan-grotta.md).
+- **Monstrene blir slått ut**, de dør ikke. Det holder tonen koselig.
+- **Sideoppdrag finnes overalt:** i bygda, i hvert rolig område og i grotta. Se [plan-sideoppdrag.md](plan-sideoppdrag.md).
+- **Ingenting fra utforskingen vises på «Hvem er med»** foreløpig. Fellesserveren tar bare luke-id-er.
 
 ## Åpne spørsmål
 

@@ -63,11 +63,16 @@ import ForgeDescription from "./hud/ForgeDescription";
 import ForgeHammer from "./hud/ForgeHammer";
 import { giverOf } from "@/game/quests/label";
 import {
+  NPCS,
   npcAtSite,
   shouldShowQuestNpc,
+  type NpcId,
   type QuestSiteId,
 } from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
+import { useSideQuests } from "./hud/useSideQuests";
+import SideQuestDialogue from "./hud/SideQuestDialogue";
+import { sideMarkers } from "@/game/sideQuests/engine";
 import DevPanel from "./hud/DevPanel";
 import ForgeDialogue from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
@@ -159,6 +164,13 @@ export default function GameClient() {
   const zone = useZone();
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
+  // A side quest conversation: who, and which quest (kept through delivery).
+  const [sideTalk, setSideTalk] = useState<{
+    npc: NpcId;
+    questId: string;
+  } | null>(null);
+  // Walking off ends a side quest conversation.
+  useEffect(() => bridge.on("zone", () => setSideTalk(null)), []);
   const [logOpen, setLogOpen] = useState(false);
   const [signOpen, setSignOpen] = useState(false);
   const [caseOpen, setCaseOpen] = useState(false);
@@ -541,6 +553,21 @@ export default function GameClient() {
     wraithDefeatedNow: combat.defeated,
     progress,
   });
+  const side = useSideQuests(
+    {
+      items,
+      codeChecks: checks,
+      sanityConfigured: configured,
+      unpublishedDrafts,
+      archive,
+      archiveCases,
+      archiveCaseDrafts,
+      bakeryOrders,
+      bakerySign,
+      progress,
+    },
+    dev,
+  );
   const current = board.current;
   const currentId = current?.quest.id;
   const villageDoors = useMemo(() => weekDoors(board), [board]);
@@ -574,7 +601,11 @@ export default function GameClient() {
   // Who the knight is standing by, if anyone. Walking away ends the talk.
   // When a luke waits at the same place, E is for the luke, unless the luke
   // in hand asks for this person.
-  const npcHere = npcAtSite(zone === "wraith" ? null : zone);
+  const placeZone =
+    zone && zone !== "wraith" && !zone.startsWith("side:")
+      ? (zone as QuestSiteId)
+      : null;
+  const npcHere = npcAtSite(placeZone);
   const talkTo =
     npcHere &&
     siteQuest &&
@@ -585,6 +616,69 @@ export default function GameClient() {
       : npcHere;
   const dialogueOpen = talking && Boolean(talkTo);
   const openDialogue = useCallback(() => setTalking(true), []);
+
+  // Side quests. A person the lukes need right now (the luke's giver, or the
+  // person it asks about) talks luke first, with «Noe annet?» at the end;
+  // anyone else goes straight to the side quest.
+  const lukeNeedsHere =
+    Boolean(talkTo) &&
+    ((Boolean(current) && giverOf(current!.quest).id === talkTo!.id) ||
+      shouldShowQuestNpc(current, talkTo!.id));
+  const sideHere = talkTo ? side.forGiver(talkTo.id) : undefined;
+  const sideState =
+    sideTalk && talkTo?.id === sideTalk.npc
+      ? side.states.find((s) => s.quest.id === sideTalk.questId)
+      : undefined;
+  const sideOpen = Boolean(sideState);
+  const talkOpen = dialogueOpen || sideOpen;
+  const openSide = useCallback((npc: NpcId, questId: string) => {
+    setTalking(false);
+    setSideTalk({ npc, questId });
+  }, []);
+  const openTalk = useCallback(() => {
+    if (!talkTo) return;
+    if (sideHere && !lukeNeedsHere) openSide(talkTo.id, sideHere.quest.id);
+    else openDialogue();
+  }, [talkTo, sideHere, lukeNeedsHere, openSide, openDialogue]);
+  // The tracker is for the next luke. It mentions a side quest only when
+  // something is ready to hand in, or when no luke is waiting at all.
+  const sideReady = side.states.find((s) => s.status === "ready");
+  const sideNew = !current
+    ? side.states.find((s) => s.status === "available")
+    : undefined;
+  const sideNote = sideReady ?? sideNew;
+  const sideNoteGiver = sideNote
+    ? NPCS[sideNote.quest.giver as NpcId]
+    : undefined;
+  const trackerSide =
+    !narrow && sideNote && sideNoteGiver
+      ? {
+          text: sideReady
+            ? `Klart å levere: ${sideReady.quest.title}.`
+            : `Ingen luke venter nå. ${sideNoteGiver.name} har noe til deg.`,
+          label: `Gå til ${sideNoteGiver.name}`,
+          onClick: () => travelToSite(sideNoteGiver.site),
+        }
+      : null;
+
+  // A spot on a side quest trail, when it's the next one to find.
+  const spotHere = zone?.startsWith("side:")
+    ? side.atSpot(zone.slice("side:".length))
+    : undefined;
+  const { advance: advanceSide } = side;
+  const findSpot = useCallback(() => {
+    if (!spotHere) return;
+    const { state } = spotHere;
+    const step = state.quest.steps[state.step];
+    advanceSide(state);
+    const lastStep = state.step === state.quest.steps.length - 1;
+    const giver = NPCS[state.quest.giver as NpcId];
+    pushToast({
+      title: step.label,
+      body: lastStep && giver ? `Gå tilbake til ${giver.name}.` : undefined,
+      tone: "lesson",
+    });
+  }, [spotHere, advanceSide]);
 
   // Talking to Brann is how a quest is handed over, including one that
   // unlocks while you're still talking.
@@ -741,7 +835,12 @@ export default function GameClient() {
                   ? { label: "bodskiltet", open: () => setSignOpen(true) }
                   : talking
                     ? { label: "samtalen", open: () => setTalking(true) }
-                    : null;
+                    : sideTalk
+                      ? {
+                          label: "samtalen",
+                          open: () => setSideTalk(sideTalk),
+                        }
+                      : null;
       if (!back) return;
       setCodeQuestId(null);
       setModelQuestId(null);
@@ -750,6 +849,7 @@ export default function GameClient() {
       setSheetOpen(false);
       setSignOpen(false);
       setTalking(false);
+      setSideTalk(null);
       setReopen(back);
     };
   });
@@ -848,8 +948,18 @@ export default function GameClient() {
       doors: villageDoors,
       goal: nextStep,
       wraithDefeated: combat.defeated,
+      sideMarkers: sideMarkers(side.states, [
+        ...(current?.status === "offered" && !current.pickup
+          ? [giverOf(current.quest).id]
+          : []),
+        ...Object.values(NPCS)
+          .filter((npc) => shouldShowQuestNpc(current, npc.id))
+          .map((npc) => npc.id),
+      ]),
+      sideSpots: side.spots.map(({ id, x, y, prop }) => ({ id, x, y, prop })),
       frozen:
         dialogueOpen ||
+        sideOpen ||
         logOpen ||
         signOpen ||
         caseOpen ||
@@ -864,11 +974,14 @@ export default function GameClient() {
     equipped,
     forged,
     forgeLevel,
-    current?.status,
+    current,
     villageDoors,
     nextStep,
     combat.defeated,
+    side.states,
+    side.spots,
     dialogueOpen,
+    sideOpen,
     logOpen,
     signOpen,
     caseOpen,
@@ -927,20 +1040,21 @@ export default function GameClient() {
         openMap();
         return;
       }
-      if ((e.key === "c" || e.key === "C") && !dialogueOpen) {
+      if ((e.key === "c" || e.key === "C") && !talkOpen) {
         openSheet("look");
         return;
       }
-      if ((e.key === "i" || e.key === "I") && !dialogueOpen) {
+      if ((e.key === "i" || e.key === "I") && !talkOpen) {
         openSheet("bag");
         return;
       }
-      if (e.key === "Escape" && dialogueOpen) {
+      if (e.key === "Escape" && talkOpen) {
         setTalking(false);
+        setSideTalk(null);
         return;
       }
       if ((e.key === "e" || e.key === "E") && talkTo) {
-        if (!dialogueOpen) openDialogue();
+        if (!talkOpen) openTalk();
         return;
       }
       if ((e.key === "e" || e.key === "E") && siteQuest) {
@@ -962,13 +1076,18 @@ export default function GameClient() {
         openCaseBoard();
         return;
       }
+      if ((e.key === "e" || e.key === "E") && spotHere) {
+        e.preventDefault();
+        findSpot();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
         return;
       }
       const n = Number(e.key);
-      if (n >= 1 && n <= slots && !dialogueOpen) {
+      if (n >= 1 && n <= slots && !talkOpen) {
         const item = items[n - 1];
         if (item?.kind === "weapon") handleEquip(item);
       }
@@ -989,6 +1108,10 @@ export default function GameClient() {
     sheetShown,
     celebrations.length,
     openDialogue,
+    openTalk,
+    talkOpen,
+    spotHere,
+    findSpot,
     openLog,
     openMap,
     openSheet,
@@ -1034,6 +1157,7 @@ export default function GameClient() {
                   : null
               }
               onShowCelebration={closeStudio}
+              side={trackerSide}
             />
           </div>
 
@@ -1091,6 +1215,21 @@ export default function GameClient() {
                 onOpenCode={openCode}
                 onOpenBoard={openBoard}
                 onClose={() => setTalking(false)}
+                onOther={
+                  sideHere && talkTo
+                    ? () => openSide(talkTo.id, sideHere.quest.id)
+                    : undefined
+                }
+              />
+            )}
+            {sideState && sideTalk && (
+              <SideQuestDialogue
+                key={sideState.quest.id}
+                npc={NPCS[sideTalk.npc]}
+                state={sideState}
+                onAccept={() => side.accept(sideState.quest.id)}
+                onDeliver={() => side.deliver(sideState)}
+                onClose={() => setSideTalk(null)}
               />
             )}
             {reopen && (
@@ -1105,8 +1244,8 @@ export default function GameClient() {
                 ↩ Tilbake til {reopen.label}
               </button>
             )}
-            {talkTo && !dialogueOpen && (
-              <button type="button" className="prompt" onClick={openDialogue}>
+            {talkTo && !talkOpen && (
+              <button type="button" className="prompt" onClick={openTalk}>
                 <kbd>E</kbd> Snakk med {talkTo.name}
               </button>
             )}
@@ -1124,6 +1263,11 @@ export default function GameClient() {
                     : siteQuest.quest.checkedBy === "board"
                       ? "Åpne modellbrettet"
                       : "Åpne luka her"}
+              </button>
+            )}
+            {spotHere && !logOpen && (
+              <button type="button" className="prompt" onClick={findSpot}>
+                <kbd>E</kbd> {spotHere.spot.prompt}
               </button>
             )}
             {zone === "bakerySign" && !siteQuest && !logOpen && !signOpen && (
@@ -1236,6 +1380,7 @@ export default function GameClient() {
               setLogOpen(false);
               setWeekShown(week);
             }}
+            sideQuests={side.states}
           />
         )}
         {!showOpening && signOpen && (
@@ -1359,6 +1504,18 @@ export default function GameClient() {
               }}
               weaponSprite={
                 equipped?.kind === "weapon" ? equipped.sprite : null
+              }
+              sideQuests={side.states}
+              onSide={(questId, action) =>
+                updateProgress(PROGRESS_PROJECT, (p) => {
+                  const side = { ...p.side };
+                  if (action === "reset") delete side[questId];
+                  else {
+                    const at = new Date().toISOString();
+                    side[questId] = { at, step: 0, done: at };
+                  }
+                  return { ...p, side };
+                })
               }
             />
           )}

@@ -1,6 +1,12 @@
 import Phaser from "phaser";
 import { FIGURE_SIZE, drawFigure, type FigureChoice } from "./figure";
-import { bridge, type DoorMarker, type WorldState, type Zone } from "./bridge";
+import {
+  bridge,
+  type DoorMarker,
+  type SideSpotView,
+  type WorldState,
+  type Zone,
+} from "./bridge";
 import { SHEETS, TILE, type SpriteDef } from "./sprites";
 import {
   BUILDINGS,
@@ -42,6 +48,11 @@ export class WinterQuestScene extends Phaser.Scene {
   private knightBody!: Phaser.GameObjects.Image;
   private weapon!: Phaser.GameObjects.Image;
   private markers = new Map<NpcId, Phaser.GameObjects.Text>();
+  // Side quests: a smaller, frost-blue «!» or «?» that never bobs, so the
+  // lukes' gold «!» stays the one that calls loudest.
+  private sideMarkers = new Map<NpcId, Phaser.GameObjects.Text>();
+  private sideProps = new Map<string, Phaser.GameObjects.Image>();
+  private sideSpots: SideSpotView[] = [];
   private doorMarkers: Phaser.GameObjects.Container[] = [];
   private doorsKey = "";
   private goalBadge!: Phaser.GameObjects.Container;
@@ -279,6 +290,12 @@ export class WinterQuestScene extends Phaser.Scene {
           ease: "Sine.inOut",
         });
       this.markers.set(npc.id, marker);
+      this.sideMarkers.set(
+        npc.id,
+        this.text(npc.x, npc.y - 21, "!", 10, "#8fd3ff")
+          .setDepth(9000)
+          .setVisible(false),
+      );
     }
 
     // The Frost Wraith: Kenney's ghost, tinted to glacier blue.
@@ -549,6 +566,12 @@ export class WinterQuestScene extends Phaser.Scene {
     this.setFigure(w.figure);
     for (const [id, marker] of this.markers)
       marker.setVisible(w.npcMarker === id);
+    for (const [id, marker] of this.sideMarkers) {
+      const mark = w.npcMarker === id ? undefined : w.sideMarkers[id];
+      marker.setVisible(Boolean(mark));
+      if (mark) marker.setText(mark);
+    }
+    this.syncSideSpots(w.sideSpots);
     this.syncDoors(w.doors);
     // A cold forge smoulders; once lit it burns brighter with every level.
     this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
@@ -568,6 +591,27 @@ export class WinterQuestScene extends Phaser.Scene {
 
     if (w.wraithDefeated && !this.wraithGone) this.banishWraith();
     if (!w.wraithDefeated && this.wraithGone) this.reviveWraith();
+  }
+
+  // Props for the side quest spots still to find; gone once found.
+  private syncSideSpots(spots: SideSpotView[]) {
+    this.sideSpots = spots;
+    const keep = new Set(spots.map((s) => s.id));
+    for (const [id, image] of this.sideProps)
+      if (!keep.has(id)) {
+        image.destroy();
+        this.sideProps.delete(id);
+      }
+    for (const spot of spots) {
+      if (!spot.prop || this.sideProps.has(spot.id)) continue;
+      this.sideProps.set(
+        spot.id,
+        this.add
+          .image(spot.x, spot.y + 4, spot.prop.sheet, spot.prop.frame)
+          .setOrigin(0.5, 1)
+          .setDepth(spot.y),
+      );
+    }
   }
 
   private setWeapon(sprite: SpriteDef | null) {
@@ -924,6 +968,9 @@ export class WinterQuestScene extends Phaser.Scene {
   private updateZone() {
     const k = this.knight;
     let zone: Zone = null;
+    const spot = this.sideSpots.find(
+      (s) => Phaser.Math.Distance.Between(k.x, k.y, s.x, s.y) < FORGE_RANGE,
+    );
     const npc = Object.values(NPCS).find(
       (n) => Phaser.Math.Distance.Between(k.x, k.y, n.x, n.y) < FORGE_RANGE,
     );
@@ -955,6 +1002,8 @@ export class WinterQuestScene extends Phaser.Scene {
       ) < FORGE_RANGE
     )
       zone = "bakerySign";
+    // Side quest spots come after every luke place, so a luke always wins E.
+    else if (spot) zone = `side:${spot.id}`;
     // Where the wraith stands, or where it fell (which offers a rematch).
     else if (
       Phaser.Math.Distance.Between(

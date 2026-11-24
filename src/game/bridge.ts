@@ -1,4 +1,4 @@
-import type { SpriteDef } from "./sprites";
+import type { SpriteDef, SpriteSheet } from "./sprites";
 import type { FigureChoice } from "./figure";
 import type { Element } from "./magic";
 import type { NpcId, QuestSiteId } from "./village";
@@ -10,7 +10,8 @@ import type { NpcId, QuestSiteId } from "./village";
 // scene reads it on boot and on every change. The scene pushes back where the
 // knight is standing (`zone`) and one-shot effects travel as events.
 
-export type Zone = QuestSiteId | "wraith" | null;
+// `side:<spot id>`: a side quest spot (src/game/sideQuests/data.ts).
+export type Zone = QuestSiteId | "wraith" | `side:${string}` | null;
 // One calendar door shown in the village: a numbered window that hangs over
 // the place its task belongs to. Dark while locked, outlined while open, lit
 // when done.
@@ -32,6 +33,17 @@ export type WorldState = {
   goal: { x: number; y: number } | null; // the next step, in world px
   wraithDefeated: boolean;
   frozen: boolean; // a dialogue is open: the knight stands still
+  // Side quests: «!» to take, «?» to hand in, over people the lukes don't
+  // need right now; and the spots still to find, with their props.
+  sideMarkers: Partial<Record<string, "!" | "?">>;
+  sideSpots: SideSpotView[];
+};
+
+export type SideSpotView = {
+  id: string;
+  x: number;
+  y: number;
+  prop?: { sheet: SpriteSheet; frame: number };
 };
 
 export type QuestCelebration = {
@@ -84,6 +96,8 @@ class Bridge {
     goal: null,
     wraithDefeated: false,
     frozen: false,
+    sideMarkers: {},
+    sideSpots: [],
   };
 
   zone: Zone = null;
