@@ -36,7 +36,7 @@ står i [utviklingsplan.md](utviklingsplan.md).
       Legg andre **eksakte** origins (inkludert eventuell Codespaces-URL) i
       `COMMUNITY_ALLOWED_ORIGINS` som kommaseparert liste på Vercel. Test
       `OPTIONS` og `GET` fra deltakerens faktiske origin. CORS er ikke
-      autentisering; serveren har bare en enkel grense på 30 forespørsler per
+      autentisering; serveren har bare en enkel grense på 300 forespørsler per
       minutt/IP og Vercel må få en plattformdekkende rate limit før åpen
       lansering. Klientmeldt fullføring er fortsatt ikke kontrollert av
       serveren; ikke bruk fellespoeng til premier eller konkurranse.

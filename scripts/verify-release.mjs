@@ -7,7 +7,14 @@
 // `npm ci` and `next build`, like a fresh clone (slower).
 
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -58,7 +65,8 @@ function checkRelease(dir) {
   const file = join(dir, "src/game/release.ts");
   if (!existsSync(file)) return fail("src/game/release.ts is missing");
   const source = readFileSync(file, "utf8");
-  const value = (name) => source.match(new RegExp(`${name} = "([^"]*)"`))?.[1];
+  const value = (name) =>
+    source.match(new RegExp(`${name} =\\s*"([^"]*)"`))?.[1];
   const url = value("RELEASE_COMMUNITY_URL");
   if (!url)
     fail(
