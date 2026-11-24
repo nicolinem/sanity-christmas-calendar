@@ -11,6 +11,7 @@ import {
   randomFigure,
   type FigureChoice,
 } from "@/game/figure";
+import { HIDDEN_GEAR } from "@/game/figure";
 import { gearSource, isGear, wearable, type GearKey } from "@/game/wardrobe";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { GameItemView } from "@/game/items";
@@ -480,11 +481,13 @@ export default function CharacterSheet({
                     {options.map((o) => {
                       const mine = isOwned(cat.part!, o.id);
                       const source = gearSource(cat.part!, o.id);
+                      // Not found yet: a blurred shape, no name to give it away.
+                      const hidden = !mine && source === HIDDEN_GEAR;
                       return (
                         <button
                           key={o.id}
                           type="button"
-                          className={`cs-option${mine ? "" : " is-locked"}`}
+                          className={`cs-option${mine ? "" : " is-locked"}${hidden ? " is-hidden" : ""}`}
                           data-new-gear={
                             newGearKeys.includes(`${cat.part}:${o.id}`)
                               ? `${cat.part}:${o.id}`
@@ -495,8 +498,11 @@ export default function CharacterSheet({
                           title={
                             mine
                               ? o.label
-                              : `${o.label}: ${source ?? "ikke funnet ennå"}`
+                              : hidden
+                                ? HIDDEN_GEAR
+                                : `${o.label}: ${source ?? "ikke funnet ennå"}`
                           }
+                          aria-label={hidden ? HIDDEN_GEAR : undefined}
                           onClick={() => set({ ...choice, [cat.part!]: o.id })}
                         >
                           <FigureCanvas
@@ -508,7 +514,7 @@ export default function CharacterSheet({
                             }}
                             scale={4}
                           />
-                          <span>{o.label}</span>
+                          <span>{hidden ? "?" : o.label}</span>
                           {newGearKeys.includes(`${cat.part}:${o.id}`) && (
                             <span className="cs-new-badge">Ny</span>
                           )}
