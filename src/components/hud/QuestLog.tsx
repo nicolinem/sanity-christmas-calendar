@@ -1,5 +1,7 @@
 "use client";
 
+import SideQuestList from "./SideQuestList";
+import type { SideState } from "@/game/sideQuests/types";
 import { coreFirst, giverOf, lukeName } from "@/game/quests/label";
 import { useEffect, useRef, useState } from "react";
 import { CHAPTERS } from "@/game/quests/chapters";
@@ -41,6 +43,7 @@ type Props = {
   track: QuestTrack;
   onTrack: (track: QuestTrack) => void;
   onShowWeek?: (week: number) => void; // reopen a finished week's summary
+  sideQuests?: SideState[]; // shown under the week's lukes
 };
 
 type Tab = "quests" | "map" | "book" | "community";
@@ -65,6 +68,7 @@ export default function QuestLog({
   track,
   onTrack,
   onShowWeek,
+  sideQuests = [],
 }: Props) {
   const [tab, setTab] = useState<Tab>(initialTab);
   const [selectedId, setSelectedId] = useState(
@@ -214,6 +218,9 @@ export default function QuestLog({
               completedAt={completedAt}
               onSelect={setSelectedId}
               onShowWeek={onShowWeek}
+              side={
+                <SideQuestList states={sideQuests} onTravel={onTravelToSite} />
+              }
               detail={
                 selected && selected.chapter.number === week ? (
                   <QuestDetail
@@ -410,6 +417,7 @@ function WeekBody({
   onSelect,
   onShowWeek,
   detail,
+  side,
 }: {
   board: QuestBoard;
   week: number;
@@ -418,6 +426,7 @@ function WeekBody({
   onSelect: (questId: string) => void;
   onShowWeek?: (week: number) => void;
   detail: React.ReactNode;
+  side?: React.ReactNode;
 }) {
   const chapter = CHAPTERS.find((c) => c.number === week) ?? CHAPTERS[0];
   const states = coreFirst(
@@ -497,6 +506,7 @@ function WeekBody({
             Se ukeoppsummering
           </button>
         )}
+        {side}
       </nav>
       {detail}
     </div>

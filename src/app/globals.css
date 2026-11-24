@@ -460,6 +460,20 @@ kbd {
 .tracker-step-btn {
   font-size: 14px;
 }
+.tracker-side {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  margin-top: 10px;
+}
+.tracker-side .tracker-note {
+  margin-top: 0;
+  color: var(--glacier);
+}
+.tracker-side-btn {
+  font-size: 13px;
+  padding-left: 0;
+}
 .tracker-where {
   margin: 0;
   font-size: 13px;
@@ -1851,6 +1865,44 @@ kbd {
   background: var(--night-2);
 }
 
+/* Side quests under the week's lukes (SideQuestList.tsx). */
+.side-list {
+  margin-top: 14px;
+}
+.side-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.side-row {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  padding: 6px 10px;
+  background: var(--night-2);
+}
+.side-row-title {
+  font-size: 14px;
+  color: var(--snow);
+}
+.side-row.is-ready .side-row-title {
+  color: var(--glacier);
+}
+.side-row.is-done .side-row-title {
+  color: var(--frost);
+}
+.side-row-goal {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--frost);
+}
+.side-row-go {
+  font-size: 13px;
+  padding-left: 0;
+}
+
 /* --- Player plate and hotbar --------------------------------------------- */
 .hotbar {
   display: flex;
@@ -2276,6 +2328,21 @@ kbd {
 }
 .dialogue .btn--quiet {
   color: #d8b99a;
+}
+.dialogue-actions--other {
+  margin-top: 8px;
+}
+/* Side quests: a note under the wish, and what you got for it. */
+.side-note,
+.side-reward {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #e3c9ad;
+}
+.side-reward {
+  color: var(--glacier);
 }
 
 /* --- Encounter: one slim strip, so the fight stays in view ---------------- */

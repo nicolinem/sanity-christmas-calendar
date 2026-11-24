@@ -21,7 +21,16 @@ export const EMPTY_PROGRESS: Progress = {
   solved: {},
   weeksSeen: {},
   seenGear: {},
+  side: {},
+  found: {},
 };
+
+// A stored record that is a plain object, else an empty one.
+function record<T>(value: unknown): Record<string, T> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, T>)
+    : {};
+}
 
 // One record per Sanity project, so a fresh project is a fresh start.
 export const PROGRESS_PROJECT =
@@ -83,12 +92,9 @@ export function readProgress(project: string): Progress {
             typeof saved.sharePrompted === "boolean"
               ? saved.sharePrompted
               : false,
-          seenGear:
-            saved.seenGear &&
-            typeof saved.seenGear === "object" &&
-            !Array.isArray(saved.seenGear)
-              ? (saved.seenGear as Record<string, true>)
-              : {},
+          seenGear: record<true>(saved.seenGear),
+          side: record(saved.side),
+          found: record<true>(saved.found),
         };
       }
     }
