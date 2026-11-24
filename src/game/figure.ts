@@ -13,6 +13,10 @@ export const FIGURE_SIZE = 16;
 export const OUTLINE = "#3f2631"; // Kenney's outline, as in the rest of the art
 
 type Pair = readonly [main: string, shade: string];
+// Gear that will be found out in the world (monsters, chests, secrets). The
+// figure sheet shows it blurred, without a name, until the player has it.
+export const HIDDEN_GEAR = "Gjemt et sted i verden";
+
 type Option<T> = { id: string; label: string; unlock?: string } & T;
 
 // --- Colours: (main, shade) pairs from the same palette as the UI -------------
@@ -361,7 +365,7 @@ export const ARMOURS: Part[] = [
       "....lLLkkLLl",
       ".....lLLLLl",
     ),
-    unlock: "Finnes i bygda",
+    unlock: HIDDEN_GEAR,
   },
   {
     id: "chain",
@@ -373,7 +377,7 @@ export const ARMOURS: Part[] = [
       "....iIiIiIiI",
       ".....IiIiIi",
     ),
-    unlock: "Finnes i bygda",
+    unlock: HIDDEN_GEAR,
   },
   {
     id: "plate",
@@ -385,7 +389,7 @@ export const ARMOURS: Part[] = [
       "....iIIIIIIi",
       ".....ikkkki",
     ),
-    unlock: "Finnes i bygda",
+    unlock: HIDDEN_GEAR,
   },
 ];
 
@@ -415,7 +419,7 @@ export const HATS: Part[] = [
       "....AaAaAaAa",
       "...wWWWWWWWWw",
     ),
-    unlock: "Arkivarens spørsmål",
+    unlock: HIDDEN_GEAR,
   },
   {
     id: "earmuffs",
@@ -458,7 +462,7 @@ export const HATS: Part[] = [
       "....i",
       "....i",
     ),
-    unlock: "Finnes i bygda",
+    unlock: HIDDEN_GEAR,
   },
   // Closed knight's helmet with a crest and visor slits (frame 96).
   {
@@ -477,7 +481,7 @@ export const HATS: Part[] = [
       "....iiXiXiXi",
       "....iiiiiiii",
     ),
-    unlock: "Finnes i bygda",
+    unlock: HIDDEN_GEAR,
   },
   // Horned helmet (frame 87).
   {
@@ -490,7 +494,7 @@ export const HATS: Part[] = [
       "..RRrIIIiIIIrR",
       "...rRIiiIiiIR",
     ),
-    unlock: "Finnes i bygda",
+    unlock: HIDDEN_GEAR,
   },
   // Pointed hat tipped to one side, its brim shading the eyes (frame 84).
   {
@@ -523,7 +527,7 @@ export const SCARVES: Part[] = [
     id: "scarf",
     label: "Skjerf",
     grid: grid(10, "....KWKWKWKW", "....KW", ".....W"),
-    unlock: "Arkivarens spørsmål",
+    unlock: "Brann: fullført uke 1",
   },
 ];
 
@@ -563,13 +567,13 @@ export const EXTRAS: Part[] = [
       "....qqqqqqqq",
     ),
     behind: true,
-    unlock: "Arkivarens spørsmål",
+    unlock: HIDDEN_GEAR,
   },
   {
     id: "star",
     label: "Stjerne",
     grid: grid(10, "", "........G", ".......GYG", "........Y"),
-    unlock: "Arkivarens spørsmål",
+    unlock: HIDDEN_GEAR,
   },
 ];
 

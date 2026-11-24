@@ -5205,7 +5205,7 @@ kbd {
   box-shadow: 0 0 0 2px var(--glacier);
 }
 
-/* Arkivarens spørsmål: five answers in a row, rewards visible up front. */
+/* Arkivarens spørsmål: five answers in a row. */
 .cw-aq {
   display: grid;
   gap: 10px;
@@ -5253,10 +5253,6 @@ kbd {
 }
 .cw-aq-row button.is-done .cw-aq-n {
   color: #a5e6b8;
-}
-.cw-aq-reward {
-  font-size: 13px;
-  overflow-wrap: anywhere;
 }
 .cw-aq-ask {
   margin: 0;
@@ -5692,6 +5688,10 @@ kbd {
 }
 .cs-option.is-locked canvas {
   filter: grayscale(1) brightness(0.45);
+}
+/* Not found yet: just a blurred shape. */
+.cs-option.is-hidden canvas {
+  filter: grayscale(1) brightness(0.4) blur(3px);
 }
 .cs-swatches {
   display: flex;

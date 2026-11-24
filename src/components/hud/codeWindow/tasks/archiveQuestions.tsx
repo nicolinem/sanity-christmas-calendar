@@ -101,13 +101,8 @@ type Answer = {
   done: boolean;
   json: string;
   message?: string;
-  reward: string;
 };
 type AnswersData = { answers: Answer[] };
-
-// What each answer earns, shown before it's solved. Placeholders until the
-// character creator has the clothes.
-const REWARDS = ["Lue", "Skjerf", "Lykt", "Kappe", "Stjerne"];
 
 const expected = new Map<number, Promise<unknown>>();
 function answerFor(q: Question) {
@@ -120,7 +115,7 @@ function answerFor(q: Question) {
 }
 
 async function judgeOne(q: Question, query: unknown): Promise<Answer> {
-  const base = { n: q.n, ask: q.ask, reward: REWARDS[q.n - 1] };
+  const base = { n: q.n, ask: q.ask };
   if (typeof query !== "string")
     return {
       ...base,
@@ -171,7 +166,7 @@ export async function judgeQuestions(
   };
 }
 
-// A row of five, the reward visible before it's earned, and the JSON of the
+// A row of five, and the JSON of the
 // answer you pick. Opens on the first one that isn't solved yet.
 function Answers({ verdict }: { verdict: Verdict | null }) {
   const answers = (verdict?.data as AnswersData | undefined)?.answers ?? [];
@@ -192,7 +187,6 @@ function Answers({ verdict }: { verdict: Verdict | null }) {
               aria-pressed={a === shown}
             >
               <span className="cw-aq-n">{a.done ? `${a.n} · løst` : a.n}</span>
-              <span className="cw-aq-reward">{a.reward}</span>
             </button>
           </li>
         ))}

@@ -34,15 +34,33 @@ function gearWithSource(source: string): GearKey[] {
   );
 }
 
-// Quest id → the gear it gives. "Finnes i bygda" items have no source yet:
-// they come later, when there is something in the village to find them in.
+// Quest id → the gear it gives. HIDDEN_GEAR has no source yet: it will be
+// found out in the world later.
 export const GEAR_REWARDS: Record<string, GearKey[]> = {
   "archive-questions": gearWithSource("Arkivarens spørsmål"),
 };
 
-const BAKERY_CORE = [
-  ["baker-template", "baker-forge", "baker-function"],
-  ["baker-model", "baker-sign", "morning-rush"],
+// A whole week's core lukes on one track, technical and non-technical.
+const WEEK_REWARDS: { gear: GearKey; tracks: string[][] }[] = [
+  {
+    gear: "scarf:scarf",
+    tracks: [
+      [
+        "the-broken-forge",
+        "branns-ledger",
+        "the-guilds-law",
+        "the-drawing-board",
+      ],
+      ["the-broken-forge", "weapon-description", "apprentice-mistake"],
+    ],
+  },
+  {
+    gear: "hat:crown",
+    tracks: [
+      ["baker-template", "baker-forge", "baker-function"],
+      ["baker-model", "baker-sign", "morning-rush"],
+    ],
+  },
 ];
 
 const ALL_GEAR: GearKey[] = KEYS.flatMap((key) =>
@@ -61,8 +79,9 @@ export function ownedGear(
   for (const [questId, gear] of Object.entries(GEAR_REWARDS)) {
     if (progress.completed[questId]) for (const g of gear) owned.add(g);
   }
-  if (BAKERY_CORE.some((ids) => ids.every((id) => progress.completed[id])))
-    owned.add("hat:crown");
+  for (const { gear, tracks } of WEEK_REWARDS)
+    if (tracks.some((ids) => ids.every((id) => progress.completed[id])))
+      owned.add(gear);
   return owned;
 }
 

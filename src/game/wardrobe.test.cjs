@@ -20,7 +20,7 @@ test("only options with an unlock are gear", () => {
   assert.equal(isGear("hat", "bobble"), true);
   assert.equal(isGear("hat", "none"), false);
   assert.equal(isGear("skin", "light"), false);
-  assert.equal(gearSource("hat", "bobble"), "Arkivarens spørsmål");
+  assert.equal(gearSource("hat", "bobble"), "Gjemt et sted i verden");
   assert.equal(gearSource("hat", "none"), undefined);
 });
 
@@ -55,14 +55,14 @@ test("dev owns all gear", () => {
 
 test("completing the archive quest gives its items", () => {
   const gear = GEAR_REWARDS["archive-questions"];
-  assert.ok(gear.includes("hat:bobble") && gear.includes("scarf:scarf"));
+  assert.deepEqual(gear, ["extra:lantern"]);
   for (const g of gear)
     assert.equal(gearSource(...g.split(":")), "Arkivarens spørsmål");
   assert.deepEqual([...ownedGear(archive)].sort(), [...gear].sort());
   assert.equal(
     ownedGear(archive).has("armour:chain"),
     false,
-    "village gear has no source yet",
+    "hidden gear has no source yet",
   );
 });
 
@@ -89,4 +89,28 @@ test("the crown needs every core Bakery door on the same track", () => {
     }).has("hat:crown"),
     false,
   );
+});
+
+test("the scarf needs every core luke of week 1 on the same track", () => {
+  assert.equal(gearSource("scarf", "scarf"), "Brann: fullført uke 1");
+  const progress = (done) => ({
+    completed: Object.fromEntries(done.map((id) => [id, "2026-12-01"])),
+  });
+  const editor = [
+    "the-broken-forge",
+    "weapon-description",
+    "apprentice-mistake",
+  ];
+  assert.equal(
+    ownedGear(progress(editor.slice(0, 2))).has("scarf:scarf"),
+    false,
+  );
+  assert.equal(ownedGear(progress(editor)).has("scarf:scarf"), true);
+  const tech = [
+    "the-broken-forge",
+    "branns-ledger",
+    "the-guilds-law",
+    "the-drawing-board",
+  ];
+  assert.equal(ownedGear(progress(tech)).has("scarf:scarf"), true);
 });
