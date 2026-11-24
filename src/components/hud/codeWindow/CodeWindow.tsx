@@ -471,6 +471,8 @@ export default function CodeWindow({
                       active={activeHint}
                       onSelect={setSelectedHint}
                       onReveal={onRevealHint}
+                      onSolution={onRevealHint}
+                      solutionShown={solutionShown}
                     />
                   </header>
                   {hints.length > 0 && (
@@ -492,15 +494,6 @@ export default function CodeWindow({
                       }}
                     >
                       Vis et hint
-                    </button>
-                  )}
-                  {hintsShown === quest.hints.length && (
-                    <button
-                      type="button"
-                      className="btn btn--quiet cw-reveal-hint"
-                      onClick={onRevealHint}
-                    >
-                      Vis løsning
                     </button>
                   )}
                   {solutionShown && (

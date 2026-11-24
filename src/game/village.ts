@@ -222,7 +222,9 @@ export const NPCS: Record<NpcId, Npc> = {
     sprite: { sheet: "dungeon", frame: 87 },
     site: "westHouse",
     at: "ved huset vest i bygda",
-    x: QUEST_SITES.westHouse.x,
+    // A few steps east of the door, so she isn't in the way of the luke
+    // that's picked up there.
+    x: QUEST_SITES.westHouse.x + 3 * 16,
     y: QUEST_SITES.westHouse.y,
   },
 };

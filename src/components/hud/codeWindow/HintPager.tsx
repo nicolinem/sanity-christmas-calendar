@@ -2,12 +2,15 @@
 
 // Arrows between the hints you've opened. On the last one opened, the next
 // arrow becomes the button that opens the next hint, so there's one way on.
+// After the last hint it offers the solution, where the window has one.
 type Props = {
   total: number;
   shown: number;
   active: number;
   onSelect: (index: number) => void;
   onReveal: () => void;
+  onSolution?: () => void;
+  solutionShown?: boolean;
 };
 
 export default function HintPager({
@@ -16,9 +19,13 @@ export default function HintPager({
   active,
   onSelect,
   onReveal,
+  onSolution,
+  solutionShown = false,
 }: Props) {
   if (shown === 0) return null;
-  const atLastShown = active >= shown - 1;
+  // Showing the solution counts as one more: there are still only `total` hints.
+  const opened = Math.min(shown, total);
+  const atLastShown = active >= opened - 1;
   return (
     <div className="cw-hint-controls" aria-label="Navigasjon for hint">
       <button
@@ -33,16 +40,24 @@ export default function HintPager({
       <span className="cw-hint-count" aria-live="polite" aria-atomic="true">
         {active + 1} / {total}
       </span>
-      {atLastShown && shown < total ? (
+      {atLastShown && opened < total ? (
         <button
           type="button"
           className="cw-hint-next"
           onClick={() => {
-            onSelect(shown);
+            onSelect(opened);
             onReveal();
           }}
         >
-          Vis hint {shown + 1} ›
+          Vis hint {opened + 1} ›
+        </button>
+      ) : atLastShown && onSolution && !solutionShown ? (
+        <button
+          type="button"
+          className="cw-hint-next cw-hint-next--solution"
+          onClick={onSolution}
+        >
+          Vis løsning ›
         </button>
       ) : (
         <button

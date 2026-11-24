@@ -24,8 +24,12 @@ test("the bodskilt has its own reachable interaction zone, outside Baker range",
 test("Kari waits at the west house where the player can ask about her order", () => {
   assert.equal(NPCS.kari.name, "Kari");
   assert.equal(NPCS.kari.site, "westHouse");
-  assert.equal(NPCS.kari.x, QUEST_SITES.westHouse.x);
-  assert.equal(NPCS.kari.y, QUEST_SITES.westHouse.y);
+  // Beside the door, out of reach of the luke picked up there.
+  const apart = Math.hypot(
+    NPCS.kari.x - QUEST_SITES.westHouse.x,
+    NPCS.kari.y - QUEST_SITES.westHouse.y,
+  );
+  assert.ok(apart > 28 && apart < 64, `Kari står ${apart}px fra døra`);
   assert.equal(npcQuestLine("kari", "morning-rush"), "Julekake, selvfølgelig!");
   assert.equal(npcQuestLine("kari", "baker-sign"), undefined);
 });
