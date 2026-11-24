@@ -1197,11 +1197,9 @@ kbd {
 .log-backdrop {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  /* A definite row, so the journal's height: 100% is the same on every layout */
-  grid-template-rows: minmax(0, 1fr);
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--gutter);
   background: rgb(27 31 51 / 0.55);
   pointer-events: auto;
@@ -1299,8 +1297,11 @@ kbd {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  width: min(1080px, 100%);
-  height: min(740px, 100%);
+  /* Sized from the game area itself (cq units), not from a percentage the
+     browser may resolve late: the journal then opens centred the first time. */
+  width: min(1080px, calc(100cqw - 2 * var(--gutter)));
+  height: min(740px, calc(100cqh - 2 * var(--gutter)));
+  flex: none;
   padding: 20px 24px 14px;
 }
 .log-head {
