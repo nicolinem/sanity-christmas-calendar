@@ -3967,6 +3967,27 @@ kbd {
   font-size: 13px;
   color: var(--frost);
 }
+.cw-solution {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cw-solution summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--snow);
+}
+.cw-solution p {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+.cw-solution .cw-ours {
+  max-height: 260px;
+}
+.cw-solution .btn {
+  justify-self: start;
+  margin-top: 8px;
+}
 .cw-ours {
   margin: 6px 0 0;
   padding: 8px 10px;

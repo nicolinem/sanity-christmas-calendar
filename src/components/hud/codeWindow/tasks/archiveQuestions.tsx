@@ -215,6 +215,9 @@ export const questionsTask: WindowTask = {
   id: "archive-questions",
   file: "sporsmal.groq.ts",
   starter: STARTER,
+  solution: QUESTIONS.map(
+    (q) => `// ${q.n}. «${q.ask}»\nexport const svar${q.n} = \`\n${q.ours}\n\``,
+  ).join("\n\n"),
   modules: {},
   judge: judgeQuestions,
   resultTitle: "Arkivarens spørsmål",

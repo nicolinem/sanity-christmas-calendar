@@ -439,6 +439,43 @@ validation: (rule) =>
     context.document?.kind === "weapon" && !sprite ? "A weapon needs a sprite" : true,
   ),`;
 
+const VALIDATION_SOLUTION = `import { defineField, defineType } from "sanity"
+import { isNameTaken } from "../lib/guild"
+
+export const item = defineType({
+  name: "item",
+  title: "Item",
+  type: "document",
+  fields: [
+    defineField({
+      name: "name",
+      title: "Name",
+      type: "string",
+      validation: (rule) => [
+        rule.required(),
+        rule.custom(async (name, context) => {
+          const { document, getClient } = context
+          if (!name || !document) return true
+          const client = getClient({ apiVersion: "2026-09-03" })
+          const taken = await isNameTaken(client, name, document._id)
+          return taken ? \`Another item is already called "\${name}"\` : true
+        }),
+      ],
+    }),
+    defineField({ name: "kind", title: "Kind", type: "string" }),
+    defineField({
+      name: "sprite",
+      title: "Sprite",
+      type: "string",
+      validation: (rule) =>
+        rule.custom((sprite, context) =>
+          context.document?.kind === "weapon" && !sprite ? "A weapon needs a sprite" : true,
+        ),
+    }),
+  ],
+})
+`;
+
 // --- the result panel ------------------------------------------------------------
 
 const show = (v: unknown): ReactNode =>
@@ -494,6 +531,7 @@ export const validationTask: WindowTask = {
   id: "the-guilds-law",
   file: "item.tsx",
   starter: VALIDATION_STARTER,
+  solution: VALIDATION_SOLUTION,
   modules: VALIDATION_MODULES,
   importHelp: validationImportHelp,
   judge: judgeValidation,

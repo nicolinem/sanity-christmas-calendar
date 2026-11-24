@@ -577,6 +577,12 @@ export const whoPointsHereTask: WindowTask = {
   id: "who-points-here",
   file: "ObservationsHere.tsx",
   starter: STARTER,
+  solution: STARTER.replace(
+    "    // Hent observasjonene som peker på dette stedet.\n    // props.documentId er id-en til stedet du har åpnet.\n",
+    OURS.split("\n")
+      .map((line) => `    ${line}`)
+      .join("\n") + "\n",
+  ),
   modules: MODULES,
   judge: judgeWhoPointsHere,
   resultTitle: "Fanen på et sted i Studio",

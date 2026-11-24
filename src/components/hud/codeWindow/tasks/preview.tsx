@@ -338,6 +338,20 @@ export const previewTask: WindowTask = {
   id: "branns-ledger",
   file: "item.tsx",
   starter: PREVIEW_STARTER,
+  solution: PREVIEW_STARTER.replace(
+    'import SpriteImage from "../../components/SpriteImage"',
+    'import { BoltIcon } from "@sanity/icons/Bolt"\nimport SpriteImage from "../../components/SpriteImage"',
+  )
+    .replace(
+      '  type: "document",\n',
+      '  type: "document",\n  icon: BoltIcon,\n',
+    )
+    .replace(
+      '  preview: {\n    select: { title: "name", subtitle: "kind" },\n  },\n',
+      PREVIEW_OURS.split("\n")
+        .map((line) => `  ${line}`)
+        .join("\n") + "\n",
+    ),
   modules: PREVIEW_MODULES,
   importHelp: previewImportHelp,
   judge: judgePreview,

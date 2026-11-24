@@ -460,6 +460,12 @@ export const structureTask: WindowTask = {
   id: "archive-lists",
   file: "structure.ts",
   starter: STARTER,
+  solution: STARTER.replace(
+    "      // dine punkter her\n",
+    OURS.split("\n")
+      .map((line) => `      ${line}`)
+      .join("\n") + "\n",
+  ),
   modules: {},
   judge: judgeStructure,
   resultTitle: "Slik blir det i Studio (klikk deg inn)",

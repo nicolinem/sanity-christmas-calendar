@@ -80,6 +80,10 @@ export const bakerForgeTask: WindowTask = {
   id: "baker-forge",
   file: "ForgeAction.ts",
   starter,
+  solution: starter.replace(
+    "      // Sett forgedAt til nå og publiser dokumentet.",
+    "      patch.execute([{ set: { forgedAt: new Date().toISOString() } }])\n      publish.execute()",
+  ),
   modules,
   judge: judgeBakerForge,
   resultTitle: "Ett trykk i Studio",
