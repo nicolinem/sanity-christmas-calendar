@@ -4101,6 +4101,15 @@ kbd {
 .cw-hint-next:hover {
   background: color-mix(in srgb, var(--amber) 15%, transparent);
 }
+/* Shown, but not as eager as the next hint */
+.cw-hint-next--solution {
+  border-color: var(--frost-dim);
+  color: var(--snow);
+}
+.cw-hint-next--solution:hover {
+  border-color: var(--snow);
+  background: color-mix(in srgb, var(--snow) 10%, transparent);
+}
 .cw-hint-count {
   min-width: 3.5em;
   color: var(--frost);

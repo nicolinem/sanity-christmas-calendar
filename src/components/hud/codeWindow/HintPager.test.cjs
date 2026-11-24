@@ -39,3 +39,25 @@ test("with every hint open, the last one has nowhere further to go", () => {
 test("nothing shows before the first hint", () => {
   assert.equal(render({ shown: 0, active: 0 }), "");
 });
+
+test("after the last hint the next arrow offers the solution, once", () => {
+  const offered = render({ shown: 3, active: 2, onSolution: () => {} });
+  assert.match(offered, /Vis løsning ›/);
+  const open = render({
+    shown: 3,
+    active: 2,
+    onSolution: () => {},
+    solutionShown: true,
+  });
+  assert.doesNotMatch(open, /Vis løsning/);
+  // The solution counts as a fourth: the last hint still has nowhere to go.
+  assert.match(
+    render({ shown: 4, active: 2, onSolution: () => {}, solutionShown: true }),
+    /aria-label="Neste hint" disabled=""/,
+  );
+  // Going back to an earlier hint shows the plain arrow.
+  assert.doesNotMatch(
+    render({ shown: 3, active: 1, onSolution: () => {} }),
+    /Vis løsning/,
+  );
+});

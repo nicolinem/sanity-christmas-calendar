@@ -61,7 +61,11 @@ import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
 import ForgeHammer from "./hud/ForgeHammer";
 import { giverOf } from "@/game/quests/label";
-import { npcAtSite, type QuestSiteId } from "@/game/village";
+import {
+  npcAtSite,
+  shouldShowQuestNpc,
+  type QuestSiteId,
+} from "@/game/village";
 import { useLiveRefresh } from "./hud/useLive";
 import DevPanel from "./hud/DevPanel";
 import ForgeDialogue from "./hud/ForgeDialogue";
@@ -549,7 +553,17 @@ export default function GameClient() {
   }, [refresh]);
 
   // Who the knight is standing by, if anyone. Walking away ends the talk.
-  const talkTo = npcAtSite(zone === "wraith" ? null : zone);
+  // When a luke waits at the same place, E is for the luke, unless the luke
+  // in hand asks for this person.
+  const npcHere = npcAtSite(zone === "wraith" ? null : zone);
+  const talkTo =
+    npcHere &&
+    siteQuest &&
+    npcHere.id !==
+      (board.current ? giverOf(board.current.quest).id : "brann") &&
+    !shouldShowQuestNpc(board.current, npcHere.id)
+      ? undefined
+      : npcHere;
   const dialogueOpen = talking && Boolean(talkTo);
   const openDialogue = useCallback(() => setTalking(true), []);
 
