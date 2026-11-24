@@ -71,7 +71,7 @@ test("quest completion shows the finished task and reward before opening the nex
   assert.match(html, /Luke 3 lyser i journalen/);
   assert.match(html, /Ny side i boka: Validation/);
   assert.match(html, />Se neste luke<\/button>/);
-  assert.doesNotMatch(html, /Luke 4 er åpnet/);
+  assert.doesNotMatch(html, /Ny luke er åpnet/);
   assert.doesNotMatch(html, /quest-celebration-doorway/);
 });
 
@@ -120,7 +120,8 @@ test("the second beat opens the new door and directs the player to Brann", () =>
       onOpenLog() {},
     }),
   );
-  assert.match(html, /Luke 4 er åpnet/);
+  assert.match(html, /Ny luke er åpnet/);
+  assert.match(html, /<h2[^>]*>Luke 4<\/h2>/);
   assert.match(html, /Snakk med Brann ved smia \(E\)/);
   assert.match(html, /aria-label="Brann, smeden"/);
   assert.doesNotMatch(html, /Brann · smia/);

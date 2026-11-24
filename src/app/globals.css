@@ -223,7 +223,8 @@ kbd {
   container: game / size;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  /* clip, not hidden: a focus or scrollIntoView can't scroll the HUD away */
+  overflow: clip;
 }
 
 .stage,
@@ -1196,9 +1197,9 @@ kbd {
 .log-backdrop {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--gutter);
   background: rgb(27 31 51 / 0.55);
   pointer-events: auto;
@@ -1296,8 +1297,11 @@ kbd {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  width: min(1080px, 100%);
-  height: min(740px, 100%);
+  /* Sized from the game area itself (cq units), not from a percentage the
+     browser may resolve late: the journal then opens centred the first time. */
+  width: min(1080px, calc(100cqw - 2 * var(--gutter)));
+  height: min(740px, calc(100cqh - 2 * var(--gutter)));
+  flex: none;
   padding: 20px 24px 14px;
 }
 .log-head {
@@ -2792,9 +2796,32 @@ kbd {
 .community-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  align-items: center;
+  gap: 10px;
 }
-.community-chips span {
+.community-filter {
+  display: inline-flex;
+  border: 1px solid var(--night-3);
+}
+.community-filter button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--frost);
+  font: 600 12px/1 var(--font-body);
+  cursor: pointer;
+}
+.community-filter button[aria-pressed="true"] {
+  background: var(--night-3);
+  color: var(--snow);
+}
+.community-none {
+  padding: 10px 12px;
+  color: var(--frost-dim);
+  font-size: 13px;
+}
+.community-chips > span {
   padding: 4px 8px;
   background: var(--night-2);
   color: var(--frost);
@@ -2802,7 +2829,6 @@ kbd {
   font-weight: 600;
 }
 .community-heading p,
-.community-player p,
 .community-feed p {
   margin: 0;
   font-size: 13px;
@@ -2814,72 +2840,192 @@ kbd {
   align-items: start;
   gap: 18px;
 }
-.community-players {
+
+/* «Hvem er med»: one line per player, opened for more */
+.community-board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.community-player {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
+.community-entry {
   background: var(--night-2);
-  border: 2px solid var(--night-3);
+  border: 2px solid transparent;
 }
-.community-player.is-me {
+.community-entry.is-me {
   border-color: var(--amber);
 }
-.community-feed {
-  padding: 14px;
-  background: var(--night-2);
-}
-.community-figure {
-  flex: none;
+.community-row {
   display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  background: var(--night);
-}
-.community-player-top {
-  display: flex;
+  grid-template-columns:
+    1.6em 32px minmax(7em, 1fr) minmax(0, 1.3fr)
+    3.4em 3.8em;
   align-items: center;
   gap: 10px;
-  min-width: 0;
-}
-.community-player-top > div:last-child {
-  min-width: 0;
-}
-.community-player h3,
-.community-feed h3 {
-  margin: 0 0 4px;
-  font:
-    26px/1 var(--font-display),
-    var(--font-body);
+  width: 100%;
+  padding: 4px 10px;
+  border: 0;
+  background: transparent;
   color: var(--snow);
-  overflow-wrap: anywhere;
+  font: 14px/1.2 var(--font-body);
+  text-align: left;
+  cursor: pointer;
 }
-.community-player h3 small {
-  font-size: 18px;
+.community-row:hover,
+.community-entry.is-open .community-row {
+  background: color-mix(in srgb, var(--night-3) 45%, transparent);
+}
+.community-row:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
+}
+.community-rank {
+  font:
+    20px/1 var(--font-display),
+    var(--font-body);
+  color: var(--amber);
+  text-align: center;
+}
+.community-row-figure {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--night);
+  overflow: hidden;
+}
+.community-row-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.community-row-name small,
+.community-row-count small {
   color: var(--frost-dim);
+  font-weight: 400;
+}
+.community-row-count,
+.community-row-hints {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.community-row-hints {
+  color: var(--frost-dim);
+  font-size: 12px;
+}
+.community-more {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  padding: 10px 12px 12px calc(1.6em + 22px);
+  border-top: 1px solid var(--night-3);
+  font-size: 13px;
+  color: var(--frost);
+}
+.community-figure {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  background: var(--night);
+}
+.community-more-text {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.community-more p {
+  margin: 0;
 }
 .community-weapon {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 4px !important;
-  color: var(--snow) !important;
+  color: var(--snow);
+  font-weight: 600;
 }
-.community-hints {
+.community-more-text {
+  gap: 10px;
+}
+.community-weeks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.community-weeks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--night-3);
+  background: var(--night);
+  color: var(--frost-dim);
   font-size: 12px;
-  color: var(--frost);
 }
-.community-hints summary {
-  cursor: pointer;
+.community-weeks li.is-going {
+  border-color: color-mix(in srgb, var(--amber) 45%, var(--night-3));
+  color: var(--snow);
+}
+.community-weeks li.is-done {
+  border-color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 14%, var(--night));
+  color: var(--amber);
+}
+.community-weeks.is-compact {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.community-weeks.is-compact li {
+  gap: 5px;
+  padding: 2px 5px;
+  font-size: 11px;
+}
+.community-weeks.is-compact .community-week-pips i {
+  width: 5px;
+}
+.community-week-name {
+  font-weight: 600;
+}
+.community-week-pips {
+  display: inline-flex;
+  gap: 2px;
+}
+.community-week-pips i {
+  width: 8px;
+  height: 4px;
+  background: var(--night-3);
+}
+.community-week-pips .is-on {
+  background: var(--amber);
+}
+.community-week-count {
+  font-variant-numeric: tabular-nums;
+}
+.community-last,
+.community-hints p {
+  display: grid;
+  gap: 2px;
+}
+.community-last small,
+.community-hints p {
+  color: var(--frost-dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.community-last span {
+  color: var(--snow);
 }
 .community-hints ul {
   list-style: none;
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   padding: 0;
 }
 .community-hints li {
@@ -2888,21 +3034,22 @@ kbd {
   gap: 8px;
   padding: 2px 0;
   color: var(--frost-dim);
+  font-size: 12px;
 }
 .community-hints li span:last-child {
   color: var(--snow);
 }
-.community-level {
-  display: flex;
-  gap: 3px;
+
+.community-feed {
+  padding: 14px;
+  background: var(--night-2);
 }
-.community-level span {
-  flex: 1;
-  height: 6px;
-  background: var(--night-3);
-}
-.community-level .is-on {
-  background: var(--amber);
+.community-feed h3 {
+  margin: 0 0 4px;
+  font:
+    26px/1 var(--font-display),
+    var(--font-body);
+  color: var(--snow);
 }
 .community-feed ul {
   list-style: none;
@@ -2927,6 +3074,20 @@ kbd {
 @media (max-width: 760px) {
   .community-layout {
     grid-template-columns: 1fr;
+  }
+  .community-row {
+    grid-template-columns: 1.6em 32px minmax(0, 1fr) 3.4em;
+  }
+  .community-row .community-weeks,
+  .community-row-hints {
+    display: none;
+  }
+  .community-more {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding-left: 12px;
+  }
+  .community-hints {
+    grid-column: 1 / -1;
   }
 }
 .log-lesson {
@@ -3928,6 +4089,18 @@ kbd {
   cursor: default;
   opacity: 0.55;
 }
+.cw-hint-next {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  background: transparent;
+  font: 600 14px/1 var(--font-body);
+  cursor: pointer;
+}
+.cw-hint-next:hover {
+  background: color-mix(in srgb, var(--amber) 15%, transparent);
+}
 .cw-hint-count {
   min-width: 3.5em;
   color: var(--frost);
@@ -4058,7 +4231,8 @@ kbd {
     width: 44px;
     height: 44px;
   }
-  .cw-reveal-hint {
+  .cw-reveal-hint,
+  .cw-hint-next {
     min-height: 44px;
   }
 }

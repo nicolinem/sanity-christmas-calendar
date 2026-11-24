@@ -1,5 +1,6 @@
 "use client";
 
+import { FEATURES } from "@/game/features";
 import type { FigureChoice } from "@/game/figure";
 import FigureCanvas from "../figure/FigureCanvas";
 
@@ -32,7 +33,7 @@ export default function PlayerPlate({
         </span>
         <span className="plate-who">
           {name && <span className="plate-name">{name}</span>}
-          <span className="plate-level">Nivå {level}</span>
+          {FEATURES.rpg && <span className="plate-level">Nivå {level}</span>}
         </span>
       </button>
       <div className="tooltip frame frame--slate plate-tooltip" role="tooltip">

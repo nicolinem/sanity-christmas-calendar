@@ -133,7 +133,10 @@ const theBrokenForge: Quest = {
       done: Boolean(forged) && progress.wraithDefeated,
       objectives: [
         { label: "Publiser et våpen i Sanity Studio", done: Boolean(forged) },
-        { label: "Beseir snømonsteret", done: progress.wraithDefeated },
+        {
+          label: "Beseir snømonsteret øst for brønnen",
+          done: progress.wraithDefeated,
+        },
       ],
       message:
         sanityConfigured === false

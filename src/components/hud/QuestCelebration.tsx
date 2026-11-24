@@ -80,14 +80,11 @@ export default function QuestCelebration({
         >
           <p className="quest-celebration-kicker">
             {unlocked
-              ? `Luke ${nextDoor}`
-              : bonus
-                ? "☆ Frivillig"
-                : `Luke ${door}`}{" "}
-            {unlocked ? "er åpnet" : "er fullført"}
+              ? "Ny luke er åpnet"
+              : `${bonus ? "☆ Frivillig" : `Luke ${door}`} er fullført`}
           </p>
           <h2 id="quest-celebration-heading">
-            {unlocked ? "Ny luke!" : "Gratulerer!"}
+            {unlocked ? `Luke ${nextDoor}` : "Gratulerer!"}
           </h2>
           <p className="quest-celebration-title">
             {unlocked ? `Neste oppgave venter hos ${giver.name}` : title}

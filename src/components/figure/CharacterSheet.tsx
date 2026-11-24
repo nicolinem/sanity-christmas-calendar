@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FEATURES } from "@/game/features";
 import {
   CLOTH_COLORS,
   FIGURE_OPTIONS,
@@ -640,7 +641,7 @@ export default function CharacterSheet({
             ) : (
               <div className="cs-hero-meta">
                 <strong>{initialName.trim() || "Figuren din"}</strong>
-                <span>Nivå {level}</span>
+                {FEATURES.rpg && <span>Nivå {level}</span>}
                 {mode === "bag" && (
                   <span className="cs-hand">
                     I hånda: {equippedItem?.name ?? ""}

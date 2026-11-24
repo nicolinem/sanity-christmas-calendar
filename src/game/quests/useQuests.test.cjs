@@ -99,6 +99,8 @@ function harness(
     "@/game/quests/chapters": { CHAPTERS: chapters },
     "@/game/quests/engine": engineModule,
     "@/game/rules": rules,
+    // Levels on, so the level-up events are tested too.
+    "@/game/features": { FEATURES: { rpg: true } },
     "@/game/quests/progress": {
       EMPTY_PROGRESS,
       PROGRESS_PROJECT: "test",

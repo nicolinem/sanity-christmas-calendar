@@ -112,6 +112,7 @@ test("characters include players without milestones and count all unique milesto
     {
       playerId: "abcdefgh",
       completedCount: 2,
+      completed: ["the-broken-forge", "branns-ledger"],
       forgeLevel: 2,
       weapon: { name: "Sverd", spriteId: "sword" },
       figure: DEFAULT_FIGURE,
@@ -121,6 +122,7 @@ test("characters include players without milestones and count all unique milesto
     {
       playerId: "ijklmnop",
       completedCount: 1,
+      completed: ["the-broken-forge"],
       forgeLevel: 2,
       weapon: null,
       figure: null,
@@ -130,6 +132,7 @@ test("characters include players without milestones and count all unique milesto
     {
       playerId: "newcomer",
       completedCount: 0,
+      completed: [],
       forgeLevel: 1,
       weapon: null,
       figure: null,
@@ -243,4 +246,20 @@ test("hint counts are stored per luke only when shared, and stay small", () => {
   );
   assert.deepEqual(players[0].hints, { "the-broken-forge": 0 });
   assert.equal(players[1].hints, null);
+});
+
+test("week progress counts a player's core lukes on their own track", () => {
+  const { weekProgress } = require("./community.ts");
+  const { CHAPTERS } = require("./quests/chapters.ts");
+  const weeks = weekProgress(["the-broken-forge", "branns-ledger"]);
+  assert.deepEqual(
+    weeks.map((w) => w.week),
+    CHAPTERS.map((c) => c.number),
+  );
+  assert.equal(weeks[0].done, 2);
+  assert.ok(weeks.every((w) => w.total > 0 && w.done <= w.total));
+  assert.equal(
+    weekProgress([]).reduce((sum, w) => sum + w.done, 0),
+    0,
+  );
 });

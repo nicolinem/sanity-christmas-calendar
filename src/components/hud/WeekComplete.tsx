@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { FEATURES } from "@/game/features";
 import { forgedPower } from "@/game/rules";
 import { shareText, type WeekSummary } from "@/game/quests/weeks";
 import SpriteIcon from "./SpriteIcon";
@@ -26,7 +27,7 @@ export default function WeekComplete({
 }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState(false);
-  const text = shareText(summary, forgeLevel);
+  const text = shareText(summary, FEATURES.rpg ? forgeLevel : null);
 
   useEffect(() => {
     closeRef.current?.focus({ preventScroll: true });
@@ -75,10 +76,12 @@ export default function WeekComplete({
           <li>
             {summary.pages} nye {summary.pages === 1 ? "side" : "sider"} i boka.
           </li>
-          <li>
-            Nivå {forgeLevel}: våpnene gjør {forgedPower(forgeLevel).damage}{" "}
-            skade.
-          </li>
+          {FEATURES.rpg && (
+            <li>
+              Nivå {forgeLevel}: våpnene gjør {forgedPower(forgeLevel).damage}{" "}
+              skade.
+            </li>
+          )}
         </ul>
 
         <p className="week-done-friday">

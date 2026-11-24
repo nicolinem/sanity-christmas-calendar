@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import { FEATURES } from "@/game/features";
 import { bridge } from "@/game/bridge";
 import { findNewPlayerOrder } from "@/game/bakery";
 import type { GameItemView } from "@/game/items";
@@ -346,7 +347,7 @@ export function useQuestBoard({
             : undefined,
         nextGiver: next ? (next.quest.giver ?? "brann") : undefined,
         level:
-          index === finished.length - 1 && after > before
+          FEATURES.rpg && index === finished.length - 1 && after > before
             ? { number: after, damage: forgedPower(after).damage }
             : undefined,
       });
