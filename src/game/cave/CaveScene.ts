@@ -22,7 +22,9 @@ import {
 } from "./combat";
 import { ENEMIES, PLAYABLE } from "./enemies";
 import { generateFloor, type Floor, type Point } from "./generate";
+import { CAMERA_PAD_TILES, ROOF_TINT } from "./mood";
 import { CAVE_PROPS } from "./props";
+import { CAVE_FRAMES } from "./rooms";
 
 const SPEED = 64; // world px per second, as in the village
 const STAIRS_RANGE = 28;
@@ -31,6 +33,7 @@ const MAX_STEP_MS = 50; // a long frame (tab switch, GC) is cut to this
 const MAX_MONSTERS = 6;
 const FLASH_MS = 90; // white flash on a monster that was hit
 const MARK_GAP = 10; // px between the marks of a charge's line
+const FLOOR_TEXTURE = "cave-floor"; // floor and walls, baked once per floor
 
 const FACING_STEP: Record<Facing, Point> = {
   left: { x: -1, y: 0 },
@@ -50,9 +53,10 @@ type Monster = {
 
 type Rock = Point & { image: Phaser.GameObjects.Image; box: Box };
 
-// The cave: one generated floor at a time, seen whole from above. Monsters
-// chase and strike, the knight swings, rocks break, and drinks heal. Nothing
-// moves and no timer runs while the cave is held (fade, dialogue, Studio).
+// The cave: one generated floor at a time, seen from above; the camera follows
+// the knight when the floor is bigger than the view. Monsters chase and
+// strike, the knight swings, rocks break, and drinks heal. Nothing moves and
+// no timer runs while the cave is held (fade, dialogue, Studio).
 export class CaveScene extends Phaser.Scene {
   private floor!: Floor;
   private rows: string[] = []; // floor.rows with broken rocks opened up
@@ -60,6 +64,9 @@ export class CaveScene extends Phaser.Scene {
   private busy = false; // a fade is running: ignore input and transitions
   private leaveQueued = false; // «Gå hjem» asked for during a descend fade
   private objects: Phaser.GameObjects.GameObject[] = [];
+  private floorImage: Phaser.GameObjects.Image | null = null; // the baked floor
+  // One image per torch over the baked floor, so each can be lit on its own.
+  private torches: Phaser.GameObjects.Image[] = [];
   private solids: Box[] = [];
   private monsters: Monster[] = [];
   private rocks: Rock[] = [];
@@ -104,6 +111,8 @@ export class CaveScene extends Phaser.Scene {
     this.route = [];
     this.stuckFrames = 0;
     this.objects = [];
+    this.floorImage = null;
+    this.torches = [];
     this.monsters = [];
     this.rocks = [];
     this.figureKey = "";
@@ -125,22 +134,15 @@ export class CaveScene extends Phaser.Scene {
     this.knightBody = this.add.image(0, 0, "dungeon", 96).setOrigin(0.5, 1);
     this.knight = this.add.container(0, 0, [shadow, this.knightBody]);
 
-    this.setupInput();
-    this.buildFloor(undefined);
-    this.setFigure(bridge.world.figure);
-
     const cam = this.cameras.main;
     cam.setBackgroundColor("#181425");
     cam.setRoundPixels(true);
-    const fit = () => {
-      const { width, height } = this.scale;
-      cam.setZoom(integerZoom(width, height, TARGET_VIEW));
-      cam.centerOn(
-        (this.floor.rows[0].length * TILE) / 2,
-        (this.floor.rows.length * TILE) / 2,
-      );
-    };
-    fit();
+
+    this.setupInput();
+    this.buildFloor(undefined); // also fits the camera to the floor
+    this.setFigure(bridge.world.figure);
+
+    const fit = () => this.fitCamera();
     this.scale.on(Phaser.Scale.Events.RESIZE, fit);
     // Nothing moves during the fade-in, as in descend.
     this.busy = true;
@@ -162,6 +164,7 @@ export class CaveScene extends Phaser.Scene {
 
     const teardown = () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, fit);
+      this.clearFloorView();
       this.unsubscribe.forEach((u) => u());
       this.unsubscribe = [];
       bridge.setZone(null);
@@ -181,6 +184,7 @@ export class CaveScene extends Phaser.Scene {
   private buildFloor(previousRoom: string | undefined) {
     this.objects.forEach((o) => o.destroy());
     this.objects = [];
+    this.clearFloorView();
     this.monsters.forEach((m) => this.removeMonster(m));
     this.rocks.forEach((r) => r.image.destroy());
     this.rocks = [];
@@ -189,16 +193,7 @@ export class CaveScene extends Phaser.Scene {
     this.floor = floor;
     this.rows = [...floor.rows];
 
-    floor.tiles.forEach((row, y) =>
-      row.forEach((frame, x) =>
-        this.objects.push(
-          this.add
-            .image(x * TILE, y * TILE, floor.sheet, frame)
-            .setOrigin(0)
-            .setDepth(-1),
-        ),
-      ),
-    );
+    this.drawFloorView(floor);
     const prop = (
       p: { sheet: "dungeon" | "ski"; frame: number },
       at: { x: number; y: number },
@@ -240,6 +235,79 @@ export class CaveScene extends Phaser.Scene {
     // A blink in progress ends with the floor; invulnerability itself carries.
     this.knight.setPosition(floor.start.x, floor.start.y).setAlpha(1);
     this.route = [];
+    this.fitCamera(); // snaps to the start: no pan from the last floor
+  }
+
+  // Floor and walls baked into one texture, with the torches and ice lumps as
+  // images on top. Decor is drawn only; it never blocks.
+  private drawFloorView(floor: Floor) {
+    const width = floor.rows[0].length * TILE;
+    const height = floor.rows.length * TILE;
+    const baked = this.textures.addDynamicTexture(FLOOR_TEXTURE, width, height);
+    if (baked) {
+      floor.tiles.forEach((row, y) =>
+        row.forEach((frame, x) =>
+          baked.stamp(floor.sheet, frame, x * TILE, y * TILE, {
+            originX: 0,
+            originY: 0,
+            tint: floor.roof[y][x] ? ROOF_TINT : 0xffffff,
+          }),
+        ),
+      );
+      baked.render();
+      this.floorImage = this.add
+        .image(0, 0, FLOOR_TEXTURE)
+        .setOrigin(0)
+        .setDepth(-1);
+    }
+    // Exactly over the torch frame in the baked floor.
+    this.torches = floor.torches.map((t) =>
+      this.add.image(t.x, t.y, floor.sheet, CAVE_FRAMES.torch).setDepth(-0.5),
+    );
+    for (const d of floor.decor)
+      this.objects.push(
+        this.add.image(d.x, d.y, d.sheet, d.frame).setDepth(d.y),
+      );
+  }
+
+  // The baked floor and the torches go with their floor, and with the scene.
+  private clearFloorView() {
+    this.floorImage?.destroy();
+    this.floorImage = null;
+    this.torches.forEach((t) => t.destroy());
+    this.torches = [];
+    if (this.textures.exists(FLOOR_TEXTURE))
+      this.textures.remove(FLOOR_TEXTURE);
+  }
+
+  // Whole-number zoom as in the village. A floor bigger than the view is
+  // followed within a dark margin; a smaller one stands still, centred.
+  // startFollow snaps at once, so a new floor or a resize never pans.
+  private fitCamera() {
+    const cam = this.cameras.main;
+    const { width, height } = this.scale;
+    const zoom = integerZoom(width, height, TARGET_VIEW);
+    cam.setZoom(zoom);
+    const floorW = this.floor.rows[0].length * TILE;
+    const floorH = this.floor.rows.length * TILE;
+    if (floorW * zoom <= width && floorH * zoom <= height) {
+      cam.stopFollow();
+      cam.removeBounds();
+      cam.centerOn(floorW / 2, floorH / 2);
+      return;
+    }
+    // Along an axis where even the padded floor fits, the bounds grow to the
+    // view around the floor's middle, so the floor is centred on that axis
+    // instead of pinned to the top or left.
+    const pad = CAMERA_PAD_TILES * TILE;
+    const axis = (size: number, view: number) =>
+      size + 2 * pad >= view
+        ? { from: -pad, size: size + 2 * pad }
+        : { from: size / 2 - view / 2, size: view };
+    const x = axis(floorW, width / zoom);
+    const y = axis(floorH, height / zoom);
+    cam.setBounds(x.from, y.from, x.size, y.size);
+    cam.startFollow(this.knight, true, 0.15, 0.15);
   }
 
   // The world state follows the floor the player is on and the life left.
