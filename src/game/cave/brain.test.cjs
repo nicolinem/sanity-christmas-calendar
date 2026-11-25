@@ -117,3 +117,78 @@ test("canWake false does not stop a brain that is already chasing", () => {
   assert.equal(out.brain.mode, "chase");
   assert.ok(out.brain.x > 0);
 });
+
+const awake = (id, depth, extra = {}) => ({
+  ...spawnBrain(id, at(0), depth),
+  mode: "chase",
+  ...extra,
+});
+
+test("cyclops keeps its distance", () => {
+  const c = awake("cyclops", 8, { nextShotAt: 99999 });
+  const near = stepBrain(c, at(40), 1000, 0.1, free).brain;
+  assert.ok(near.x < 0);
+  const far = stepBrain(c, at(140), 1000, 0.1, free).brain;
+  assert.ok(far.x > 0);
+  const mid = stepBrain(c, at(90), 1000, 0.1, free).brain;
+  assert.equal(mid.x, 0);
+  assert.equal(mid.mode, "chase");
+});
+
+test("cyclops aims, then throws exactly one shot toward the aim point", () => {
+  const c = awake("cyclops", 8);
+  const aimMs = scaleEnemy("cyclops", 8).aimMs;
+  const a = stepBrain(c, at(90, 0), 1000, 0.1, free);
+  assert.equal(a.brain.mode, "aim");
+  assert.equal(a.shot, undefined);
+  assert.equal(a.brain.until, 1000 + aimMs);
+  assert.deepEqual(a.brain.aimDir, { x: 1, y: 0 });
+  // The player moves while aiming: the shot keeps the locked direction.
+  const early = stepBrain(a.brain, at(0, 90), 1000 + aimMs - 1, 0.1, free);
+  assert.equal(early.shot, undefined);
+  assert.equal(early.brain.x, 0);
+  const t = 1000 + aimMs;
+  const r = stepBrain(a.brain, at(0, 90), t, 0.1, free);
+  assert.deepEqual(r.shot, {
+    x: 0,
+    y: 0,
+    dir: { x: 1, y: 0 },
+    damage: c.damage,
+  });
+  assert.equal(r.brain.mode, "rest");
+  assert.equal(r.brain.until, t + 400);
+  assert.equal(r.brain.nextShotAt, t + 2200);
+  const after = stepBrain(r.brain, at(90), t + 1, 0.1, free);
+  assert.equal(after.shot, undefined);
+});
+
+test("cyclops with no shot ready does not aim; out of range does not aim", () => {
+  const wait = awake("cyclops", 8, { nextShotAt: 5000 });
+  assert.equal(stepBrain(wait, at(90), 1000, 0.1, free).brain.mode, "chase");
+  const far = awake("cyclops", 8);
+  assert.equal(stepBrain(far, at(170), 1000, 0.1, free).brain.mode, "chase");
+});
+
+test("a sleeping cyclops never shoots", () => {
+  const c = spawnBrain("cyclops", at(0), 8);
+  const r = stepBrain(c, at(90), 1000, 0.1, free, false);
+  assert.equal(r.brain.mode, "idle");
+  assert.equal(r.shot, undefined);
+});
+
+test("shooting does not mutate its input", () => {
+  const c = awake("cyclops", 8);
+  const copy = JSON.parse(JSON.stringify(c));
+  stepBrain(c, at(90), 1000, 0.1, free);
+  assert.deepEqual(c, copy);
+});
+
+test("drake charges up close, aims at range, chases when no shot", () => {
+  const d = awake("drake", 10);
+  assert.equal(stepBrain(d, at(60), 1000, 0.1, free).brain.mode, "windup");
+  assert.equal(stepBrain(d, at(140), 1000, 0.1, free).brain.mode, "aim");
+  const cd = awake("drake", 10, { nextShotAt: 99999 });
+  const c = stepBrain(cd, at(140), 1000, 0.1, free).brain;
+  assert.equal(c.mode, "chase");
+  assert.ok(c.x > 0);
+});

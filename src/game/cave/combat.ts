@@ -24,6 +24,15 @@ export const DASH_SPEED = 150;
 export const DASH_MAX = 80;
 export const DASH_HIT = 10;
 export const CHARGE_REST_MS = 1000;
+export const KEEP_MIN = 64;
+export const KEEP_MAX = 112;
+export const SHOOT_RANGE = 160;
+export const AIM_MS = 600;
+export const SHOT_REST_MS = 400;
+export const PROJECTILE_SPEED = 60;
+export const PROJECTILE_HIT = 10;
+export const PROJECTILE_RANGE = 240;
+export const MAX_PROJECTILES = 3;
 
 export type Attack = { damage: number; element: Element | null };
 export type Facing = "left" | "right" | "up" | "down";
@@ -31,16 +40,28 @@ export type Facing = "left" | "right" | "up" | "down";
 export function scaleEnemy(
   id: EnemyId,
   depth: number,
-): { hp: number; damage: number; windupMs: number | null } {
+): {
+  hp: number;
+  damage: number;
+  windupMs: number | null;
+  aimMs: number | null;
+  everyMs: number | null;
+} {
   const e = ENEMIES[id];
   const n = depth - 1;
   const charge = e.moves.find((m) => m.kind === "charge");
+  const shoot = e.moves.find((m) => m.kind === "shoot");
   return {
     hp: Math.round(e.hp * (1 + 0.12 * n)),
     damage: Math.max(1, Math.round(e.damage * (1 + 0.08 * n))),
     windupMs: charge
       ? Math.max(MIN_WINDUP_MS, Math.round(charge.windupMs * (1 - 0.05 * n)))
       : null,
+    // The aim tell shortens with depth like the windup, with the same floor.
+    aimMs: shoot
+      ? Math.max(MIN_WINDUP_MS, Math.round(AIM_MS * (1 - 0.05 * n)))
+      : null,
+    everyMs: shoot ? shoot.everyMs : null,
   };
 }
 

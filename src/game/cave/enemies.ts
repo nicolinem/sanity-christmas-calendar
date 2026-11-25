@@ -78,7 +78,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     sprite: d(112),
     from: 6,
     hp: 24,
-    damage: 3,
+    damage: 2,
     speed: 18,
     moves: [{ kind: "charge", windupMs: 900 }],
     immuneTo: "poison",
@@ -112,7 +112,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     sprite: d(110),
     from: 10,
     hp: 140,
-    damage: 3,
+    damage: 2,
     speed: 24,
     moves: [
       { kind: "charge", windupMs: 600 },
@@ -126,7 +126,14 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
 };
 
 // The only kinds the scene draws.
-export const PLAYABLE: EnemyId[] = ["rat", "slime", "bat", "spider"];
+export const PLAYABLE: EnemyId[] = [
+  "rat",
+  "slime",
+  "bat",
+  "spider",
+  "troll",
+  "cyclops",
+];
 
 export function enemiesAt(depth: number): EnemyId[] {
   return (Object.keys(ENEMIES) as EnemyId[]).filter(

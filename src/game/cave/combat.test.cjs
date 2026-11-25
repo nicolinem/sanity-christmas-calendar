@@ -34,6 +34,22 @@ test("enemy damage stays at or under 3 on depth 10", () => {
   for (const id of PLAYABLE) assert.ok(scaleEnemy(id, 10).damage <= 3, id);
 });
 
+test("damage is capped at 3 on depth 10, drake and aim time too", () => {
+  for (const id of [...PLAYABLE, "drake"])
+    assert.ok(scaleEnemy(id, 10).damage <= 3, id);
+  assert.ok(scaleEnemy("cyclops", 10).aimMs >= 350);
+  assert.ok(scaleEnemy("cyclops", 1).aimMs > scaleEnemy("cyclops", 6).aimMs);
+  assert.equal(scaleEnemy("cyclops", 1).everyMs, 2200);
+  assert.equal(scaleEnemy("rat", 1).aimMs, null);
+  assert.equal(scaleEnemy("rat", 1).everyMs, null);
+  assert.equal(scaleEnemy("drake", 1).windupMs, 600);
+});
+
+test("troll and cyclops are playable, bosses are not", () => {
+  assert.ok(PLAYABLE.includes("troll") && PLAYABLE.includes("cyclops"));
+  assert.ok(!PLAYABLE.includes("drake") && !PLAYABLE.includes("yeti"));
+});
+
 test("scaling grows with depth and windup is floored", () => {
   assert.ok(scaleEnemy("rat", 5).hp > scaleEnemy("rat", 1).hp);
   assert.ok(
