@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
 const { generateFloor } = require("./generate.ts");
-const { reachable } = require("./rooms.ts");
+const { reachable, CAVE_FRAMES } = require("./rooms.ts");
 
 test("the same seed gives the same floor", () => {
   assert.deepEqual(generateFloor(3, 42), generateFloor(3, 42));
@@ -77,4 +77,43 @@ test("1 000 seeds on depths 1–12: no errors, and the stairs are always reachab
       assert.equal(floor.solids.length, walls);
     }
   }
+});
+
+test("new monster types first appear at depths 3, 5, 6 and 8", () => {
+  const seen = (depth) => {
+    const kinds = new Set();
+    for (let seed = 0; seed < 300; seed++)
+      for (const s of generateFloor(depth, seed).spawns) kinds.add(s.enemy);
+    return kinds;
+  };
+  assert.equal(seen(2).has("bat"), false);
+  assert.equal(seen(3).has("bat"), true);
+  assert.equal(seen(4).has("spider"), false);
+  assert.equal(seen(6).has("spider"), true);
+  assert.equal(seen(7).has("cyclops"), false);
+  assert.equal(seen(8).has("cyclops"), true);
+  assert.equal(seen(6).has("troll"), true);
+});
+test("rest floors are never locked, over many seeds", () => {
+  for (let seed = 0; seed < 500; seed++)
+    for (const d of [5, 10, 15])
+      assert.equal(generateFloor(d, seed).locked, false);
+});
+test("depth below 1 or not a number is treated as 1", () => {
+  assert.deepEqual(generateFloor(0, 7), generateFloor(1, 7));
+  assert.deepEqual(generateFloor(-5, 7), generateFloor(1, 7));
+  assert.deepEqual(generateFloor(Number.NaN, 7), generateFloor(1, 7));
+});
+test("floor decoration: no rock tiles, and at most about 1 in 20 pebble tiles", () => {
+  let pebbles = 0,
+    floor = 0;
+  for (let seed = 0; seed < 200; seed++)
+    for (const row of generateFloor(2, seed).tiles)
+      for (const f of row) {
+        if (f === CAVE_FRAMES.wall) continue;
+        floor++;
+        assert.notEqual(f, CAVE_FRAMES.floorRocks);
+        if (f === CAVE_FRAMES.floorPebbles) pebbles++;
+      }
+  assert.ok(pebbles / floor > 0.03 && pebbles / floor < 0.07);
 });

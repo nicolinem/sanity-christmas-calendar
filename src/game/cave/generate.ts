@@ -46,10 +46,11 @@ function cells(rows: string[], ch: string): [number, number][] {
 }
 
 export function generateFloor(
-  depth: number,
+  rawDepth: number,
   seed: number,
   previousRoom?: string,
 ): Floor {
+  const depth = Math.max(1, Math.floor(rawDepth) || 1);
   const r = rng(seed);
   const pick = <T>(list: T[]): T => list[Math.floor(r() * list.length)];
   const rest = depth % 5 === 0;
@@ -110,8 +111,7 @@ export function generateFloor(
     [...row].map((c) => {
       if (c === "#") return CAVE_FRAMES.wall;
       const v = r();
-      if (v < 0.1) return CAVE_FRAMES.floorPebbles;
-      if (v < 0.2) return CAVE_FRAMES.floorRocks;
+      if (v < 0.05) return CAVE_FRAMES.floorPebbles;
       return CAVE_FRAMES.floor;
     }),
   );
