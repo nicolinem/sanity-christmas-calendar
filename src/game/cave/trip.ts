@@ -17,11 +17,7 @@ export function addToTrip(
 
 // Safe return: the trip's finds join the inventory and the trip ends.
 export function bankTrip(progress: Progress): Progress {
-  const banked = addItems(
-    progress,
-    Object.entries(progress.trip).map(([id, count]) => ({ id, count })),
-  );
-  return dropTrip(banked);
+  return dropTrip(secureTrip(progress));
 }
 
 // Resting place: the trip's finds are banked, but the player stays in the cave.

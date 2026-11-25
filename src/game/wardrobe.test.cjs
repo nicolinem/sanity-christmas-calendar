@@ -2,12 +2,18 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
-const { DEFAULT_FIGURE, FIGURE_OPTIONS } = require("./figure.ts");
+const {
+  CAVE_CHEST_5_SOURCE,
+  DEFAULT_FIGURE,
+  FIGURE_OPTIONS,
+  HIDDEN_GEAR,
+} = require("./figure.ts");
 const {
   GEAR_REWARDS,
   gearSource,
   isGear,
   ownedGear,
+  visibleGearSource,
   wearable,
 } = require("./wardrobe.ts");
 
@@ -138,4 +144,17 @@ test("the chest on floor 5 gives the plate armour", () => {
   const owned = ownedGear({ completed: {}, chests: { "cave-5": true } });
   assert.equal(owned.has("armour:plate"), true);
   assert.equal(gearSource("armour", "plate"), "Kista på etasje 5");
+});
+
+test("the cave chest source is hidden while the cave is off", () => {
+  assert.equal(visibleGearSource(CAVE_CHEST_5_SOURCE, false), HIDDEN_GEAR);
+  assert.equal(
+    visibleGearSource(CAVE_CHEST_5_SOURCE, true),
+    CAVE_CHEST_5_SOURCE,
+  );
+  assert.equal(
+    visibleGearSource("Arkivarens spørsmål", false),
+    "Arkivarens spørsmål",
+  );
+  assert.equal(visibleGearSource(undefined, false), undefined);
 });

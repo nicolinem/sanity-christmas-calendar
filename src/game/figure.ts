@@ -16,6 +16,8 @@ type Pair = readonly [main: string, shade: string];
 // Gear that will be found out in the world (monsters, chests, secrets). The
 // figure sheet shows it blurred, without a name, until the player has it.
 export const HIDDEN_GEAR = "Gjemt et sted i verden";
+// Source label of the floor-5 cave chest gear.
+export const CAVE_CHEST_5_SOURCE = "Kista på etasje 5";
 
 type Option<T> = { id: string; label: string; unlock?: string } & T;
 
@@ -389,7 +391,7 @@ export const ARMOURS: Part[] = [
       "....iIIIIIIi",
       ".....ikkkki",
     ),
-    unlock: "Kista på etasje 5",
+    unlock: CAVE_CHEST_5_SOURCE,
   },
 ];
 
