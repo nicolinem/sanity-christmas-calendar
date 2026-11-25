@@ -169,3 +169,8 @@ export function hasKnownSprite(spriteId: string | null | undefined): boolean {
 }
 
 export const KNOWN_SPRITE_IDS = Object.keys(SPRITE_REGISTRY);
+
+export const CAVE_SHEETS: SpriteSheet[] = ["cave", "caveDeep"];
+export const VILLAGE_SHEETS = (Object.keys(SHEETS) as SpriteSheet[]).filter(
+  (k) => !CAVE_SHEETS.includes(k),
+);

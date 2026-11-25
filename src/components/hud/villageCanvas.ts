@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { SHEETS, TILE, type SpriteSheet } from "@/game/sprites";
+import { SHEETS, TILE, VILLAGE_SHEETS, type SpriteSheet } from "@/game/sprites";
 import {
   BUILDINGS,
   GROUND,
@@ -34,7 +34,7 @@ export function useVillageCanvas({
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let cancelled = false;
-    const names = Object.keys(SHEETS) as SpriteSheet[];
+    const names = VILLAGE_SHEETS;
     Promise.all(names.map((n) => loadImage(SHEETS[n].url)))
       .then((images) => {
         const ctx = ref.current?.getContext("2d");
