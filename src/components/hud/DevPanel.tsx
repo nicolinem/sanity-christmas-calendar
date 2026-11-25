@@ -24,6 +24,13 @@ type Props = {
   onTrack: (track: QuestTrack) => void;
   onReset: () => void;
   weaponSprite: SpriteDef | null;
+  cave?: {
+    god: boolean;
+    inCave: boolean; // «Gå til etasje» only works from the village
+    onGod: (on: boolean) => void;
+    onGoto: (depth: number) => void;
+    onReset: () => void;
+  }; // undefined while the cave feature is off
   sideQuests: SideState[]; // empty while the feature is off
   onSide: (questId: string, action: "done" | "reset") => void;
 };
@@ -57,6 +64,7 @@ export default function DevPanel({
   onTrack,
   onReset,
   weaponSprite,
+  cave,
   sideQuests,
   onSide,
 }: Props) {
@@ -65,6 +73,7 @@ export default function DevPanel({
 
   const [open, setOpen] = useState(true);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [floor, setFloor] = useState(1);
 
   if (!open)
     return (
@@ -298,6 +307,42 @@ export default function DevPanel({
           Gi 2 Isskår
         </button>
       </div>
+
+      {cave && (
+        <>
+          <h3 className="dev-title">Grotta</h3>
+          <div className="dev-actions">
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={floor}
+              aria-label="Etasje"
+              onChange={(e) =>
+                setFloor(Math.min(10, Math.max(1, Number(e.target.value) || 1)))
+              }
+            />
+            <button
+              type="button"
+              disabled={cave.inCave}
+              onClick={() => cave.onGoto(floor)}
+            >
+              Gå til etasje {floor}
+            </button>
+            <label>
+              <input
+                type="checkbox"
+                checked={cave.god}
+                onChange={(e) => cave.onGod(e.target.checked)}
+              />{" "}
+              Udødelig
+            </label>
+            <button type="button" onClick={cave.onReset}>
+              Nullstill grotta
+            </button>
+          </div>
+        </>
+      )}
 
       <h3 className="dev-title">Nullstill</h3>
       <div className="dev-actions">

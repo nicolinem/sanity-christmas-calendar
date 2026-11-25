@@ -136,8 +136,9 @@ export class WinterQuestScene extends Phaser.Scene {
 
     // Back from the cave: stand in front of the entrance and fade in.
     this.enteringCave = false;
-    const onWake = () => {
-      this.knight.setPosition(CAVE_ENTRANCE.x, CAVE_ENTRANCE.y + 16);
+    const onWake = (_sys: unknown, data?: { at?: "brann" }) => {
+      if (data?.at === "brann") this.knight.setPosition(SPAWN.x, SPAWN.y);
+      else this.knight.setPosition(CAVE_ENTRANCE.x, CAVE_ENTRANCE.y + 16);
       this.moveTarget = null;
       this.route = [];
       this.cameras.main.fadeIn(200);

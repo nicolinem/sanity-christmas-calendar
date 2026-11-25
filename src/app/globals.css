@@ -313,8 +313,31 @@ kbd {
   font-size: 16px;
   color: var(--snow);
 }
-.cave-hud-floor {
+.cave-hud-floor,
+.cave-hud-found {
   white-space: nowrap;
+}
+.cave-hud-found {
+  color: var(--amber);
+}
+.cave-hud-wait {
+  flex-basis: 100%;
+  text-align: center;
+}
+.cave-confirm {
+  display: grid;
+  gap: 14px;
+  max-width: 340px;
+  padding: 18px 20px;
+  color: var(--snow);
+}
+.cave-confirm-text {
+  margin: 0;
+  font-size: 16px;
+}
+.cave-confirm-actions {
+  display: flex;
+  gap: 8px;
 }
 /* Narrow: the floor sits just above the hotbar instead of the top edge. */
 .cave-hud-belt {
@@ -326,6 +349,11 @@ kbd {
   }
   .cave-hud-belt {
     display: block;
+  }
+  .cave-hud-belt .cave-hud {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 12px;
   }
 }
 .hud-bl {
@@ -2019,6 +2047,11 @@ kbd {
   color: var(--amber);
   white-space: nowrap;
 }
+.plate-hearts {
+  display: flex;
+  gap: 2px;
+  color: var(--sanity);
+}
 .plate-xp {
   display: block;
   width: 100%;
@@ -2235,8 +2268,13 @@ kbd {
     gap: 0;
     padding-right: 4px;
   }
-  .plate.is-compact .plate-who {
+  .plate.is-compact .plate-who > :not(.plate-hearts) {
     display: none;
+  }
+  .plate.is-compact .plate-hearts {
+    flex-wrap: wrap;
+    max-width: 44px;
+    padding-left: 4px;
   }
 }
 

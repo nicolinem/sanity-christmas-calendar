@@ -15,6 +15,8 @@ type Props = {
   onRefresh: () => void;
   refreshing: boolean;
   slots: number;
+  // Potions can be drunk (in the cave), so their slots are not disabled.
+  drinkable?: boolean;
 };
 
 // The belt: every item the game knows about, as pixel slots. Weapons equip on
@@ -30,6 +32,7 @@ export default function Hotbar({
   onRefresh,
   refreshing,
   slots,
+  drinkable = false,
 }: Props) {
   const belt = items.slice(0, slots);
   const bag = items.slice(slots);
@@ -49,6 +52,7 @@ export default function Hotbar({
               hotkey={i + 1}
               equipped={item.id === equippedId}
               onEquip={onEquip}
+              drinkable={drinkable}
             />
           </li>
         ))}
@@ -87,7 +91,9 @@ function Slot({
   hotkey,
   equipped,
   onEquip,
+  drinkable,
 }: {
+  drinkable: boolean;
   item: GameItemView;
   hotkey?: number;
   equipped: boolean;
@@ -100,8 +106,8 @@ function Slot({
       <button
         type="button"
         className={`slot${equipped ? " is-equipped" : ""}${weapon ? "" : " is-passive"}`}
-        onClick={() => weapon && onEquip(item)}
-        aria-disabled={!weapon}
+        onClick={() => (weapon || item.kind === "potion") && onEquip(item)}
+        aria-disabled={!weapon && !(drinkable && item.kind === "potion")}
         aria-pressed={weapon ? equipped : undefined}
         aria-label={item.name}
         aria-describedby={tipId}

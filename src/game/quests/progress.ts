@@ -26,6 +26,7 @@ export const EMPTY_PROGRESS: Progress = {
   xp: 0,
   inventory: {},
   deepest: 0,
+  trip: {},
 };
 
 // A stored record that is a plain object, else an empty one.
@@ -33,6 +34,15 @@ function record<T>(value: unknown): Record<string, T> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, T>)
     : {};
+}
+
+// A stored count map keeping only whole numbers >= 0.
+function counts(value: unknown): Record<string, number> {
+  return Object.fromEntries(
+    Object.entries(record<unknown>(value)).filter(
+      ([, count]) => Number.isInteger(count) && (count as number) >= 0,
+    ),
+  ) as Record<string, number>;
 }
 
 // One record per Sanity project, so a fresh project is a fresh start.
@@ -102,16 +112,15 @@ export function readProgress(project: string): Progress {
             typeof saved.xp === "number" && Number.isFinite(saved.xp)
               ? Math.max(0, saved.xp)
               : 0,
-          inventory: Object.fromEntries(
-            Object.entries(record<unknown>(saved.inventory)).filter(
-              ([, count]) => Number.isInteger(count) && (count as number) >= 0,
-            ),
-          ) as Record<string, number>,
+          inventory: counts(saved.inventory),
+          trip: counts(saved.trip),
           deepest:
             Number.isInteger(saved.deepest) && (saved.deepest as number) >= 0
               ? (saved.deepest as number)
               : 0,
         };
+        // Only a literal true counts; anything else is removed, not kept as undefined.
+        if (value.inCave !== true) delete value.inCave;
       }
     }
   } catch {

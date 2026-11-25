@@ -111,7 +111,7 @@ export function generateFloor(
     [...row].map((c) => {
       if (c === "#") return CAVE_FRAMES.wall;
       const v = r();
-      if (v < 0.05) return CAVE_FRAMES.floorPebbles;
+      if (v < 0.02) return CAVE_FRAMES.floorPebbles;
       return CAVE_FRAMES.floor;
     }),
   );

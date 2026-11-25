@@ -64,7 +64,11 @@ import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
 import CaveHud from "./hud/CaveHud";
+import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
+import { xpFor } from "@/game/cave/combat";
+import { addToTrip, bankTrip, dropTrip } from "@/game/cave/trip";
+import { useWindowActive } from "./hud/useWindowActive";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
 import ForgeHammer from "./hud/ForgeHammer";
@@ -80,6 +84,7 @@ import { useLiveRefresh } from "./hud/useLive";
 import { useSideQuests } from "./hud/useSideQuests";
 import SideQuestDialogue from "./hud/SideQuestDialogue";
 import { busyGivers, sideMarkers } from "@/game/sideQuests/engine";
+import { FEATURES } from "@/game/features";
 import DevPanel from "./hud/DevPanel";
 import ForgeDialogue from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
@@ -151,6 +156,20 @@ function useCaveDepth() {
   );
 }
 
+function useCaveHp() {
+  const hp = useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.hp ?? null,
+    () => null,
+  );
+  const max = useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.maxHp ?? null,
+    () => null,
+  );
+  return hp === null || max === null ? null : { hp, max };
+}
+
 function useZone() {
   return useSyncExternalStore<Zone>(
     (cb) => bridge.on("zone", cb),
@@ -191,8 +210,13 @@ export default function GameClient() {
   const zone = useZone();
   const area = useArea();
   const caveDepth = useCaveDepth();
+  const caveHp = useCaveHp();
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
+  // «Gå hjem?» asked before leaving the cave for another place.
+  const [confirmTravel, setConfirmTravel] = useState<
+    QuestSiteId | "wraith" | null
+  >(null);
   // A side quest conversation: who, and which quest (kept through delivery).
   const [sideTalk, setSideTalk] = useState<{
     npc: NpcId;
@@ -552,6 +576,12 @@ export default function GameClient() {
   }, [bestWeapon, autoEquip, equippedId]);
 
   const handleEquip = useCallback((item: GameItemView) => {
+    // A potion is not equipped: in the cave it is drunk, in the village nothing.
+    if (item.kind === "potion") {
+      if (bridge.world.area === "grotta" && item.source === "sanity")
+        bridge.emit("drink", item.id);
+      return;
+    }
     setAutoEquip(false);
     setEquippedId(item.id);
   }, []);
@@ -744,8 +774,7 @@ export default function GameClient() {
     setTalking(false);
     setLogOpen(false);
     if (bridge.world.area === "grotta") {
-      pendingTravel.current = siteId;
-      bridge.emit("leaveCave", undefined);
+      setConfirmTravel(siteId);
       return;
     }
     bridge.emit("travelToSite", siteId);
@@ -755,27 +784,96 @@ export default function GameClient() {
   useEffect(
     () =>
       bridge.on("reachedFloor", (depth) => {
-        bridge.setWorld({ area: "grotta", cave: { depth } });
         updateProgress(PROGRESS_PROJECT, (p) =>
-          depth > p.deepest ? { ...p, deepest: depth } : p,
+          depth > p.deepest || !p.inCave
+            ? { ...p, deepest: Math.max(depth, p.deepest), inCave: true }
+            : p,
         );
       }),
     [],
   );
   useEffect(
     () =>
+      bridge.on("enemyDefeated", ({ enemy, depth }) =>
+        updateProgress(PROGRESS_PROJECT, (p) => ({
+          ...p,
+          xp: p.xp + xpFor(enemy, depth),
+        })),
+      ),
+    [],
+  );
+  useEffect(
+    () =>
+      bridge.on("found", ({ item, count }) =>
+        updateProgress(PROGRESS_PROJECT, (p) => addToTrip(p, item, count)),
+      ),
+    [],
+  );
+  useEffect(
+    () =>
+      bridge.on("fainted", () => {
+        updateProgress(PROGRESS_PROJECT, dropTrip);
+        pushToast({
+          title: "Du besvimte",
+          body: "Du våknet hos Brann. Det du fant på turen, ble liggende igjen.",
+          tone: "lesson",
+        });
+      }),
+    [],
+  );
+  // A trip left open by a closed tab: its finds are banked once on mount.
+  useEffect(() => {
+    updateProgress(PROGRESS_PROJECT, (p) => (p.inCave ? bankTrip(p) : p));
+  }, []);
+  useEffect(
+    () =>
       bridge.on("leftCave", () => {
-        bridge.setWorld({ area: "bygda", cave: null });
+        updateProgress(PROGRESS_PROJECT, bankTrip);
         const target = pendingTravel.current;
         pendingTravel.current = null;
         if (target) bridge.emit("travelToSite", target);
       }),
     [],
   );
+  const warnedCave = useRef(false);
   const enterCave = useCallback(
-    (depth: number) => bridge.emit("enterCave", depth),
+    (depth: number, quiet = false) => {
+      if (forgeLevel < 2 && !quiet && !warnedCave.current) {
+        warnedCave.current = true;
+        pushToast({
+          title: "Brann",
+          body: "Pass deg, det er dyr der nede. Jeg ville ventet til du er nivå 2.",
+          tone: "lesson",
+        });
+      }
+      bridge.emit("enterCave", depth);
+    },
+    [forgeLevel],
+  );
+  const confirmLeave = useCallback(() => {
+    pendingTravel.current = confirmTravel;
+    setConfirmTravel(null);
+    bridge.emit("leaveCave", undefined);
+  }, [confirmTravel]);
+  const attackInCave = useCallback(
+    () => bridge.emit("caveAttack", undefined),
     [],
   );
+  const found = Object.values(progress.trip).reduce((sum, n) => sum + n, 0);
+  useEffect(
+    () =>
+      bridge.on("drinkResult", (result) => {
+        const title = {
+          again: "Den har du alt drukket på denne turen.",
+          limit: "Tre drikker er nok for én tur.",
+          full: "Du har fullt liv.",
+          ok: null,
+        }[result];
+        if (title) pushToast({ title, tone: "lesson" });
+      }),
+    [],
+  );
+  const [caveGod, setCaveGod] = useState(false);
   const descend = useCallback(() => bridge.emit("descend", undefined), []);
   const leaveCave = useCallback(() => bridge.emit("leaveCave", undefined), []);
 
@@ -994,6 +1092,27 @@ export default function GameClient() {
     setWeekShown(null);
   }, [summaryWeek, summary, markWeekSeen]);
 
+  // What the cave needs to fight: the weapon, and whether the player is away.
+  const windowActive = useWindowActive();
+  const attack = useMemo(
+    () =>
+      equipped && isUsableWeapon(equipped)
+        ? {
+            damage: equipped.power?.damage ?? 0,
+            element:
+              equipped.magic.kind === "element" ? equipped.magic.element : null,
+          }
+        : null,
+    [equipped],
+  );
+  useEffect(() => {
+    bridge.setWorld({
+      attack,
+      away: studio.open || !windowActive,
+      caveGod: dev && caveGod,
+    });
+  }, [attack, studio.open, windowActive, dev, caveGod]);
+
   // Keep the world in sync with game state.
   useEffect(() => {
     const hand =
@@ -1027,7 +1146,8 @@ export default function GameClient() {
         showOpening ||
         sheetShown ||
         Boolean(celebration) ||
-        Boolean(summary),
+        Boolean(summary) ||
+        confirmTravel !== null,
     });
   }, [
     equipped,
@@ -1051,6 +1171,7 @@ export default function GameClient() {
     summary,
     sheetShown,
     figure,
+    confirmTravel,
   ]);
 
   const slots = narrow ? 5 : 8;
@@ -1074,6 +1195,10 @@ export default function GameClient() {
       }
       if (modelOpen) {
         if (e.key === "Escape") setModelQuestId(null);
+        return;
+      }
+      if (confirmTravel) {
+        if (e.key === "Escape") setConfirmTravel(null);
         return;
       }
       if (signOpen) {
@@ -1155,16 +1280,32 @@ export default function GameClient() {
         combat.attack();
         return;
       }
+      if (
+        e.key === " " &&
+        area === "grotta" &&
+        !(e.target as HTMLElement)?.closest?.("input, textarea")
+      ) {
+        // Always swallow Space here so a focused belt button is not
+        // activated again on keyup. Other buttons and links keep their own Space.
+        const target = (e.target as HTMLElement)?.closest?.("button, a");
+        if (target && !target.closest(".slot")) return;
+        e.preventDefault();
+        bridge.emit("caveAttack", undefined);
+        return;
+      }
       const n = Number(e.key);
       if (n >= 1 && n <= slots && !talkOpen) {
         const item = items[n - 1];
-        if (item?.kind === "weapon") handleEquip(item);
+        if (item?.kind === "weapon" || item?.kind === "potion")
+          handleEquip(item);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [
     zone,
+    area,
+    confirmTravel,
     talkTo,
     siteQuest,
     dialogueOpen,
@@ -1265,7 +1406,12 @@ export default function GameClient() {
 
           {area === "grotta" && caveDepth !== null && (
             <div className="hud-tc">
-              <CaveHud depth={caveDepth} onLeave={leaveCave} />
+              <CaveHud
+                depth={caveDepth}
+                found={found}
+                onLeave={leaveCave}
+                waiting={studio.open}
+              />
             </div>
           )}
 
@@ -1391,6 +1537,7 @@ export default function GameClient() {
               </button>
             )}
             {!hasMoved &&
+              area !== "grotta" &&
               !progress.metBlacksmith &&
               !showOpening &&
               zone !== "forge" && (
@@ -1404,7 +1551,13 @@ export default function GameClient() {
 
             {area === "grotta" && caveDepth !== null && (
               <div className="cave-hud-belt">
-                <CaveHud depth={caveDepth} onLeave={leaveCave} />
+                <CaveHud
+                  depth={caveDepth}
+                  found={found}
+                  onLeave={leaveCave}
+                  onAttack={attackInCave}
+                  waiting={studio.open}
+                />
               </div>
             )}
             <Hotbar
@@ -1415,6 +1568,7 @@ export default function GameClient() {
                   level={forgeLevel}
                   xp={xp}
                   compact={narrow}
+                  hearts={area === "grotta" && caveHp ? caveHp : undefined}
                   onOpen={() => openSheet("look")}
                 />
               }
@@ -1425,12 +1579,13 @@ export default function GameClient() {
               onRefresh={refresh}
               refreshing={loading}
               slots={slots}
+              drinkable={area === "grotta"}
             />
           </div>
 
           <Toasts />
 
-          {studioFocused && (
+          {studioFocused && area !== "grotta" && (
             <button type="button" className="keyboard-away" onClick={focusGame}>
               Studio har tastaturet. Klikk her for å spille.
             </button>
@@ -1532,6 +1687,12 @@ export default function GameClient() {
               onClose={() => setModelQuestId(null)}
             />
           )}
+        {confirmTravel && (
+          <CaveLeaveConfirm
+            onLeave={confirmLeave}
+            onStay={() => setConfirmTravel(null)}
+          />
+        )}
         {showOpening && (
           <Opening
             stage={entryStage}
@@ -1612,6 +1773,21 @@ export default function GameClient() {
               }}
               weaponSprite={
                 equipped?.kind === "weapon" ? equipped.sprite : null
+              }
+              cave={
+                FEATURES.cave
+                  ? {
+                      god: caveGod,
+                      inCave: area === "grotta",
+                      onGod: setCaveGod,
+                      onGoto: (depth) => enterCave(depth, true),
+                      onReset: () =>
+                        updateProgress(PROGRESS_PROJECT, (p) => ({
+                          ...dropTrip(p),
+                          deepest: 0,
+                        })),
+                    }
+                  : undefined
               }
               sideQuests={side.states}
               onSide={(questId, action) =>
