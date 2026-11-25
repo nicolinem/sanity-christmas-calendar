@@ -95,7 +95,7 @@ Rutene sjekkes i verkstedet (`/figur`) før de tas i bruk.
 ### Rommalene
 
 - **6–8 rom** tegnet som tekst i `src/game/cave/rooms.ts`, slik figurdelene er tegnet i `figure.ts`. Da er de lette å lese, endre og teste.
-- **Hvert rom er 24 × 14 ruter.** Det fyller omtrent én skjerm (`TARGET_VIEW` er 480 × 300 px = 30 × 18 ruter), så kameraet står stille og hele rommet synes. Det gjør kampen lesbar.
+- **Hvert rom er 24 × 14 ruter.** Et rom fyller omtrent én skjerm (`TARGET_VIEW` er 480 × 300 px = 30 × 18 ruter). **Endret 2026-11-25:** en etasje er nå flere rom satt sammen, og kameraet følger deg. Se del 12.
 - **Tegnene i en rommal:**
 
   ```
@@ -306,7 +306,7 @@ Alle tallene er startverdier etter regelen i `luke-design`, avsnitt 4. Hvert tal
 | Slag til et vanlig monster er slått | 2–4 slag på forventet nivå | Enhetstest: for hver etasje 1–10 og nivået `ceil(etasje / 2) + 1` gir `combat.ts` 2–5 slag | Juster `hp` i `ENEMIES` før skaleringen |
 | Skalering per etasje | +12 % liv, +8 % skade (`plan-utforsking.md`) | Testen over, og et treff på etasje 10 tar høyst 1,5 hjerter | Senk liv-skaleringen til 10 % |
 | Varsel før angrep | 600–900 ms, −5 % per etasje, minst 350 ms | Tre testere uten spillvane ser varselet og rekker å gå unna på etasje 1 | Lengre varsel og større skygge |
-| Monstre per etasje | 2–3 på etasje 1, opptil 6 på etasje 9 | En etasje tar 1–3 minutter | Juster tabellen |
+| Monstre per etasje | 2–3 på etasje 1, opptil 10 på etasje 9 (del 12) | En etasje tar 1–3 minutter | Juster tabellen |
 | Full etasje | Hver fjerde i snitt, aldri etasje 1 eller en hvileplass | Ingen tester sier at de satt fast | Sjeldnere, eller vis antall monstre igjen |
 | Drikker | 2 hjerter, høyst 3 per tur | Ingen kommer til etasje 10 bare på drikker | 2 per tur |
 | Usårbar etter treff | 1 s | Ingen mister to hjerter på ett sekund | 1,5 s |
@@ -415,3 +415,49 @@ Brukeren godkjente planen 2026-11-24 og valgte anbefalingen på alle spørsmåle
 | 6 | Skal snømonsteret i bygda få kamp begge veier? | **Nei.** Det er en del av historien og skal bli venn på julaften. `useCombat.ts` får være som i dag. Fase C testes i grotta. |
 | 7 | Skal `deepest` eller sjefene vises på «Hvem er med»? | **Nei, ikke nå.** Det er samme grunn som for sideoppdragene: fellesserveren tar bare luke-id-er. |
 | 8 | Skal et lite verksted i `?dev` vise etasjer for en gitt seed? | **Ja.** Det koster lite og gjør det raskt å tegne og sjekke nye rom, som `/figur` gjør for figurdelene. |
+
+## 12. Stemning og større etasjer (besluttet 2026-11-25)
+
+Etter G2 så grotta ryddig, men flat ut, og hver etasje var én skjerm. Brukeren ville ha mer stemning, og etasjer man kan utforske, slik som gruvene i Stardew. Alt står fortsatt bak `FEATURES.cave`.
+
+### Stemning
+
+- **Lys og mørke.**
+  - Grotta bruker lyset i Phaser 4 (`this.lights`, `setLighting(true)`). Ingen ny grafikk trengs.
+  - Det er mørkt rundt deg, med et kjølig lys rundt figuren.
+  - Fakler på veggene lyser varmt og flakker litt.
+  - Dypere ned (etasje 10 og mer) er det mørkere.
+  - Uten WebGL er grotta som i dag, uten lys.
+- **Vegger med dybde.**
+  - En vegg som har gulv rett under seg, er en forside med murstein (Tiny Dungeon 40).
+  - De andre veggene er «tak», det vil si den samme ruta mørkere.
+  - Noen forsider får en variant (28, 57–59), og en sjelden gang et ansikt (19, 20).
+- **Fakler.** Flammen på murstein (Tiny Dungeon 29) står på noen forsider, med lys. Det er 2–4 per rom.
+- **Gulv.** Sjeldne småstein i gulvet (12), og små isklumper (Tiny Ski 95) som pynt. Steinruta (24) brukes ikke, fordi den ligner en stein man kan slå.
+- **Litt liv.**
+  - Noen snøfnugg som daler sakte. De vises ikke med `prefers-reduced-motion`.
+  - Monstrene snur seg mot deg.
+
+### Større etasjer
+
+- **Flere rom per etasje** (startverdier):
+  - etasje 1–2 har 2 rom side ved side;
+  - de andre vanlige etasjene har 2 × 2 rom;
+  - hvileplassene er fortsatt ett rom, så sjefskampen er lett å lese.
+- **Rommene settes sammen** slik Spelunky gjør:
+  - hvert rom er en rommal som i dag, speilet eller ikke;
+  - nabo-rom får en åpning, to ruter bred der det går, i veggen mellom seg;
+  - åpningen ligger der det er gulv på begge sider.
+- **Du starter** i rommet øverst til venstre.
+- **Trappa** ligger i et tilfeldig rom, men aldri i startrommet. Du må lete litt, men den kan alltid nås. Det sjekkes på samme måte som i dag, med 1 000 seeds.
+- **Monstre:**
+  - ingen i startrommet på etasje 1–2;
+  - ellers 1–3 per rom;
+  - høyst 10 per etasje.
+  - De våkner først når du kommer nær (`AGGRO_RANGE`), som i dag.
+- **Kameraet følger deg**, som i bygda.
+  - Rundt etasjen er det litt mørk margin, slik at et hjørne kan komme fram fra under HUD-en.
+  - Er etasjen ikke større enn skjermen (hvileplassene), står kameraet stille som før.
+- **Ytelse.** Gulv og vegger tegnes én gang per etasje i ett bilde (`DynamicTexture`) i stedet for én figur per rute.
+- **G3 bestemmer** hva «full etasje» betyr når etasjen er stor. Forslaget er at bare rommet med trappa er sperret.
+
