@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { FEATURES } from "@/game/features";
 import { CHAPTERS } from "@/game/quests/chapters";
 import { chaptersForTrack } from "@/game/quests/engine";
@@ -16,6 +16,8 @@ import {
   deliverSide,
   evaluateSideQuests,
 } from "@/game/sideQuests/engine";
+import { NPCS, type NpcId } from "@/game/village";
+import { pushToast } from "./Toasts";
 import type {
   GiverId,
   SideContext,
@@ -44,6 +46,31 @@ export function useSideQuests(
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [chapters, progress, ctx.items, ctx.ownObservations, devUnlock],
   );
+
+  // Something made in Studio passed the check: say so at once, so the player
+  // knows to go back. Find steps say it themselves when the spot is found.
+  // The first evaluation only sets the baseline, so a reload stays quiet.
+  const seen = useRef<Map<string, string> | null>(null);
+  useEffect(() => {
+    const before = seen.current;
+    seen.current = new Map(states.map((s) => [s.quest.id, s.status]));
+    if (!before) return;
+    for (const s of states) {
+      const last = s.quest.steps[s.quest.steps.length - 1];
+      if (
+        s.status === "ready" &&
+        before.get(s.quest.id) === "active" &&
+        last?.kind === "studio"
+      ) {
+        const giver = NPCS[s.quest.giver as NpcId];
+        pushToast({
+          title: `Klart: ${s.quest.title}`,
+          body: giver ? `Gå til ${giver.name} og lever.` : undefined,
+          tone: "lesson",
+        });
+      }
+    }
+  }, [states]);
 
   // What a person has for you: something to hand in first, then something in
   // progress, then something new.

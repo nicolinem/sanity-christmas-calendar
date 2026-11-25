@@ -1,6 +1,6 @@
 "use client";
 
-import SideQuestList from "./SideQuestList";
+import SideQuestList, { SideQuestDetail } from "./SideQuestList";
 import type { SideState } from "@/game/sideQuests/types";
 import { coreFirst, giverOf, lukeName } from "@/game/quests/label";
 import { useEffect, useRef, useState } from "react";
@@ -75,6 +75,9 @@ export default function QuestLog({
     initialQuestId ?? board.current?.quest.id ?? board.states[0]?.quest.id,
   );
   const [confirmReset, setConfirmReset] = useState(false);
+  // A side quest shown in the detail pane instead of a luke.
+  const [sideId, setSideId] = useState<string | null>(null);
+  const sideSelected = sideQuests.find((s) => s.quest.id === sideId);
   const initialSelected =
     board.states.find((s) => s.quest.id === selectedId) ??
     board.current ??
@@ -214,15 +217,29 @@ export default function QuestLog({
             <WeekBody
               board={board}
               week={week}
-              selected={selected}
+              selected={sideSelected ? undefined : selected}
               completedAt={completedAt}
-              onSelect={setSelectedId}
+              onSelect={(questId) => {
+                setSideId(null);
+                setSelectedId(questId);
+              }}
               onShowWeek={onShowWeek}
               side={
-                <SideQuestList states={sideQuests} onTravel={onTravelToSite} />
+                <SideQuestList
+                  states={sideQuests}
+                  selected={sideSelected ? sideId : null}
+                  onSelect={setSideId}
+                />
               }
               detail={
-                selected && selected.chapter.number === week ? (
+                sideSelected ? (
+                  <SideQuestDetail
+                    key={sideSelected.quest.id}
+                    state={sideSelected}
+                    onTravel={onTravelToSite}
+                    onClose={onClose}
+                  />
+                ) : selected && selected.chapter.number === week ? (
                   <QuestDetail
                     state={selected}
                     states={board.states}
@@ -256,6 +273,11 @@ export default function QuestLog({
                 setSelectedId(questId);
                 const target = board.states.find((s) => s.quest.id === questId);
                 if (target) setWeek(target.chapter.number);
+                setTab("quests");
+              }}
+              sideQuests={sideQuests}
+              onOpenSide={(questId) => {
+                setSideId(questId);
                 setTab("quests");
               }}
             />

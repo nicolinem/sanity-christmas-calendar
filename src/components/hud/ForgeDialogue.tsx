@@ -243,7 +243,18 @@ function buildPages(
     previous &&
     current?.status === "offered" &&
     giverOf(previous.quest).id === giverOf(current.quest).id
-      ? [<Reaction key="r" state={previous} />]
+      ? [
+          <Reaction key="r" state={previous} />,
+          // Side quests open with luke 1: Brann says so once, right after it.
+          ...(FEATURES.sideQuests && previous.quest.id === FIRST_QUEST
+            ? [
+                <>
+                  Ser du et blått utropstegn over noen i bygda, har de et lite
+                  ønske til deg. Det er frivillig, og lukene går først.
+                </>,
+              ]
+            : []),
+        ]
       : [];
   if (!current) {
     const opensAt = board.states.find((s) => s.opensAt)?.opensAt;

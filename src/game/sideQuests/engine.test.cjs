@@ -9,6 +9,7 @@ const {
   deliverSide,
   evaluateSideQuests,
   sideMarkers,
+  sideObjectives,
 } = require("./engine.ts");
 const { EMPTY_PROGRESS } = require("../quests/progress.ts");
 const { CHAPTERS } = require("../quests/chapters.ts");
@@ -212,4 +213,19 @@ test("markers: «!» to take, «?» to deliver, nothing where a luke waits", () 
   assert.deepEqual(sideMarkers(list, ["kari", "brann"]), { bakeren: "!" });
   const fresh = evaluateSideQuests(QUESTS, CHAPTERS, ctx(lukeOne), NOW);
   assert.deepEqual(sideMarkers(fresh, []), { kari: "!" });
+});
+
+test("the journal ticks off steps as they're done", () => {
+  let p = acceptSide({ ...EMPTY_PROGRESS }, "test-trail", AT);
+  const done = (progress) =>
+    sideObjectives(states(progress, [], NOW, true)["test-trail"]).map(
+      (o) => o.done,
+    );
+  assert.deepEqual(done(p), [false, false]);
+  p = advanceSide(p, trail, 0);
+  assert.deepEqual(done(p), [true, false]);
+  p = advanceSide(p, trail, 1);
+  assert.deepEqual(done(p), [true, true]);
+  // Not taken: nothing is ticked.
+  assert.deepEqual(done({}), [false, false]);
 });
