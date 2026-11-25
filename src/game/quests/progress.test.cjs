@@ -346,3 +346,33 @@ test("xp and inventory default safely and drop bad values", () => {
   assert.equal(saved.xp, 40);
   assert.deepEqual(saved.inventory, { isskar: 2 });
 });
+
+test("deepest defaults to 0 and drops bad values", () => {
+  assert.equal(progress.readProgress("deep-fresh").deepest, 0);
+  records.set(progress.storageKey("deep-missing"), JSON.stringify({ xp: 1 }));
+  assert.equal(progress.readProgress("deep-missing").deepest, 0);
+  for (const deepest of [-2, 3.5, "4", null]) {
+    const key = `deep-${String(deepest)}`;
+    records.set(progress.storageKey(key), JSON.stringify({ deepest }));
+    assert.equal(progress.readProgress(key).deepest, 0);
+  }
+  records.set(progress.storageKey("deep-ok"), JSON.stringify({ deepest: 7 }));
+  assert.equal(progress.readProgress("deep-ok").deepest, 7);
+});
+
+test("xp, inventory and deepest survive an unrelated update", () => {
+  records.set(
+    progress.storageKey("cave-keep"),
+    JSON.stringify({ xp: 40, inventory: { isskar: 2 }, deepest: 6 }),
+  );
+  progress.updateProgress("cave-keep", (value) => ({
+    ...value,
+    introSeen: true,
+  }));
+  progress = loadProgress();
+  const restored = progress.readProgress("cave-keep");
+  assert.equal(restored.xp, 40);
+  assert.deepEqual(restored.inventory, { isskar: 2 });
+  assert.equal(restored.deepest, 6);
+  assert.equal(restored.introSeen, true);
+});
