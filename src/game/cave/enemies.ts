@@ -1,43 +1,129 @@
+import type { Element } from "../magic";
 import type { SpriteDef } from "../sprites";
 
 export type EnemyId =
   "rat" | "slime" | "bat" | "spider" | "troll" | "cyclops" | "yeti" | "drake";
 
-export const ENEMIES: Record<
-  EnemyId,
-  { name: string; sprite: SpriteDef; from: number; boss?: true }
-> = {
-  rat: { name: "Rotte", sprite: { sheet: "dungeon", frame: 123 }, from: 1 },
-  slime: { name: "Slim", sprite: { sheet: "dungeon", frame: 108 }, from: 1 },
+export type Move =
+  | { kind: "chase" }
+  | { kind: "charge"; windupMs: number }
+  | { kind: "shoot"; projectile: SpriteDef; everyMs: number };
+
+export type EnemyDef = {
+  name: string;
+  sprite: SpriteDef;
+  from: number;
+  boss?: true;
+  hp: number;
+  damage: number;
+  speed: number;
+  moves: Move[];
+  xp: number;
+  weakTo?: Element;
+  immuneTo?: Element;
+  flies?: true;
+};
+
+const d = (frame: number): SpriteDef => ({ sheet: "dungeon", frame });
+const ski = (frame: number): SpriteDef => ({ sheet: "ski", frame });
+
+export const ENEMIES: Record<EnemyId, EnemyDef> = {
+  rat: {
+    name: "Rotte",
+    sprite: d(123),
+    from: 1,
+    hp: 12,
+    damage: 1,
+    speed: 46,
+    moves: [{ kind: "chase" }],
+    xp: 10,
+  },
+  slime: {
+    name: "Slim",
+    sprite: d(108),
+    from: 1,
+    hp: 18,
+    damage: 1,
+    speed: 22,
+    moves: [{ kind: "chase" }],
+    weakTo: "fire",
+    xp: 10,
+  },
   bat: {
     name: "Flaggermus",
-    sprite: { sheet: "dungeon", frame: 120 },
+    sprite: d(120),
     from: 3,
+    hp: 6,
+    damage: 1,
+    speed: 40,
+    moves: [{ kind: "chase" }],
+    flies: true,
+    xp: 12,
   },
   spider: {
     name: "Edderkopp",
-    sprite: { sheet: "dungeon", frame: 122 },
+    sprite: d(122),
     from: 5,
+    hp: 14,
+    damage: 2,
+    speed: 30,
+    moves: [{ kind: "charge", windupMs: 600 }],
+    xp: 16,
   },
-  troll: { name: "Troll", sprite: { sheet: "dungeon", frame: 112 }, from: 6 },
+  troll: {
+    name: "Troll",
+    sprite: d(112),
+    from: 6,
+    hp: 24,
+    damage: 3,
+    speed: 18,
+    moves: [{ kind: "charge", windupMs: 900 }],
+    immuneTo: "poison",
+    xp: 20,
+  },
   cyclops: {
     name: "Kyklop",
-    sprite: { sheet: "dungeon", frame: 109 },
+    sprite: d(109),
     from: 8,
+    hp: 16,
+    damage: 2,
+    speed: 20,
+    moves: [{ kind: "shoot", projectile: d(56), everyMs: 2200 }],
+    weakTo: "lightning",
+    xp: 20,
   },
   yeti: {
     name: "Isvette",
-    sprite: { sheet: "ski", frame: 78 },
+    sprite: ski(78),
     from: 5,
+    hp: 70,
+    damage: 2,
+    speed: 26,
+    moves: [{ kind: "charge", windupMs: 700 }],
+    weakTo: "fire",
     boss: true,
+    xp: 100,
   },
   drake: {
     name: "Isdrage",
-    sprite: { sheet: "dungeon", frame: 110 },
+    sprite: d(110),
     from: 10,
+    hp: 140,
+    damage: 3,
+    speed: 24,
+    moves: [
+      { kind: "charge", windupMs: 600 },
+      { kind: "shoot", projectile: d(56), everyMs: 1800 },
+    ],
+    weakTo: "fire",
+    immuneTo: "frost",
     boss: true,
+    xp: 100,
   },
 };
+
+// The only kinds the scene draws in G2.
+export const PLAYABLE: EnemyId[] = ["rat", "slime", "spider"];
 
 export function enemiesAt(depth: number): EnemyId[] {
   return (Object.keys(ENEMIES) as EnemyId[]).filter(
