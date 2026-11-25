@@ -50,14 +50,18 @@ export default function SideQuestList({
           aria-current={s.quest.id === selected ? "true" : undefined}
           onClick={() => onSelect(s.quest.id)}
         >
-          <span className="log-quest-door">
-            {giver?.name ?? ""}
-            {STATUS[s.status] && ` · ${STATUS[s.status]}`}
-            {s.status === "active" &&
-              steps.length > 1 &&
-              ` · ${finds} av ${steps.length}`}
+          {/* The giver's face, where a luke has its window. */}
+          <span className="side-face" aria-hidden="true">
+            {giver && <SpriteIcon sprite={giver.sprite} scale={2} />}
           </span>
-          <span className="side-row-title">
+          <span className="log-quest-name">
+            <span className="log-quest-door">
+              {giver?.name ?? ""}
+              {STATUS[s.status] && ` · ${STATUS[s.status]}`}
+              {s.status === "active" &&
+                steps.length > 1 &&
+                ` · ${finds} av ${steps.length}`}
+            </span>
             {s.status === "available"
               ? `${giver?.name ?? ""} har noe på hjertet`
               : s.quest.title}
