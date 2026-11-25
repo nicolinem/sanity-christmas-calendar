@@ -30,6 +30,7 @@ import {
   AMBIENT_DEEP,
   CAMERA_PAD_TILES,
   DEEP_FROM,
+  ICE_BOSS_LIGHT,
   MARKER_LIGHT,
   PLAYER_LIGHT,
   ROOF_TINT,
@@ -57,7 +58,8 @@ const BOSS_NAMES: Partial<Record<EnemyId, string>> = {
   drake: "Isdragen",
 };
 // Kinds drawn in another colour than their sheet frame (multiplied).
-const KIND_TINT: Partial<Record<EnemyId, number>> = { drake: 0x8fd3ff };
+// 0xbfe6ff rather than 0x8fd3ff: the dark frame must stay visible.
+const KIND_TINT: Partial<Record<EnemyId, number>> = { drake: 0xbfe6ff };
 const SUMMON_GAP = 20; // px left and right of the boss for its two rats
 const LOCKED_TINT = 0x555a70; // the stairs while their room still has monsters
 const PULSE_MS = 300; // each half of the light pulse when the stairs open
@@ -114,6 +116,8 @@ export class CaveScene extends Phaser.Scene {
   private torchLights: Phaser.GameObjects.Light[] = [];
   // Stairs (and chest) glow; steady, so the flicker loop leaves them alone.
   private markerLights: Phaser.GameObjects.Light[] = [];
+  // Isdragen's cold glow, following it while it lives (WebGL only).
+  private bossLight: Phaser.GameObjects.Light | null = null;
   private stairsImage: Phaser.GameObjects.Image | null = null;
   // The stairs room still has monsters: no way down until they are gone.
   private stairsLocked = false;
@@ -186,6 +190,7 @@ export class CaveScene extends Phaser.Scene {
     this.torches = [];
     this.torchLights = [];
     this.markerLights = [];
+    this.bossLight = null;
     this.stairsImage = null;
     this.stairsLocked = false;
     this.lockShown = false;
@@ -361,6 +366,17 @@ export class CaveScene extends Phaser.Scene {
       ? (this.monsters.find((m) => m.brain.enemy === bossSpawn.enemy) ?? null)
       : null;
     this.summoned = false;
+    if (this.lit && this.boss?.brain.enemy === "drake") {
+      const l = ICE_BOSS_LIGHT;
+      this.bossLight = this.lights.addLight(
+        this.boss.brain.x,
+        this.boss.brain.y - 8,
+        l.radius,
+        l.color,
+        l.intensity,
+        l.radius * l.height,
+      );
+    }
 
     // No stairs, nothing to lock: the bottom never shows the lock line.
     this.stairsLocked =
@@ -492,8 +508,14 @@ export class CaveScene extends Phaser.Scene {
       this.lights.removeLight(l);
     });
     this.markerLights = [];
+    this.removeBossLight();
     if (this.textures.exists(FLOOR_TEXTURE))
       this.textures.remove(FLOOR_TEXTURE);
+  }
+
+  private removeBossLight() {
+    if (this.bossLight) this.lights.removeLight(this.bossLight);
+    this.bossLight = null;
   }
 
   // Whole-number zoom as in the village. A floor bigger than the view is
@@ -697,6 +719,10 @@ export class CaveScene extends Phaser.Scene {
     if (this.knightLight) {
       this.knightLight.x = this.knight.x;
       this.knightLight.y = this.knight.y - 8;
+    }
+    if (this.bossLight && this.boss) {
+      this.bossLight.x = this.boss.brain.x;
+      this.bossLight.y = this.boss.brain.y - 8;
     }
     if (!this.reducedMotion) {
       const { radius } = TORCH_LIGHT;
@@ -951,6 +977,7 @@ export class CaveScene extends Phaser.Scene {
         // A boss's XP comes from its fact, so it never counts as a monster.
         if (m === this.boss) {
           this.boss = null;
+          this.removeBossLight();
           bridge.emit("bossDefeated", m.brain.enemy);
           this.announce();
         } else

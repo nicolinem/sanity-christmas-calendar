@@ -37,6 +37,13 @@ export const MARKER_LIGHT = {
   intensity: 0.7,
   height: 0.4,
 };
+// Isdragen's own cold glow, so the boss shows on a dark floor.
+export const ICE_BOSS_LIGHT = {
+  radius: 64,
+  color: 0x8fd3ff,
+  intensity: 1.4,
+  height: 0.35,
+};
 export const TORCH_FLICKER = { amount: 0.1, hz: 5 };
 
 // A few flakes drifting down through the view (px per second).
