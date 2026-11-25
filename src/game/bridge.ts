@@ -11,7 +11,13 @@ import type { NpcId, QuestSiteId } from "./village";
 // knight is standing (`zone`) and one-shot effects travel as events.
 
 // `side:<spot id>`: a side quest spot (src/game/sideQuests/data.ts).
-export type Zone = QuestSiteId | "wraith" | `side:${string}` | null;
+export type Zone =
+  | QuestSiteId
+  | "wraith"
+  | "cave" // the way into the cave
+  | "caveStairs" // the stairs back up, down in the cave
+  | `side:${string}`
+  | null;
 // One calendar door shown in the village: a numbered window that hangs over
 // the place its task belongs to. Dark while locked, outlined while open, lit
 // when done.

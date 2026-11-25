@@ -9,10 +9,14 @@ import {
   type WorldState,
   type Zone,
 } from "./bridge";
+import { CAVE_PROPS } from "./cave/props";
+import { FEATURES } from "./features";
 import { LUKE_LEVEL_CAP } from "./rules";
 import { SHEETS, TILE, VILLAGE_SHEETS, type SpriteDef } from "./sprites";
 import {
   BUILDINGS,
+  CAVE_ENTRANCE,
+  CAVE_MOUTH,
   FORGE_FIRE,
   FURNACE,
   GLADE,
@@ -212,6 +216,18 @@ export class WinterQuestScene extends Phaser.Scene {
         .setOrigin(0)
         .setDepth(y + TILE);
       if (p.solid) this.solids.push({ x: x + 2, y: y + 6, w: 12, h: 10 });
+    }
+
+    if (FEATURES.cave) {
+      CAVE_PROPS.entrance.forEach((def, i) => {
+        const [tx, ty] = CAVE_MOUTH[i];
+        this.add
+          .image(tx * TILE, ty * TILE, def.sheet, def.frame)
+          .setOrigin(0)
+          .setDepth((ty + 1) * TILE);
+      });
+      const [mx, my] = CAVE_MOUTH[0];
+      this.solids.push({ x: mx * TILE + 2, y: my * TILE + 6, w: 28, h: 10 });
     }
 
     const sign = QUEST_SITES.bakerySign;
@@ -991,6 +1007,12 @@ export class WinterQuestScene extends Phaser.Scene {
       zone = "bakerySign";
     // Side quest spots come after every luke place, so a luke always wins E.
     else if (spot) zone = `side:${spot.id}`;
+    else if (
+      FEATURES.cave &&
+      Phaser.Math.Distance.Between(k.x, k.y, CAVE_ENTRANCE.x, CAVE_ENTRANCE.y) <
+        FORGE_RANGE
+    )
+      zone = "cave";
     // Where the wraith stands, or where it fell (which offers a rematch).
     else if (
       Phaser.Math.Distance.Between(

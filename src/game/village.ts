@@ -2,6 +2,7 @@
 // so it's easy to read and tweak: rectangles of path, a few buildings, props,
 // and a seeded forest. Coordinates are in 16px tiles unless noted.
 
+import { FEATURES } from "./features";
 import type { SpriteSheet } from "./sprites";
 
 export const MAP_W = 54;
@@ -22,6 +23,24 @@ const PATHS: Rect[] = [
   { x: 6, y: 20, w: 2, h: 3 }, // south-west house door
   { x: 6, y: 21, w: 15, h: 2 }, // south-west lane
 ];
+
+// The way to the cave, in the north-west forest edge: a lane west of the
+// house, then up to the opening.
+const CAVE_PATHS: Rect[] = [
+  { x: 4, y: 11, w: 6, h: 2 },
+  { x: 4, y: 4, w: 2, h: 7 },
+];
+
+export function villagePaths(cave: boolean): Rect[] {
+  return cave ? [...PATHS, ...CAVE_PATHS] : PATHS;
+}
+
+// The cave opening (tiles) and the middle of its zone (px) just in front.
+export const CAVE_MOUTH = [
+  [4, 3],
+  [5, 3],
+] as const;
+export const CAVE_ENTRANCE = { x: 5 * 16, y: 4 * 16 + 8 };
 
 // Frost glade, east of the village, where the wraith drifts about.
 export const GLADE: Rect = { x: 37, y: 11, w: 7, h: 10 };
@@ -273,8 +292,9 @@ function inRect(x: number, y: number, r: Rect) {
   return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
 
+const paths = villagePaths(FEATURES.cave);
 const pathGrid: boolean[][] = Array.from({ length: MAP_H }, (_, y) =>
-  Array.from({ length: MAP_W }, (_, x) => PATHS.some((r) => inRect(x, y, r))),
+  Array.from({ length: MAP_W }, (_, x) => paths.some((r) => inRect(x, y, r))),
 );
 
 export function isPath(x: number, y: number) {
@@ -382,7 +402,9 @@ function reserve(r: Rect, pad = 0) {
     for (let x = r.x - pad; x < r.x + r.w + pad; x++)
       if (y >= 0 && x >= 0 && y < MAP_H && x < MAP_W) occupied[y][x] = true;
 }
-PATHS.forEach((r) => reserve(r, 1));
+paths.forEach((r) => reserve(r, 1));
+if (FEATURES.cave)
+  for (const [x, y] of CAVE_MOUTH) reserve({ x, y, w: 1, h: 1 }, 1);
 BUILDINGS.forEach((b) =>
   reserve({ x: b.x, y: b.y, w: b.rows[0].length, h: b.rows.length + 1 }, 1),
 );
