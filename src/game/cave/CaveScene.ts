@@ -22,6 +22,7 @@ import {
   type Facing,
 } from "./combat";
 import { ENEMIES, PLAYABLE, type EnemyId } from "./enemies";
+import { MAX_DEPTH } from "./floors";
 import { generateFloor, type Floor, type Point } from "./generate";
 import { roomAt } from "./layout";
 import {
@@ -49,9 +50,14 @@ const STAIRS_RANGE = 28;
 const CACHE_RANGE = 24;
 const CHEST_OPEN_FRAME = 91; // dungeon sheet: the chest with its lid up
 const CHEST_RANGE = 24;
-const CHEST_DEPTH = 5; // the only rest floor whose chest opens for now
-const BOSS: EnemyId = "yeti"; // the only boss drawn for now
-const BOSS_NAME = "Isvetten";
+const CHEST_DEPTHS = [5, 10]; // the rest floors whose chest opens for now
+// The bosses drawn so far, by the name on their bar.
+const BOSS_NAMES: Partial<Record<EnemyId, string>> = {
+  yeti: "Isvetten",
+  drake: "Isdragen",
+};
+// Kinds drawn in another colour than their sheet frame (multiplied).
+const KIND_TINT: Partial<Record<EnemyId, number>> = { drake: 0x8fd3ff };
 const SUMMON_GAP = 20; // px left and right of the boss for its two rats
 const LOCKED_TINT = 0x555a70; // the stairs while their room still has monsters
 const PULSE_MS = 300; // each half of the light pulse when the stairs open
@@ -80,6 +86,7 @@ type Monster = {
   marks: Phaser.GameObjects.Image[]; // the charge's line, only during windup
   flashUntil: number; // scene clock
   white: boolean; // the sprite is drawn with a white fill tint
+  tint: number | null; // its kind's own colour, back once the white clears
 };
 
 type Rock = Point & { image: Phaser.GameObjects.Image; box: Box };
@@ -111,6 +118,7 @@ export class CaveScene extends Phaser.Scene {
   // The stairs room still has monsters: no way down until they are gone.
   private stairsLocked = false;
   private lockShown = false; // last world.cave.stairsLocked sent to the HUD
+  private bottomNear = false; // last world.cave.bottomNear sent to the HUD
   private cacheImage: Phaser.GameObjects.Image | null = null;
   private cacheOpened = false;
   private chestImage: Phaser.GameObjects.Image | null = null;
@@ -181,6 +189,7 @@ export class CaveScene extends Phaser.Scene {
     this.stairsImage = null;
     this.stairsLocked = false;
     this.lockShown = false;
+    this.bottomNear = false;
     this.cacheImage = null;
     this.cacheOpened = false;
     this.chestImage = null;
@@ -313,8 +322,10 @@ export class CaveScene extends Phaser.Scene {
       this.withLight(
         this.add.image(at.x, at.y, p.sheet, p.frame).setDepth(at.y - 8),
       );
-    this.stairsImage = prop(CAVE_PROPS.stairs, floor.stairs);
-    this.objects.push(this.stairsImage);
+    // The deepest floor has no stairs, only the spot where they would be.
+    this.stairsImage =
+      this.depth < MAX_DEPTH ? prop(CAVE_PROPS.stairs, floor.stairs) : null;
+    if (this.stairsImage) this.objects.push(this.stairsImage);
     this.chestOpened =
       !!floor.chest && bridge.world.openedChests.includes(floor.chest.id);
     this.chestImage = floor.chest ? prop(CAVE_PROPS.chest, floor.chest) : null;
@@ -336,23 +347,30 @@ export class CaveScene extends Phaser.Scene {
     this.solids = [...floor.solids, ...this.rocks.map((r) => r.box)];
 
     // A rest floor draws one boss (its first spot), unless already beaten.
-    const bossSpawn =
-      floor.rest && !bridge.world.defeatedBosses.includes(BOSS)
-        ? floor.spawns.find((s) => s.enemy === BOSS)
-        : undefined;
+    const bossSpawn = floor.rest
+      ? floor.spawns.find(
+          (s) =>
+            BOSS_NAMES[s.enemy] &&
+            !bridge.world.defeatedBosses.includes(s.enemy),
+        )
+      : undefined;
     this.monsters = floor.spawns
       .filter((s) => PLAYABLE.includes(s.enemy) || s === bossSpawn)
       .map((s) => this.makeMonster(s.enemy, s, s.room));
     this.boss = bossSpawn
-      ? (this.monsters.find((m) => m.brain.enemy === BOSS) ?? null)
+      ? (this.monsters.find((m) => m.brain.enemy === bossSpawn.enemy) ?? null)
       : null;
     this.summoned = false;
 
+    // No stairs, nothing to lock: the bottom never shows the lock line.
     this.stairsLocked =
-      floor.locked && this.monsters.some((m) => m.room === floor.stairsRoom);
+      !!this.stairsImage &&
+      floor.locked &&
+      this.monsters.some((m) => m.room === floor.stairsRoom);
     this.lockShown = false;
+    this.bottomNear = false;
     if (this.stairsLocked) {
-      this.stairsImage.setTint(LOCKED_TINT);
+      this.stairsImage?.setTint(LOCKED_TINT);
       if (this.markerLights[0]) this.markerLights[0].intensity = 0;
     }
 
@@ -378,6 +396,8 @@ export class CaveScene extends Phaser.Scene {
         .image(0, 0, def.sprite.sheet, def.sprite.frame)
         .setOrigin(0.5, 1),
     );
+    const tint = KIND_TINT[enemy] ?? null;
+    if (tint !== null) sprite.setTint(tint);
     const body = this.add.container(at.x, at.y, [
       this.withLight(this.add.image(0, 1, "shadow")),
       sprite,
@@ -392,6 +412,7 @@ export class CaveScene extends Phaser.Scene {
       marks: [],
       flashUntil: 0,
       white: false,
+      tint,
     };
   }
 
@@ -434,8 +455,10 @@ export class CaveScene extends Phaser.Scene {
         ),
       );
       const m = MARKER_LIGHT;
-      // Index 0 is the stairs; checkStairs relies on it.
-      const spots = floor.chest ? [floor.stairs, floor.chest] : [floor.stairs];
+      // Index 0 is the stairs; checkStairs relies on it. The deepest floor
+      // has no stairs light, and no lock for checkStairs to open.
+      const stairs = this.depth < MAX_DEPTH ? [floor.stairs] : [];
+      const spots = floor.chest ? [...stairs, floor.chest] : stairs;
       this.markerLights = spots.map((p) =>
         this.lights.addLight(
           p.x,
@@ -520,17 +543,18 @@ export class CaveScene extends Phaser.Scene {
         stairsLocked: this.lockShown,
         boss: this.boss
           ? {
-              name: BOSS_NAME,
+              name: BOSS_NAMES[this.boss.brain.enemy] ?? "",
               hp: this.boss.brain.hp,
               maxHp: this.boss.brain.maxHp,
             }
           : null,
+        bottomNear: this.bottomNear,
       },
     });
   }
 
   private descend() {
-    if (this.busy || this.stairsLocked) return;
+    if (this.busy || this.stairsLocked || this.depth >= MAX_DEPTH) return;
     this.busy = true;
     const cam = this.cameras.main;
     cam.fadeOut(FADE_MS);
@@ -653,12 +677,15 @@ export class CaveScene extends Phaser.Scene {
 
     const { x, y } = this.knight;
     const { stairs } = this.floor;
+    const atStairs =
+      Phaser.Math.Distance.Between(x, y, stairs.x, stairs.y) < STAIRS_RANGE;
+    const bottom = this.depth >= MAX_DEPTH;
+    if (bottom && atStairs !== this.bottomNear) {
+      this.bottomNear = atStairs;
+      this.announce();
+    }
     let zone: Zone = null;
-    if (
-      !this.stairsLocked &&
-      Phaser.Math.Distance.Between(x, y, stairs.x, stairs.y) < STAIRS_RANGE
-    )
-      zone = "caveStairs";
+    if (!bottom && !this.stairsLocked && atStairs) zone = "caveStairs";
     else if (!this.cacheOpened && this.nearCache()) zone = "caveCache";
     else if (this.chestOpenable() && this.nearChest()) zone = "caveChest";
     bridge.setZone(zone);
@@ -882,7 +909,10 @@ export class CaveScene extends Phaser.Scene {
     if (white === m.white) return;
     m.white = white;
     if (white) m.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
-    else m.sprite.clearTint();
+    else {
+      m.sprite.clearTint(); // back to multiply
+      if (m.tint !== null) m.sprite.setTint(m.tint);
+    }
     // A lit sprite would multiply the white down to slate.
     if (this.lit) m.sprite.setLighting(!white);
   }
@@ -948,7 +978,13 @@ export class CaveScene extends Phaser.Scene {
         m.marks = [];
       }
       if (m === this.boss) {
-        if (!this.summoned && hp <= m.brain.maxHp / 2) this.summon(m);
+        // Only the yeti calls rats.
+        if (
+          m.brain.enemy === "yeti" &&
+          !this.summoned &&
+          hp <= m.brain.maxHp / 2
+        )
+          this.summon(m);
         this.announce();
       }
     }
@@ -1052,7 +1088,7 @@ export class CaveScene extends Phaser.Scene {
   private chestOpenable() {
     return (
       !!this.floor.chest &&
-      this.depth === CHEST_DEPTH &&
+      CHEST_DEPTHS.includes(this.depth) &&
       !this.boss &&
       !this.chestOpened
     );

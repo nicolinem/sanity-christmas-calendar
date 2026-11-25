@@ -67,6 +67,7 @@ import CaveHud from "./hud/CaveHud";
 import { levelUpToast } from "@/game/levelUp";
 import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
+import { CHEST_TOASTS } from "@/game/cave/chests";
 import { xpFor } from "@/game/cave/combat";
 import { addToTrip, bankTrip, dropTrip, secureTrip } from "@/game/cave/trip";
 import { useWindowActive } from "./hud/useWindowActive";
@@ -188,6 +189,14 @@ function useCaveStairsLocked() {
   );
 }
 
+function useCaveBottomNear() {
+  return useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.bottomNear ?? false,
+    () => false,
+  );
+}
+
 function useCaveView() {
   const room = useSyncExternalStore(
     (cb) => bridge.on("world", cb),
@@ -254,6 +263,7 @@ export default function GameClient() {
   const caveHp = useCaveHp();
   const caveBoss = useCaveBoss();
   const caveStairsLocked = useCaveStairsLocked();
+  const caveBottomNear = useCaveBottomNear();
   const caveView = useCaveView();
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
@@ -911,13 +921,8 @@ export default function GameClient() {
           ...p,
           chests: { ...p.chests, [id]: true },
         }));
-        // Only the floor-5 chest holds the armour.
-        if (id === "cave-5")
-          pushToast({
-            title: "Rustning",
-            body: "Du fant den i kista på etasje 5.",
-            tone: "lesson",
-          });
+        const toast = CHEST_TOASTS[id];
+        if (toast) pushToast(toast);
       }),
     [],
   );
@@ -1548,6 +1553,7 @@ export default function GameClient() {
                 found={found}
                 boss={caveBoss}
                 stairsLocked={caveStairsLocked}
+                bottomNear={caveBottomNear}
                 onLeave={leaveCave}
                 waiting={studio.open}
               />
@@ -1704,6 +1710,7 @@ export default function GameClient() {
                   found={found}
                   boss={caveBoss}
                   stairsLocked={caveStairsLocked}
+                  bottomNear={caveBottomNear}
                   onLeave={leaveCave}
                   onAttack={attackInCave}
                   waiting={studio.open}

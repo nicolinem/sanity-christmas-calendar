@@ -46,7 +46,8 @@ export type WorldState = {
   area: "bygda" | "grotta"; // which scene the player is in
   // The floor and life, while in the cave. `stairsLocked`: the knight is in
   // the stairs room and its monsters still guard the way down. `boss`: the
-  // floor's boss while it lives, else null.
+  // floor's boss while it lives, else null. `bottomNear`: on the deepest
+  // floor, the knight stands where the stairs would be.
   cave: {
     depth: number;
     room: string; // id of the start room's template
@@ -55,6 +56,7 @@ export type WorldState = {
     maxHp: number;
     stairsLocked: boolean;
     boss: { name: string; hp: number; maxHp: number } | null;
+    bottomNear?: boolean;
   } | null;
   defeatedBosses: string[]; // boss ids beaten (progress.bosses)
   openedChests: string[]; // chest ids opened (progress.chests)
