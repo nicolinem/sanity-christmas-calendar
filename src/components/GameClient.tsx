@@ -84,6 +84,7 @@ import { useLiveRefresh } from "./hud/useLive";
 import { useSideQuests } from "./hud/useSideQuests";
 import SideQuestDialogue from "./hud/SideQuestDialogue";
 import { busyGivers, sideMarkers } from "@/game/sideQuests/engine";
+import { FEATURES } from "@/game/features";
 import DevPanel from "./hud/DevPanel";
 import ForgeDialogue from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
@@ -859,16 +860,17 @@ export default function GameClient() {
   useEffect(
     () =>
       bridge.on("drinkResult", (result) => {
-        const body = {
+        const title = {
           again: "Den har du alt drukket på denne turen.",
           limit: "Tre drikker er nok for én tur.",
           full: "Du har fullt liv.",
           ok: null,
         }[result];
-        if (body) pushToast({ title: "Drikke", body, tone: "lesson" });
+        if (title) pushToast({ title, tone: "lesson" });
       }),
     [],
   );
+  const [caveGod, setCaveGod] = useState(false);
   const descend = useCallback(() => bridge.emit("descend", undefined), []);
   const leaveCave = useCallback(() => bridge.emit("leaveCave", undefined), []);
 
@@ -1104,9 +1106,9 @@ export default function GameClient() {
     bridge.setWorld({
       attack,
       away: studio.open || !windowActive,
-      caveGod: dev,
+      caveGod: dev && caveGod,
     });
-  }, [attack, studio.open, windowActive, dev]);
+  }, [attack, studio.open, windowActive, dev, caveGod]);
 
   // Keep the world in sync with game state.
   useEffect(() => {
@@ -1752,6 +1754,21 @@ export default function GameClient() {
               }}
               weaponSprite={
                 equipped?.kind === "weapon" ? equipped.sprite : null
+              }
+              cave={
+                FEATURES.cave
+                  ? {
+                      god: caveGod,
+                      inCave: area === "grotta",
+                      onGod: setCaveGod,
+                      onGoto: enterCave,
+                      onReset: () =>
+                        updateProgress(PROGRESS_PROJECT, (p) => ({
+                          ...dropTrip(p),
+                          deepest: 0,
+                        })),
+                    }
+                  : undefined
               }
               sideQuests={side.states}
               onSide={(questId, action) =>
