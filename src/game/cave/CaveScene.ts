@@ -2,8 +2,8 @@ import Phaser from "phaser";
 import { bridge } from "../bridge";
 import { figureTexture } from "../figureTexture";
 import { CAVE_SHEETS, SHEETS, TILE } from "../sprites";
-import { moveBox, tileRoute, type Box } from "../walk";
-import { integerZoom } from "../zoom";
+import { moveBox, routeFromOwnTile, type Box } from "../walk";
+import { integerZoom, TARGET_VIEW } from "../zoom";
 import { generateFloor, type Floor } from "./generate";
 import { CAVE_PROPS } from "./props";
 
@@ -17,6 +17,7 @@ export class CaveScene extends Phaser.Scene {
   private floor!: Floor;
   private depth = 1;
   private busy = false; // a fade is running: ignore input and transitions
+  private leaveQueued = false; // «Gå hjem» asked for during a descend fade
   private objects: Phaser.GameObjects.GameObject[] = [];
   private solids: Box[] = [];
   private knight!: Phaser.GameObjects.Container;
@@ -46,6 +47,7 @@ export class CaveScene extends Phaser.Scene {
   create(data: { depth?: number }) {
     this.depth = Math.max(1, Math.floor(data?.depth ?? 1));
     this.busy = false;
+    this.leaveQueued = false;
     this.route = [];
     this.stuckFrames = 0;
     this.objects = [];
@@ -64,12 +66,7 @@ export class CaveScene extends Phaser.Scene {
     cam.setRoundPixels(true);
     const fit = () => {
       const { width, height } = this.scale;
-      cam.setZoom(
-        integerZoom(width, height, {
-          w: this.floor.rows[0].length * TILE,
-          h: this.floor.rows.length * TILE,
-        }),
-      );
+      cam.setZoom(integerZoom(width, height, TARGET_VIEW));
       cam.centerOn(
         (this.floor.rows[0].length * TILE) / 2,
         (this.floor.rows.length * TILE) / 2,
@@ -153,6 +150,7 @@ export class CaveScene extends Phaser.Scene {
       this.announce();
       cam.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => {
         this.busy = false;
+        if (this.leaveQueued) this.leave();
       });
       cam.fadeIn(FADE_MS);
       bridge.emit("reachedFloor", this.depth);
@@ -160,7 +158,10 @@ export class CaveScene extends Phaser.Scene {
   }
 
   private leave() {
-    if (this.busy) return;
+    if (this.busy) {
+      this.leaveQueued = true;
+      return;
+    }
     this.busy = true;
     const cam = this.cameras.main;
     cam.fadeOut(FADE_MS);
@@ -203,7 +204,7 @@ export class CaveScene extends Phaser.Scene {
     // Tap to walk. Nothing to reach (or already there) leaves things be.
     this.input.on("pointerdown", (p: Phaser.Input.Pointer) => {
       if (this.busy || bridge.world.frozen) return;
-      const path = tileRoute(
+      const path = routeFromOwnTile(
         this.floor.rows,
         { x: this.knight.x, y: this.knight.y - 2 },
         { x: p.worldX, y: p.worldY + 4 },
@@ -217,8 +218,6 @@ export class CaveScene extends Phaser.Scene {
   update(_time: number, delta: number) {
     this.moveKnight(delta / 1000);
     this.knight.setDepth(this.knight.y);
-    bridge.knight.x = Math.round(this.knight.x);
-    bridge.knight.y = Math.round(this.knight.y);
     const near =
       Phaser.Math.Distance.Between(
         this.knight.x,

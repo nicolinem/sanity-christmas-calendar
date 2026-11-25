@@ -1,3 +1,6 @@
+// World px the village and the cave aim to show; both zoom from this.
+export const TARGET_VIEW = { w: 480, h: 300 };
+
 // The largest whole-number camera zoom that still fits `view` (world px) in a
 // canvas of width × height. Whole zooms keep the pixel art crisp.
 export function integerZoom(

@@ -1202,10 +1202,10 @@ export default function GameClient() {
               <span className="crest-place">Sanity · desember 2026</span>
             </h1>
             <QuestTracker
-              key={narrow ? "compact" : "full"}
+              key={narrow || area === "grotta" ? "compact" : "full"}
               board={board}
               metBrann={progress.metBlacksmith}
-              compact={narrow}
+              compact={narrow || area === "grotta"}
               onOpenLog={openLog}
               onOpenMap={openMap}
               onOpenQuest={openQuestLog}

@@ -25,6 +25,21 @@ export function moveBox(
   return { x, y };
 }
 
+// The route a tap should follow: `tileRoute` with the figure's own tile centre
+// first. After keyboard movement the figure can sit a few px off centre, and a
+// first leg from there is slightly diagonal and can clip a neighbouring rock.
+export function routeFromOwnTile(
+  rows: string[],
+  from: Point,
+  to: Point,
+): Point[] {
+  const route = tileRoute(rows, from, to);
+  if (!route.length) return route;
+  const tx = Math.floor(from.x / 16);
+  const ty = Math.floor(from.y / 16);
+  return [{ x: tx * 16 + 8, y: ty * 16 + 8 }, ...route];
+}
+
 // Tiles in px: tile (x, y) has its centre at (x * 16 + 8, y * 16 + 8). '#' and
 // 'o' are shut. The route runs from the tile after the start to the target,
 // keeping only the corners. Nothing to reach gives [].

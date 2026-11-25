@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { FigureChoice } from "./figure";
 import { figureTexture } from "./figureTexture";
 import { moveBox, type Box } from "./walk";
-import { integerZoom } from "./zoom";
+import { integerZoom, TARGET_VIEW } from "./zoom";
 import {
   bridge,
   type DoorMarker,
@@ -44,7 +44,6 @@ import type { NpcId, QuestSiteId } from "./village";
 
 const WORLD_W = MAP_W * TILE;
 const WORLD_H = MAP_H * TILE;
-const TARGET_VIEW = { w: 480, h: 300 }; // world px we aim to show
 
 const FORGE_RANGE = 28;
 const WRAITH_RANGE = 40;
