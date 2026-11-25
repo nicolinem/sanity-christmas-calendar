@@ -4,6 +4,7 @@ import { figureTexture } from "../figureTexture";
 import { CAVE_SHEETS, SHEETS, TILE } from "../sprites";
 import { moveBox, routeFromOwnTile, type Box } from "../walk";
 import { integerZoom, TARGET_VIEW } from "../zoom";
+import { PLAYER_MAX_HP } from "./combat";
 import { generateFloor, type Floor } from "./generate";
 import { CAVE_PROPS } from "./props";
 
@@ -136,7 +137,14 @@ export class CaveScene extends Phaser.Scene {
 
   // The world state follows the floor the player is on.
   private announce() {
-    bridge.setWorld({ area: "grotta", cave: { depth: this.depth } });
+    bridge.setWorld({
+      area: "grotta",
+      cave: {
+        depth: this.depth,
+        hp: PLAYER_MAX_HP,
+        maxHp: PLAYER_MAX_HP,
+      },
+    });
   }
 
   private descend() {

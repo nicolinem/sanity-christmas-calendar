@@ -65,6 +65,9 @@ import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
 import CaveHud from "./hud/CaveHud";
 import { ropeFloors } from "@/game/cave/floors";
+import { xpFor } from "@/game/cave/combat";
+import { addToTrip, bankTrip, dropTrip } from "@/game/cave/trip";
+import { useWindowActive } from "./hud/useWindowActive";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
 import ForgeHammer from "./hud/ForgeHammer";
@@ -755,17 +758,51 @@ export default function GameClient() {
   useEffect(
     () =>
       bridge.on("reachedFloor", (depth) => {
-        bridge.setWorld({ area: "grotta", cave: { depth } });
         updateProgress(PROGRESS_PROJECT, (p) =>
-          depth > p.deepest ? { ...p, deepest: depth } : p,
+          depth > p.deepest || !p.inCave
+            ? { ...p, deepest: Math.max(depth, p.deepest), inCave: true }
+            : p,
         );
       }),
     [],
   );
   useEffect(
     () =>
+      bridge.on("enemyDefeated", ({ enemy, depth }) =>
+        updateProgress(PROGRESS_PROJECT, (p) => ({
+          ...p,
+          xp: p.xp + xpFor(enemy, depth),
+        })),
+      ),
+    [],
+  );
+  useEffect(
+    () =>
+      bridge.on("found", ({ item, count }) =>
+        updateProgress(PROGRESS_PROJECT, (p) => addToTrip(p, item, count)),
+      ),
+    [],
+  );
+  useEffect(
+    () =>
+      bridge.on("fainted", () => {
+        updateProgress(PROGRESS_PROJECT, dropTrip);
+        pushToast({
+          title: "Du besvimte",
+          body: "Du våknet hos Brann. Det du fant på turen, ble liggende igjen.",
+          tone: "lesson",
+        });
+      }),
+    [],
+  );
+  // A trip left open by a closed tab: its finds are banked once on mount.
+  useEffect(() => {
+    updateProgress(PROGRESS_PROJECT, (p) => (p.inCave ? bankTrip(p) : p));
+  }, []);
+  useEffect(
+    () =>
       bridge.on("leftCave", () => {
-        bridge.setWorld({ area: "bygda", cave: null });
+        updateProgress(PROGRESS_PROJECT, bankTrip);
         const target = pendingTravel.current;
         pendingTravel.current = null;
         if (target) bridge.emit("travelToSite", target);
@@ -993,6 +1030,27 @@ export default function GameClient() {
       markWeekSeen(summaryWeek, summary.doors);
     setWeekShown(null);
   }, [summaryWeek, summary, markWeekSeen]);
+
+  // What the cave needs to fight: the weapon, and whether the player is away.
+  const windowActive = useWindowActive();
+  const attack = useMemo(
+    () =>
+      equipped && isUsableWeapon(equipped)
+        ? {
+            damage: equipped.power?.damage ?? 0,
+            element:
+              equipped.magic.kind === "element" ? equipped.magic.element : null,
+          }
+        : null,
+    [equipped],
+  );
+  useEffect(() => {
+    bridge.setWorld({
+      attack,
+      away: studio.open || !windowActive,
+      caveGod: dev,
+    });
+  }, [attack, studio.open, windowActive, dev]);
 
   // Keep the world in sync with game state.
   useEffect(() => {

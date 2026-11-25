@@ -1,6 +1,8 @@
 import type { SpriteDef, SpriteSheet } from "./sprites";
 import type { FigureChoice } from "./figure";
 import type { Element } from "./magic";
+import type { Attack } from "./cave/combat";
+import type { EnemyId } from "./cave/enemies";
 import type { NpcId, QuestSiteId } from "./village";
 
 // The seam between React (HUD, content, rules) and Phaser (world, motion).
@@ -40,7 +42,10 @@ export type WorldState = {
   wraithDefeated: boolean;
   frozen: boolean; // a dialogue is open: the knight stands still
   area: "bygda" | "grotta"; // which scene the player is in
-  cave: { depth: number } | null; // the floor, while in the cave
+  cave: { depth: number; hp: number; maxHp: number } | null; // the floor and life, while in the cave
+  attack: Attack | null; // the equipped usable weapon, if any
+  away: boolean; // the Studio is open or the window lost focus: the cave pauses
+  caveGod: boolean; // ?dev only: nothing hurts the player
   // Side quests: «!» to take, «?» to hand in, over people the lukes don't
   // need right now; and the spots still to find, with their props.
   sideMarkers: Partial<Record<string, "!" | "?">>;
@@ -92,6 +97,12 @@ type EventMap = {
   leaveCave: void; // HUD → cave: go back up to the village
   reachedFloor: number; // cave → HUD: a new floor was entered
   leftCave: void; // cave → HUD: back in the village
+  caveAttack: void; // HUD → cave: swing
+  drink: string; // HUD → cave: drink this item (id)
+  drinkResult: "ok" | "again" | "limit" | "full"; // cave → HUD
+  enemyDefeated: { enemy: EnemyId; depth: number }; // cave → HUD
+  found: { item: string; count: number }; // cave → HUD
+  fainted: void; // cave → HUD: the player went down
 };
 
 type Listener<T> = (payload: T) => void;
@@ -112,6 +123,9 @@ class Bridge {
     frozen: false,
     area: "bygda",
     cave: null,
+    attack: null,
+    away: false,
+    caveGod: false,
     sideMarkers: {},
     sideSpots: [],
   };
