@@ -1,4 +1,4 @@
-import { ENEMIES, enemiesAt, type EnemyId } from "./enemies";
+import { enemiesAt, type EnemyId } from "./enemies";
 import { rng } from "./random";
 import { CAVE_FRAMES, REST_ROOMS, ROOMS, mirror } from "./rooms";
 
@@ -8,21 +8,28 @@ export type Point = { x: number; y: number };
 export type Box = { x: number; y: number; w: number; h: number };
 
 export type Floor = {
-  depth: number;
-  room: string;
-  mirrored: boolean;
+  depth: number; // 1-based dungeon depth; drives the enemy mix
+  room: string; // id of the room template this floor was built from
+  mirrored: boolean; // the template was flipped left-right
   // The floor as built: one T (at stairs), o only where rocks are.
   rows: string[];
-  tiles: number[][];
+  tiles: number[][]; // frame index into SHEETS[sheet], indexed [y][x]
+  // One 16×16 box per wall tile, top-left px (x*16, y*16). Rocks are NOT here:
+  // a scene adds rock collision from `rocks`.
   solids: Box[];
-  start: Point;
-  stairs: Point;
+  start: Point; // tile-centre px (x*16+8, y*16+8)
+  stairs: Point; // tile-centre px; the way down
+  // Tile-centre px. Normal floors get up to 6 random enemies from the depth's
+  // mix; rest floors get one boss on every m.
   spawns: { enemy: EnemyId; x: number; y: number }[];
-  rocks: Point[];
-  chest?: { id: string; x: number; y: number };
+  rocks: Point[]; // tile-centre px of the o tiles that survived a 60% roll
+  // Rest floors only (and only if the template has a k): id is `cave-${depth}`.
+  chest?: { id: string; x: number; y: number }; // tile-centre px
+  // The stairs open only when every spawn is defeated. Never set on rest
+  // floors or depth 1.
   locked: boolean;
-  rest: boolean;
-  sheet: "cave" | "caveDeep";
+  rest: boolean; // every fifth floor: 5, 10, 15, …
+  sheet: "cave" | "caveDeep"; // "caveDeep" from depth 10
 };
 
 const center = ([x, y]: [number, number]): Point => ({
