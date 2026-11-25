@@ -168,8 +168,7 @@ export class CaveScene extends Phaser.Scene {
       bridge.setZone(null);
       bridge.setWorld({ area: "bygda", cave: null });
       this.scene.stop();
-      this.scene.wake("WinterQuest");
-      bridge.emit("leftCave", undefined);
+      this.scene.wake("WinterQuest"); // the village emits leftCave once awake
     });
   }
 

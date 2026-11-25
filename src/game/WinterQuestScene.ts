@@ -142,6 +142,8 @@ export class WinterQuestScene extends Phaser.Scene {
       this.moveTarget = null;
       this.route = [];
       this.cameras.main.fadeIn(200);
+      // Only now: a pending «Gå til» sets its route after the reset above.
+      bridge.emit("leftCave", undefined);
     };
     this.events.on(Phaser.Scenes.Events.WAKE, onWake);
 
