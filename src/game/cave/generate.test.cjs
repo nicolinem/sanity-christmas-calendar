@@ -67,6 +67,12 @@ test("1 000 seeds on depths 1–12: no errors, and the stairs are always reachab
         assert.equal(floor.rows[(s.y - 8) / 16][(s.x - 8) / 16], "m");
       for (const o of floor.rocks)
         assert.equal(floor.rows[(o.y - 8) / 16][(o.x - 8) / 16], "o");
+      assert.equal(floor.rows.join("").split("T").length - 1, 1);
+      assert.equal(floor.rows[ty][tx], "T");
+      assert.equal(
+        floor.rows.join("").split("o").length - 1,
+        floor.rocks.length,
+      );
       const walls = floor.rows.join("").split("#").length - 1;
       assert.equal(floor.solids.length, walls);
     }

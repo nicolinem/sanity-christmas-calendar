@@ -11,6 +11,7 @@ export type Floor = {
   depth: number;
   room: string;
   mirrored: boolean;
+  // The floor as built: one T (at stairs), o only where rocks are.
   rows: string[];
   tiles: number[][];
   solids: Box[];
@@ -81,11 +82,22 @@ export function generateFloor(
     }));
   }
 
-  const rocks = cells(rows, "o")
-    .filter(() => r() < 0.6)
-    .map(center);
+  const rockTiles = cells(rows, "o").filter(() => r() < 0.6);
+  const rocks = rockTiles.map(center);
 
   const locked = !rest && depth > 1 && r() < 0.25;
+
+  const built = rows.map((row, y) =>
+    [...row]
+      .map((c, x) => {
+        if (c === "T")
+          return x === stairsTile[0] && y === stairsTile[1] ? "T" : ".";
+        if (c === "o")
+          return rockTiles.some(([rx, ry]) => rx === x && ry === y) ? "o" : ".";
+        return c;
+      })
+      .join(""),
+  );
 
   const tiles = rows.map((row) =>
     [...row].map((c) => {
@@ -110,7 +122,7 @@ export function generateFloor(
     depth,
     room: template.id,
     mirrored,
-    rows,
+    rows: built,
     tiles,
     solids,
     start: center(startTile),
