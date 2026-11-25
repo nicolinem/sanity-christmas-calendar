@@ -3,6 +3,7 @@
 import { FEATURES } from "@/game/features";
 import type { FigureChoice } from "@/game/figure";
 import FigureCanvas from "../figure/FigureCanvas";
+import { IconHeart } from "./icons";
 
 type Props = {
   figure: FigureChoice;
@@ -10,6 +11,7 @@ type Props = {
   level: number;
   xp?: { into: number; needed: number };
   compact: boolean;
+  hearts?: { hp: number; max: number };
   onOpen: () => void;
 };
 
@@ -19,8 +21,10 @@ export default function PlayerPlate({
   level,
   xp,
   compact,
+  hearts,
   onOpen,
 }: Props) {
+  const count = hearts ? Math.floor(hearts.max / 2) : 0;
   return (
     <div className="plate-wrap">
       <button
@@ -44,6 +48,26 @@ export default function PlayerPlate({
                   width: xp.needed ? `${(xp.into / xp.needed) * 100}%` : "100%",
                 }}
               />
+            </span>
+          )}
+          {hearts && (
+            <span
+              className="plate-hearts"
+              role="img"
+              aria-label={`Liv: ${String(hearts.hp / 2).replace(".", ",")} av ${hearts.max / 2} hjerter`}
+            >
+              {Array.from({ length: count }, (_, i) => (
+                <IconHeart
+                  key={i}
+                  fill={
+                    hearts.hp >= (i + 1) * 2
+                      ? "full"
+                      : hearts.hp === i * 2 + 1
+                        ? "half"
+                        : "empty"
+                  }
+                />
+              ))}
             </span>
           )}
         </span>

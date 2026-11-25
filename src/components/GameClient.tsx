@@ -64,6 +64,7 @@ import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
 import CaveHud from "./hud/CaveHud";
+import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
 import { xpFor } from "@/game/cave/combat";
 import { addToTrip, bankTrip, dropTrip } from "@/game/cave/trip";
@@ -154,6 +155,20 @@ function useCaveDepth() {
   );
 }
 
+function useCaveHp() {
+  const hp = useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.hp ?? null,
+    () => null,
+  );
+  const max = useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.maxHp ?? null,
+    () => null,
+  );
+  return hp === null || max === null ? null : { hp, max };
+}
+
 function useZone() {
   return useSyncExternalStore<Zone>(
     (cb) => bridge.on("zone", cb),
@@ -194,8 +209,13 @@ export default function GameClient() {
   const zone = useZone();
   const area = useArea();
   const caveDepth = useCaveDepth();
+  const caveHp = useCaveHp();
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
+  // «Gå hjem?» asked before leaving the cave for another place.
+  const [confirmTravel, setConfirmTravel] = useState<
+    QuestSiteId | "wraith" | null
+  >(null);
   // A side quest conversation: who, and which quest (kept through delivery).
   const [sideTalk, setSideTalk] = useState<{
     npc: NpcId;
@@ -555,6 +575,12 @@ export default function GameClient() {
   }, [bestWeapon, autoEquip, equippedId]);
 
   const handleEquip = useCallback((item: GameItemView) => {
+    // A potion is not equipped: in the cave it is drunk, in the village nothing.
+    if (item.kind === "potion") {
+      if (bridge.world.area === "grotta" && item.source === "sanity")
+        bridge.emit("drink", item.id);
+      return;
+    }
     setAutoEquip(false);
     setEquippedId(item.id);
   }, []);
@@ -747,8 +773,7 @@ export default function GameClient() {
     setTalking(false);
     setLogOpen(false);
     if (bridge.world.area === "grotta") {
-      pendingTravel.current = siteId;
-      bridge.emit("leaveCave", undefined);
+      setConfirmTravel(siteId);
       return;
     }
     bridge.emit("travelToSite", siteId);
@@ -810,7 +835,38 @@ export default function GameClient() {
     [],
   );
   const enterCave = useCallback(
-    (depth: number) => bridge.emit("enterCave", depth),
+    (depth: number) => {
+      if (forgeLevel < 2)
+        pushToast({
+          title: "Brann",
+          body: "Pass deg, det er dyr der nede. Jeg ville ventet til du er nivå 2.",
+          tone: "lesson",
+        });
+      bridge.emit("enterCave", depth);
+    },
+    [forgeLevel],
+  );
+  const confirmLeave = useCallback(() => {
+    pendingTravel.current = confirmTravel;
+    setConfirmTravel(null);
+    bridge.emit("leaveCave", undefined);
+  }, [confirmTravel]);
+  const attackInCave = useCallback(
+    () => bridge.emit("caveAttack", undefined),
+    [],
+  );
+  const found = Object.values(progress.trip).reduce((sum, n) => sum + n, 0);
+  useEffect(
+    () =>
+      bridge.on("drinkResult", (result) => {
+        const body = {
+          again: "Den har du alt drukket på denne turen.",
+          limit: "Tre drikker er nok for én tur.",
+          full: "Du har fullt liv.",
+          ok: null,
+        }[result];
+        if (body) pushToast({ title: "Drikke", body, tone: "lesson" });
+      }),
     [],
   );
   const descend = useCallback(() => bridge.emit("descend", undefined), []);
@@ -1085,7 +1141,8 @@ export default function GameClient() {
         showOpening ||
         sheetShown ||
         Boolean(celebration) ||
-        Boolean(summary),
+        Boolean(summary) ||
+        confirmTravel !== null,
     });
   }, [
     equipped,
@@ -1109,6 +1166,7 @@ export default function GameClient() {
     summary,
     sheetShown,
     figure,
+    confirmTravel,
   ]);
 
   const slots = narrow ? 5 : 8;
@@ -1132,6 +1190,10 @@ export default function GameClient() {
       }
       if (modelOpen) {
         if (e.key === "Escape") setModelQuestId(null);
+        return;
+      }
+      if (confirmTravel) {
+        if (e.key === "Escape") setConfirmTravel(null);
         return;
       }
       if (signOpen) {
@@ -1213,16 +1275,24 @@ export default function GameClient() {
         combat.attack();
         return;
       }
+      if (e.key === " " && area === "grotta" && !onControl) {
+        e.preventDefault();
+        bridge.emit("caveAttack", undefined);
+        return;
+      }
       const n = Number(e.key);
       if (n >= 1 && n <= slots && !talkOpen) {
         const item = items[n - 1];
-        if (item?.kind === "weapon") handleEquip(item);
+        if (item?.kind === "weapon" || item?.kind === "potion")
+          handleEquip(item);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [
     zone,
+    area,
+    confirmTravel,
     talkTo,
     siteQuest,
     dialogueOpen,
@@ -1323,7 +1393,7 @@ export default function GameClient() {
 
           {area === "grotta" && caveDepth !== null && (
             <div className="hud-tc">
-              <CaveHud depth={caveDepth} onLeave={leaveCave} />
+              <CaveHud depth={caveDepth} found={found} onLeave={leaveCave} />
             </div>
           )}
 
@@ -1462,7 +1532,12 @@ export default function GameClient() {
 
             {area === "grotta" && caveDepth !== null && (
               <div className="cave-hud-belt">
-                <CaveHud depth={caveDepth} onLeave={leaveCave} />
+                <CaveHud
+                  depth={caveDepth}
+                  found={found}
+                  onLeave={leaveCave}
+                  onAttack={attackInCave}
+                />
               </div>
             )}
             <Hotbar
@@ -1473,6 +1548,7 @@ export default function GameClient() {
                   level={forgeLevel}
                   xp={xp}
                   compact={narrow}
+                  hearts={area === "grotta" && caveHp ? caveHp : undefined}
                   onOpen={() => openSheet("look")}
                 />
               }
@@ -1590,6 +1666,12 @@ export default function GameClient() {
               onClose={() => setModelQuestId(null)}
             />
           )}
+        {confirmTravel && (
+          <CaveLeaveConfirm
+            onLeave={confirmLeave}
+            onStay={() => setConfirmTravel(null)}
+          />
+        )}
         {showOpening && (
           <Opening
             stage={entryStage}

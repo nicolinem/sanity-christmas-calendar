@@ -132,3 +132,41 @@ export function IconClose({ size = 16 }: { size?: number }) {
     />
   );
 }
+
+// A life heart, 12 px: full, half (left side lit) or empty (dimmed).
+const HEART = [
+  ".##..##.",
+  "########",
+  "########",
+  ".######.",
+  "..####..",
+  "...##...",
+];
+export function IconHeart({ fill }: { fill: "full" | "half" | "empty" }) {
+  return (
+    <svg
+      aria-hidden
+      className="heart"
+      width={12}
+      height={9}
+      viewBox="0 0 8 6"
+      shapeRendering="crispEdges"
+      fill="currentColor"
+    >
+      {HEART.flatMap((row, y) =>
+        [...row].map((c, x) =>
+          c === "#" ? (
+            <rect
+              key={`${x}-${y}`}
+              x={x}
+              y={y}
+              width={1}
+              height={1}
+              opacity={fill === "full" || (fill === "half" && x < 4) ? 1 : 0.25}
+            />
+          ) : null,
+        ),
+      )}
+    </svg>
+  );
+}

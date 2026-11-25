@@ -100,7 +100,7 @@ function Slot({
       <button
         type="button"
         className={`slot${equipped ? " is-equipped" : ""}${weapon ? "" : " is-passive"}`}
-        onClick={() => weapon && onEquip(item)}
+        onClick={() => (weapon || item.kind === "potion") && onEquip(item)}
         aria-disabled={!weapon}
         aria-pressed={weapon ? equipped : undefined}
         aria-label={item.name}
