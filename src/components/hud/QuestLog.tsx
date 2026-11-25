@@ -10,7 +10,7 @@ import { fridayOf } from "@/game/quests/weeks";
 import type { Progress, QuestState, QuestTrack } from "@/game/quests/types";
 import { NPCS, QUEST_SITES, type QuestSiteId } from "@/game/village";
 import { FEATURES } from "@/game/features";
-import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
+import { forgedPower, LUKE_LEVEL_CAP } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
 import Explain from "./Explain";
@@ -152,7 +152,7 @@ export default function QuestLog({
             >
               <span className="log-forge-label">Nivå {forgeLevel}</span>
               <span className="log-forge-pips" aria-hidden="true">
-                {Array.from({ length: MAX_FORGE_LEVEL }, (_, i) => (
+                {Array.from({ length: LUKE_LEVEL_CAP }, (_, i) => (
                   <span
                     key={i}
                     className={i < forgeLevel ? "is-on" : undefined}

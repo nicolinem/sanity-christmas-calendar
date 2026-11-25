@@ -1,5 +1,5 @@
 import { CALENDAR_START, SETUP_DAY } from "../release";
-import { clampForgeLevel } from "../rules";
+import { clampForgeLevel, LUKE_LEVEL_CAP } from "../rules";
 import { giverOf } from "./label";
 import type {
   Chapter,
@@ -147,5 +147,5 @@ export function forgeLevelFor(chapters: Chapter[], progress: Progress): number {
     for (const quest of chapter.quests)
       if (progress.completed[quest.id] && quest.reward)
         level += quest.reward.forgeLevel;
-  return clampForgeLevel(level);
+  return clampForgeLevel(Math.min(LUKE_LEVEL_CAP, level));
 }

@@ -1,7 +1,7 @@
 import { normalizeFigure, type FigureChoice } from "./figure";
 import { CHAPTERS } from "./quests/chapters";
 import type { QuestTrack } from "./quests/types";
-import { clampForgeLevel } from "./rules";
+import { clampForgeLevel, LUKE_LEVEL_CAP } from "./rules";
 import { hasKnownSprite, isSpriteAllowedForKind } from "./sprites";
 
 const questTitles = new Map(
@@ -42,13 +42,16 @@ export type CommunityPlayer = {
 export function forgeLevelFromMilestones(questIds: Iterable<string>) {
   const completed = new Set(questIds);
   return clampForgeLevel(
-    1 +
-      CHAPTERS.flatMap((chapter) => chapter.quests).reduce(
-        (level, quest) =>
-          level +
-          (completed.has(quest.id) ? (quest.reward?.forgeLevel ?? 0) : 0),
-        0,
-      ),
+    Math.min(
+      LUKE_LEVEL_CAP,
+      1 +
+        CHAPTERS.flatMap((chapter) => chapter.quests).reduce(
+          (level, quest) =>
+            level +
+            (completed.has(quest.id) ? (quest.reward?.forgeLevel ?? 0) : 0),
+          0,
+        ),
+    ),
   );
 }
 
