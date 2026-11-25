@@ -314,6 +314,10 @@ kbd {
   font-size: 16px;
   color: var(--snow);
 }
+.cave-hud button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .cave-hud-floor,
 .cave-hud-found {
   white-space: nowrap;
@@ -338,6 +342,7 @@ kbd {
 }
 .cave-hud-locked {
   flex-basis: 100%;
+  white-space: normal;
   text-align: center;
   color: var(--amber);
 }
