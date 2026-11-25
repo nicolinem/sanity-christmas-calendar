@@ -31,7 +31,11 @@ export default function PlayerPlate({
         type="button"
         className={`plate${compact ? " is-compact" : ""}`}
         onClick={onOpen}
-        aria-label="Figur og utseende (C)"
+        aria-label={`Figur og utseende (C)${
+          hearts
+            ? `. Liv: ${String(hearts.hp / 2).replace(".", ",")} av ${hearts.max / 2} hjerter`
+            : ""
+        }`}
         title="Figur og utseende (C)"
       >
         <span className="plate-portrait">
@@ -51,11 +55,7 @@ export default function PlayerPlate({
             </span>
           )}
           {hearts && (
-            <span
-              className="plate-hearts"
-              role="img"
-              aria-label={`Liv: ${String(hearts.hp / 2).replace(".", ",")} av ${hearts.max / 2} hjerter`}
-            >
+            <span className="plate-hearts" aria-hidden="true">
               {Array.from({ length: count }, (_, i) => (
                 <IconHeart
                   key={i}

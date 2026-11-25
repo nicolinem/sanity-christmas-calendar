@@ -320,6 +320,10 @@ kbd {
 .cave-hud-found {
   color: var(--amber);
 }
+.cave-hud-wait {
+  flex-basis: 100%;
+  text-align: center;
+}
 .cave-confirm {
   display: grid;
   gap: 14px;
@@ -345,6 +349,11 @@ kbd {
   }
   .cave-hud-belt {
     display: block;
+  }
+  .cave-hud-belt .cave-hud {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 12px;
   }
 }
 .hud-bl {

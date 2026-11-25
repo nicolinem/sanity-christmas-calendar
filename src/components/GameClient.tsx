@@ -835,14 +835,17 @@ export default function GameClient() {
       }),
     [],
   );
+  const warnedCave = useRef(false);
   const enterCave = useCallback(
-    (depth: number) => {
-      if (forgeLevel < 2)
+    (depth: number, quiet = false) => {
+      if (forgeLevel < 2 && !quiet && !warnedCave.current) {
+        warnedCave.current = true;
         pushToast({
           title: "Brann",
           body: "Pass deg, det er dyr der nede. Jeg ville ventet til du er nivå 2.",
           tone: "lesson",
         });
+      }
       bridge.emit("enterCave", depth);
     },
     [forgeLevel],
@@ -1277,7 +1280,15 @@ export default function GameClient() {
         combat.attack();
         return;
       }
-      if (e.key === " " && area === "grotta" && !onControl) {
+      if (
+        e.key === " " &&
+        area === "grotta" &&
+        !(e.target as HTMLElement)?.closest?.("input, textarea")
+      ) {
+        // Always swallow Space here so a focused belt button is not
+        // activated again on keyup. Other buttons and links keep their own Space.
+        const target = (e.target as HTMLElement)?.closest?.("button, a");
+        if (target && !target.closest(".slot")) return;
         e.preventDefault();
         bridge.emit("caveAttack", undefined);
         return;
@@ -1395,7 +1406,12 @@ export default function GameClient() {
 
           {area === "grotta" && caveDepth !== null && (
             <div className="hud-tc">
-              <CaveHud depth={caveDepth} found={found} onLeave={leaveCave} />
+              <CaveHud
+                depth={caveDepth}
+                found={found}
+                onLeave={leaveCave}
+                waiting={studio.open}
+              />
             </div>
           )}
 
@@ -1521,6 +1537,7 @@ export default function GameClient() {
               </button>
             )}
             {!hasMoved &&
+              area !== "grotta" &&
               !progress.metBlacksmith &&
               !showOpening &&
               zone !== "forge" && (
@@ -1539,6 +1556,7 @@ export default function GameClient() {
                   found={found}
                   onLeave={leaveCave}
                   onAttack={attackInCave}
+                  waiting={studio.open}
                 />
               </div>
             )}
@@ -1561,12 +1579,13 @@ export default function GameClient() {
               onRefresh={refresh}
               refreshing={loading}
               slots={slots}
+              drinkable={area === "grotta"}
             />
           </div>
 
           <Toasts />
 
-          {studioFocused && (
+          {studioFocused && area !== "grotta" && (
             <button type="button" className="keyboard-away" onClick={focusGame}>
               Studio har tastaturet. Klikk her for å spille.
             </button>
@@ -1761,7 +1780,7 @@ export default function GameClient() {
                       god: caveGod,
                       inCave: area === "grotta",
                       onGod: setCaveGod,
-                      onGoto: enterCave,
+                      onGoto: (depth) => enterCave(depth, true),
                       onReset: () =>
                         updateProgress(PROGRESS_PROJECT, (p) => ({
                           ...dropTrip(p),

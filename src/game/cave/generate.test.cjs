@@ -104,7 +104,7 @@ test("depth below 1 or not a number is treated as 1", () => {
   assert.deepEqual(generateFloor(-5, 7), generateFloor(1, 7));
   assert.deepEqual(generateFloor(Number.NaN, 7), generateFloor(1, 7));
 });
-test("floor decoration: no rock tiles, and at most about 1 in 20 pebble tiles", () => {
+test("floor decoration: no rock tiles, and at most about 1 in 50 pebble tiles", () => {
   let pebbles = 0,
     floor = 0;
   for (let seed = 0; seed < 200; seed++)
@@ -115,5 +115,17 @@ test("floor decoration: no rock tiles, and at most about 1 in 20 pebble tiles", 
         assert.notEqual(f, CAVE_FRAMES.floorRocks);
         if (f === CAVE_FRAMES.floorPebbles) pebbles++;
       }
-  assert.ok(pebbles / floor > 0.03 && pebbles / floor < 0.07);
+  assert.ok(pebbles / floor > 0.01 && pebbles / floor < 0.035);
+});
+
+test("floors average at least 2 rocks", () => {
+  let total = 0;
+  let n = 0;
+  for (let d = 1; d <= 4; d++) {
+    for (let seed = 0; seed < 1000; seed++) {
+      total += generateFloor(d, seed).rocks.length;
+      n++;
+    }
+  }
+  assert.ok(total / n >= 2, `mean ${total / n}`);
 });

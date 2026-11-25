@@ -111,3 +111,9 @@ test("enemiesAt skips bosses and respects depth", () => {
   assert.equal(ENEMIES.yeti.from, 5);
   assert.equal(ENEMIES.drake.from, 10);
 });
+
+test("every normal room has at least 3 rocks", () => {
+  for (const { id, rows } of ROOMS) {
+    assert.ok(cells(rows, "o").length >= 3, `${id} has too few o`);
+  }
+});

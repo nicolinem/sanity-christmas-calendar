@@ -142,6 +142,12 @@ export class CaveScene extends Phaser.Scene {
     };
     fit();
     this.scale.on(Phaser.Scale.Events.RESIZE, fit);
+    // Nothing moves during the fade-in, as in descend.
+    this.busy = true;
+    cam.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => {
+      this.busy = false;
+      if (this.leaveQueued) this.leave();
+    });
     cam.fadeIn(FADE_MS);
 
     this.unsubscribe.push(
@@ -537,6 +543,11 @@ export class CaveScene extends Phaser.Scene {
       const p = this.move(m.brain, away.x * KNOCK_ENEMY, away.y * KNOCK_ENEMY);
       m.brain = { ...m.brain, hp, x: p.x, y: p.y };
       m.flashUntil = this.clock + FLASH_MS;
+      if (m.brain.mode === "windup") {
+        // The line was drawn at the old spot; drawMonster redraws it here.
+        m.marks.forEach((i) => i.destroy());
+        m.marks = [];
+      }
     }
 
     for (const r of this.rocks.filter((r) => inSwing(from, this.facing, r)))

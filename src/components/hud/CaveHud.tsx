@@ -4,12 +4,15 @@ export default function CaveHud({
   found,
   onLeave,
   onAttack,
+  waiting = false,
 }: {
   depth: number;
   found: number;
   onLeave: () => void;
   // Only given on narrow screens, where there is no Space key.
   onAttack?: () => void;
+  // The cave stands still while Studio is open.
+  waiting?: boolean;
 }) {
   return (
     <div className="cave-hud frame frame--slate">
@@ -25,6 +28,11 @@ export default function CaveHud({
       <button type="button" className="btn" onClick={onLeave}>
         Gå hjem
       </button>
+      {waiting && (
+        <span className="cave-hud-wait">
+          Grotta venter mens Studio er åpent.
+        </span>
+      )}
     </div>
   );
 }
