@@ -95,3 +95,10 @@ test("spider dash strikes once, ends at DASH_MAX, then rests", () => {
   assert.equal(b.mode, "rest");
   assert.ok(Math.abs(b.x - 80) < 1e-6);
 });
+
+test("a dash stepped with no time is not blocked", () => {
+  const b = windedUp(at(60));
+  const r = stepBrain(b, at(60), 2000, 0, free);
+  assert.equal(r.brain.mode, "dash");
+  assert.equal(r.brain.dashLeft, b.dashLeft);
+});

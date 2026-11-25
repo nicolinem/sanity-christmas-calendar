@@ -54,7 +54,7 @@ export function stepBrain(
   dtSec: number,
   move: (from: Point, dx: number, dy: number) => Point,
 ): { brain: Brain; strike: number } {
-  let n: Brain = { ...b, dir: { ...b.dir } };
+  const n: Brain = { ...b, dir: { ...b.dir } };
   let strike = 0;
   const dx = player.x - n.x;
   const dy = player.y - n.y;
@@ -92,7 +92,8 @@ export function stepBrain(
   } else if (n.mode === "dash") {
     const step = Math.min(DASH_SPEED * dtSec, n.dashLeft);
     const p = move({ x: n.x, y: n.y }, n.dir.x * step, n.dir.y * step);
-    const blocked = p.x === n.x && p.y === n.y;
+    // A step of 0 (a frame with no time) is not a wall.
+    const blocked = step > 0 && p.x === n.x && p.y === n.y;
     n.x = p.x;
     n.y = p.y;
     n.dashLeft -= step;
