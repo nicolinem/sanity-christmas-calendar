@@ -1,5 +1,5 @@
 import type { Point } from "./generate";
-import { CAVE_FRAMES } from "./rooms";
+import { CAVE_FRAMES, ROOM_H, ROOM_W } from "./rooms";
 
 const TILE = 16;
 
@@ -15,7 +15,7 @@ const centre = (x: number, y: number): Point => ({
 // Draw order from `r` (fixed, so a seed fully determines the result):
 //   1. row-major, per tile: `#` front -> variant roll, then face roll;
 //      other tiles -> pebble roll, then (`.` only) ice-lump roll.
-//   2. torch count, 3. Fisher-Yates over the fronts for torch placement.
+//   2. per room (row-major): torch count, then Fisher-Yates over its fronts.
 export function decorate(
   rows: string[],
   r: () => number,
@@ -60,21 +60,32 @@ export function decorate(
     }),
   );
 
-  const wanted = 2 + Math.floor(r() * 3);
-  const candidates = fronts.filter(([x, y]) => !faceAt.has(`${x},${y}`));
-  for (let i = candidates.length - 1; i > 0; i--) {
-    const j = Math.floor(r() * (i + 1));
-    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  // Torches are 2-4 per room: bucket the candidates by room, row-major.
+  const rooms = new Map<string, [number, number][]>();
+  for (const [x, y] of fronts) {
+    if (faceAt.has(`${x},${y}`)) continue;
+    const key = `${Math.floor(x / ROOM_W)},${Math.floor(y / ROOM_H)}`;
+    rooms.set(key, [...(rooms.get(key) ?? []), [x, y]]);
   }
   const chosen: [number, number][] = [];
-  for (const [x, y] of candidates) {
-    if (chosen.length >= wanted) break;
-    if (
-      chosen.every(
-        ([cx, cy]) => Math.max(Math.abs(cx - x), Math.abs(cy - y)) >= 4,
-      )
-    )
-      chosen.push([x, y]);
+  for (const candidates of rooms.values()) {
+    const wanted = 2 + Math.floor(r() * 3);
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(r() * (i + 1));
+      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+    let inRoom = 0;
+    for (const [x, y] of candidates) {
+      if (inRoom >= wanted) break;
+      if (
+        chosen.every(
+          ([cx, cy]) => Math.max(Math.abs(cx - x), Math.abs(cy - y)) >= 4,
+        )
+      ) {
+        chosen.push([x, y]);
+        inRoom++;
+      }
+    }
   }
   for (const [x, y] of chosen) tiles[y][x] = torch;
 

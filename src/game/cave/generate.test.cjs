@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
 const { generateFloor } = require("./generate.ts");
-const { reachable, CAVE_FRAMES } = require("./rooms.ts");
+const { reachable, CAVE_FRAMES, ROOMS } = require("./rooms.ts");
 
 test("the same seed gives the same floor", () => {
   assert.deepEqual(generateFloor(3, 42), generateFloor(3, 42));
@@ -66,9 +66,10 @@ test("the stairs are never in the start room; no monsters there on 1–2", () =>
 
 test("the stairs and every room's floor can be reached from the start", () => {
   const T = 16;
-  for (let depth = 1; depth <= 12; depth++) {
+  // Depths 3-12 (non-rest) build identical rows, so a few depths cover them.
+  for (const depth of [1, 3, 5, 10]) {
     for (let seed = 0; seed < 1000; seed += 1) {
-      const f = generateFloor(depth, seed);
+      const f = generateFloor(depth, seed, ROOMS[seed % ROOMS.length].id);
       const seen = reachable(f.rows, [
         (f.start.x - 8) / T,
         (f.start.y - 8) / T,
@@ -182,4 +183,23 @@ test("floors average at least 2 rocks", () => {
     }
   }
   assert.ok(total / n >= 2, `mean ${total / n}`);
+});
+
+test("every room has 2-4 torches", () => {
+  for (const depth of [1, 3]) {
+    for (let seed = 0; seed < 200; seed++) {
+      const f = generateFloor(depth, seed);
+      const per = new Map();
+      for (const t of f.torches) {
+        const key = `${Math.floor(t.x / 16 / 24)},${Math.floor(t.y / 16 / 14)}`;
+        per.set(key, (per.get(key) ?? 0) + 1);
+      }
+      const rooms = f.layout.cols * f.layout.rows;
+      assert.equal(per.size, rooms, `depth ${depth} seed ${seed}`);
+      // A room with fewer than 2 spread-out fronts could come up short; no
+      // template does, so the full 2-4 is asserted.
+      for (const n of per.values())
+        assert.ok(n >= 2 && n <= 4, `depth ${depth} seed ${seed}: ${n}`);
+    }
+  }
 });

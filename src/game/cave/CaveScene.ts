@@ -27,6 +27,7 @@ import {
   AMBIENT_DEEP,
   CAMERA_PAD_TILES,
   DEEP_FROM,
+  MARKER_LIGHT,
   PLAYER_LIGHT,
   ROOF_TINT,
   SNOW,
@@ -40,7 +41,6 @@ const SPEED = 64; // world px per second, as in the village
 const STAIRS_RANGE = 28;
 const FADE_MS = 200;
 const MAX_STEP_MS = 50; // a long frame (tab switch, GC) is cut to this
-const MAX_MONSTERS = 6;
 const FLASH_MS = 90; // white flash on a monster that was hit
 const MARK_GAP = 10; // px between the marks of a charge's line
 const FLOOR_TEXTURE = "cave-floor"; // floor and walls, baked once per floor
@@ -82,6 +82,8 @@ export class CaveScene extends Phaser.Scene {
   private lit = false;
   private knightLight: Phaser.GameObjects.Light | null = null;
   private torchLights: Phaser.GameObjects.Light[] = [];
+  // Stairs (and chest) glow; steady, so the flicker loop leaves them alone.
+  private markerLights: Phaser.GameObjects.Light[] = [];
   private snow: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   // Each flake starts somewhere along the top edge of the view, read when it
   // is emitted, so the camera can move freely.
@@ -139,6 +141,7 @@ export class CaveScene extends Phaser.Scene {
     this.floorImage = null;
     this.torches = [];
     this.torchLights = [];
+    this.markerLights = [];
     this.monsters = [];
     this.rocks = [];
     this.figureKey = "";
@@ -167,6 +170,7 @@ export class CaveScene extends Phaser.Scene {
         l.radius,
         l.color,
         l.intensity,
+        l.radius * l.height,
       );
     }
 
@@ -271,7 +275,6 @@ export class CaveScene extends Phaser.Scene {
 
     this.monsters = floor.spawns
       .filter((s) => PLAYABLE.includes(s.enemy))
-      .slice(0, MAX_MONSTERS)
       .map((s) => {
         const def = ENEMIES[s.enemy];
         const sprite = this.withLight(
@@ -329,7 +332,26 @@ export class CaveScene extends Phaser.Scene {
     if (this.lit) {
       const l = TORCH_LIGHT;
       this.torchLights = floor.torches.map((t) =>
-        this.lights.addLight(t.x, t.y, l.radius, l.color, l.intensity),
+        this.lights.addLight(
+          t.x,
+          t.y,
+          l.radius,
+          l.color,
+          l.intensity,
+          l.radius * l.height,
+        ),
+      );
+      const m = MARKER_LIGHT;
+      const spots = floor.chest ? [floor.stairs, floor.chest] : [floor.stairs];
+      this.markerLights = spots.map((p) =>
+        this.lights.addLight(
+          p.x,
+          p.y,
+          m.radius,
+          m.color,
+          m.intensity,
+          m.radius * m.height,
+        ),
       );
     }
     for (const d of floor.decor)
@@ -349,6 +371,8 @@ export class CaveScene extends Phaser.Scene {
     this.torches = [];
     this.torchLights.forEach((l) => this.lights.removeLight(l));
     this.torchLights = [];
+    this.markerLights.forEach((l) => this.lights.removeLight(l));
+    this.markerLights = [];
     if (this.textures.exists(FLOOR_TEXTURE))
       this.textures.remove(FLOOR_TEXTURE);
   }
@@ -533,7 +557,10 @@ export class CaveScene extends Phaser.Scene {
         this.torchLights[i].radius =
           radius * (1 + amount * Math.sin(w + i * 2.4));
     }
-    if (this.snow && this.snow.emitting === held) this.snow.emitting = !held;
+    if (this.snow) {
+      if (this.snow.emitting === held) this.snow.emitting = !held;
+      this.snow.timeScale = held ? 0 : 1; // freeze the flakes in the air too
+    }
   }
 
   // A few slow flakes falling from the top of the view.
@@ -654,8 +681,8 @@ export class CaveScene extends Phaser.Scene {
     const b = m.brain;
     m.body.setPosition(b.x, b.y).setDepth(b.y);
     // Face the knight; frames look left unless the kind says otherwise.
-    const right = this.knight.x > b.x;
-    m.sprite.setFlipX(m.facesRight ? !right : right);
+    const dx = this.knight.x - b.x;
+    if (Math.abs(dx) > 2) m.sprite.setFlipX(m.facesRight ? dx < 0 : dx > 0);
     // The bite's tell: a ±1 px shake.
     m.sprite.x =
       b.mode === "tell" ? (Math.floor(this.clock / 40) % 2) * 2 - 1 : 0;
@@ -681,6 +708,8 @@ export class CaveScene extends Phaser.Scene {
     m.white = white;
     if (white) m.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
     else m.sprite.clearTint();
+    // A lit sprite would multiply the white down to slate.
+    if (this.lit) m.sprite.setLighting(!white);
   }
 
   private removeMonster(m: Monster) {
