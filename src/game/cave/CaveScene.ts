@@ -82,6 +82,7 @@ type Rock = Point & { image: Phaser.GameObjects.Image; box: Box };
 // no timer runs while the cave is held (fade, dialogue, Studio).
 export class CaveScene extends Phaser.Scene {
   private floor!: Floor;
+  private seed = 0; // the seed buildFloor used for this floor
   private rows: string[] = []; // floor.rows with broken rocks opened up
   private depth = 1;
   private busy = false; // a fade is running: ignore input and transitions
@@ -281,6 +282,7 @@ export class CaveScene extends Phaser.Scene {
     this.rocks.forEach((r) => r.image.destroy());
     this.rocks = [];
     const seed = Math.floor(Math.random() * 2 ** 31);
+    this.seed = seed;
     const floor = generateFloor(this.depth, seed, previousRoom);
     this.floor = floor;
     this.rows = [...floor.rows];
@@ -496,6 +498,8 @@ export class CaveScene extends Phaser.Scene {
       area: "grotta",
       cave: {
         depth: this.depth,
+        room: this.floor.room,
+        seed: this.seed,
         hp: this.hp,
         maxHp: PLAYER_MAX_HP,
         stairsLocked: this.lockShown,

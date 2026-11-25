@@ -395,20 +395,6 @@ export default function CharacterSheet({
                     </button>
                   );
                 })}
-            {mode === "bag" && found.length > 0 && (
-              <div className="cs-found">
-                <p className="cs-found-title">Fra grotta</p>
-                <ul>
-                  {found.map((id) => (
-                    <li key={id}>
-                      <SpriteIcon sprite={MATERIALS[id].sprite} />
-                      <span>{MATERIALS[id].name}</span>
-                      <span>× {materials[id]}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </nav>
 
           <div className="cs-pick">
@@ -468,6 +454,20 @@ export default function CharacterSheet({
                             : "Ta i hånda"}
                         </button>
                       )}
+                    </div>
+                  )}
+                  {found.length > 0 && (
+                    <div className="cs-found">
+                      <p className="cs-found-title">Fra grotta</p>
+                      <ul>
+                        {found.map((id) => (
+                          <li key={id}>
+                            <SpriteIcon sprite={MATERIALS[id].sprite} />
+                            <span>{MATERIALS[id].name}</span>
+                            <span>× {materials[id]}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </>

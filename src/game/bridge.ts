@@ -49,6 +49,8 @@ export type WorldState = {
   // floor's boss while it lives, else null.
   cave: {
     depth: number;
+    room: string; // id of the start room's template
+    seed: number; // the seed this floor was generated from
     hp: number;
     maxHp: number;
     stairsLocked: boolean;
