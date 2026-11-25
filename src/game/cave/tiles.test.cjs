@@ -21,3 +21,13 @@ test("cave sheets are 12 x 11 tiles of 16 px", () => {
     assert.deepEqual(size(SHEETS[key].url), [192, 176]);
   }
 });
+
+test("village and cave sheets together cover every sheet", () => {
+  const { CAVE_SHEETS, VILLAGE_SHEETS } = require("../sprites.ts");
+  assert.ok(!VILLAGE_SHEETS.includes("cave"));
+  assert.ok(!VILLAGE_SHEETS.includes("caveDeep"));
+  assert.deepEqual(
+    [...CAVE_SHEETS, ...VILLAGE_SHEETS].sort(),
+    Object.keys(SHEETS).sort(),
+  );
+});

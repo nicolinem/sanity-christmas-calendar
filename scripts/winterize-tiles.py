@@ -65,8 +65,8 @@ for i in (84,):
     rules[i] = LIT_WINDOW
 
 # Tiny Dungeon floor tiles (0, 12, 24) and wall tile 40, for the cave.
-CAVE_FLOOR = {"#763b36": "#3a4466", "#3f2631": "#262b44", "#bd6c4a": "#0099db"}
-CAVE_DEEP_FLOOR = {"#763b36": "#262b44", "#3f2631": "#181425", "#bd6c4a": "#124e89"}
+CAVE_FLOOR = {"#763b36": "#3a4466", "#3f2631": "#262b44", "#bd6c4a": "#5a6988"}
+CAVE_DEEP_FLOOR = {"#763b36": "#262b44", "#3f2631": "#181425", "#bd6c4a": "#3a4466"}
 CAVE_DEEP_WALL = {"#c0cbdc": "#8b9bb4", "#8b9bb4": "#5a6988", "#52607c": "#3a4466"}
 cave_rules = {i: CAVE_FLOOR for i in (0, 12, 24)}
 cave_deep_rules = {**{i: CAVE_DEEP_FLOOR for i in (0, 12, 24)}, 40: CAVE_DEEP_WALL}

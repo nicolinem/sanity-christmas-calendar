@@ -76,7 +76,7 @@ Rutene sjekkes i verkstedet (`/figur`) før de tas i bruk.
 
 ### Inngangen
 
-- **Her foreslår vi noe annet:** inngangen ligger **i bygda**, i skogkanten nordvest. `plan-utforsking.md` la den i et rolig område (fase B).
+- **Her foreslår vi noe annet:** inngangen ligger **i bygda**, i skogkanten nord, mellom huset i vest og smia. `plan-utforsking.md` la den i et rolig område (fase B).
   - Da er ikke grotta avhengig av at fase B er bygd først.
   - Skogkanten er stedet der sporene begynte i uke 2 (`PLACES` i `archive.ts`), så den finnes allerede i fortellingen.
 - **Brann advarer** til du har nådd nivå 2, slik `plan-utforsking.md` sier. Grotta er likevel åpen fra start.

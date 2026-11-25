@@ -5,12 +5,19 @@ require("sucrase/register");
 
 const {
   BLACKSMITH,
+  BUILDINGS,
+  CAVE_ENTRANCE,
+  CAVE_MOUTH,
+  DOOR_ANCHORS,
   NPCS,
+  PROPS,
   QUEST_SITES,
+  WRAITH_HOME,
   isPath,
   npcQuestLine,
   pathRoute,
   shouldShowQuestNpc,
+  villagePaths,
 } = require("./village.ts");
 const { CHAPTERS } = require("./quests/chapters.ts");
 
@@ -96,5 +103,86 @@ test("walks along the paths go round the well and other solid props", () => {
           assert.equal(solid.has(tile), false, `ruta går gjennom ${tile}`);
       }
     }
+  }
+});
+
+const TODAYS_PATHS = [
+  { x: 22, y: 7, w: 2, h: 8 },
+  { x: 17, y: 14, w: 12, h: 4 },
+  { x: 10, y: 9, w: 2, h: 4 },
+  { x: 10, y: 11, w: 13, h: 2 },
+  { x: 33, y: 8, w: 2, h: 8 },
+  { x: 28, y: 15, w: 10, h: 2 },
+  { x: 21, y: 18, w: 2, h: 12 },
+  { x: 6, y: 20, w: 2, h: 3 },
+  { x: 6, y: 21, w: 15, h: 2 },
+];
+
+test("the village paths are unchanged without the cave, and gain the way to the cave with it", () => {
+  assert.deepEqual(villagePaths(false), TODAYS_PATHS);
+  assert.deepEqual(villagePaths(true), [
+    ...TODAYS_PATHS,
+    { x: 16, y: 4, w: 2, h: 7 },
+  ]);
+});
+
+test("the way to the cave runs on free ground and meets the west lane", () => {
+  const way = { x: 16, y: 4, w: 2, h: 7 };
+  for (let y = way.y; y < way.y + way.h; y++)
+    for (let x = way.x; x < way.x + way.w; x++) {
+      assert.equal(
+        PROPS.some((p) => p.solid && p.x === x && p.y === y),
+        false,
+      );
+      assert.equal(
+        BUILDINGS.some(
+          (b) =>
+            x >= b.x &&
+            x < b.x + b.rows[0].length &&
+            y >= b.y &&
+            y < b.y + b.rows.length,
+        ),
+        false,
+      );
+    }
+  const westLane = TODAYS_PATHS[3];
+  assert.equal(way.y + way.h, westLane.y);
+  assert.ok(way.x >= westLane.x && way.x + way.w <= westLane.x + westLane.w);
+});
+
+test("the cave mouth stays clear of the HUD's left column on desktop", () => {
+  // At 1280×720 the village is drawn at zoom 2 and the camera stops at the
+  // world's west edge, so a tile's screen x is its world x × 2. The quest
+  // tracker's column ends at about 324 css px.
+  for (const [x] of CAVE_MOUTH) assert.ok(x * 16 * 2 > 340);
+});
+
+test("the cave zone keeps clear of the other zones", () => {
+  const apart = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  for (const site of Object.values(QUEST_SITES))
+    assert.ok(apart(CAVE_ENTRANCE, site) >= 56);
+  for (const anchor of Object.values(DOOR_ANCHORS))
+    assert.ok(apart(CAVE_ENTRANCE, anchor) >= 56);
+  for (const npc of Object.values(NPCS))
+    assert.ok(apart(CAVE_ENTRANCE, npc) >= 56);
+  assert.ok(apart(CAVE_ENTRANCE, WRAITH_HOME) >= 68);
+});
+
+test("the cave mouth is on free ground, not on a prop or in a building", () => {
+  for (const [x, y] of CAVE_MOUTH) {
+    assert.equal(
+      PROPS.some((p) => p.x === x && p.y === y),
+      false,
+    );
+    assert.equal(
+      BUILDINGS.some(
+        (b) =>
+          x >= b.x &&
+          x < b.x + b.rows[0].length &&
+          y >= b.y &&
+          y < b.y + b.rows.length,
+      ),
+      false,
+    );
   }
 });

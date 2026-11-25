@@ -46,6 +46,8 @@ export type Progress = {
   xp: number;
   // Materials from the cave: material id → count (src/game/materials.ts).
   inventory: Record<string, number>;
+  // The deepest cave floor the player has reached (src/game/cave/floors.ts).
+  deepest: number;
 };
 
 export type SideRecord = { at: string; step: number; done?: string };
