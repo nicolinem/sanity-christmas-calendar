@@ -18,6 +18,7 @@ export type Zone =
   | "wraith"
   | "cave" // the way into the cave
   | "caveStairs" // the stairs back up, down in the cave
+  | "caveCache" // the nest's chest, in the cave
   | `side:${string}`
   | null;
 // One calendar door shown in the village: a numbered window that hangs over
@@ -42,7 +43,14 @@ export type WorldState = {
   wraithDefeated: boolean;
   frozen: boolean; // a dialogue is open: the knight stands still
   area: "bygda" | "grotta"; // which scene the player is in
-  cave: { depth: number; hp: number; maxHp: number } | null; // the floor and life, while in the cave
+  // The floor and life, while in the cave. `stairsLocked`: the knight is in
+  // the stairs room and its monsters still guard the way down.
+  cave: {
+    depth: number;
+    hp: number;
+    maxHp: number;
+    stairsLocked: boolean;
+  } | null;
   attack: Attack | null; // the equipped usable weapon, if any
   away: boolean; // the Studio is open or the window lost focus: the cave pauses
   caveGod: boolean; // ?dev only: nothing hurts the player
@@ -94,6 +102,7 @@ type EventMap = {
   readSign: void; // the player clicked the bakery sign while standing beside it
   enterCave: number; // HUD → village: go down, starting at this floor
   descend: void; // HUD → cave: take the stairs down
+  cacheOpened: void; // HUD → cave: open the nest's chest
   leaveCave: void; // HUD → cave: go back up to the village
   reachedFloor: number; // cave → HUD: a new floor was entered
   leftCave: void; // cave → HUD: back in the village

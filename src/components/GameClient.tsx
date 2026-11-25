@@ -875,6 +875,10 @@ export default function GameClient() {
   );
   const [caveGod, setCaveGod] = useState(false);
   const descend = useCallback(() => bridge.emit("descend", undefined), []);
+  const openCache = useCallback(
+    () => bridge.emit("cacheOpened", undefined),
+    [],
+  );
   const leaveCave = useCallback(() => bridge.emit("leaveCave", undefined), []);
 
   const openCode = useCallback((questId: string) => {
@@ -1275,6 +1279,11 @@ export default function GameClient() {
         descend();
         return;
       }
+      if ((e.key === "e" || e.key === "E") && zone === "caveCache") {
+        e.preventDefault();
+        openCache();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -1332,6 +1341,7 @@ export default function GameClient() {
     progress.completed,
     enterCave,
     descend,
+    openCache,
     combat,
     items,
     slots,
@@ -1534,6 +1544,11 @@ export default function GameClient() {
             {zone === "caveStairs" && !logOpen && (
               <button type="button" className="prompt" onClick={descend}>
                 <kbd>E</kbd> Gå ned trappa
+              </button>
+            )}
+            {zone === "caveCache" && !logOpen && (
+              <button type="button" className="prompt" onClick={openCache}>
+                <kbd>E</kbd> Åpne kista
               </button>
             )}
             {!hasMoved &&

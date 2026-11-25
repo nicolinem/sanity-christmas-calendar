@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { bridge } from "../bridge";
+import { bridge, type Zone } from "../bridge";
 import { figureTexture } from "../figureTexture";
 import { MATERIALS } from "../materials";
 import { CAVE_SHEETS, SHEETS, TILE } from "../sprites";
@@ -22,6 +22,7 @@ import {
 } from "./combat";
 import { ENEMIES, PLAYABLE } from "./enemies";
 import { generateFloor, type Floor, type Point } from "./generate";
+import { roomAt } from "./layout";
 import {
   AMBIENT,
   AMBIENT_DEEP,
@@ -39,6 +40,10 @@ import { CAVE_FRAMES } from "./rooms";
 
 const SPEED = 64; // world px per second, as in the village
 const STAIRS_RANGE = 28;
+const CACHE_RANGE = 24;
+const CHEST_OPEN_FRAME = 91; // dungeon sheet: the chest with its lid up
+const LOCKED_TINT = 0x555a70; // the stairs while their room still has monsters
+const PULSE_MS = 300; // each half of the light pulse when the stairs open
 const FADE_MS = 200;
 const MAX_STEP_MS = 50; // a long frame (tab switch, GC) is cut to this
 const FLASH_MS = 90; // white flash on a monster that was hit
@@ -54,6 +59,8 @@ const FACING_STEP: Record<Facing, Point> = {
 
 type Monster = {
   brain: Brain;
+  room: number; // the room it spawned in; it wakes only when the knight is there
+  move: (from: Point, dx: number, dy: number) => Point; // bats fly over rocks
   body: Phaser.GameObjects.Container; // at the feet, like the knight
   sprite: Phaser.GameObjects.Image;
   facesRight: boolean; // the sheet frame looks right, not left
@@ -84,6 +91,12 @@ export class CaveScene extends Phaser.Scene {
   private torchLights: Phaser.GameObjects.Light[] = [];
   // Stairs (and chest) glow; steady, so the flicker loop leaves them alone.
   private markerLights: Phaser.GameObjects.Light[] = [];
+  private stairsImage: Phaser.GameObjects.Image | null = null;
+  // The stairs room still has monsters: no way down until they are gone.
+  private stairsLocked = false;
+  private lockShown = false; // last world.cave.stairsLocked sent to the HUD
+  private cacheImage: Phaser.GameObjects.Image | null = null;
+  private cacheOpened = false;
   private snow: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   // Each flake starts somewhere along the top edge of the view, read when it
   // is emitted, so the camera can move freely.
@@ -142,6 +155,11 @@ export class CaveScene extends Phaser.Scene {
     this.torches = [];
     this.torchLights = [];
     this.markerLights = [];
+    this.stairsImage = null;
+    this.stairsLocked = false;
+    this.lockShown = false;
+    this.cacheImage = null;
+    this.cacheOpened = false;
     this.monsters = [];
     this.rocks = [];
     this.figureKey = "";
@@ -205,6 +223,7 @@ export class CaveScene extends Phaser.Scene {
       bridge.on("leaveCave", () => this.leave()),
       bridge.on("caveAttack", () => this.swing()),
       bridge.on("drink", (id) => this.drink(id)),
+      bridge.on("cacheOpened", () => this.openCache()),
     );
     this.announce();
     bridge.emit("reachedFloor", this.depth); // the first floor counts too
@@ -261,8 +280,12 @@ export class CaveScene extends Phaser.Scene {
       this.withLight(
         this.add.image(at.x, at.y, p.sheet, p.frame).setDepth(at.y - 8),
       );
-    this.objects.push(prop(CAVE_PROPS.stairs, floor.stairs));
+    this.stairsImage = prop(CAVE_PROPS.stairs, floor.stairs);
+    this.objects.push(this.stairsImage);
     if (floor.chest) this.objects.push(prop(CAVE_PROPS.chest, floor.chest));
+    this.cacheImage = floor.cache ? prop(CAVE_PROPS.chest, floor.cache) : null;
+    if (this.cacheImage) this.objects.push(this.cacheImage);
+    this.cacheOpened = false;
     this.rocks = floor.rocks.map((r) => ({
       x: r.x,
       y: r.y,
@@ -270,7 +293,7 @@ export class CaveScene extends Phaser.Scene {
       box: { x: r.x - 8, y: r.y - 8, w: TILE, h: TILE },
     }));
 
-    // Walls, plus one box per rock. `locked` is left alone for now.
+    // Walls, plus one box per rock. Flyers use flyMove, which skips rocks.
     this.solids = [...floor.solids, ...this.rocks.map((r) => r.box)];
 
     this.monsters = floor.spawns
@@ -288,6 +311,8 @@ export class CaveScene extends Phaser.Scene {
         ]);
         return {
           brain: spawnBrain(s.enemy, s, this.depth),
+          room: s.room,
+          move: def.flies ? this.flyMove : this.move,
           body,
           sprite,
           facesRight: !!def.facesRight,
@@ -296,6 +321,14 @@ export class CaveScene extends Phaser.Scene {
           white: false,
         };
       });
+
+    this.stairsLocked =
+      floor.locked && this.monsters.some((m) => m.room === floor.stairsRoom);
+    this.lockShown = false;
+    if (this.stairsLocked) {
+      this.stairsImage.setTint(LOCKED_TINT);
+      if (this.markerLights[0]) this.markerLights[0].intensity = 0;
+    }
 
     // A blink in progress ends with the floor; invulnerability itself carries.
     this.knight.setPosition(floor.start.x, floor.start.y).setAlpha(1);
@@ -371,7 +404,10 @@ export class CaveScene extends Phaser.Scene {
     this.torches = [];
     this.torchLights.forEach((l) => this.lights.removeLight(l));
     this.torchLights = [];
-    this.markerLights.forEach((l) => this.lights.removeLight(l));
+    this.markerLights.forEach((l) => {
+      this.tweens.killTweensOf(l); // the stairs' pulse
+      this.lights.removeLight(l);
+    });
     this.markerLights = [];
     if (this.textures.exists(FLOOR_TEXTURE))
       this.textures.remove(FLOOR_TEXTURE);
@@ -415,7 +451,12 @@ export class CaveScene extends Phaser.Scene {
   private announce() {
     bridge.setWorld({
       area: "grotta",
-      cave: { depth: this.depth, hp: this.hp, maxHp: PLAYER_MAX_HP },
+      cave: {
+        depth: this.depth,
+        hp: this.hp,
+        maxHp: PLAYER_MAX_HP,
+        stairsLocked: this.lockShown,
+      },
     });
   }
 
@@ -525,21 +566,31 @@ export class CaveScene extends Phaser.Scene {
     this.moveKnight(ms / 1000, !held);
     this.knight.setDepth(this.knight.y);
     this.updateMood(time, held);
+    const knightRoom = roomAt(this.knight.x, this.knight.y, this.floor.layout);
     if (!held) {
-      this.stepMonsters(ms / 1000);
+      this.stepMonsters(ms / 1000, knightRoom);
       // Blink while nothing can hurt the player.
       const safe = this.clock < this.invulnerableUntil;
       this.knight.alpha = safe && Math.floor(this.clock / 80) % 2 ? 0.3 : 1;
     }
     this.monsters.forEach((m) => this.drawMonster(m));
-    const near =
-      Phaser.Math.Distance.Between(
-        this.knight.x,
-        this.knight.y,
-        this.floor.stairs.x,
-        this.floor.stairs.y,
-      ) < STAIRS_RANGE;
-    bridge.setZone(near ? "caveStairs" : null);
+
+    const lockShown = this.stairsLocked && knightRoom === this.floor.stairsRoom;
+    if (lockShown !== this.lockShown) {
+      this.lockShown = lockShown;
+      this.announce();
+    }
+
+    const { x, y } = this.knight;
+    const { stairs } = this.floor;
+    let zone: Zone = null;
+    if (
+      !this.stairsLocked &&
+      Phaser.Math.Distance.Between(x, y, stairs.x, stairs.y) < STAIRS_RANGE
+    )
+      zone = "caveStairs";
+    else if (!this.cacheOpened && this.nearCache()) zone = "caveCache";
+    bridge.setZone(zone);
   }
 
   // Lights, torch flicker and snow, all changed in place. The flicker is
@@ -638,15 +689,27 @@ export class CaveScene extends Phaser.Scene {
   private move = (from: Point, dx: number, dy: number) =>
     moveBox(from, dx, dy, this.solids);
 
+  // Flying monsters: walls only (the generator's solids hold no rocks).
+  private flyMove = (from: Point, dx: number, dy: number) =>
+    moveBox(from, dx, dy, this.floor.solids);
+
   private feet(): Point {
     return { x: this.knight.x, y: this.knight.y };
   }
 
   // --- monsters -------------------------------------------------------------
 
-  private stepMonsters(dt: number) {
+  // An idle monster wakes only while the knight is in its room.
+  private stepMonsters(dt: number, knightRoom: number) {
     for (const m of this.monsters) {
-      const r = stepBrain(m.brain, this.feet(), this.clock, dt, this.move);
+      const r = stepBrain(
+        m.brain,
+        this.feet(),
+        this.clock,
+        dt,
+        m.move,
+        m.room === knightRoom,
+      );
       m.brain = r.brain;
       if (r.strike > 0) this.struck(m.brain, r.strike);
       if (this.busy) return; // fainted
@@ -747,10 +810,11 @@ export class CaveScene extends Phaser.Scene {
           enemy: m.brain.enemy,
           depth: this.depth,
         });
+        if (m.room === this.floor.stairsRoom) this.checkStairs();
         continue;
       }
       const away = this.away(from, m.brain);
-      const p = this.move(m.brain, away.x * KNOCK_ENEMY, away.y * KNOCK_ENEMY);
+      const p = m.move(m.brain, away.x * KNOCK_ENEMY, away.y * KNOCK_ENEMY);
       m.brain = { ...m.brain, hp, x: p.x, y: p.y };
       m.flashUntil = this.clock + FLASH_MS;
       if (m.brain.mode === "windup") {
@@ -792,6 +856,54 @@ export class CaveScene extends Phaser.Scene {
         : { y: { from: 0, to: this.facing === "up" ? -3 : 3 } }),
       duration: 90,
       yoyo: true,
+    });
+  }
+
+  // --- stairs and cache -----------------------------------------------------
+
+  // The last monster in the stairs room fell: the stairs open with a pulse.
+  private checkStairs() {
+    if (!this.stairsLocked) return;
+    const room = this.floor.stairsRoom;
+    if (this.monsters.some((m) => m.room === room)) return;
+    this.stairsLocked = false;
+    this.stairsImage?.clearTint();
+    const light = this.markerLights[0]; // the stairs' own; only when lit
+    if (!light) return;
+    light.intensity = MARKER_LIGHT.intensity;
+    if (this.reducedMotion) return;
+    this.tweens.add({
+      targets: light,
+      radius: MARKER_LIGHT.radius * 2,
+      duration: PULSE_MS,
+      ease: "Sine.inOut",
+      yoyo: true,
+    });
+  }
+
+  private nearCache() {
+    const c = this.floor.cache;
+    return (
+      !!c &&
+      Phaser.Math.Distance.Between(this.knight.x, this.knight.y, c.x, c.y) <
+        CACHE_RANGE
+    );
+  }
+
+  // The nest's chest opens once per floor and drops its finds in the bag.
+  private openCache() {
+    const cache = this.floor.cache;
+    if (!cache || this.cacheOpened || this.held() || !this.nearCache()) return;
+    this.cacheOpened = true;
+    this.cacheImage?.setFrame(CHEST_OPEN_FRAME);
+    cache.items.forEach(({ item, count }, i) => {
+      bridge.emit("found", { item, count });
+      this.floatText(
+        cache.x,
+        cache.y - i * 10,
+        `+${count} ${MATERIALS[item].name}`,
+        "#fdbe53",
+      );
     });
   }
 
