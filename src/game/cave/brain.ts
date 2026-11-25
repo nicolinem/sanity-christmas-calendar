@@ -53,6 +53,7 @@ export function stepBrain(
   now: number,
   dtSec: number,
   move: (from: Point, dx: number, dy: number) => Point,
+  canWake = true, // the scene says whether an idle brain may wake (same room)
 ): { brain: Brain; strike: number } {
   const n: Brain = { ...b, dir: { ...b.dir } };
   let strike = 0;
@@ -60,7 +61,7 @@ export function stepBrain(
   const dy = player.y - n.y;
   const dist = Math.hypot(dx, dy);
 
-  if (n.mode === "idle" && dist <= AGGRO_RANGE) n.mode = "chase";
+  if (n.mode === "idle" && canWake && dist <= AGGRO_RANGE) n.mode = "chase";
   if (n.mode === "rest" && now >= n.until) n.mode = "chase";
 
   if (n.mode === "chase") {

@@ -67,3 +67,11 @@ export function stitchRooms(
   }
   return grid.map((line) => line.join(""));
 }
+
+// Row-major index of the room that contains the px point, clamped to the layout.
+export function roomAt(x: number, y: number, layout: Layout): number {
+  const clamp = (v: number, n: number) => Math.min(Math.max(v, 0), n - 1);
+  const col = clamp(Math.floor(x / (ROOM_W * 16)), layout.cols);
+  const row = clamp(Math.floor(y / (ROOM_H * 16)), layout.rows);
+  return row * layout.cols + col;
+}

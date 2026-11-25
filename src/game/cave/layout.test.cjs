@@ -55,3 +55,16 @@ test("stitchRooms: 2×2 opens vertical walls too", () => {
   assert.ok(out[13].slice(0, 24).includes("."));
   assert.ok(out[14].slice(0, 24).includes("."));
 });
+
+test("roomAt: px to row-major room index, clamped", () => {
+  const { roomAt } = require("./layout.ts");
+  const two = { cols: 2, rows: 1 };
+  const four = { cols: 2, rows: 2 };
+  assert.equal(roomAt(0, 0, two), 0);
+  assert.equal(roomAt(24 * 16 - 1, 5, two), 0);
+  assert.equal(roomAt(24 * 16, 5, two), 1);
+  assert.equal(roomAt(-50, -50, four), 0);
+  assert.equal(roomAt(9999, 9999, four), 3);
+  assert.equal(roomAt(10, 14 * 16, four), 2);
+  assert.equal(roomAt(30 * 16, 20 * 16, four), 3);
+});

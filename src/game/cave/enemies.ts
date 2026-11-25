@@ -56,7 +56,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     name: "Flaggermus",
     sprite: d(120),
     from: 3,
-    hp: 6,
+    hp: 8,
     damage: 1,
     speed: 40,
     moves: [{ kind: "chase" }],
@@ -125,8 +125,8 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   },
 };
 
-// The only kinds the scene draws in G2.
-export const PLAYABLE: EnemyId[] = ["rat", "slime", "spider"];
+// The only kinds the scene draws.
+export const PLAYABLE: EnemyId[] = ["rat", "slime", "bat", "spider"];
 
 export function enemiesAt(depth: number): EnemyId[] {
   return (Object.keys(ENEMIES) as EnemyId[]).filter(

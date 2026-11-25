@@ -1,13 +1,16 @@
-import { enemiesAt, type EnemyId } from "./enemies";
+import { enemiesAt, PLAYABLE, type EnemyId } from "./enemies";
+import type { MaterialId } from "../materials";
 import { decorate, type Decor } from "./decor";
 import { rng } from "./random";
 import type { Box } from "../walk";
-import { floorLayout, stitchRooms, type Layout } from "./layout";
+import { floorLayout, roomAt, stitchRooms, type Layout } from "./layout";
 import { REST_ROOMS, ROOMS, ROOM_H, ROOM_W, mirror, reachable } from "./rooms";
 
 const TILE = 16;
 
 export type Point = { x: number; y: number };
+
+export type RoomKind = "start" | "calm" | "normal" | "nest";
 
 export type Floor = {
   depth: number; // 1-based dungeon depth; drives the enemy mix
@@ -26,14 +29,25 @@ export type Floor = {
   solids: Box[];
   start: Point; // tile-centre px (x*16+8, y*16+8)
   stairs: Point; // tile-centre px; the way down
-  // Tile-centre px. Normal floors get 2–3 enemies per room (up to 10 in all)
-  // from the depth's mix; rest floors get one boss on every m.
-  spawns: { enemy: EnemyId; x: number; y: number }[];
+  kinds: RoomKind[]; // per room, row-major; room 0 is always "start"
+  stairsRoom: number; // index of the room the stairs are in
+  // Tile-centre px. Calm rooms get 0–1 enemies, normal rooms 2–3, a nest 4–5
+  // (up to 10 in all) from the depth's mix; rest floors get one boss on every
+  // m. `room` is the row-major room index the spawn belongs to.
+  spawns: { enemy: EnemyId; x: number; y: number; room: number }[];
   rocks: Point[]; // tile-centre px of the o tiles that survived a 60% roll
   // Rest floors only (and only if the template has a k): id is `cave-${depth}`.
   chest?: { id: string; x: number; y: number }; // tile-centre px
-  // The stairs open only when every spawn is defeated. Never set on rest
-  // floors or depth 1.
+  // A small loot cache in the nest room (never on rest floors). Not saved: the
+  // id belongs to this trip. Duplicates are kept as separate entries.
+  cache?: {
+    id: string;
+    x: number;
+    y: number;
+    items: { item: MaterialId; count: number }[];
+  };
+  // The stairs room is locked until every spawn in it is defeated. Never set
+  // on rest floors or depth 1, nor when that room has no playable monster.
   locked: boolean;
   rest: boolean; // every fifth floor: 5, 10, 15, …
   sheet: "cave" | "caveDeep"; // "caveDeep" from depth 10
@@ -134,36 +148,73 @@ export function generateFloor(
   const startTile = inside(cells(rows, "S"), 0)[0];
 
   const allSpots = cells(rows, "m");
+  const kinds: RoomKind[] = ["start"];
   let spawns: Floor["spawns"];
   if (rest) {
     const boss: EnemyId = depth % 10 === 5 ? "yeti" : "drake";
-    spawns = allSpots.map((s) => ({ enemy: boss, ...center(s) }));
+    spawns = allSpots.map((s) => ({ enemy: boss, ...center(s), room: 0 }));
   } else {
-    const kinds = enemiesAt(depth);
-    spawns = [];
+    const mix = enemiesAt(depth);
+    const perRoom: Floor["spawns"][] = [];
     for (let i = 0; i < roomCount; i++) {
+      if (i > 0) {
+        const roll = r();
+        kinds.push(
+          roll < 0.25
+            ? "calm"
+            : roll < 0.4 && depth >= 2 && !kinds.includes("nest")
+              ? "nest"
+              : "normal",
+        );
+      }
+      const kind = kinds[i];
       const spots = inside(allSpots, i);
-      let count = Math.min(
-        3,
-        2 + Math.floor((depth - 1) / 3) + (r() < 0.5 ? 0 : 1),
-      );
-      if (i === 0) count = depth <= 2 ? 0 : Math.min(1, count);
+      let count: number;
+      if (kind === "calm") count = r() < 0.5 ? 0 : 1;
+      else if (kind === "nest") count = 4 + (r() < 0.5 ? 0 : 1);
+      else {
+        count = Math.min(
+          3,
+          2 + Math.floor((depth - 1) / 3) + (r() < 0.5 ? 0 : 1),
+        );
+        if (i === 0) count = depth <= 2 ? 0 : Math.min(1, count);
+      }
       // Fisher–Yates, then take the first n spots.
       for (let k = spots.length - 1; k > 0; k--) {
         const j = Math.floor(r() * (k + 1));
         [spots[k], spots[j]] = [spots[j], spots[k]];
       }
-      for (const s of spots.slice(0, count))
-        spawns.push({ enemy: pick(kinds), ...center(s) });
+      perRoom.push(
+        spots
+          .slice(0, count)
+          .map((s) => ({ enemy: pick(mix), ...center(s), room: i })),
+      );
     }
-    // A guard: today's layouts cannot exceed 10.
-    spawns = spawns.slice(0, MAX_SPAWNS_PER_FLOOR);
+    // Over the cap: trim normal rooms first, last room first, then calm, then
+    // the start room. A nest is never trimmed.
+    for (const kind of ["normal", "calm", "start"] as RoomKind[])
+      for (let i = roomCount - 1; i >= 0; i--)
+        while (
+          kinds[i] === kind &&
+          perRoom[i].length > 0 &&
+          perRoom.reduce((n, l) => n + l.length, 0) > MAX_SPAWNS_PER_FLOOR
+        )
+          perRoom[i].pop();
+    spawns = perRoom.flat();
   }
 
-  const rockTiles = cells(rows, "o").filter(() => r() < 0.6);
+  const rockTiles = cells(rows, "o").filter(
+    (t) =>
+      kinds[roomAt(t[0] * TILE, t[1] * TILE, layout)] === "calm" || r() < 0.6,
+  );
   const rocks = rockTiles.map(center);
 
-  const locked = !rest && depth > 1 && r() < 0.25;
+  let locked = !rest && depth > 1 && r() < 0.25;
+  if (
+    locked &&
+    !spawns.some((s) => s.room === stairsRoom && PLAYABLE.includes(s.enemy))
+  )
+    locked = false;
 
   const built = rows.map((row, y) =>
     [...row]
@@ -188,6 +239,37 @@ export function generateFloor(
     h: TILE,
   }));
 
+  // The cache goes on a floor tile of the nest, 3+ tiles (Chebyshev) from every
+  // wall, rock and spawn. No such tile: no cache.
+  let cache: Floor["cache"];
+  const nest = kinds.indexOf("nest");
+  if (nest >= 0) {
+    const blockers: [number, number][] = [
+      ...cells(built, "#"),
+      ...cells(built, "o"),
+      ...spawns.map(
+        (s) =>
+          [(s.x - TILE / 2) / TILE, (s.y - TILE / 2) / TILE] as [
+            number,
+            number,
+          ],
+      ),
+    ];
+    const spots = inside(cells(built, "."), nest).filter(([x, y]) =>
+      blockers.every(
+        ([bx, by]) => Math.max(Math.abs(bx - x), Math.abs(by - y)) >= 3,
+      ),
+    );
+    if (spots.length) {
+      const at = pick(spots);
+      const items = Array.from({ length: 2 + (r() < 0.5 ? 0 : 1) }, () => ({
+        item: (r() < 0.5 ? "malm" : "isskar") as MaterialId,
+        count: 1,
+      }));
+      cache = { id: `nest-${depth}-${seed}`, ...center(at), items };
+    }
+  }
+
   const chestTile = rest ? cells(rows, "k")[0] : undefined;
 
   return {
@@ -202,10 +284,13 @@ export function generateFloor(
     torches,
     decor,
     solids,
+    kinds,
+    stairsRoom,
     start: center(startTile),
     stairs: center(stairsTile),
     spawns,
     rocks,
+    ...(cache && { cache }),
     ...(chestTile && { chest: { id: `cave-${depth}`, ...center(chestTile) } }),
     locked,
     rest,

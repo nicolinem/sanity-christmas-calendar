@@ -32,10 +32,10 @@ test("floors 5 and 10 are rest floors with a boss and a chest; never locked", ()
   assert.equal(generateFloor(10, 1).sheet, "caveDeep");
 });
 
-test("monster count: 2–3 on floor 1, never more than 10", () => {
+test("monster count: at most 3 on floor 1 (0–1 if the room is calm), never more than 10", () => {
   for (let seed = 0; seed < 300; seed++) {
     const n1 = generateFloor(1, seed).spawns.length;
-    assert.ok(n1 >= 2 && n1 <= 3);
+    assert.ok(n1 <= 3);
     for (const d of [3, 9, 12])
       assert.ok(generateFloor(d, seed).spawns.length <= 10);
   }
@@ -202,4 +202,110 @@ test("every room has 2-4 torches", () => {
         assert.ok(n >= 2 && n <= 4, `depth ${depth} seed ${seed}: ${n}`);
     }
   }
+});
+
+const { ENEMIES, PLAYABLE } = require("./enemies.ts");
+
+test("bats are playable fliers", () => {
+  assert.ok(PLAYABLE.includes("bat"));
+  assert.equal(ENEMIES.bat.flies, true);
+});
+
+function eachFloor(fn) {
+  for (let depth = 2; depth <= 9; depth++) {
+    if (depth % 5 === 0) continue;
+    for (let seed = 0; seed < 1000; seed++)
+      fn(generateFloor(depth, seed), seed);
+  }
+}
+const roomOf = (p, f) =>
+  Math.floor(p.y / (14 * 16)) * f.layout.cols + Math.floor(p.x / (24 * 16));
+
+test("room kinds: room 0 is start, at most one nest, spawns carry their room", () => {
+  eachFloor((f) => {
+    assert.equal(f.kinds.length, f.layout.cols * f.layout.rows);
+    assert.equal(f.kinds[0], "start");
+    assert.ok(f.kinds.filter((k) => k === "nest").length <= 1);
+    assert.equal(f.kinds.slice(1).includes("start"), false);
+    for (const s of f.spawns) assert.equal(s.room, roomOf(s, f));
+    assert.equal(roomOf(f.stairs, f), f.stairsRoom);
+    assert.ok(f.stairsRoom >= 1);
+  });
+});
+
+test("calm rooms have at most 1 monster; nests have 4+ when the spots allow", () => {
+  let nests = 0;
+  eachFloor((f) => {
+    f.kinds.forEach((k, i) => {
+      const n = f.spawns.filter((s) => s.room === i).length;
+      if (k === "calm") assert.ok(n <= 1);
+      if (k === "nest") {
+        nests++;
+        assert.ok(n >= 4);
+      }
+    });
+    assert.ok(f.spawns.length <= 10);
+  });
+  assert.ok(nests > 100);
+});
+
+test("no nests on depth 1; rest floors are one start room without a cache", () => {
+  for (let seed = 0; seed < 300; seed++) {
+    assert.equal(generateFloor(1, seed).kinds.includes("nest"), false);
+    for (const d of [5, 10]) {
+      const f = generateFloor(d, seed);
+      assert.deepEqual(f.kinds, ["start"]);
+      assert.equal(f.cache, undefined);
+      assert.equal(f.locked, false);
+      assert.equal(f.stairsRoom, 0);
+    }
+  }
+});
+
+test("locked: never on depth 1, and the stairs room then has a playable monster", () => {
+  let locked = 0;
+  for (let depth = 1; depth <= 9; depth++)
+    for (let seed = 0; seed < 1000; seed++) {
+      const f = generateFloor(depth, seed);
+      if (depth === 1) assert.equal(f.locked, false);
+      if (f.locked) {
+        locked++;
+        assert.ok(
+          f.spawns.some(
+            (s) => s.room === f.stairsRoom && PLAYABLE.includes(s.enemy),
+          ),
+        );
+      }
+    }
+  assert.ok(locked > 100);
+});
+
+test("cache: only in a nest, 2–3 malm/isskar, clear of walls, rocks and spawns", () => {
+  let caches = 0;
+  eachFloor((f, seed) => {
+    if (!f.cache) return;
+    caches++;
+    const tx = (f.cache.x - 8) / 16;
+    const ty = (f.cache.y - 8) / 16;
+    assert.equal(f.kinds[roomOf(f.cache, f)], "nest");
+    assert.equal(f.cache.id, `nest-${f.depth}-${seed}`);
+    assert.ok(f.cache.items.length >= 2 && f.cache.items.length <= 3);
+    for (const it of f.cache.items) {
+      assert.ok(["malm", "isskar"].includes(it.item));
+      assert.equal(it.count, 1);
+    }
+    assert.equal(f.rows[ty][tx], ".");
+    for (let y = 0; y < f.rows.length; y++)
+      for (let x = 0; x < f.rows[y].length; x++)
+        if ("#o".includes(f.rows[y][x]))
+          assert.ok(Math.max(Math.abs(x - tx), Math.abs(y - ty)) >= 3);
+    for (const s of f.spawns)
+      assert.ok(
+        Math.max(
+          Math.abs((s.x - 8) / 16 - tx),
+          Math.abs((s.y - 8) / 16 - ty),
+        ) >= 3,
+      );
+  });
+  assert.ok(caches > 50);
 });
