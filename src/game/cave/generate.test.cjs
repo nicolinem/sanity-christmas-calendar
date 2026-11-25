@@ -287,7 +287,7 @@ test("locked: never on depth 1, and the stairs room then has a playable monster"
   assert.ok(locked > 100);
 });
 
-test("cache: only in a nest, 2–3 items in total, clear of walls, rocks and spawns; common", () => {
+test("cache: only in a nest, 2–3 items in total, clear of walls, rocks and spawns; in every nest", () => {
   let nests = 0;
   let caches = 0;
   eachFloor((f, seed) => {
@@ -312,15 +312,31 @@ test("cache: only in a nest, 2–3 items in total, clear of walls, rocks and spa
     for (let y = 0; y < f.rows.length; y++)
       for (let x = 0; x < f.rows[y].length; x++)
         if ("#o".includes(f.rows[y][x]))
-          assert.ok(Math.max(Math.abs(x - tx), Math.abs(y - ty)) >= 3);
+          assert.ok(Math.max(Math.abs(x - tx), Math.abs(y - ty)) >= 1);
     for (const s of f.spawns)
       assert.ok(
         Math.max(
           Math.abs((s.x - 8) / 16 - tx),
           Math.abs((s.y - 8) / 16 - ty),
-        ) >= 3,
+        ) >= 1,
       );
   });
   assert.ok(nests > 100);
-  assert.ok(caches / nests >= 0.65); // measured ~0.73
+  assert.ok(caches / nests >= 0.99);
+});
+
+test("cache: at least 2 tiles (Chebyshev) from the stairs", () => {
+  eachFloor((f) => {
+    if (!f.cache) return;
+    const cheb = Math.max(
+      Math.abs(f.cache.x - f.stairs.x),
+      Math.abs(f.cache.y - f.stairs.y),
+    );
+    assert.ok(cheb / 16 >= 2);
+  });
+});
+
+test("depth 2 always has at least one monster", () => {
+  for (let seed = 0; seed < 1500; seed++)
+    assert.ok(generateFloor(2, seed).spawns.length >= 1, `seed ${seed}`);
 });

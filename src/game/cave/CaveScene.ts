@@ -420,6 +420,7 @@ export class CaveScene extends Phaser.Scene {
         ),
       );
       const m = MARKER_LIGHT;
+      // Index 0 is the stairs; checkStairs relies on it.
       const spots = floor.chest ? [floor.stairs, floor.chest] : [floor.stairs];
       this.markerLights = spots.map((p) =>
         this.lights.addLight(
@@ -515,7 +516,7 @@ export class CaveScene extends Phaser.Scene {
   }
 
   private descend() {
-    if (this.busy) return;
+    if (this.busy || this.stairsLocked) return;
     this.busy = true;
     const cam = this.cameras.main;
     cam.fadeOut(FADE_MS);
@@ -876,7 +877,14 @@ export class CaveScene extends Phaser.Scene {
       }
       const away = this.away(from, m.brain);
       const p = m.move(m.brain, away.x * KNOCK_ENEMY, away.y * KNOCK_ENEMY);
-      m.brain = { ...m.brain, hp, x: p.x, y: p.y };
+      m.brain = {
+        ...m.brain,
+        hp,
+        x: p.x,
+        y: p.y,
+        // A hit wakes an idle monster.
+        mode: m.brain.mode === "idle" ? "chase" : m.brain.mode,
+      };
       m.flashUntil = this.clock + FLASH_MS;
       if (m.brain.mode === "windup") {
         // The line was drawn at the old spot; drawMonster redraws it here.
@@ -938,6 +946,7 @@ export class CaveScene extends Phaser.Scene {
   // --- stairs, cache and chest ----------------------------------------------
 
   // The last monster in the stairs room fell: the stairs open with a pulse.
+  // The swing is the only death path today, so any new death path must call this.
   private checkStairs() {
     if (!this.stairsLocked) return;
     const room = this.floor.stairsRoom;

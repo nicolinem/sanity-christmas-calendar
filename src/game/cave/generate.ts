@@ -33,7 +33,8 @@ export type Floor = {
   stairsRoom: number; // index of the room the stairs are in
   // Tile-centre px. Calm rooms get 0–1 enemies, normal rooms 2–3, a nest 4–5
   // (up to 10 in all) from the depth's mix; rest floors get one boss on every
-  // m. `room` is the row-major room index the spawn belongs to.
+  // m. `room` is the row-major room index the spawn belongs to. There are no
+  // calm rooms on depth 1–2, so those floors always have a monster.
   spawns: { enemy: EnemyId; x: number; y: number; room: number }[];
   rocks: Point[]; // tile-centre px of the o tiles that survived a 60% roll
   // Rest floors only (and only if the template has a k): id is `cave-${depth}`.
@@ -160,9 +161,9 @@ export function generateFloor(
       if (i > 0) {
         const roll = r();
         kinds.push(
-          // Depth 1 still draws the roll, but never gets a calm room: it is where
-          // combat is introduced.
-          roll < 0.25 && depth > 1
+          // Depths 1–2 still draw the roll, but never get a calm room: that is
+          // where combat is introduced.
+          roll < 0.25 && depth > 2
             ? "calm"
             : roll < 0.4 && depth >= 2 && !kinds.includes("nest")
               ? "nest"
@@ -241,8 +242,9 @@ export function generateFloor(
     h: TILE,
   }));
 
-  // The cache goes on a floor tile of the nest, 3+ tiles (Chebyshev) from every
-  // wall, rock and spawn. No such tile: no cache.
+  // The cache goes on a floor tile of the nest, as far (Chebyshev) from every
+  // wall, rock and spawn as 3, else 2, else 1 tiles allows, and at least 2 from the
+  // stairs.
   let cache: Floor["cache"];
   const nest = kinds.indexOf("nest");
   if (nest >= 0) {
@@ -257,11 +259,21 @@ export function generateFloor(
           ],
       ),
     ];
-    const spots = inside(cells(built, "."), nest).filter(([x, y]) =>
-      blockers.every(
-        ([bx, by]) => Math.max(Math.abs(bx - x), Math.abs(by - y)) >= 3,
-      ),
+    // Never next to the stairs, whatever the spacing.
+    const floorTiles = inside(cells(built, "."), nest).filter(
+      ([x, y]) =>
+        Math.max(Math.abs(stairsTile[0] - x), Math.abs(stairsTile[1] - y)) >= 2,
     );
+    // Spacing 3, then 2, then 1: the first spacing with candidates wins.
+    let spots: [number, number][] = [];
+    for (const gap of [3, 2, 1]) {
+      spots = floorTiles.filter(([x, y]) =>
+        blockers.every(
+          ([bx, by]) => Math.max(Math.abs(bx - x), Math.abs(by - y)) >= gap,
+        ),
+      );
+      if (spots.length) break;
+    }
     if (spots.length) {
       const at = pick(spots);
       // 2–3 draws, merged into counts per material.

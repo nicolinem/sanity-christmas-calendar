@@ -307,8 +307,9 @@ kbd {
 }
 .cave-hud {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 6px 12px;
   padding: 6px 10px 6px 14px;
   font-size: 16px;
   color: var(--snow);

@@ -283,7 +283,9 @@ export default function GameClient() {
   const [modelQuestId, setModelQuestId] = useState<string | null>(null);
   const [hasMoved, setHasMoved] = useState(false);
   // The highest level a luke's celebration has announced: its level-up is
-  // shown there, so it gets no toast of its own.
+  // shown there, so it gets no toast of its own. useQuests emits
+  // questCelebration synchronously in the effect that writes progress, so this
+  // ref is set before the level re-render.
   const lukeLevel = useRef(0);
   useEffect(
     () =>
@@ -329,8 +331,9 @@ export default function GameClient() {
     const toast = levelUpToast(before, forgeLevel, fromLuke);
     if (!toast) return;
     pushToast({ ...toast, tone: "forge" });
-    bridge.emit("forgeLevelUp", forgeLevel);
-  }, [forgeLevel, hydrated]);
+    // No forge flare in the village while the player is in the cave.
+    if (area !== "grotta") bridge.emit("forgeLevelUp", forgeLevel);
+  }, [forgeLevel, hydrated, area]);
   const [entryStage, setEntryStage] = useState<
     "title" | "track" | "welcome" | "share" | "figure" | "game"
   >("title");
@@ -1934,6 +1937,8 @@ export default function GameClient() {
                         updateProgress(PROGRESS_PROJECT, (p) => ({
                           ...dropTrip(p),
                           deepest: 0,
+                          bosses: {},
+                          chests: {},
                         })),
                     }
                   : undefined
