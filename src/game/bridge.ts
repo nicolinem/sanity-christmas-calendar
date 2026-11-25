@@ -39,6 +39,8 @@ export type WorldState = {
   goal: { x: number; y: number } | null; // the next step, in world px
   wraithDefeated: boolean;
   frozen: boolean; // a dialogue is open: the knight stands still
+  area: "bygda" | "grotta"; // which scene the player is in
+  cave: { depth: number } | null; // the floor, while in the cave
   // Side quests: «!» to take, «?» to hand in, over people the lukes don't
   // need right now; and the spots still to find, with their props.
   sideMarkers: Partial<Record<string, "!" | "?">>;
@@ -85,6 +87,11 @@ type EventMap = {
   // The player chose a destination: a place, or the snow monster (luke 1).
   travelToSite: QuestSiteId | "wraith";
   readSign: void; // the player clicked the bakery sign while standing beside it
+  enterCave: number; // HUD → village: go down, starting at this floor
+  descend: void; // HUD → cave: take the stairs down
+  leaveCave: void; // HUD → cave: go back up to the village
+  reachedFloor: number; // cave → HUD: a new floor was entered
+  leftCave: void; // cave → HUD: back in the village
 };
 
 type Listener<T> = (payload: T) => void;
@@ -103,6 +110,8 @@ class Bridge {
     goal: null,
     wraithDefeated: false,
     frozen: false,
+    area: "bygda",
+    cave: null,
     sideMarkers: {},
     sideSpots: [],
   };

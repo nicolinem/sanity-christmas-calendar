@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { FigureChoice } from "./figure";
 import { figureTexture } from "./figureTexture";
 import { moveBox, type Box } from "./walk";
+import { integerZoom } from "./zoom";
 import {
   bridge,
   type DoorMarker,
@@ -130,10 +131,22 @@ export class WinterQuestScene extends Phaser.Scene {
       bridge.on("forgeLevelUp", () => this.onForgeLevelUp()),
       bridge.on("itemForged", (sprite) => this.onItemForged(sprite)),
       bridge.on("forgeFlare", () => this.flareForge()),
+      bridge.on("enterCave", (depth) => this.enterCave(depth)),
     );
     this.applyWorld(bridge.world);
 
+    // Back from the cave: stand in front of the entrance and fade in.
+    this.enteringCave = false;
+    const onWake = () => {
+      this.knight.setPosition(CAVE_ENTRANCE.x, CAVE_ENTRANCE.y + 16);
+      this.moveTarget = null;
+      this.route = [];
+      this.cameras.main.fadeIn(200);
+    };
+    this.events.on(Phaser.Scenes.Events.WAKE, onWake);
+
     const teardown = () => {
+      this.events.off(Phaser.Scenes.Events.WAKE, onWake);
       this.unsubscribe.forEach((u) => u());
       this.unsubscribe = [];
       bridge.setZone(null);
@@ -141,6 +154,24 @@ export class WinterQuestScene extends Phaser.Scene {
     // game.destroy() only fires DESTROY; a scene stop only fires SHUTDOWN.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, teardown);
     this.events.once(Phaser.Scenes.Events.DESTROY, teardown);
+  }
+
+  // Fade out, put the village to sleep and start the cave on `depth`. A second
+  // call while the fade runs is ignored.
+  private enteringCave = false;
+  private enterCave(depth: number) {
+    if (this.enteringCave || bridge.world.frozen) return;
+    this.enteringCave = true;
+    this.cameras.main.fadeOut(200);
+    this.cameras.main.once(
+      Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,
+      () => {
+        bridge.setZone(null);
+        this.enteringCave = false;
+        this.scene.sleep();
+        this.scene.launch("Cave", { depth });
+      },
+    );
   }
 
   // --- construction ---------------------------------------------------------
@@ -536,10 +567,7 @@ export class WinterQuestScene extends Phaser.Scene {
     cam.startFollow(this.knight, true, 0.15, 0.15);
     const fit = () => {
       const { width, height } = this.scale;
-      let zoom = Math.max(
-        1,
-        Math.floor(Math.min(width / TARGET_VIEW.w, height / TARGET_VIEW.h)),
-      );
+      let zoom = integerZoom(width, height, TARGET_VIEW);
       while (width / zoom > WORLD_W || height / zoom > WORLD_H) zoom++;
       cam.setZoom(zoom);
     };

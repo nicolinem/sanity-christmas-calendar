@@ -19,6 +19,7 @@ export default function PhaserGame() {
     (async () => {
       const Phaser = (await import("phaser")).default;
       const { WinterQuestScene } = await import("./WinterQuestScene");
+      const { CaveScene } = await import("./cave/CaveScene");
       // World labels use the HUD's pixel font; make sure it's ready first.
       await document.fonts.ready;
       if (destroyed || !containerRef.current || gameRef.current) return;
@@ -33,7 +34,8 @@ export default function PhaserGame() {
           width: "100%",
           height: "100%",
         },
-        scene: [WinterQuestScene],
+        // Only the first scene starts; the cave is launched from the village.
+        scene: [WinterQuestScene, CaveScene],
       });
       // Phaser only polls its parent's size twice a second; follow it exactly,
       // so the world reflows the moment the Studio pane opens or is dragged.
