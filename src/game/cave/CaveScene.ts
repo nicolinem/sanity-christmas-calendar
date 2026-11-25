@@ -20,7 +20,7 @@ import {
   rockDrop,
   type Facing,
 } from "./combat";
-import { ENEMIES, PLAYABLE } from "./enemies";
+import { ENEMIES, PLAYABLE, type EnemyId } from "./enemies";
 import { generateFloor, type Floor, type Point } from "./generate";
 import { roomAt } from "./layout";
 import {
@@ -42,6 +42,11 @@ const SPEED = 64; // world px per second, as in the village
 const STAIRS_RANGE = 28;
 const CACHE_RANGE = 24;
 const CHEST_OPEN_FRAME = 91; // dungeon sheet: the chest with its lid up
+const CHEST_RANGE = 24;
+const CHEST_DEPTH = 5; // the only rest floor whose chest opens for now
+const BOSS: EnemyId = "yeti"; // the only boss drawn for now
+const BOSS_NAME = "Isvetten";
+const SUMMON_GAP = 20; // px left and right of the boss for its two rats
 const LOCKED_TINT = 0x555a70; // the stairs while their room still has monsters
 const PULSE_MS = 300; // each half of the light pulse when the stairs open
 const FADE_MS = 200;
@@ -97,6 +102,12 @@ export class CaveScene extends Phaser.Scene {
   private lockShown = false; // last world.cave.stairsLocked sent to the HUD
   private cacheImage: Phaser.GameObjects.Image | null = null;
   private cacheOpened = false;
+  private chestImage: Phaser.GameObjects.Image | null = null;
+  private chestOpened = false;
+  // The floor's boss while it lives, and whether it has called its rats.
+  private boss: Monster | null = null;
+  private summoned = false;
+  private restsReached: number[] = []; // rest depths reached on this trip
   private snow: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   // Each flake starts somewhere along the top edge of the view, read when it
   // is emitted, so the camera can move freely.
@@ -160,6 +171,11 @@ export class CaveScene extends Phaser.Scene {
     this.lockShown = false;
     this.cacheImage = null;
     this.cacheOpened = false;
+    this.chestImage = null;
+    this.chestOpened = false;
+    this.boss = null;
+    this.summoned = false;
+    this.restsReached = [];
     this.monsters = [];
     this.rocks = [];
     this.figureKey = "";
@@ -224,6 +240,7 @@ export class CaveScene extends Phaser.Scene {
       bridge.on("caveAttack", () => this.swing()),
       bridge.on("drink", (id) => this.drink(id)),
       bridge.on("cacheOpened", () => this.openCache()),
+      bridge.on("chestOpen", () => this.openChest()),
     );
     this.announce();
     bridge.emit("reachedFloor", this.depth); // the first floor counts too
@@ -282,7 +299,13 @@ export class CaveScene extends Phaser.Scene {
       );
     this.stairsImage = prop(CAVE_PROPS.stairs, floor.stairs);
     this.objects.push(this.stairsImage);
-    if (floor.chest) this.objects.push(prop(CAVE_PROPS.chest, floor.chest));
+    this.chestOpened =
+      !!floor.chest && bridge.world.openedChests.includes(floor.chest.id);
+    this.chestImage = floor.chest ? prop(CAVE_PROPS.chest, floor.chest) : null;
+    if (this.chestImage) {
+      if (this.chestOpened) this.chestImage.setFrame(CHEST_OPEN_FRAME);
+      this.objects.push(this.chestImage);
+    }
     this.cacheImage = floor.cache ? prop(CAVE_PROPS.chest, floor.cache) : null;
     if (this.cacheImage) this.objects.push(this.cacheImage);
     this.cacheOpened = false;
@@ -296,31 +319,18 @@ export class CaveScene extends Phaser.Scene {
     // Walls, plus one box per rock. Flyers use flyMove, which skips rocks.
     this.solids = [...floor.solids, ...this.rocks.map((r) => r.box)];
 
+    // A rest floor draws one boss (its first spot), unless already beaten.
+    const bossSpawn =
+      floor.rest && !bridge.world.defeatedBosses.includes(BOSS)
+        ? floor.spawns.find((s) => s.enemy === BOSS)
+        : undefined;
     this.monsters = floor.spawns
-      .filter((s) => PLAYABLE.includes(s.enemy))
-      .map((s) => {
-        const def = ENEMIES[s.enemy];
-        const sprite = this.withLight(
-          this.add
-            .image(0, 0, def.sprite.sheet, def.sprite.frame)
-            .setOrigin(0.5, 1),
-        );
-        const body = this.add.container(s.x, s.y, [
-          this.withLight(this.add.image(0, 1, "shadow")),
-          sprite,
-        ]);
-        return {
-          brain: spawnBrain(s.enemy, s, this.depth),
-          room: s.room,
-          move: def.flies ? this.flyMove : this.move,
-          body,
-          sprite,
-          facesRight: !!def.facesRight,
-          marks: [],
-          flashUntil: 0,
-          white: false,
-        };
-      });
+      .filter((s) => PLAYABLE.includes(s.enemy) || s === bossSpawn)
+      .map((s) => this.makeMonster(s.enemy, s, s.room));
+    this.boss = bossSpawn
+      ? (this.monsters.find((m) => m.brain.enemy === BOSS) ?? null)
+      : null;
+    this.summoned = false;
 
     this.stairsLocked =
       floor.locked && this.monsters.some((m) => m.room === floor.stairsRoom);
@@ -334,6 +344,39 @@ export class CaveScene extends Phaser.Scene {
     this.knight.setPosition(floor.start.x, floor.start.y).setAlpha(1);
     this.route = [];
     this.fitCamera(); // snaps to the start: no pan from the last floor
+
+    // The first time on this trip at a rest floor: full life, finds made safe.
+    if (floor.rest && !this.restsReached.includes(this.depth)) {
+      this.restsReached.push(this.depth);
+      this.hp = PLAYER_MAX_HP;
+      this.announce();
+      bridge.emit("restReached", this.depth);
+    }
+  }
+
+  // One monster on the floor, scaled to its depth.
+  private makeMonster(enemy: EnemyId, at: Point, room: number): Monster {
+    const def = ENEMIES[enemy];
+    const sprite = this.withLight(
+      this.add
+        .image(0, 0, def.sprite.sheet, def.sprite.frame)
+        .setOrigin(0.5, 1),
+    );
+    const body = this.add.container(at.x, at.y, [
+      this.withLight(this.add.image(0, 1, "shadow")),
+      sprite,
+    ]);
+    return {
+      brain: spawnBrain(enemy, at, this.depth),
+      room,
+      move: def.flies ? this.flyMove : this.move,
+      body,
+      sprite,
+      facesRight: !!def.facesRight,
+      marks: [],
+      flashUntil: 0,
+      white: false,
+    };
   }
 
   // Floor and walls baked into one texture, with the torches and ice lumps as
@@ -456,6 +499,13 @@ export class CaveScene extends Phaser.Scene {
         hp: this.hp,
         maxHp: PLAYER_MAX_HP,
         stairsLocked: this.lockShown,
+        boss: this.boss
+          ? {
+              name: BOSS_NAME,
+              hp: this.boss.brain.hp,
+              maxHp: this.boss.brain.maxHp,
+            }
+          : null,
       },
     });
   }
@@ -590,6 +640,7 @@ export class CaveScene extends Phaser.Scene {
     )
       zone = "caveStairs";
     else if (!this.cacheOpened && this.nearCache()) zone = "caveCache";
+    else if (this.chestOpenable() && this.nearChest()) zone = "caveChest";
     bridge.setZone(zone);
   }
 
@@ -806,10 +857,16 @@ export class CaveScene extends Phaser.Scene {
       if (hp <= 0) {
         this.puff(x, y);
         this.removeMonster(m);
-        bridge.emit("enemyDefeated", {
-          enemy: m.brain.enemy,
-          depth: this.depth,
-        });
+        // A boss's XP comes from its fact, so it never counts as a monster.
+        if (m === this.boss) {
+          this.boss = null;
+          bridge.emit("bossDefeated", m.brain.enemy);
+          this.announce();
+        } else
+          bridge.emit("enemyDefeated", {
+            enemy: m.brain.enemy,
+            depth: this.depth,
+          });
         if (m.room === this.floor.stairsRoom) this.checkStairs();
         continue;
       }
@@ -821,6 +878,10 @@ export class CaveScene extends Phaser.Scene {
         // The line was drawn at the old spot; drawMonster redraws it here.
         m.marks.forEach((i) => i.destroy());
         m.marks = [];
+      }
+      if (m === this.boss) {
+        if (!this.summoned && hp <= m.brain.maxHp / 2) this.summon(m);
+        this.announce();
       }
     }
 
@@ -859,7 +920,18 @@ export class CaveScene extends Phaser.Scene {
     });
   }
 
-  // --- stairs and cache -----------------------------------------------------
+  // At half life, once: two rats beside the boss, in its room, awake at once
+  // (the knight is there). Not hit by the swing that called them.
+  private summon(boss: Monster) {
+    this.summoned = true;
+    for (const dx of [-SUMMON_GAP, SUMMON_GAP]) {
+      const at = this.move(boss.brain, dx, 0);
+      this.monsters.push(this.makeMonster("rat", at, boss.room));
+      this.puff(at.x, at.y, [0x8b9bb4, 0xc0cbdc], 8);
+    }
+  }
+
+  // --- stairs, cache and chest ----------------------------------------------
 
   // The last monster in the stairs room fell: the stairs open with a pulse.
   private checkStairs() {
@@ -905,6 +977,34 @@ export class CaveScene extends Phaser.Scene {
         "#fdbe53",
       );
     });
+  }
+
+  // The rest floor's chest opens once its boss is gone, and only once ever.
+  private chestOpenable() {
+    return (
+      !!this.floor.chest &&
+      this.depth === CHEST_DEPTH &&
+      !this.boss &&
+      !this.chestOpened
+    );
+  }
+
+  private nearChest() {
+    const c = this.floor.chest;
+    return (
+      !!c &&
+      Phaser.Math.Distance.Between(this.knight.x, this.knight.y, c.x, c.y) <
+        CHEST_RANGE
+    );
+  }
+
+  private openChest() {
+    const chest = this.floor.chest;
+    if (!chest || this.held() || !this.chestOpenable() || !this.nearChest())
+      return;
+    this.chestOpened = true;
+    this.chestImage?.setFrame(CHEST_OPEN_FRAME);
+    bridge.emit("chestOpened", chest.id);
   }
 
   // --- drinks ---------------------------------------------------------------

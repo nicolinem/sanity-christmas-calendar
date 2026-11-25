@@ -67,7 +67,7 @@ import CaveHud from "./hud/CaveHud";
 import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
 import { xpFor } from "@/game/cave/combat";
-import { addToTrip, bankTrip, dropTrip } from "@/game/cave/trip";
+import { addToTrip, bankTrip, dropTrip, secureTrip } from "@/game/cave/trip";
 import { useWindowActive } from "./hud/useWindowActive";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
@@ -821,6 +821,41 @@ export default function GameClient() {
       }),
     [],
   );
+  useEffect(
+    () =>
+      bridge.on("bossDefeated", (id) =>
+        updateProgress(PROGRESS_PROJECT, (p) => ({
+          ...p,
+          bosses: { ...p.bosses, [id]: true },
+        })),
+      ),
+    [],
+  );
+  useEffect(
+    () =>
+      bridge.on("chestOpened", (id) => {
+        updateProgress(PROGRESS_PROJECT, (p) => ({
+          ...p,
+          chests: { ...p.chests, [id]: true },
+        }));
+        // Only the floor-5 chest holds the armour.
+        if (id === "cave-5")
+          pushToast({
+            title: "Rustning",
+            body: "Du fant den i kista på etasje 5.",
+            tone: "lesson",
+          });
+      }),
+    [],
+  );
+  // A resting place: the trip's finds so far are safe.
+  useEffect(
+    () =>
+      bridge.on("restReached", () =>
+        updateProgress(PROGRESS_PROJECT, secureTrip),
+      ),
+    [],
+  );
   // A trip left open by a closed tab: its finds are banked once on mount.
   useEffect(() => {
     updateProgress(PROGRESS_PROJECT, (p) => (p.inCave ? bankTrip(p) : p));
@@ -879,6 +914,7 @@ export default function GameClient() {
     () => bridge.emit("cacheOpened", undefined),
     [],
   );
+  const openChest = useCallback(() => bridge.emit("chestOpen", undefined), []);
   const leaveCave = useCallback(() => bridge.emit("leaveCave", undefined), []);
 
   const openCode = useCallback((questId: string) => {
@@ -1116,6 +1152,18 @@ export default function GameClient() {
       caveGod: dev && caveGod,
     });
   }, [attack, studio.open, windowActive, dev, caveGod]);
+  // Bosses beaten and chests opened, for the cave to leave out or draw open.
+  const defeatedBosses = useMemo(
+    () => Object.keys(progress.bosses),
+    [progress.bosses],
+  );
+  const openedChests = useMemo(
+    () => Object.keys(progress.chests),
+    [progress.chests],
+  );
+  useEffect(() => {
+    bridge.setWorld({ defeatedBosses, openedChests });
+  }, [defeatedBosses, openedChests]);
 
   // Keep the world in sync with game state.
   useEffect(() => {
@@ -1284,6 +1332,11 @@ export default function GameClient() {
         openCache();
         return;
       }
+      if ((e.key === "e" || e.key === "E") && zone === "caveChest") {
+        e.preventDefault();
+        openChest();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -1342,6 +1395,7 @@ export default function GameClient() {
     enterCave,
     descend,
     openCache,
+    openChest,
     combat,
     items,
     slots,
@@ -1546,8 +1600,12 @@ export default function GameClient() {
                 <kbd>E</kbd> Gå ned trappa
               </button>
             )}
-            {zone === "caveCache" && !logOpen && (
-              <button type="button" className="prompt" onClick={openCache}>
+            {(zone === "caveCache" || zone === "caveChest") && !logOpen && (
+              <button
+                type="button"
+                className="prompt"
+                onClick={zone === "caveChest" ? openChest : openCache}
+              >
                 <kbd>E</kbd> Åpne kista
               </button>
             )}
