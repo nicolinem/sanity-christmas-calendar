@@ -231,7 +231,8 @@ export class CaveScene extends Phaser.Scene {
         };
       });
 
-    this.knight.setPosition(floor.start.x, floor.start.y);
+    // A blink in progress ends with the floor; invulnerability itself carries.
+    this.knight.setPosition(floor.start.x, floor.start.y).setAlpha(1);
     this.route = [];
   }
 
@@ -576,6 +577,7 @@ export class CaveScene extends Phaser.Scene {
   // --- drinks ---------------------------------------------------------------
 
   private drink(id: string) {
+    if (this.busy || this.hp <= 0) return; // fading or fainted: not now
     const result = canDrink(this.drunk, id, this.hp);
     if (result === "ok") {
       this.hp = Math.min(PLAYER_MAX_HP, this.hp + DRINK_HEAL);
