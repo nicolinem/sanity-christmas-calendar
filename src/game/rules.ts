@@ -9,9 +9,41 @@
 // No imports from Phaser or React, so the Studio can read this too.
 
 // Damage a forged weapon deals at each forge level, before combat variance.
-export const FORGE_DAMAGE = [4, 6, 8, 10] as const;
+export const FORGE_DAMAGE = [4, 6, 8, 10, 12, 14, 16, 18, 20, 22] as const;
 
 export const MAX_FORGE_LEVEL = FORGE_DAMAGE.length;
+
+export const MAX_LEVEL = 10;
+
+// The cap for level from luke quests when FEATURES.rpg is off.
+export const LUKE_LEVEL_CAP = 4;
+
+export const XP_PER_LUKE = 100;
+export const XP_PER_BONUS_LUKE = 50;
+
+// Total XP needed to reach a level: each level needs 100 more than the last.
+export function totalXpForLevel(level: number) {
+  return 50 * level * (level - 1);
+}
+
+export function levelForXp(xp: number) {
+  const safe = Number.isFinite(xp) ? Math.max(0, xp) : 0;
+  let level = 1;
+  while (level < MAX_LEVEL && totalXpForLevel(level + 1) <= safe) level++;
+  return level;
+}
+
+export function xpProgress(xp: number) {
+  const level = levelForXp(xp);
+  if (level >= MAX_LEVEL) return { level, into: 0, needed: 0 };
+  const safe = Number.isFinite(xp) ? Math.max(0, xp) : 0;
+  const base = totalXpForLevel(level);
+  return {
+    level,
+    into: safe - base,
+    needed: totalXpForLevel(level + 1) - base,
+  };
+}
 
 export function clampForgeLevel(level: number) {
   return Math.min(MAX_FORGE_LEVEL, Math.max(1, Math.floor(level)));

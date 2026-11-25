@@ -5,13 +5,10 @@ import { FEATURES } from "@/game/features";
 import { bridge } from "@/game/bridge";
 import { findNewPlayerOrder } from "@/game/bakery";
 import type { GameItemView } from "@/game/items";
-import { forgedPower } from "@/game/rules";
+import { forgedPower, xpProgress } from "@/game/rules";
+import { playerLevel, totalXp } from "@/game/xp";
 import { CHAPTERS } from "@/game/quests/chapters";
-import {
-  chaptersForTrack,
-  evaluateQuests,
-  forgeLevelFor,
-} from "@/game/quests/engine";
+import { chaptersForTrack, evaluateQuests } from "@/game/quests/engine";
 import {
   EMPTY_PROGRESS,
   PROGRESS_PROJECT as PROJECT,
@@ -43,7 +40,10 @@ export function useProgress() {
     () => chaptersForTrack(CHAPTERS, progress.track),
     [progress.track],
   );
-  const forgeLevel = forgeLevelFor(chapters, progress);
+  const forgeLevel = playerLevel(chapters, progress, FEATURES.rpg);
+  const total = totalXp(progress);
+  const { into, needed } = xpProgress(total);
+  const xp = { total, into, needed };
 
   const metBrann = useCallback((questId?: string, weapon?: GameItemView) => {
     updateProgress(PROJECT, (p) =>
@@ -190,6 +190,7 @@ export function useProgress() {
   return {
     progress,
     forgeLevel,
+    xp,
     metBrann,
     reset,
     revealHint,
@@ -294,7 +295,7 @@ export function useQuestBoard({
     );
     if (finished.length === 0) return;
 
-    const before = forgeLevelFor(chapters, saved);
+    const before = playerLevel(chapters, saved, FEATURES.rpg);
     const now = new Date().toISOString();
     updateProgress(PROJECT, (p) => {
       const completed = { ...p.completed };
@@ -305,7 +306,7 @@ export function useQuestBoard({
       return { ...p, completed, bakeryOrderId };
     });
     const updated = readProgress(PROJECT);
-    const after = forgeLevelFor(chapters, updated);
+    const after = playerLevel(chapters, updated, FEATURES.rpg);
     const next = evaluateQuests(
       chapters,
       {

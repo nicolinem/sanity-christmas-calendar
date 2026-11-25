@@ -99,6 +99,13 @@ function harness(
     "@/game/quests/chapters": { CHAPTERS: chapters },
     "@/game/quests/engine": engineModule,
     "@/game/rules": rules,
+    // The fixture chapters carry forge rewards, not real XP, so the level
+    // follows the forge level here.
+    "@/game/xp": {
+      totalXp: () => 0,
+      playerLevel: (chapters, progress) =>
+        engineModule.forgeLevelFor(chapters, progress),
+    },
     // Levels on, so the level-up events are tested too.
     "@/game/features": { FEATURES: { rpg: true } },
     "@/game/quests/progress": {

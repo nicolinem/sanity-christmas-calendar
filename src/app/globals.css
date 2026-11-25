@@ -1991,6 +1991,18 @@ kbd {
   color: var(--amber);
   white-space: nowrap;
 }
+.plate-xp {
+  display: block;
+  width: 100%;
+  min-width: 56px;
+  height: 4px;
+  background: rgb(0 0 0 / 0.4);
+}
+.plate-xp-fill {
+  display: block;
+  height: 100%;
+  background: var(--amber);
+}
 .plate-tooltip {
   left: 0;
   translate: 0 0;
@@ -6069,6 +6081,31 @@ kbd {
   align-content: start;
   gap: 6px;
   min-height: 150px;
+}
+.cs-found {
+  margin-top: 12px;
+}
+.cs-found-title {
+  margin: 0 0 6px;
+  font:
+    500 11px/1.2 var(--font-pixel),
+    var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.cs-found ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cs-found li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
 }
 .cs-inv-item.slot {
   width: 46px;

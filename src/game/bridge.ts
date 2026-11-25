@@ -27,7 +27,7 @@ export type WorldState = {
   weapon: SpriteDef | null;
   figure: FigureChoice | null; // the player's own figure; null shows the knight
   forgeLit: boolean; // the first blade has been forged
-  forgeLevel: number; // 1..4, glows hotter as it grows
+  forgeLevel: number; // 1..4 while FEATURES.rpg is off, 1..10 when on; glows hotter as it grows
   npcMarker: NpcId | null; // who has a luke the player hasn't heard yet
   doors: DoorMarker[]; // this week's doors, in calendar order
   goal: { x: number; y: number } | null; // the next step, in world px

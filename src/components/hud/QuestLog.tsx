@@ -10,7 +10,7 @@ import { fridayOf } from "@/game/quests/weeks";
 import type { Progress, QuestState, QuestTrack } from "@/game/quests/types";
 import { NPCS, QUEST_SITES, type QuestSiteId } from "@/game/village";
 import { FEATURES } from "@/game/features";
-import { forgedPower, MAX_FORGE_LEVEL } from "@/game/rules";
+import { forgedPower, MAX_LEVEL } from "@/game/rules";
 import { IconCheck } from "./icons";
 import GoalPreview from "./goalPreviews";
 import Explain from "./Explain";
@@ -148,11 +148,11 @@ export default function QuestLog({
           {FEATURES.rpg && (
             <p
               className="log-forge"
-              title="Smia blir sterkere når du fullfører luker"
+              title="Nivået stiger med XP fra luker og sideoppdrag"
             >
               <span className="log-forge-label">Nivå {forgeLevel}</span>
               <span className="log-forge-pips" aria-hidden="true">
-                {Array.from({ length: MAX_FORGE_LEVEL }, (_, i) => (
+                {Array.from({ length: MAX_LEVEL }, (_, i) => (
                   <span
                     key={i}
                     className={i < forgeLevel ? "is-on" : undefined}

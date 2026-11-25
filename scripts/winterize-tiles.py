@@ -14,6 +14,9 @@ from PIL import Image
 
 SRC = "public/assets/kenney/tiny-town.png"
 OUT = "public/assets/winter-town.png"
+DUNGEON_SRC = "public/assets/kenney/tiny-dungeon.png"
+CAVE_OUT = "public/assets/winter-cave.png"
+CAVE_DEEP_OUT = "public/assets/winter-cave-deep.png"
 COLS = 12
 TILE = 16
 
@@ -61,13 +64,20 @@ for i in (48, 49, 50, 60, 61, 62, 63):
 for i in (84,):
     rules[i] = LIT_WINDOW
 
+# Tiny Dungeon floor tiles (0, 12, 24) and wall tile 40, for the cave.
+CAVE_FLOOR = {"#763b36": "#3a4466", "#3f2631": "#262b44", "#bd6c4a": "#0099db"}
+CAVE_DEEP_FLOOR = {"#763b36": "#262b44", "#3f2631": "#181425", "#bd6c4a": "#124e89"}
+CAVE_DEEP_WALL = {"#c0cbdc": "#8b9bb4", "#8b9bb4": "#5a6988", "#52607c": "#3a4466"}
+cave_rules = {i: CAVE_FLOOR for i in (0, 12, 24)}
+cave_deep_rules = {**{i: CAVE_DEEP_FLOOR for i in (0, 12, 24)}, 40: CAVE_DEEP_WALL}
+
 
 def hex_to_rgb(h):
     return tuple(int(h[k : k + 2], 16) for k in (1, 3, 5))
 
 
-def main():
-    im = Image.open(SRC).convert("RGBA")
+def bake(src, out, rules):
+    im = Image.open(src).convert("RGBA")
     px = im.load()
     for index, mapping in rules.items():
         lut = {hex_to_rgb(a): hex_to_rgb(b) for a, b in mapping.items()}
@@ -77,8 +87,14 @@ def main():
                 r, g, b, a = px[x, y]
                 if a and (r, g, b) in lut:
                     px[x, y] = (*lut[(r, g, b)], a)
-    im.save(OUT)
-    print(f"wrote {OUT}")
+    im.save(out)
+    print(f"wrote {out}")
+
+
+def main():
+    bake(SRC, OUT, rules)
+    bake(DUNGEON_SRC, CAVE_OUT, cave_rules)
+    bake(DUNGEON_SRC, CAVE_DEEP_OUT, cave_deep_rules)
 
 
 if __name__ == "__main__":

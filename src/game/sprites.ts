@@ -9,7 +9,8 @@
 
 export type SpriteCategory = "weapon" | "material" | "potion" | "creature";
 export type ItemKind = Exclude<SpriteCategory, "creature">;
-export type SpriteSheet = "dungeon" | "town" | "farm" | "ski";
+export type SpriteSheet =
+  "dungeon" | "town" | "farm" | "ski" | "cave" | "caveDeep";
 
 export type SpriteDef = {
   sheet: SpriteSheet;
@@ -28,6 +29,9 @@ export const SHEETS: Record<
   // Tiny Farm (sacks, crates, bread) and Tiny Ski (snow creatures, snowman).
   farm: { url: "/assets/kenney/tiny-farm.png", cols: 12, rows: 11 },
   ski: { url: "/assets/kenney/tiny-ski.png", cols: 12, rows: 11 },
+  // Tiny Dungeon with icy floor and (deep) grey walls (scripts/winterize-tiles.py).
+  cave: { url: "/assets/winter-cave.png", cols: 12, rows: 11 },
+  caveDeep: { url: "/assets/winter-cave-deep.png", cols: 12, rows: 11 },
 };
 
 const d = (frame: number): SpriteDef => ({ sheet: "dungeon", frame });

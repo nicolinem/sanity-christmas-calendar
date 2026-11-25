@@ -41,6 +41,11 @@ export type Progress = {
   side: Record<string, SideRecord>;
   // Spots found once: side quest steps now, «overraskelser» later.
   found: Record<string, true>;
+  // XP from ordinary monsters. Lukes and side quests are counted from the
+  // facts above (src/game/xp.ts), so only this has to be stored.
+  xp: number;
+  // Materials from the cave: material id → count (src/game/materials.ts).
+  inventory: Record<string, number>;
 };
 
 export type SideRecord = { at: string; step: number; done?: string };
