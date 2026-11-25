@@ -177,6 +177,19 @@ test("delivering only works when ready, and never touches the lukes", () => {
   assert.equal(deliverSide(done, states(done, [])["test-drink"], AT), done);
 });
 
+test("delivering a side quest adds its reward.items once", () => {
+  const quest = {
+    ...drink,
+    id: "test-items",
+    reward: { items: [{ id: "isskar", count: 2 }] },
+  };
+  const taken = acceptSide({ ...EMPTY_PROGRESS }, "test-items", AT);
+  const done = deliverSide(taken, { quest, status: "ready", step: 1 }, AT);
+  assert.equal(done.inventory.isskar, 2);
+  const again = deliverSide(done, { quest, status: "done", step: 1 }, AT);
+  assert.equal(again.inventory.isskar, 2);
+});
+
 test("taking a quest twice, or one that is done, changes nothing", () => {
   const taken = acceptSide({ ...EMPTY_PROGRESS }, "test-drink", AT);
   assert.equal(acceptSide(taken, "test-drink", "2026-12-03T00:00:00Z"), taken);

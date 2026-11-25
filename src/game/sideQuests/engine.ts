@@ -2,6 +2,7 @@
 // order, several can be in progress at once, and a quest whose steps are all
 // done waits to be handed in ("ready"). Pure: no DOM, React or Phaser.
 
+import { addItems } from "../materials";
 import { chapterOpensAt } from "../quests/engine";
 import type { Chapter, Progress } from "../quests/types";
 import type {
@@ -142,11 +143,13 @@ export function deliverSide(
 ): Progress {
   const record = progress.side?.[state.quest.id];
   if (state.status !== "ready" || !record || record.done) return progress;
-  return {
+  const delivered = {
     ...progress,
     side: {
       ...progress.side,
       [state.quest.id]: { ...record, step: state.step, done: at },
     },
   };
+  const items = state.quest.reward.items;
+  return items ? addItems(delivered, items) : delivered;
 }

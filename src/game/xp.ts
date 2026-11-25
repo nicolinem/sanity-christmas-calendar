@@ -1,6 +1,7 @@
 import { CHAPTERS } from "./quests/chapters";
-import type { Progress } from "./quests/types";
-import { XP_PER_BONUS_LUKE, XP_PER_LUKE } from "./rules";
+import { forgeLevelFor } from "./quests/engine";
+import type { Chapter, Progress } from "./quests/types";
+import { levelForXp, XP_PER_BONUS_LUKE, XP_PER_LUKE } from "./rules";
 import { SIDE_QUESTS } from "./sideQuests/data";
 
 // XP is worked out from facts the player has earned, so a changed reward
@@ -24,4 +25,16 @@ export function totalXp(
     0,
   );
   return lukes + side + progress.xp;
+}
+
+// With the rpg flag off the level is the forge level (lukes only, max 4);
+// with it on, it comes from XP (max 10).
+export function playerLevel(
+  chapters: Chapter[],
+  progress: Progress,
+  rpg: boolean,
+): number {
+  return rpg
+    ? levelForXp(totalXp(progress))
+    : forgeLevelFor(chapters, progress);
 }

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { bridge } from "@/game/bridge";
+import { addItems } from "@/game/materials";
+import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { QuestBoard } from "@/game/quests/engine";
 import type { CodeCheck, QuestTrack } from "@/game/quests/types";
 import type { SpriteDef } from "@/game/sprites";
@@ -284,6 +286,16 @@ export default function DevPanel({
           onClick={() => bridge.emit("forgeLevelUp", forgeLevel)}
         >
           Nivå opp
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            updateProgress(PROGRESS_PROJECT, (p) =>
+              addItems(p, [{ id: "isskar", count: 2 }]),
+            )
+          }
+        >
+          Gi 2 Isskår
         </button>
       </div>
 

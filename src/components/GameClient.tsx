@@ -197,6 +197,7 @@ export default function GameClient() {
   const {
     progress,
     forgeLevel,
+    xp,
     metBrann,
     reset,
     revealHint,
@@ -1299,6 +1300,7 @@ export default function GameClient() {
                   figure={figure ?? normalizeFigure(undefined)}
                   name={progress.name ?? ""}
                   level={forgeLevel}
+                  xp={xp}
                   compact={narrow}
                   onOpen={() => openSheet("look")}
                 />
@@ -1463,6 +1465,7 @@ export default function GameClient() {
             equippedId={equippedId}
             onEquip={handleEquip}
             level={forgeLevel}
+            inventory={progress.inventory}
             onDone={saveFigure}
             onClose={() => setSheetOpen(false)}
           />

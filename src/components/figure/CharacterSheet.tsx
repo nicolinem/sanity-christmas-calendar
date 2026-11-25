@@ -13,6 +13,7 @@ import {
   type FigureChoice,
 } from "@/game/figure";
 import { HIDDEN_GEAR } from "@/game/figure";
+import { MATERIALS, type MaterialId } from "@/game/materials";
 import { gearSource, isGear, wearable, type GearKey } from "@/game/wardrobe";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { GameItemView } from "@/game/items";
@@ -133,6 +134,7 @@ type Props = {
   equippedId: string | null;
   onEquip: (item: GameItemView) => void;
   level: number;
+  inventory: Record<string, number>;
   onDone: (
     choice: FigureChoice,
     name: string,
@@ -155,6 +157,7 @@ export default function CharacterSheet({
   equippedId,
   onEquip,
   level,
+  inventory: materials,
   onDone,
   onClose,
 }: Props) {
@@ -188,6 +191,9 @@ export default function CharacterSheet({
     cat.color &&
     categoryUsesColor(choice, cat.part, cat.color.key, cat.color.options);
   const inventory = items.filter((item) => item.id !== "builtin-fists");
+  const found = (Object.keys(MATERIALS) as MaterialId[]).filter(
+    (id) => (materials[id] ?? 0) > 0,
+  );
   const filteredItems = inventory.filter(
     (item) => inventoryFilter === "all" || item.kind === inventoryFilter,
   );
@@ -383,6 +389,20 @@ export default function CharacterSheet({
                     </button>
                   );
                 })}
+            {mode === "bag" && found.length > 0 && (
+              <div className="cs-found">
+                <p className="cs-found-title">Fra grotta</p>
+                <ul>
+                  {found.map((id) => (
+                    <li key={id}>
+                      <SpriteIcon sprite={MATERIALS[id].sprite} />
+                      <span>{MATERIALS[id].name}</span>
+                      <span>× {materials[id]}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </nav>
 
           <div className="cs-pick">

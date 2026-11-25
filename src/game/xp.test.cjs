@@ -2,7 +2,10 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
-const { totalXp } = require("./xp.ts");
+const { totalXp, playerLevel } = require("./xp.ts");
+const { levelForXp } = require("./rules.ts");
+const { chaptersForTrack, forgeLevelFor } = require("./quests/engine.ts");
+const { CHAPTERS } = require("./quests/chapters.ts");
 const { addItems, MATERIALS } = require("./materials.ts");
 const { EMPTY_PROGRESS } = require("./quests/progress.ts");
 
@@ -46,4 +49,35 @@ test("addItems adds counts and never goes below zero or keeps fractions", () => 
 test("materials are defined with name, sprite and description", () => {
   assert.equal(MATERIALS.isskar.name, "Isskår");
   assert.deepEqual(MATERIALS.malm.sprite, { sheet: "dungeon", frame: 42 });
+});
+
+const rewardLukes = [
+  "the-broken-forge",
+  "weapon-description",
+  "apprentice-mistake",
+  "archive-model",
+  "who-is-lying",
+  "case-file",
+  "baker-model",
+];
+const chapters = chaptersForTrack(CHAPTERS, "nonTechnical");
+const progress = {
+  ...EMPTY_PROGRESS,
+  track: "nonTechnical",
+  completed: Object.fromEntries(rewardLukes.map((id) => [id, AT])),
+};
+
+test("with the flag off the level is the forge level, capped at 4", () => {
+  assert.equal(playerLevel(chapters, progress, false), 4);
+  assert.equal(
+    playerLevel(chapters, progress, false),
+    forgeLevelFor(chapters, progress),
+  );
+});
+
+test("with the flag on the level comes from XP", () => {
+  assert.equal(
+    playerLevel(chapters, progress, true),
+    levelForXp(totalXp(progress)),
+  );
 });

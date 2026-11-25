@@ -8,6 +8,7 @@ type Props = {
   figure: FigureChoice;
   name: string;
   level: number;
+  xp?: { into: number; needed: number };
   compact: boolean;
   onOpen: () => void;
 };
@@ -16,6 +17,7 @@ export default function PlayerPlate({
   figure,
   name,
   level,
+  xp,
   compact,
   onOpen,
 }: Props) {
@@ -34,6 +36,16 @@ export default function PlayerPlate({
         <span className="plate-who">
           {name && <span className="plate-name">{name}</span>}
           {FEATURES.rpg && <span className="plate-level">Nivå {level}</span>}
+          {FEATURES.rpg && xp && (
+            <span className="plate-xp" aria-hidden="true">
+              <span
+                className="plate-xp-fill"
+                style={{
+                  width: xp.needed ? `${(xp.into / xp.needed) * 100}%` : "100%",
+                }}
+              />
+            </span>
+          )}
         </span>
       </button>
       <div className="tooltip frame frame--slate plate-tooltip" role="tooltip">
