@@ -81,3 +81,25 @@ test("with the flag on the level comes from XP", () => {
     levelForXp(totalXp(progress)),
   );
 });
+
+test("cave bosses and chests add XP from facts", () => {
+  const base = totalXp(EMPTY_PROGRESS);
+  assert.equal(
+    totalXp({ ...EMPTY_PROGRESS, bosses: { yeti: true } }),
+    base + 100,
+  );
+  assert.equal(
+    totalXp({ ...EMPTY_PROGRESS, bosses: { drake: true } }),
+    base + 100,
+  );
+  assert.equal(
+    totalXp({ ...EMPTY_PROGRESS, chests: { "cave-10": true } }),
+    base + 100,
+  );
+  assert.equal(
+    totalXp({ ...EMPTY_PROGRESS, chests: { "cave-5": true } }),
+    base,
+  );
+  const partial = { completed: {}, side: {}, xp: 0 };
+  assert.equal(totalXp(partial), 0);
+});

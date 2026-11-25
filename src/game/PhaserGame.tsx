@@ -29,6 +29,9 @@ export default function PhaserGame() {
         parent: containerRef.current,
         backgroundColor: "#e3ebf5",
         pixelArt: true,
+        // Up to 16 torches, markers and the knight light on one cave floor;
+        // the default of 10 would cull the knight's.
+        render: { maxLights: 20 },
         scale: {
           mode: Phaser.Scale.RESIZE,
           width: "100%",

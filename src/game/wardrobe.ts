@@ -4,7 +4,13 @@
 //
 // Pure data, no DOM, so it runs anywhere (and in tests).
 
-import { DEFAULT_FIGURE, FIGURE_OPTIONS, type FigureChoice } from "./figure";
+import {
+  CAVE_CHEST_5_SOURCE,
+  DEFAULT_FIGURE,
+  FIGURE_OPTIONS,
+  HIDDEN_GEAR,
+  type FigureChoice,
+} from "./figure";
 import type { Progress } from "./quests/types";
 import { rewardGear } from "./reward";
 import { SIDE_QUESTS } from "./sideQuests/data";
@@ -25,6 +31,17 @@ export function gearSource(
   id: string,
 ): string | undefined {
   return option(key, id)?.unlock;
+}
+
+// With the cave off, cave sources look like any other hidden gear.
+const CAVE_SOURCES: string[] = [CAVE_CHEST_5_SOURCE];
+export function visibleGearSource(
+  source: string | undefined,
+  caveOn: boolean,
+): string | undefined {
+  return !caveOn && source !== undefined && CAVE_SOURCES.includes(source)
+    ? HIDDEN_GEAR
+    : source;
 }
 
 // Every gear item with the given unlock label.
@@ -74,7 +91,8 @@ const ALL_GEAR: GearKey[] = KEYS.flatMap((key) =>
 // Gear from completed quests and delivered side quests; in dev, all of it.
 // Worked out from those facts every time, never stored.
 export function ownedGear(
-  progress: Pick<Progress, "completed"> & Partial<Pick<Progress, "side">>,
+  progress: Pick<Progress, "completed"> &
+    Partial<Pick<Progress, "side" | "chests">>,
   opts: { dev?: boolean } = {},
 ): Set<GearKey> {
   if (opts.dev) return new Set(ALL_GEAR);
@@ -92,6 +110,7 @@ export function ownedGear(
         if (FIGURE_OPTIONS[part] && isGear(part, id))
           owned.add(`${part}:${id}`);
       }
+  if (progress.chests?.["cave-5"]) owned.add("armour:plate");
   return owned;
 }
 

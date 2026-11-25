@@ -14,7 +14,13 @@ import {
 } from "@/game/figure";
 import { HIDDEN_GEAR } from "@/game/figure";
 import { MATERIALS, type MaterialId } from "@/game/materials";
-import { gearSource, isGear, wearable, type GearKey } from "@/game/wardrobe";
+import {
+  gearSource,
+  isGear,
+  visibleGearSource,
+  wearable,
+  type GearKey,
+} from "@/game/wardrobe";
 import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
 import type { GameItemView } from "@/game/items";
 import FigureCanvas from "./FigureCanvas";
@@ -389,20 +395,6 @@ export default function CharacterSheet({
                     </button>
                   );
                 })}
-            {mode === "bag" && found.length > 0 && (
-              <div className="cs-found">
-                <p className="cs-found-title">Fra grotta</p>
-                <ul>
-                  {found.map((id) => (
-                    <li key={id}>
-                      <SpriteIcon sprite={MATERIALS[id].sprite} />
-                      <span>{MATERIALS[id].name}</span>
-                      <span>× {materials[id]}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </nav>
 
           <div className="cs-pick">
@@ -466,6 +458,20 @@ export default function CharacterSheet({
                   )}
                 </>
               ))}
+            {mode === "bag" && found.length > 0 && (
+              <div className="cs-found">
+                <p className="cs-found-title">Fra grotta</p>
+                <ul>
+                  {found.map((id) => (
+                    <li key={id}>
+                      <SpriteIcon sprite={MATERIALS[id].sprite} />
+                      <span>{MATERIALS[id].name}</span>
+                      <span>× {materials[id]}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {mode !== "bag" && (
               <>
                 {cat.part && current && (
@@ -501,7 +507,10 @@ export default function CharacterSheet({
                   <div className="cs-grid">
                     {options.map((o) => {
                       const mine = isOwned(cat.part!, o.id);
-                      const source = gearSource(cat.part!, o.id);
+                      const source = visibleGearSource(
+                        gearSource(cat.part!, o.id),
+                        FEATURES.cave,
+                      );
                       // Not found yet: a blurred shape, no name to give it away.
                       const hidden = !mine && source === HIDDEN_GEAR;
                       return (

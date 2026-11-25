@@ -41,6 +41,10 @@ export type Progress = {
   side: Record<string, SideRecord>;
   // Spots found once: side quest steps now, «overraskelser» later.
   found: Record<string, true>;
+  // Cave bosses beaten (boss id) and chests opened (e.g. "cave-5"). Facts;
+  // XP and gear are worked out from them.
+  bosses: Record<string, true>;
+  chests: Record<string, true>;
   // XP from ordinary monsters. Lukes and side quests are counted from the
   // facts above (src/game/xp.ts), so only this has to be stored.
   xp: number;

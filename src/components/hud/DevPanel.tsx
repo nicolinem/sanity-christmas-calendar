@@ -27,6 +27,8 @@ type Props = {
   cave?: {
     god: boolean;
     inCave: boolean; // «Gå til etasje» only works from the village
+    depth: number | null; // the floor you are on, in the cave
+    view: { room: string; seed: number } | null; // that floor's start room and seed
     onGod: (on: boolean) => void;
     onGoto: (depth: number) => void;
     onReset: () => void;
@@ -341,6 +343,12 @@ export default function DevPanel({
               Nullstill grotta
             </button>
           </div>
+          {cave.inCave && cave.depth !== null && cave.view && (
+            <p className="dev-note">
+              Etasje {cave.depth} · rom «{cave.view.room}» · seed{" "}
+              {cave.view.seed}
+            </p>
+          )}
         </>
       )}
 

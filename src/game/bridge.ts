@@ -18,6 +18,8 @@ export type Zone =
   | "wraith"
   | "cave" // the way into the cave
   | "caveStairs" // the stairs back up, down in the cave
+  | "caveCache" // the nest's chest, in the cave
+  | "caveChest" // a rest floor's chest, once its boss is gone
   | `side:${string}`
   | null;
 // One calendar door shown in the village: a numbered window that hangs over
@@ -42,7 +44,20 @@ export type WorldState = {
   wraithDefeated: boolean;
   frozen: boolean; // a dialogue is open: the knight stands still
   area: "bygda" | "grotta"; // which scene the player is in
-  cave: { depth: number; hp: number; maxHp: number } | null; // the floor and life, while in the cave
+  // The floor and life, while in the cave. `stairsLocked`: the knight is in
+  // the stairs room and its monsters still guard the way down. `boss`: the
+  // floor's boss while it lives, else null.
+  cave: {
+    depth: number;
+    room: string; // id of the start room's template
+    seed: number; // the seed this floor was generated from
+    hp: number;
+    maxHp: number;
+    stairsLocked: boolean;
+    boss: { name: string; hp: number; maxHp: number } | null;
+  } | null;
+  defeatedBosses: string[]; // boss ids beaten (progress.bosses)
+  openedChests: string[]; // chest ids opened (progress.chests)
   attack: Attack | null; // the equipped usable weapon, if any
   away: boolean; // the Studio is open or the window lost focus: the cave pauses
   caveGod: boolean; // ?dev only: nothing hurts the player
@@ -94,6 +109,7 @@ type EventMap = {
   readSign: void; // the player clicked the bakery sign while standing beside it
   enterCave: number; // HUD → village: go down, starting at this floor
   descend: void; // HUD → cave: take the stairs down
+  cacheOpened: void; // HUD → cave: open the nest's chest
   leaveCave: void; // HUD → cave: go back up to the village
   reachedFloor: number; // cave → HUD: a new floor was entered
   leftCave: void; // cave → HUD: back in the village
@@ -103,6 +119,10 @@ type EventMap = {
   enemyDefeated: { enemy: EnemyId; depth: number }; // cave → HUD
   found: { item: string; count: number }; // cave → HUD
   fainted: void; // cave → HUD: the player went down
+  bossDefeated: EnemyId; // cave → HUD: a boss fell
+  chestOpen: void; // HUD → cave: open the rest floor's chest
+  chestOpened: string; // cave → HUD: this chest (id) was opened
+  restReached: number; // cave → HUD: first arrival at this rest floor on the trip
 };
 
 type Listener<T> = (payload: T) => void;
@@ -123,6 +143,8 @@ class Bridge {
     frozen: false,
     area: "bygda",
     cave: null,
+    defeatedBosses: [],
+    openedChests: [],
     attack: null,
     away: false,
     caveGod: false,

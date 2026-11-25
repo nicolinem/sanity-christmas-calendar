@@ -12,6 +12,9 @@ export const CAVE_FRAMES = {
   floorPebbles: 12,
   floorRocks: 24,
   wall: 40,
+  wallVariants: [28, 57, 58, 59],
+  wallFaces: [19, 20],
+  torch: 29,
 } as const;
 
 export const ROOMS: RoomTemplate[] = [
@@ -179,8 +182,8 @@ export function mirror(rows: string[]): string[] {
 export function reachable(rows: string[], from: [number, number]): Set<string> {
   const seen = new Set<string>([`${from[0]},${from[1]}`]);
   const queue: [number, number][] = [from];
-  while (queue.length) {
-    const [x, y] = queue.shift()!;
+  for (let head = 0; head < queue.length; head++) {
+    const [x, y] = queue[head];
     for (const [dx, dy] of [
       [1, 0],
       [-1, 0],

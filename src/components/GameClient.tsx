@@ -64,10 +64,11 @@ import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
 import CaveHud from "./hud/CaveHud";
+import { levelUpToast } from "@/game/levelUp";
 import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
 import { xpFor } from "@/game/cave/combat";
-import { addToTrip, bankTrip, dropTrip } from "@/game/cave/trip";
+import { addToTrip, bankTrip, dropTrip, secureTrip } from "@/game/cave/trip";
 import { useWindowActive } from "./hud/useWindowActive";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
@@ -170,6 +171,46 @@ function useCaveHp() {
   return hp === null || max === null ? null : { hp, max };
 }
 
+function useCaveBoss() {
+  const boss = useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.boss ?? null,
+    () => null,
+  );
+  return boss;
+}
+
+function useCaveStairsLocked() {
+  return useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.stairsLocked ?? false,
+    () => false,
+  );
+}
+
+function useCaveView() {
+  const room = useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.room ?? null,
+    () => null,
+  );
+  const seed = useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.seed ?? null,
+    () => null,
+  );
+  return room === null || seed === null ? null : { room, seed };
+}
+
+// False while rendering on the server and during hydration, true after.
+function useHydrated() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 function useZone() {
   return useSyncExternalStore<Zone>(
     (cb) => bridge.on("zone", cb),
@@ -211,6 +252,9 @@ export default function GameClient() {
   const area = useArea();
   const caveDepth = useCaveDepth();
   const caveHp = useCaveHp();
+  const caveBoss = useCaveBoss();
+  const caveStairsLocked = useCaveStairsLocked();
+  const caveView = useCaveView();
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
   // «Gå hjem?» asked before leaving the cave for another place.
@@ -238,9 +282,19 @@ export default function GameClient() {
   const [codeQuestId, setCodeQuestId] = useState<string | null>(null);
   const [modelQuestId, setModelQuestId] = useState<string | null>(null);
   const [hasMoved, setHasMoved] = useState(false);
+  // The highest level a luke's celebration has announced: its level-up is
+  // shown there, so it gets no toast of its own. useQuests emits
+  // questCelebration synchronously in the effect that writes progress, so this
+  // ref is set before the level re-render.
+  const lukeLevel = useRef(0);
   useEffect(
     () =>
       bridge.on("questCelebration", (celebration) => {
+        if (celebration.level)
+          lukeLevel.current = Math.max(
+            lukeLevel.current,
+            celebration.level.number,
+          );
         setTalking(false);
         setLogOpen(false);
         setCelebrations((queue) => [...queue, celebration]);
@@ -261,6 +315,25 @@ export default function GameClient() {
     completeQuest,
     setTrack,
   } = useProgress();
+  // A level gained from monsters, bosses or side quests gets a toast. The
+  // first run only records the level, so a reload never shows it.
+  // Until hydrated the level is the server's empty progress, not the player's.
+  const hydrated = useHydrated();
+  const shownLevel = useRef<number | null>(null);
+  useEffect(() => {
+    if (!FEATURES.rpg || !hydrated) return;
+    const before = shownLevel.current;
+    shownLevel.current = forgeLevel;
+    if (before === null) return;
+    // A progress reset: forget the luke levels it announced.
+    if (forgeLevel < before) lukeLevel.current = 0;
+    const fromLuke = forgeLevel <= lukeLevel.current;
+    const toast = levelUpToast(before, forgeLevel, fromLuke);
+    if (!toast) return;
+    pushToast({ ...toast, tone: "forge" });
+    // No forge flare in the village while the player is in the cave.
+    if (area !== "grotta") bridge.emit("forgeLevelUp", forgeLevel);
+  }, [forgeLevel, hydrated, area]);
   const [entryStage, setEntryStage] = useState<
     "title" | "track" | "welcome" | "share" | "figure" | "game"
   >("title");
@@ -821,6 +894,41 @@ export default function GameClient() {
       }),
     [],
   );
+  useEffect(
+    () =>
+      bridge.on("bossDefeated", (id) =>
+        updateProgress(PROGRESS_PROJECT, (p) => ({
+          ...p,
+          bosses: { ...p.bosses, [id]: true },
+        })),
+      ),
+    [],
+  );
+  useEffect(
+    () =>
+      bridge.on("chestOpened", (id) => {
+        updateProgress(PROGRESS_PROJECT, (p) => ({
+          ...p,
+          chests: { ...p.chests, [id]: true },
+        }));
+        // Only the floor-5 chest holds the armour.
+        if (id === "cave-5")
+          pushToast({
+            title: "Rustning",
+            body: "Du fant den i kista på etasje 5.",
+            tone: "lesson",
+          });
+      }),
+    [],
+  );
+  // A resting place: the trip's finds so far are safe.
+  useEffect(
+    () =>
+      bridge.on("restReached", () =>
+        updateProgress(PROGRESS_PROJECT, secureTrip),
+      ),
+    [],
+  );
   // A trip left open by a closed tab: its finds are banked once on mount.
   useEffect(() => {
     updateProgress(PROGRESS_PROJECT, (p) => (p.inCave ? bankTrip(p) : p));
@@ -875,6 +983,11 @@ export default function GameClient() {
   );
   const [caveGod, setCaveGod] = useState(false);
   const descend = useCallback(() => bridge.emit("descend", undefined), []);
+  const openCache = useCallback(
+    () => bridge.emit("cacheOpened", undefined),
+    [],
+  );
+  const openChest = useCallback(() => bridge.emit("chestOpen", undefined), []);
   const leaveCave = useCallback(() => bridge.emit("leaveCave", undefined), []);
 
   const openCode = useCallback((questId: string) => {
@@ -1112,6 +1225,18 @@ export default function GameClient() {
       caveGod: dev && caveGod,
     });
   }, [attack, studio.open, windowActive, dev, caveGod]);
+  // Bosses beaten and chests opened, for the cave to leave out or draw open.
+  const defeatedBosses = useMemo(
+    () => Object.keys(progress.bosses),
+    [progress.bosses],
+  );
+  const openedChests = useMemo(
+    () => Object.keys(progress.chests),
+    [progress.chests],
+  );
+  useEffect(() => {
+    bridge.setWorld({ defeatedBosses, openedChests });
+  }, [defeatedBosses, openedChests]);
 
   // Keep the world in sync with game state.
   useEffect(() => {
@@ -1275,6 +1400,16 @@ export default function GameClient() {
         descend();
         return;
       }
+      if ((e.key === "e" || e.key === "E") && zone === "caveCache") {
+        e.preventDefault();
+        openCache();
+        return;
+      }
+      if ((e.key === "e" || e.key === "E") && zone === "caveChest") {
+        e.preventDefault();
+        openChest();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -1332,6 +1467,8 @@ export default function GameClient() {
     progress.completed,
     enterCave,
     descend,
+    openCache,
+    openChest,
     combat,
     items,
     slots,
@@ -1409,6 +1546,8 @@ export default function GameClient() {
               <CaveHud
                 depth={caveDepth}
                 found={found}
+                boss={caveBoss}
+                stairsLocked={caveStairsLocked}
                 onLeave={leaveCave}
                 waiting={studio.open}
               />
@@ -1536,6 +1675,15 @@ export default function GameClient() {
                 <kbd>E</kbd> Gå ned trappa
               </button>
             )}
+            {(zone === "caveCache" || zone === "caveChest") && !logOpen && (
+              <button
+                type="button"
+                className="prompt"
+                onClick={zone === "caveChest" ? openChest : openCache}
+              >
+                <kbd>E</kbd> Åpne kista
+              </button>
+            )}
             {!hasMoved &&
               area !== "grotta" &&
               !progress.metBlacksmith &&
@@ -1554,6 +1702,8 @@ export default function GameClient() {
                 <CaveHud
                   depth={caveDepth}
                   found={found}
+                  boss={caveBoss}
+                  stairsLocked={caveStairsLocked}
                   onLeave={leaveCave}
                   onAttack={attackInCave}
                   waiting={studio.open}
@@ -1779,12 +1929,16 @@ export default function GameClient() {
                   ? {
                       god: caveGod,
                       inCave: area === "grotta",
+                      depth: caveDepth,
+                      view: caveView,
                       onGod: setCaveGod,
                       onGoto: (depth) => enterCave(depth, true),
                       onReset: () =>
                         updateProgress(PROGRESS_PROJECT, (p) => ({
                           ...dropTrip(p),
                           deepest: 0,
+                          bosses: {},
+                          chests: {},
                         })),
                     }
                   : undefined

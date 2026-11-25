@@ -102,3 +102,18 @@ test("a dash stepped with no time is not blocked", () => {
   assert.equal(r.brain.mode, "dash");
   assert.equal(r.brain.dashLeft, b.dashLeft);
 });
+
+test("canWake false: an idle brain stays idle and still, even close by", () => {
+  const rat = spawnBrain("rat", at(0), 1);
+  const out = stepBrain(rat, at(20), 0, 0.1, free, false);
+  assert.equal(out.brain.mode, "idle");
+  assert.equal(out.brain.x, 0);
+  assert.equal(stepBrain(rat, at(20), 0, 0.1, free, true).brain.mode, "chase");
+});
+
+test("canWake false does not stop a brain that is already chasing", () => {
+  const rat = { ...spawnBrain("rat", at(0), 1), mode: "chase" };
+  const out = stepBrain(rat, at(100), 0, 0.1, free, false);
+  assert.equal(out.brain.mode, "chase");
+  assert.ok(out.brain.x > 0);
+});
