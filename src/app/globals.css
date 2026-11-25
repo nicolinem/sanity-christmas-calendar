@@ -1874,18 +1874,21 @@ kbd {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 6px;
-}
-.side-row {
-  display: grid;
   gap: 2px;
-  justify-items: start;
+}
+/* The same row as a luke (.log-quest): no box, a highlight on hover and
+   when picked, the giver's face where a luke has its window. */
+.side-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  padding: 6px 10px;
+  padding: 4px 6px;
   font: inherit;
+  font-size: 14px;
   text-align: left;
-  color: inherit;
-  background: var(--night-2);
+  color: var(--snow);
+  background: none;
   border: 0;
   cursor: pointer;
 }
@@ -1896,15 +1899,21 @@ kbd {
 .side-row:focus-visible {
   outline: 2px solid var(--amber);
 }
-.side-row-title {
-  font-size: 14px;
-  color: var(--snow);
-}
-.side-row.is-ready .side-row-title {
+.side-row.is-ready {
   color: var(--glacier);
 }
-.side-row.is-done .side-row-title {
-  color: var(--frost);
+.side-row.is-done {
+  color: var(--frost-dim);
+}
+.side-face {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+}
+.side-face .sprite {
+  --s: 2;
 }
 .side-row-go {
   font-size: 13px;
