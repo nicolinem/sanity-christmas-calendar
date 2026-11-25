@@ -376,3 +376,24 @@ test("xp, inventory and deepest survive an unrelated update", () => {
   assert.equal(restored.deepest, 6);
   assert.equal(restored.introSeen, true);
 });
+
+test("trip and inCave default safely and drop bad values", () => {
+  const fresh = progress.readProgress("trip-fresh");
+  assert.deepEqual(fresh.trip, {});
+  assert.equal("inCave" in fresh, false);
+  records.set(
+    progress.storageKey("trip-bad"),
+    JSON.stringify({
+      trip: { malm: 2, isskar: -1, x: 1.5, y: "3", z: null },
+      inCave: "yes",
+    }),
+  );
+  const bad = progress.readProgress("trip-bad");
+  assert.deepEqual(bad.trip, { malm: 2 });
+  assert.equal("inCave" in bad, false);
+  records.set(
+    progress.storageKey("trip-ok"),
+    JSON.stringify({ trip: { malm: 1 }, inCave: true }),
+  );
+  assert.equal(progress.readProgress("trip-ok").inCave, true);
+});

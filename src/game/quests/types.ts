@@ -48,6 +48,10 @@ export type Progress = {
   inventory: Record<string, number>;
   // The deepest cave floor the player has reached (src/game/cave/floors.ts).
   deepest: number;
+  // Finds from the current cave trip, banked into inventory on a safe return.
+  trip: Record<string, number>;
+  // Set while the player is in the cave; absent otherwise.
+  inCave?: true;
 };
 
 export type SideRecord = { at: string; step: number; done?: string };
