@@ -410,3 +410,20 @@ test("1 000 seeds on depths 1–12: no errors, and the stairs are always reachab
 
 - **«Hvem er med»** viser fortsatt nivå fra luker (`forgeLevelFromMilestones`, tak 4), også når `FEATURES.rpg` er på. Det er i tråd med beslutningen om at ingenting fra utforskingen vises der ennå (`plan-grotta.md`, del 11). Når `rpg` skal på for alle, må vi bestemme om platen og «Hvem er med» kan vise ulikt nivå.
 - **G1** (scene, inngang og trapp), **G2** (kamp) og **G3–G4** får egne planer når denne er ferdig.
+
+## Til G1-planen (fra gjennomgangen 2026-11-25)
+
+Dette ble funnet i gjennomgangen. Ingenting av det synes for deltakerne så lenge `FEATURES.rpg` er av og grotta ikke kan nås. Det skal med i G1-planen.
+
+- **Steiner og gulvpynt:** `dungeon` 24 er en hel gulvrute, så steinene blir brune firkanter på isgulvet. Pynten `floorRocks` bruker samme rute, og pynten `floorPebbles` blir lyseblå prikker som ser ut som noe man kan plukke opp. Bruk en gjennomsiktig prop for steiner, dropp `floorRocks` som pynt eller senk tettheten (nå 0,1 + 0,1), og demp blåfargen i småsteinene.
+- **Arkene lastes for alle:** `cave` og `caveDeep` lastes i `WinterQuestScene.preload` og i `villageCanvas.ts`, selv om bygda ikke bruker dem. La grotte-scenen laste sine egne ark, og la løkkene i bygda hoppe over dem.
+- **«Fra grotta» i Ting-fanen** ligger inne i `<nav className="cs-cats">`. Det blir en ekstra fane på smal skjerm, og «Materialer» teller ikke grottematerialene. Flytt den før materialer kan tjenes (G3).
+- **Nivå opp fra sideoppdrag** gir ingen feiring med rpg på. Ordnes før flagget slås på.
+- **Smia ved nivå 10:** glød og gnister i `WinterQuestScene.ts` er laget for nivå 1–4. Begrens til 4 eller juster før flagget slås på.
+- **Tester som mangler:**
+  - nye monstertyper først fra dybde 3, 5, 6 og 8;
+  - full etasje aldri på 5 og 10, over mange seeds;
+  - `xp` og `inventory` overlever en `updateProgress`;
+  - `depth >= 1` sikres hos den som kaller.
+- **Romdesign** etter testspilling i G2: gang-rommet er trangt (gangene er én rute brede), og trappa i søyle-rommet står nær starten.
+- **XP-tallene:** `plan-utforsking.md` sier at den som bare gjør lukene, ender rundt nivå 7. Med lukene vi har (11 tekniske, 9 ikke-tekniske) gir de 900–1 050 XP, altså nivå 4–5. Se på tallene før rpg-flagget slås på for deltakerne.
