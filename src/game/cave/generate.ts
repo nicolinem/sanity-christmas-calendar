@@ -39,7 +39,7 @@ export type Floor = {
   // Rest floors only (and only if the template has a k): id is `cave-${depth}`.
   chest?: { id: string; x: number; y: number }; // tile-centre px
   // A small loot cache in the nest room (never on rest floors). Not saved: the
-  // id belongs to this trip. Duplicates are kept as separate entries.
+  // id belongs to this trip. Items are merged into counts (2–3 in total).
   cache?: {
     id: string;
     x: number;
@@ -160,7 +160,9 @@ export function generateFloor(
       if (i > 0) {
         const roll = r();
         kinds.push(
-          roll < 0.25
+          // Depth 1 still draws the roll, but never gets a calm room: it is where
+          // combat is introduced.
+          roll < 0.25 && depth > 1
             ? "calm"
             : roll < 0.4 && depth >= 2 && !kinds.includes("nest")
               ? "nest"
@@ -262,10 +264,14 @@ export function generateFloor(
     );
     if (spots.length) {
       const at = pick(spots);
-      const items = Array.from({ length: 2 + (r() < 0.5 ? 0 : 1) }, () => ({
-        item: (r() < 0.5 ? "malm" : "isskar") as MaterialId,
-        count: 1,
-      }));
+      // 2–3 draws, merged into counts per material.
+      const items: { item: MaterialId; count: number }[] = [];
+      for (let n = 2 + (r() < 0.5 ? 0 : 1); n > 0; n--) {
+        const item: MaterialId = r() < 0.5 ? "malm" : "isskar";
+        const entry = items.find((e) => e.item === item);
+        if (entry) entry.count++;
+        else items.push({ item, count: 1 });
+      }
       cache = { id: `nest-${depth}-${seed}`, ...center(at), items };
     }
   }

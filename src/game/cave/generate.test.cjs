@@ -32,10 +32,10 @@ test("floors 5 and 10 are rest floors with a boss and a chest; never locked", ()
   assert.equal(generateFloor(10, 1).sheet, "caveDeep");
 });
 
-test("monster count: at most 3 on floor 1 (0–1 if the room is calm), never more than 10", () => {
+test("monster count: 2–3 on floor 1, never more than 10", () => {
   for (let seed = 0; seed < 300; seed++) {
     const n1 = generateFloor(1, seed).spawns.length;
-    assert.ok(n1 <= 3);
+    assert.ok(n1 >= 2 && n1 <= 3);
     for (const d of [3, 9, 12])
       assert.ok(generateFloor(d, seed).spawns.length <= 10);
   }
@@ -211,12 +211,21 @@ test("bats are playable fliers", () => {
   assert.equal(ENEMIES.bat.flies, true);
 });
 
-function eachFloor(fn) {
-  for (let depth = 2; depth <= 9; depth++) {
-    if (depth % 5 === 0) continue;
-    for (let seed = 0; seed < 1000; seed++)
-      fn(generateFloor(depth, seed), seed);
+// Depths 1–9 × 1000 seeds, built once and shared by the tests below.
+let shared;
+function allFloors() {
+  if (!shared) {
+    shared = [];
+    for (let depth = 1; depth <= 9; depth++)
+      for (let seed = 0; seed < 1000; seed++)
+        shared.push({ f: generateFloor(depth, seed), seed });
   }
+  return shared;
+}
+// Normal floors from depth 2 on.
+function eachFloor(fn) {
+  for (const { f, seed } of allFloors())
+    if (f.depth >= 2 && !f.rest) fn(f, seed);
 }
 const roomOf = (p, f) =>
   Math.floor(p.y / (14 * 16)) * f.layout.cols + Math.floor(p.x / (24 * 16));
@@ -264,35 +273,40 @@ test("no nests on depth 1; rest floors are one start room without a cache", () =
 
 test("locked: never on depth 1, and the stairs room then has a playable monster", () => {
   let locked = 0;
-  for (let depth = 1; depth <= 9; depth++)
-    for (let seed = 0; seed < 1000; seed++) {
-      const f = generateFloor(depth, seed);
-      if (depth === 1) assert.equal(f.locked, false);
-      if (f.locked) {
-        locked++;
-        assert.ok(
-          f.spawns.some(
-            (s) => s.room === f.stairsRoom && PLAYABLE.includes(s.enemy),
-          ),
-        );
-      }
+  for (const { f } of allFloors()) {
+    if (f.depth === 1) assert.equal(f.locked, false);
+    if (f.locked) {
+      locked++;
+      assert.ok(
+        f.spawns.some(
+          (s) => s.room === f.stairsRoom && PLAYABLE.includes(s.enemy),
+        ),
+      );
     }
+  }
   assert.ok(locked > 100);
 });
 
-test("cache: only in a nest, 2–3 malm/isskar, clear of walls, rocks and spawns", () => {
+test("cache: only in a nest, 2–3 items in total, clear of walls, rocks and spawns; common", () => {
+  let nests = 0;
   let caches = 0;
   eachFloor((f, seed) => {
+    if (f.kinds.includes("nest")) nests++;
     if (!f.cache) return;
     caches++;
     const tx = (f.cache.x - 8) / 16;
     const ty = (f.cache.y - 8) / 16;
     assert.equal(f.kinds[roomOf(f.cache, f)], "nest");
     assert.equal(f.cache.id, `nest-${f.depth}-${seed}`);
-    assert.ok(f.cache.items.length >= 2 && f.cache.items.length <= 3);
+    const total = f.cache.items.reduce((n, it) => n + it.count, 0);
+    assert.ok(total >= 2 && total <= 3);
+    assert.equal(
+      new Set(f.cache.items.map((it) => it.item)).size,
+      f.cache.items.length,
+    );
     for (const it of f.cache.items) {
       assert.ok(["malm", "isskar"].includes(it.item));
-      assert.equal(it.count, 1);
+      assert.ok(it.count >= 1);
     }
     assert.equal(f.rows[ty][tx], ".");
     for (let y = 0; y < f.rows.length; y++)
@@ -307,5 +321,6 @@ test("cache: only in a nest, 2–3 malm/isskar, clear of walls, rocks and spawns
         ) >= 3,
       );
   });
-  assert.ok(caches > 50);
+  assert.ok(nests > 100);
+  assert.ok(caches / nests >= 0.65); // measured ~0.73
 });
