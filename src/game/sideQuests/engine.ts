@@ -86,6 +86,18 @@ export function sideMarkers(
   return markers;
 }
 
+// Each step and whether it's done, for the journal: steps before the one in
+// progress are done, and every step is done once the quest is ready.
+export function sideObjectives(
+  state: SideState,
+): { label: string; done: boolean }[] {
+  const all = state.status === "ready" || state.status === "done";
+  return state.quest.steps.map((step, i) => ({
+    label: step.label,
+    done: all || (state.status === "active" && i < state.step),
+  }));
+}
+
 // --- changes to Progress: each returns the same object when nothing changes --
 
 export function acceptSide(

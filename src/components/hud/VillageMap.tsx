@@ -18,6 +18,10 @@ import {
 } from "@/game/village";
 import SpriteIcon from "./SpriteIcon";
 import { nextStep } from "./nextStep";
+import { SIDE_SPOTS } from "@/game/sideQuests/data";
+import { sideMarkers } from "@/game/sideQuests/engine";
+import type { SideState } from "@/game/sideQuests/types";
+import type { NpcId } from "@/game/village";
 
 const W = MAP_W * TILE;
 const H = MAP_H * TILE;
@@ -40,8 +44,12 @@ export default function VillageMap({
   onOpenCode,
   onOpenBoard,
   onOpenStudio,
+  sideQuests = [],
+  onOpenSide,
 }: {
   board: QuestBoard;
+  sideQuests?: SideState[]; // empty while the feature is off
+  onOpenSide?: (questId: string) => void;
   onTravel: (siteId: QuestSiteId) => void;
   onOpenQuest: (questId: string) => void;
   onOpenCode: (questId: string) => void;
@@ -67,6 +75,25 @@ export default function VillageMap({
     else if (step.kind === "studio") onOpenStudio();
     else onOpenQuest(step.questId);
   };
+  // Side quests, the same rule as in the village: a blue «!» or «?» over
+  // people the lukes don't need right now, and the next spot to find.
+  const sideMarks = sideMarkers(sideQuests, [
+    ...(current?.status === "offered" && !current.pickup
+      ? [giverOf(current.quest).id]
+      : []),
+    ...(showKari ? (["kari"] as NpcId[]) : []),
+  ]);
+  const sideFor = (giver: string) =>
+    sideQuests.find((s) => s.quest.giver === giver && s.status === "ready") ??
+    sideQuests.find((s) => s.quest.giver === giver && s.status === "available");
+  const nextSpots = sideQuests.flatMap((s) => {
+    const step = s.quest.steps[s.step];
+    const spot =
+      s.status === "active" && step?.kind === "find"
+        ? SIDE_SPOTS.find((x) => x.id === step.spot)
+        : undefined;
+    return spot ? [{ spot, state: s }] : [];
+  });
   const title = (id: string) =>
     board.states.find((s) => s.quest.id === id)?.quest.title ?? "";
 
@@ -106,6 +133,37 @@ export default function VillageMap({
             !
           </span>
         )}
+        {Object.entries(sideMarks).map(([giver, mark]) => {
+          const npc = NPCS[giver as NpcId];
+          const state = sideFor(giver);
+          if (!npc || !state) return null;
+          return (
+            <button
+              key={giver}
+              type="button"
+              className="vmap-side-mark"
+              style={{ left: pct(npc.x, W), top: pct(npc.y - 20, H) }}
+              onClick={() => onOpenSide?.(state.quest.id)}
+              aria-label={
+                mark === "?"
+                  ? `Lever til ${npc.name}: ${state.quest.title}`
+                  : `${npc.name} har et sideoppdrag`
+              }
+            >
+              {mark}
+            </button>
+          );
+        })}
+        {nextSpots.map(({ spot, state }) => (
+          <button
+            key={spot.id}
+            type="button"
+            className="vmap-spot"
+            style={{ left: pct(spot.x, W), top: pct(spot.y, H) }}
+            onClick={() => onOpenSide?.(state.quest.id)}
+            aria-label={`Neste sted: ${state.quest.title}`}
+          />
+        ))}
         {doors.map((d) => (
           <button
             key={d.id}

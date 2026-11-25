@@ -18,13 +18,33 @@ Skrevet 2026-11-24. Påstandene om koden er sjekket mot `main` (b3c645f).
 
 | Spill | Mønster | Hva vi tar med |
 | --- | --- | --- |
-| Stardew Valley, **Help Wanted** | Korte forespørsler på oppslagstavla: lever en ting, samle, slå monstre, fiske. Du har to dager på deg. Det koster ingenting å takke ja og så la være. En levering gir gull og vennskap med den som spurte. ([Quests](https://stardewvalleywiki.com/Quests), [Help Wanted](https://stardewvalleywiki.com/Help_Wanted)) | Små mål med én levering. Ingen straff for å la være. Belønningen kommer fra den som spurte. |
-| Stardew Valley, **Special Orders** | Større oppdrag fra en tavle. Nye hver uke, og fristen er 7–28 dager. ([Special Orders](https://stardewvalleywiki.com/Special_Orders)) | Ukerytmen: nye oppdrag kommer med ukas kapittel. Ikke fristene. |
-| Stardew Valley, **vennskap** | Hvert hjerte er 250 poeng. Gaver og oppdrag gir poeng, og hjertene åpner nye scener. ([Friendship](https://stardewvalleywiki.com/Friendship)) | Bare ideen om at en person kan ha flere oppdrag etter hverandre (Kari i uke 1 og uke 2). Ingen poeng. |
-| Stardew Valley, **buntene i Community Center** | Du gir ting til en bunt. Hver bunt gir en belønning, og et fullt rom gir noe hele bygda merker. ([Bundles](https://stardewvalleywiki.com/Bundles)) | Bakerens kurv: tre ulike ting gir én belønning. |
-| Zelda: Link's Awakening, **byttekjeden** | En lang kjede med bytter mellom personer på øya. Boomerangen på slutten er frivillig. ([Zelda Dungeon](https://zeldadungeon.net/wiki/Link's_Awakening_Trading_Sequence), [RPG Site](https://www.rpgsite.net/feature/9027-zelda-link-s-awakening-trading-sequence-guide-how-to-get-the-boomerang-by-swapping-items)) | At ett oppdrag kan åpne det neste (`requires.side`). Ikke lange kjeder. |
-| Animal Crossing: New Horizons, **små tjenester** | Naboer ber om små ting, som å levere en gave eller et brev, og gir en liten belønning. Tjenesten gjelder til naboen legger seg. ([Nookipedia: Favor](https://www.nookipedia.com/wiki/Favor)) | Tonen: små, koselige ønsker med varm takk. |
-| World of Warcraft, **markører** | Gul `!`: oppdrag å hente. Sølv `?`: i gang. Gul `?`: klart til levering. Blå: kan gjentas. ([Quest giver](https://warcraft.wiki.gg/wiki/Quest_giver)) | `!` og `?` som kjente tegn. Lukene beholder den gule `!` alene. |
+| Stardew Valley, **Help Wanted** | Korte forespørsler på oppslagstavla: lever en ting, samle, slå monstre, fiske. Tavla får et gult `!` når det er noe nytt. Du har to dager på deg, og det koster ingenting å takke ja og så la være. Journalen teller fremgangen, og du fullfører ved å snakke med den som spurte. En levering må gis til personen, det holder ikke å ha tingen på deg. ([Quests: Help Wanted](https://stardewvalleywiki.com/Quests#Help_Wanted_Quests)) | Små mål med én levering til giveren. Ingen straff for å la være. Belønningen kommer fra den som spurte. |
+| Stardew Valley, **Special Orders** | Større oppdrag fra en egen tavle. Nye kommer hver mandag, fristen er 7–28 dager, og flere kan være i gang samtidig. De fullføres av seg selv uten å snakke med noen, og kan ikke avbrytes. ([Quests: Special Orders](https://stardewvalleywiki.com/Quests#Special_Orders)) | Ukerytmen: nye oppdrag kommer med ukas kapittel, og flere kan være i gang. Ikke fristene. |
+| Stardew Valley, **vennskap** | Hvert hjerte er 250 poeng. En levering gir 150 poeng med den som spurte, og hjertene åpner nye scener. ([Friendship](https://stardewvalleywiki.com/Friendship)) | Bare ideen om at en person kan ha flere oppdrag etter hverandre (Kari i uke 1 og uke 2). Ingen poeng. |
+| Stardew Valley, **buntene i Community Center** | Du gir ting til en bunt. Hver bunt gir en belønning med en gang, og et fullt rom gir noe hele bygda merker. ([Bundles](https://stardewvalleywiki.com/Bundles)) | Bakerens kurv: tre ulike ting gir én belønning. |
+| Zelda, **byttekjeder** | En kjede av bytter: Link hjelper én person og får en ting som en annen trenger. I de fleste Zelda-spill er kjeden frivillig. I Link's Awakening er noen av byttene påkrevd. ([Zelda Wiki: Trading Quest](https://zeldawiki.wiki/wiki/Trading_Quest)) | At ett oppdrag kan åpne det neste (`requires.side`). Ikke lange kjeder. |
+| Animal Crossing, **små tjenester** | Naboer ber om små ting, som å levere en gave eller finne noe de har mistet, og gir en liten belønning. Tjenesten gjelder til naboen legger seg. Den spores i samtalen: naboen minner deg på hva som gjenstår. ([Nookipedia: Favor](https://www.nookipedia.com/wiki/Favor)) | Tonen: små, koselige ønsker med varm takk. Giveren minner deg på målet når du snakker med dem. |
+| World of Warcraft, **markører** | Gul `!` over den som har et oppdrag, også på minikartet. Sølv `?`: i gang. Gul `?`: klart til levering. Hovedhistorien har et eget merke, så den skiller seg fra de frivillige sideoppdragene. ([Quest](https://warcraft.wiki.gg/wiki/Quest), [Quest giver](https://warcraft.wiki.gg/wiki/Quest_giver)) | `!` og `?` som kjente tegn. Lukene beholder den gule `!` alene, slik hovedhistorien har sitt eget merke. Givere bør også synes på kartet. |
+
+Kildene er lest direkte 2026-11-25: Stardew-wikien, Warcraft-wikien og Zelda Wiki i nettleseren, og Nookipedia med henteverktøyet. Zelda Dungeon krever en robotsjekk og er ikke brukt.
+
+### Journalen mot god praksis
+
+Oppdatert 2026-11-25: hullene i tabellen er tettet, bak samme flagg. Brann nevner sideoppdragene én gang, rett etter luke 1.
+
+Stardew-journalen åpnes fra et `!` under klokka eller med <kbd>F</kbd>. Den lister oppdragene med tittel, og hvert oppdrag kan åpnes for å lese teksten og kravene. Fremgangen telles i journalen og vises også under `!`-et mens du samler. Den har en X for å lukke og en knapp for å avbryte et oppdrag. ([Quests](https://stardewvalleywiki.com/Quests)) Et innlegg på Game Developer om UX for oppdrag anbefaler omtrent det samme: tittel og mål med en gang, hvordan du gjør det, hvor langt du har kommet, beskjed når det går fremover, et tydelig signal når det er ferdig, og at spilleren aldri står uten noe å gjøre ([Game Developer](https://www.gamedeveloper.com/design/clearly-and-considerately-ux-designing-of-quest), et blogginnlegg, ikke en standard).
+
+| Praksis | Hos oss | Hva mangler |
+| --- | --- | --- |
+| Liste med tittel som kan åpnes for tekst og krav | ✓ Lukene, og sideoppdrag har egen side i journalen: replikken, målet, trinnene, hint og «Gå til» | – |
+| Fremgang i journalen (Stardew teller «0/10») | ✓ Trinnene hakes av (`sideObjectives`), og lista viser «1 av 3» | – |
+| Beskjed når noe går fremover | ✓ Toast for hvert funn, og «Klart: Noe varmt. Gå til Kari og lever.» når et Studio-trinn består | – |
+| Tydelig signal når det er ferdig | ✓ Blå `?`, sporingslinje og toast | – |
+| Hvor du skal | ✓ «Gå til» for givere. Kartet viser blå `!`/`?` over givere og neste sted på et spor | – |
+| Hovedoppdrag og sideoppdrag holdes fra hverandre | ✓ Gul `!` for luker, blå for sideoppdrag, egen seksjon | – |
+| Aldri uten noe å gjøre | ✓ Sporingen nevner et sideoppdrag når ingen luke venter | – |
+| Avbryte et oppdrag | ✗, med vilje: ingen grense, ingen straff og få oppdrag. Special Orders kan heller ikke avbrytes | – |
+| Ikke rot i lista | ✓ Ferdige er foldet sammen, låste vises ikke | – |
 
 ### Byggeklossene vi bruker
 

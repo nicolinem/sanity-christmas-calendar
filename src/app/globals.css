@@ -1880,8 +1880,21 @@ kbd {
   display: grid;
   gap: 2px;
   justify-items: start;
+  width: 100%;
   padding: 6px 10px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
   background: var(--night-2);
+  border: 0;
+  cursor: pointer;
+}
+.side-row:hover,
+.side-row.is-selected {
+  background: var(--night-3);
+}
+.side-row:focus-visible {
+  outline: 2px solid var(--amber);
 }
 .side-row-title {
   font-size: 14px;
@@ -1891,11 +1904,6 @@ kbd {
   color: var(--glacier);
 }
 .side-row.is-done .side-row-title {
-  color: var(--frost);
-}
-.side-row-goal {
-  font-size: 13px;
-  line-height: 1.35;
   color: var(--frost);
 }
 .side-row-go {
@@ -5038,6 +5046,39 @@ kbd {
   background: var(--amber);
   box-shadow: 0 0 0 2px #2a140e;
   transform: translate(-50%, -100%);
+}
+/* Side quests on the map: the same small frost-blue mark as in the village,
+   and a dot on the next spot to find. */
+.vmap-side-mark {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  font: 700 12px/1 var(--font-ui);
+  color: #1b1f33;
+  background: var(--glacier);
+  box-shadow: 0 0 0 2px #1b1f33;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+}
+.vmap-spot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  background: var(--glacier);
+  box-shadow: 0 0 0 2px #1b1f33;
+  transform: translate(-50%, -50%) rotate(45deg);
+  cursor: pointer;
+}
+.vmap-side-mark:focus-visible,
+.vmap-spot:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 .vmap-kari {
   position: absolute;
