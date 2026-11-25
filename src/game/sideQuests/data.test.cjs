@@ -183,3 +183,77 @@ test("Malm til smia needs a published material with a real description", () => {
     false,
   );
 });
+
+test("Det Kari så needs Kari as witness and Gjerdet as place", () => {
+  const check = studioCheck("kari-saw");
+  const run = (ownObservations) => check({ ...ctx([]), ownObservations }).done;
+  assert.equal(run(null), false);
+  assert.equal(run([]), false);
+  assert.equal(
+    run([{ _id: "o1", witness: "witness-kari", place: "place-torget" }]),
+    false,
+  );
+  assert.equal(
+    run([{ _id: "o1", witness: "witness-ola", place: "place-gjerdet" }]),
+    false,
+  );
+  assert.equal(
+    run([{ _id: "o1", witness: "witness-kari", place: "place-gjerdet" }]),
+    true,
+  );
+  // The wrong place gets its own message.
+  assert.match(
+    check({
+      ...ctx([]),
+      ownObservations: [{ _id: "o1", witness: "witness-kari" }],
+    }).message,
+    /ikke Gjerdet/,
+  );
+});
+
+test("Kurven needs three different sprites, not weapons and not built-ins", () => {
+  const check = studioCheck("market-basket");
+  const item = (id, kind, spriteId, source = "sanity") => ({
+    id,
+    kind,
+    spriteId,
+    source,
+  });
+  assert.equal(
+    check(
+      ctx([
+        item("a", "potion", "potion"),
+        item("b", "potion", "potion"),
+        item("c", "material", "ice-cube"),
+      ]),
+    ).done,
+    false,
+  );
+  assert.equal(
+    check(
+      ctx([
+        item("a", "potion", "potion"),
+        item("b", "material", "ice-cube"),
+        item("c", "weapon", "sword"),
+        item("d", "material", "gem", "builtin"),
+      ]),
+    ).done,
+    false,
+  );
+  const three = check(
+    ctx([
+      item("a", "potion", "potion"),
+      item("b", "material", "ice-cube"),
+      item("c", "material", "gem"),
+    ]),
+  );
+  assert.equal(three.done, true);
+  assert.match(check(ctx([item("a", "potion", "potion")])).message, /1 av 3/);
+});
+
+test("Kari's second wish waits for her first and for the saksmappe", () => {
+  const quest = SIDE_QUESTS.find((q) => q.id === "kari-saw");
+  assert.deepEqual(quest.requires.side, ["warm-drink"]);
+  assert.ok(quest.requires.luke.includes("case-file"));
+  assert.ok(quest.requires.luke.includes("who-points-here"));
+});

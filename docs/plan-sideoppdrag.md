@@ -1,6 +1,6 @@
 # Plan: sideoppdrag
 
-Status: godkjent 2026-11-24. S0 og S1 er bygget bak flagget (ikke committet). Kartprikkene er kuttet, slik del 6 tillater. S2 gjenstår. Alle anbefalingene i del 8 er besluttet. Bygger videre på [plan-utforsking.md](plan-utforsking.md).
+Status: godkjent 2026-11-24. S0, S1 og S2 er bygget bak flagget. Kartprikkene og journalsiden kom med i PR 31.
 Skrevet 2026-11-24. Påstandene om koden er sjekket mot `main` (b3c645f).
 
 ## 1. Kort fortalt
@@ -316,7 +316,7 @@ Regler for alle:
 | S1 | Noe varmt | Kari, ved huset vest i bygda | Etter luke 1 (`the-broken-forge`) | Sanity: *Publish* | «Det er så kaldt i dag. Har du noe varmt å drikke?» | Publiser en ting med Kind `Potion` | `items` fra `/api/items` (live): `source === "sanity" && kind === "potion"` | Topplue (`gear:hat:bobble`). «Jeg strikket en til deg.» | Bygda som i dag |
 | S2 | Malm til smia | Brann, ved smia | Etter luke 1 | Sanity: *document*, `description` | «Jeg trenger malm, og jeg vil vite hvor den kom fra.» | Publiser en ting med Kind `Material` og en beskrivelse | `kind === "material"` og en `description` på minst 20 tegn (startverdi, se del 7) | Lærvest (`gear:armour:leather`) | Bygda som i dag |
 | S3 | Melsekken | Bakeren, ved bakeriet | Når uke 2 åpner (`chapter: 2`) | Verden: finn og lever | «Noen rev opp melsekken min i natt. Kan du se hvor sporet går?» | Følg melsporet og finn det som ble tatt | Tre `find`-trinn: veien ved bakeriet (rute 33,17), lenger vest (26,18) og nede på sørveien (21,26), der et brød fra Tiny Farm ligger. Plassene holder avstandsregelen (testet). | Kappe (`gear:extra:cape`) | Bygda. Nye props fra arkene vi har. |
-| S4 | Det plasket i brønnen | Arkivaren, på torget | Etter `follow-the-trail` eller `who-is-lying` | Verden med Sanity-spor | «Jon hørte noe plaske i brønnen, to ganger, men arkivet kaller det rykter. Kan du sjekke selv?» | Finn det som ligger ved brønnen | `find` ved brønnen (`town` 104, rute 25,15). Hintet viser GROQ for Vision, men spillet sjekker bare funnet. | Ringbrynje (`gear:armour:chain`) | Bygda |
+| S4 | Det plasket i brønnen | Arkivaren, på torget | Etter `follow-the-trail` eller `who-is-lying` | Verden med Sanity-spor | «Jon hørte noe plaske i brønnen, to ganger, men arkivet kaller det rykter. Kan du sjekke selv?» | Finn det som ligger ved brønnen | `find` ved brønnen (rute 24,15, med bøtta fra Tiny Farm). Hintet sier hvor brønnen står. Et GROQ-hint ble droppet, fordi spillerens eget prosjekt bare har de fem observasjonene fra «Hvem lyver?», og ingen av dem er ved brønnen. | Ringbrynje (`gear:armour:chain`) | Bygda |
 | S5 | Det Kari så | Kari, ved huset vest i bygda | Etter S1, og etter `case-file` eller `who-points-here` | Sanity: `reference` | «Jeg så spor langs gjerdet, men ingen har skrevet det ned.» | Publiser en observasjon med Kari som vitne og Gjerdet som sted | `/api/archive` (utvidet): en publisert `observation` utenfor `ARCHIVE_IDS` med `witness._ref == "witness-kari"` og `place._ref == "place-gjerdet"`. Teknisk spor får arkivet seedet når oppdraget tas (samme POST som i dag). | Vikinghjelm (`gear:hat:viking`), Karis egen | Bygda |
 | S6 | Kurven til markedet | Bakeren, ved bakeriet | Etter første luke i uke 3 | Sanity: bunt | «Kurven til markedet er tom. Tre ulike ting, så ser den levende ut.» | Ha tre publiserte ting som ikke er våpen, med tre ulike sprites | `items`: `source === "sanity" && kind !== "weapon"`, og minst 3 ulike `spriteId` | Stjerne (`gear:extra:star`) | Bygda |
 | S7 | Isfiske | «fiskeren», ved det frosne vannet | Etter S3, når området finnes | Verden: hent og lever | «Isboret mitt ligger igjen i skogkanten. Henter du det?» | Hent isboret og lever det | `find` i Skogkanten og så `talk` | Hjelm (`gear:hat:helmet`) | **Fase B**: nytt kart og ny person |
@@ -489,3 +489,11 @@ Brukeren godkjente planen 2026-11-24 og valgte anbefalingen på alle spørsmåle
 | 6 | Skal belønningen være XP også, før fase A finnes? | **Nei, bare utstyr nå.** `reward.xp` står i dataene og teller med tilbakevirkende kraft når fase A kommer, fordi belønningen regnes ut av `side`. |
 | 7 | Skal utstyr fra sideoppdrag vise kilden i Utstyr-fanen når oppdraget er tilgjengelig (for eksempel «Kari vet noe»)? | **Ja, når oppdraget er `available`.** Det gjør «Gjemt et sted i verden» til et spor uten å røpe alt. Det er en liten endring i `CharacterSheet.tsx`. |
 | 8 | Hvilken rekkefølge, hvis tiden er knapp? | **S1 → S2 → S3.** Kutt kartprikkene først, og så S3. Det er det eneste i fase 1 med nye props. |
+
+## Tillegg: sprite-valg i Studio (2026-11-25)
+
+- **Spritelista filtreres etter Kind**, også før luke 4. Velger du Potion eller Material, viser lista bare ting som ikke er våpen (`spriteIdsForItemKind`). Velger du Weapon, viser den bare våpen.
+- **Potion og Material får en sprite å starte med:** `potion` og `ice-cube` (`DEFAULT_SPRITE_FOR_KIND` i `src/game/sprites.ts`). Den kan byttes. Våpen får ingen, fordi luke 1 ber deg velge en og luke 3 fanger våpen uten sprite.
+- **Bare når Kind endres mens du redigerer.** Å åpne en ting som finnes, endrer den aldri. En sprite som passer den nye typen, blir stående. En som ikke passer, byttes til standarden, eller fjernes for våpen.
+- Alt ligger i `ItemSpriteInput` i `src/sanity/lib/solved.tsx`, en spillfil. Spillerfila `src/sanity/schemaTypes/item.tsx` er ikke endret, så `git pull` gir ingen konflikter.
+- Luke 4 (spritevelger med bilder) filtrerer på samme måte. Det nye i luka er fortsatt bildene.

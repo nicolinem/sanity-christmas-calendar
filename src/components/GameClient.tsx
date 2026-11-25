@@ -54,7 +54,12 @@ import {
   PROGRESS_PROJECT,
   updateProgress,
 } from "@/game/quests/progress";
-import { ARCHIVE_IDS, type OwnArchiveDoc, type OwnCase } from "@/game/archive";
+import {
+  ARCHIVE_IDS,
+  type OwnArchiveDoc,
+  type OwnCase,
+  type OwnObservation,
+} from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
@@ -72,7 +77,7 @@ import {
 import { useLiveRefresh } from "./hud/useLive";
 import { useSideQuests } from "./hud/useSideQuests";
 import SideQuestDialogue from "./hud/SideQuestDialogue";
-import { sideMarkers } from "@/game/sideQuests/engine";
+import { busyGivers, sideMarkers } from "@/game/sideQuests/engine";
 import DevPanel from "./hud/DevPanel";
 import ForgeDialogue from "./hud/ForgeDialogue";
 import EncounterPanel from "./hud/EncounterPanel";
@@ -149,6 +154,10 @@ export default function GameClient() {
   const [archive, setArchive] = useState<OwnArchiveDoc[] | null>(null);
   const [archiveCases, setArchiveCases] = useState<OwnCase[] | null>(null);
   const [archiveCaseDrafts, setArchiveCaseDrafts] = useState(false);
+  // Observations the player wrote themselves (a side quest asks for one).
+  const [ownObservations, setOwnObservations] = useState<
+    OwnObservation[] | null
+  >(null);
   const [bakeryOrders, setBakeryOrders] = useState<
     import("@/game/bakery").BakeryOrder[] | null
   >(null);
@@ -369,6 +378,7 @@ export default function GameClient() {
       setArchive(own?.error ? null : (own?.docs ?? null));
       setArchiveCases(own?.error ? null : (own?.cases ?? null));
       setArchiveCaseDrafts(Boolean(own?.caseDraft));
+      setOwnObservations(own?.error ? null : (own?.own ?? null));
       setBakeryOrders(bakery?.error ? null : (bakery?.orders ?? null));
       setBakerySign(bakery?.error ? null : (bakery?.sign ?? null));
       const data: {
@@ -563,6 +573,7 @@ export default function GameClient() {
       archiveCaseDrafts,
       bakeryOrders,
       bakerySign,
+      ownObservations,
       progress,
     },
     dev,
@@ -750,11 +761,16 @@ export default function GameClient() {
   // project. Once Brann has handed one over, the game writes the starting
   // documents (existing ones are left alone) and reads them back.
   const archiveSeeded = useRef(false);
-  const needsArchive = board.states.some(
-    (s) =>
-      ["who-is-lying", "case-file"].includes(s.quest.id) &&
-      s.status === "active",
-  );
+  const needsArchive =
+    // «Det Kari så» needs Kari and Gjerdet in the project, on both tracks.
+    side.states.some(
+      (s) => s.quest.id === "kari-saw" && s.status === "active",
+    ) ||
+    board.states.some(
+      (s) =>
+        ["who-is-lying", "case-file"].includes(s.quest.id) &&
+        s.status === "active",
+    );
   useEffect(() => {
     if (
       !needsArchive ||
@@ -942,14 +958,7 @@ export default function GameClient() {
       doors: villageDoors,
       goal: nextStep,
       wraithDefeated: combat.defeated,
-      sideMarkers: sideMarkers(side.states, [
-        ...(current?.status === "offered" && !current.pickup
-          ? [giverOf(current.quest).id]
-          : []),
-        ...Object.values(NPCS)
-          .filter((npc) => shouldShowQuestNpc(current, npc.id))
-          .map((npc) => npc.id),
-      ]),
+      sideMarkers: sideMarkers(side.states, busyGivers(current)),
       sideSpots: side.spots.map(({ id, x, y, prop }) => ({ id, x, y, prop })),
       frozen:
         dialogueOpen ||

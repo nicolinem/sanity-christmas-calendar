@@ -9,6 +9,7 @@ import {
   WITNESSES,
   type OwnArchiveDoc,
   type OwnCase,
+  type OwnObservation,
 } from "@/game/archive";
 
 // Arkivarens observasjoner in the player's own project (non-technical track,
@@ -46,7 +47,7 @@ export async function GET() {
   const client = getSanityClient();
   if (!client) return Response.json({ configured: false, docs: [], cases: [] });
   try {
-    const [docs, cases, caseDraft] = await Promise.all([
+    const [docs, cases, caseDraft, own] = await Promise.all([
       client.fetch<OwnArchiveDoc[]>(
         '*[_type == "observation" && _id in $ids]{_id, status, "place": place._ref}',
         { ids: ARCHIVE_IDS },
@@ -55,12 +56,19 @@ export async function GET() {
         '*[_type == "case"] | order(_updatedAt desc){_id, title, "observations": observations[]._ref, "entries": observations[]->{_id, what, "place": place->name}}',
       ),
       hasUnpublishedCaseDraft(),
+      // Observations the player wrote themselves, outside the five clues: a
+      // side quest asks for one (src/game/sideQuests/data.ts).
+      client.fetch<OwnObservation[]>(
+        '*[_type == "observation" && !(_id in $ids)]{_id, "witness": witness._ref, "place": place._ref}',
+        { ids: ARCHIVE_IDS },
+      ),
     ]);
     return Response.json({
       configured: true,
       docs,
       cases: cases.map((c) => ({ ...c, observations: c.observations ?? [] })),
       caseDraft,
+      own,
     });
   } catch (error) {
     console.error("Could not read the archive:", error);

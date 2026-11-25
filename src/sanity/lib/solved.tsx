@@ -9,12 +9,16 @@
 // Relative imports on purpose: the Sanity CLI bundles the schema without the
 // "@/" alias.
 
-import { useSyncExternalStore } from "react";
-import type { StringInputProps } from "sanity";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { set, unset, useFormValue, type StringInputProps } from "sanity";
 import { DocumentIcon } from "@sanity/icons/Document";
 import SpriteImage from "../../components/SpriteImage";
 import { SpritePicker } from "../studio/SpritePicker";
 import { PROGRESS_PROJECT, storageKey } from "../../game/quests/progress";
+import {
+  spriteAfterKindChange,
+  spriteIdsForItemKind,
+} from "../../game/sprites";
 import type { QuestTrack, SolvedTask } from "../../game/quests/types";
 import { TASK_ICONS, type TaskIconName } from "./taskIcons";
 
@@ -95,9 +99,33 @@ const DRAWING_BOARD = "the-drawing-board";
 
 // The game task activates our working version; it never writes learner code
 // into the schema or the repository.
+//
+// Before that, the plain list only shows sprites that fit the item's kind,
+// and picking Potion or Material gives a sprite to start from (it can be
+// changed). Only a kind changed while editing does that: opening an existing
+// item never changes it.
 export function ItemSpriteInput(props: StringInputProps) {
   const solved = useSolved(DRAWING_BOARD);
-  return solved ? <SpritePicker {...props} /> : props.renderDefault(props);
+  const kind = useFormValue(["kind"]);
+  const { value, onChange } = props;
+  const lastKind = useRef(kind);
+  useEffect(() => {
+    if (kind === lastKind.current) return;
+    lastKind.current = kind;
+    const next = spriteAfterKindChange(kind, value);
+    if (next !== undefined) onChange(next === null ? unset() : set(next));
+  }, [kind, value, onChange]);
+
+  if (solved) return <SpritePicker {...props} />;
+  const fitting = spriteIdsForItemKind(kind);
+  if (!fitting.length) return props.renderDefault(props);
+  return props.renderDefault({
+    ...props,
+    schemaType: {
+      ...props.schemaType,
+      options: { ...props.schemaType.options, list: [...fitting] },
+    },
+  });
 }
 
 // The icon the player picked in the code window, or the plain document icon.

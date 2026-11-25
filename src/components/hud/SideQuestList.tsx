@@ -124,8 +124,8 @@ export function SideQuestDetail({
             <p className="log-week-kicker">Sideoppdrag</p>
             <h3 className="log-quest-title">{giver.name} har noe på hjertet</h3>
             <p className="log-locked">
-              Snakk med {giver.name} {giver.at} for å høre hva det er. Det er
-              frivillig, lukene går først.
+              Snakk med {giver.name} {giver.at} for å høre hva det gjelder. Ta
+              det når du har tid til overs.
             </p>
             <button
               type="button"

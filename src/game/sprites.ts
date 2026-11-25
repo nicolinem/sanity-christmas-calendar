@@ -124,6 +124,30 @@ export function isSpriteAllowedForKind(
   return !spriteId || spriteIdsForItemKind(kind).includes(spriteId);
 }
 
+// The sprite an item gets when its kind is picked in the Studio, so a drink
+// looks like a drink from the start. It can be changed. Weapons get none:
+// picking one is part of luke 1, and a weapon without one is what luke 3
+// catches.
+export const DEFAULT_SPRITE_FOR_KIND: Partial<Record<ItemKind, string>> = {
+  potion: "potion",
+  material: "ice-cube",
+};
+
+// What the sprite field becomes when the kind is changed in the Studio: a
+// sprite to set, null to clear it, or undefined to leave it as it is. A
+// sprite that fits the new kind is always kept.
+export function spriteAfterKindChange(
+  kind: unknown,
+  sprite: string | null | undefined,
+): string | null | undefined {
+  if (typeof kind !== "string" || !spriteIdsForItemKind(kind).length)
+    return undefined;
+  if (sprite && isSpriteAllowedForKind(sprite, kind)) return undefined;
+  const fallback = DEFAULT_SPRITE_FOR_KIND[kind as ItemKind] ?? null;
+  if (!sprite && fallback === null) return undefined;
+  return fallback;
+}
+
 const CATEGORY_FALLBACK: Record<SpriteCategory, SpriteDef> = {
   weapon: d(103),
   material: d(89),

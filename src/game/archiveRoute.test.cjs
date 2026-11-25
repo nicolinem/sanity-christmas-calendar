@@ -75,3 +75,9 @@ test("archive cases read place names through the reference", () => {
   assert.match(routeSource, /place->name/);
   assert.match(routeSource, /observations\[\]->/);
 });
+
+test("the archive also returns the player's own observations, outside the clues", () => {
+  assert.match(routeSource, /!\(_id in \$ids\)/);
+  assert.match(routeSource, /"witness": witness\._ref/);
+  assert.match(routeSource, /own,/);
+});
