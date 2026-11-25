@@ -58,6 +58,8 @@ import { ARCHIVE_IDS, type OwnArchiveDoc, type OwnCase } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
 import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
+import CaveHud from "./hud/CaveHud";
+import { ropeFloors } from "@/game/cave/floors";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
 import ForgeHammer from "./hud/ForgeHammer";
@@ -128,6 +130,22 @@ function useDevMode() {
   );
 }
 
+function useArea() {
+  return useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.area,
+    () => "bygda" as const,
+  );
+}
+
+function useCaveDepth() {
+  return useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.depth ?? null,
+    () => null,
+  );
+}
+
 function useZone() {
   return useSyncExternalStore<Zone>(
     (cb) => bridge.on("zone", cb),
@@ -162,6 +180,8 @@ export default function GameClient() {
   const [autoEquip, setAutoEquip] = useState(true);
 
   const zone = useZone();
+  const area = useArea();
+  const caveDepth = useCaveDepth();
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
   // A side quest conversation: who, and which quest (kept through delivery).
@@ -707,11 +727,46 @@ export default function GameClient() {
     setLogOpen(true);
   }, []);
 
+  // «Gå til» from inside the cave: leave first, travel once the village is back.
+  const pendingTravel = useRef<QuestSiteId | "wraith" | null>(null);
   const travelToSite = useCallback((siteId: QuestSiteId | "wraith") => {
     setTalking(false);
     setLogOpen(false);
+    if (bridge.world.area === "grotta") {
+      pendingTravel.current = siteId;
+      bridge.emit("leaveCave", undefined);
+      return;
+    }
     bridge.emit("travelToSite", siteId);
   }, []);
+
+  // The cave tells us which floor we are on; the deepest one is kept.
+  useEffect(
+    () =>
+      bridge.on("reachedFloor", (depth) => {
+        bridge.setWorld({ area: "grotta", cave: { depth } });
+        updateProgress(PROGRESS_PROJECT, (p) =>
+          depth > p.deepest ? { ...p, deepest: depth } : p,
+        );
+      }),
+    [],
+  );
+  useEffect(
+    () =>
+      bridge.on("leftCave", () => {
+        bridge.setWorld({ area: "bygda", cave: null });
+        const target = pendingTravel.current;
+        pendingTravel.current = null;
+        if (target) bridge.emit("travelToSite", target);
+      }),
+    [],
+  );
+  const enterCave = useCallback(
+    (depth: number) => bridge.emit("enterCave", depth),
+    [],
+  );
+  const descend = useCallback(() => bridge.emit("descend", undefined), []);
+  const leaveCave = useCallback(() => bridge.emit("leaveCave", undefined), []);
 
   const openCode = useCallback((questId: string) => {
     setTalking(false);
@@ -1076,6 +1131,16 @@ export default function GameClient() {
         findSpot();
         return;
       }
+      if ((e.key === "e" || e.key === "E") && zone === "cave") {
+        e.preventDefault();
+        enterCave(1);
+        return;
+      }
+      if ((e.key === "e" || e.key === "E") && zone === "caveStairs") {
+        e.preventDefault();
+        descend();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -1115,6 +1180,8 @@ export default function GameClient() {
     openCaseBoard,
     progress.briefed,
     progress.completed,
+    enterCave,
+    descend,
     combat,
     items,
     slots,
@@ -1186,6 +1253,12 @@ export default function GameClient() {
               Sanity Studio
             </button>
           </div>
+
+          {area === "grotta" && caveDepth !== null && (
+            <div className="hud-tc">
+              <CaveHud depth={caveDepth} onLeave={leaveCave} />
+            </div>
+          )}
 
           <div className="hud-bc">
             {zone === "forge" && progress.briefed["weapon-description"] && (
@@ -1282,6 +1355,32 @@ export default function GameClient() {
                   <kbd>E</kbd> Les saksmappa
                 </button>
               )}
+            {zone === "cave" && !logOpen && (
+              <>
+                <button
+                  type="button"
+                  className="prompt"
+                  onClick={() => enterCave(1)}
+                >
+                  <kbd>E</kbd> Gå inn i grotta
+                </button>
+                {ropeFloors(progress.deepest).map((floor) => (
+                  <button
+                    key={floor}
+                    type="button"
+                    className="prompt"
+                    onClick={() => enterCave(floor)}
+                  >
+                    Tau ned til etasje {floor}
+                  </button>
+                ))}
+              </>
+            )}
+            {zone === "caveStairs" && !logOpen && (
+              <button type="button" className="prompt" onClick={descend}>
+                <kbd>E</kbd> Gå ned trappa
+              </button>
+            )}
             {!hasMoved &&
               !progress.metBlacksmith &&
               !showOpening &&
@@ -1294,6 +1393,11 @@ export default function GameClient() {
               <EncounterPanel combat={combat} weapon={equipped} />
             )}
 
+            {area === "grotta" && caveDepth !== null && (
+              <div className="cave-hud-belt">
+                <CaveHud depth={caveDepth} onLeave={leaveCave} />
+              </div>
+            )}
             <Hotbar
               plate={
                 <PlayerPlate

@@ -85,6 +85,7 @@ export class CaveScene extends Phaser.Scene {
       bridge.on("leaveCave", () => this.leave()),
     );
     this.announce();
+    bridge.emit("reachedFloor", this.depth); // the first floor counts too
 
     const teardown = () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, fit);

@@ -160,6 +160,7 @@ export class WinterQuestScene extends Phaser.Scene {
   // call while the fade runs is ignored.
   private enteringCave = false;
   private enterCave(depth: number) {
+    if (bridge.world.area !== "bygda") return;
     if (this.enteringCave || bridge.world.frozen) return;
     this.enteringCave = true;
     this.cameras.main.fadeOut(200);
