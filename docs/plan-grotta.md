@@ -461,3 +461,49 @@ Etter G2 så grotta ryddig, men flat ut, og hver etasje var én skjerm. Brukeren
 - **Ytelse.** Gulv og vegger tegnes én gang per etasje i ett bilde (`DynamicTexture`) i stedet for én figur per rute.
 - **G3 bestemmer** hva «full etasje» betyr når etasjen er stor. Forslaget er at bare rommet med trappa er sperret.
 
+## 13. G3: beslutninger (2026-11-25)
+
+Etter stemning og større etasjer var grotta pen, men ensformig: hvert rom hadde 2–3 av de samme tre monstrene, og det fantes ingen ekte prøve før etasje 5. Brukeren valgte dette for G3. Alt står fortsatt bak `FEATURES.cave`.
+
+### Rom med ulik karakter
+
+Hvert rom unntatt startrommet får en type når etasjen lages (startverdier):
+
+| Type | Sjanse | Innhold |
+| --- | --- | --- |
+| **Rolig** | 25 % | 0–1 monster. Alle steinene (`o`) står. |
+| **Vanlig** | 60 % | Som i dag, 2–3 monstre. |
+| **Reir** | 15 %, fra etasje 2, høyst ett per etasje | 4–5 monstre og en liten kiste med 2–3 materialer til `trip`. |
+
+Taket på 10 monstre per etasje gjelder fortsatt.
+
+### Full etasje
+
+Bare **rommet med trappa** er sperret. Trappa åpner når monstrene i det rommet er slått. Resten av etasjen kan du utforske som vanlig. Det skjer aldri på etasje 1 eller på en hvileplass. Beskjeden er «Trappa er stengt. Slå monstrene i rommet først.»
+
+### Monstre våkner bare i ditt rom
+
+Et monster våkner når du er i samme rom og innenfor `AGGRO_RANGE`, ikke gjennom vegger. Når det først er våkent, kan det følge deg gjennom åpningene.
+
+### Flaggermus
+
+De kommer fra etasje 3. De flyr over steiner (`flies`), men ikke gjennom vegger.
+
+### Etasje 5: Isvetten og kista
+
+- **Isvetten** stormer mot deg. Når livet er halvt, kaller den på to rotter, én gang.
+- **Sjefens liv** vises i HUD-en.
+- **Når den er slått,** kommer den aldri tilbake (`bosses.yeti`).
+- **Kista** kan bare åpnes når Isvetten er slått. Den gir Rustning (`gear:armour:plate`) én gang (`chests["cave-5"]`).
+- **Første gang du kommer til en hvileplass på en tur,** fylles livet, og `trip` blir trygt (flyttes til `inventory`). Du er fortsatt i grotta.
+
+### Materialer
+
+Materialene får ingen bruk i G3. De venter på smiing med oppskrifter i Studio (fase E), som også lærer bort Sanity. Ting-fanen sier fortsatt «Brukes i smia senere».
+
+### Før flagget slås på
+
+- **Feiring når XP** fra monstre, sjefer eller sideoppdrag gir nytt nivå.
+- **«Fra grotta»** flyttes ut av fanelista i Ting.
+- **Spilltest** med tre personer.
+
