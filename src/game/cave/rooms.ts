@@ -12,6 +12,9 @@ export const CAVE_FRAMES = {
   floorPebbles: 12,
   floorRocks: 24,
   wall: 40,
+  wallVariants: [28, 57, 58, 59],
+  wallFaces: [19, 20],
+  torch: 29,
 } as const;
 
 export const ROOMS: RoomTemplate[] = [

@@ -107,14 +107,17 @@ test("depth below 1 or not a number is treated as 1", () => {
 test("floor decoration: no rock tiles, and at most about 1 in 50 pebble tiles", () => {
   let pebbles = 0,
     floor = 0;
-  for (let seed = 0; seed < 200; seed++)
-    for (const row of generateFloor(2, seed).tiles)
-      for (const f of row) {
-        if (f === CAVE_FRAMES.wall) continue;
+  for (let seed = 0; seed < 200; seed++) {
+    const f = generateFloor(2, seed);
+    f.rows.forEach((row, y) =>
+      [...row].forEach((c, x) => {
+        if (c === "#") return;
         floor++;
-        assert.notEqual(f, CAVE_FRAMES.floorRocks);
-        if (f === CAVE_FRAMES.floorPebbles) pebbles++;
-      }
+        assert.notEqual(f.tiles[y][x], CAVE_FRAMES.floorRocks);
+        if (f.tiles[y][x] === CAVE_FRAMES.floorPebbles) pebbles++;
+      }),
+    );
+  }
   assert.ok(pebbles / floor > 0.01 && pebbles / floor < 0.035);
 });
 

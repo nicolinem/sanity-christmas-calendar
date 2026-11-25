@@ -1,4 +1,5 @@
 import { enemiesAt, type EnemyId } from "./enemies";
+import { decorate, type Decor } from "./decor";
 import { rng } from "./random";
 import type { Box } from "../walk";
 import { CAVE_FRAMES, REST_ROOMS, ROOMS, mirror } from "./rooms";
@@ -14,6 +15,9 @@ export type Floor = {
   // The floor as built: one T (at stairs), o only where rocks are.
   rows: string[];
   tiles: number[][]; // frame index into SHEETS[sheet], indexed [y][x]
+  roof: boolean[][]; // true for a # that is a dark roof, not a wall front
+  torches: Point[]; // tile-centre px of the torches (on wall fronts)
+  decor: Decor[]; // ice lumps on the floor; drawn, never solid
   // One 16×16 box per wall tile, top-left px (x*16, y*16). Rocks are NOT here:
   // a scene adds rock collision from `rocks`.
   solids: Box[];
@@ -107,14 +111,7 @@ export function generateFloor(
       .join(""),
   );
 
-  const tiles = rows.map((row) =>
-    [...row].map((c) => {
-      if (c === "#") return CAVE_FRAMES.wall;
-      const v = r();
-      if (v < 0.02) return CAVE_FRAMES.floorPebbles;
-      return CAVE_FRAMES.floor;
-    }),
-  );
+  const { tiles, roof, torches, decor } = decorate(rows, r);
 
   const solids: Box[] = cells(rows, "#").map(([x, y]) => ({
     x: x * TILE,
@@ -131,6 +128,9 @@ export function generateFloor(
     mirrored,
     rows: built,
     tiles,
+    roof,
+    torches,
+    decor,
     solids,
     start: center(startTile),
     stairs: center(stairsTile),
