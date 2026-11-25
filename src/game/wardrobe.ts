@@ -74,7 +74,8 @@ const ALL_GEAR: GearKey[] = KEYS.flatMap((key) =>
 // Gear from completed quests and delivered side quests; in dev, all of it.
 // Worked out from those facts every time, never stored.
 export function ownedGear(
-  progress: Pick<Progress, "completed"> & Partial<Pick<Progress, "side">>,
+  progress: Pick<Progress, "completed"> &
+    Partial<Pick<Progress, "side" | "chests">>,
   opts: { dev?: boolean } = {},
 ): Set<GearKey> {
   if (opts.dev) return new Set(ALL_GEAR);
@@ -92,6 +93,7 @@ export function ownedGear(
         if (FIGURE_OPTIONS[part] && isGear(part, id))
           owned.add(`${part}:${id}`);
       }
+  if (progress.chests?.["cave-5"]) owned.add("armour:plate");
   return owned;
 }
 

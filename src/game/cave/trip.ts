@@ -24,6 +24,15 @@ export function bankTrip(progress: Progress): Progress {
   return dropTrip(banked);
 }
 
+// Resting place: the trip's finds are banked, but the player stays in the cave.
+export function secureTrip(progress: Progress): Progress {
+  const banked = addItems(
+    progress,
+    Object.entries(progress.trip).map(([id, count]) => ({ id, count })),
+  );
+  return { ...banked, trip: {} };
+}
+
 // Fainting: the trip's finds are lost, everything else stays.
 export function dropTrip(progress: Progress): Progress {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

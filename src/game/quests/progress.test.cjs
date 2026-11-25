@@ -397,3 +397,30 @@ test("trip and inCave default safely and drop bad values", () => {
   );
   assert.equal(progress.readProgress("trip-ok").inCave, true);
 });
+
+test("bosses and chests are washed like found", () => {
+  assert.deepEqual(progress.EMPTY_PROGRESS.bosses, {});
+  assert.deepEqual(progress.EMPTY_PROGRESS.chests, {});
+  records.set(progress.storageKey("no-cave-facts"), JSON.stringify({}));
+  assert.deepEqual(progress.readProgress("no-cave-facts").bosses, {});
+  for (const bad of [null, [], "x", 3]) {
+    const key = `bad-cave-${String(bad)}`;
+    records.set(
+      progress.storageKey(key),
+      JSON.stringify({ bosses: bad, chests: bad }),
+    );
+    assert.deepEqual(progress.readProgress(key).bosses, {});
+    assert.deepEqual(progress.readProgress(key).chests, {});
+  }
+  records.set(
+    progress.storageKey("mixed-cave"),
+    JSON.stringify({
+      bosses: { yeti: true, bad: 1 },
+      chests: { "cave-5": true },
+    }),
+  );
+  assert.deepEqual(progress.readProgress("mixed-cave").bosses, { yeti: true });
+  assert.deepEqual(progress.readProgress("mixed-cave").chests, {
+    "cave-5": true,
+  });
+});

@@ -389,7 +389,7 @@ export const ARMOURS: Part[] = [
       "....iIIIIIIi",
       ".....ikkkki",
     ),
-    unlock: HIDDEN_GEAR,
+    unlock: "Kista på etasje 5",
   },
 ];
 

@@ -23,6 +23,8 @@ export const EMPTY_PROGRESS: Progress = {
   seenGear: {},
   side: {},
   found: {},
+  bosses: {},
+  chests: {},
   xp: 0,
   inventory: {},
   deepest: 0,
@@ -43,6 +45,13 @@ function counts(value: unknown): Record<string, number> {
       ([, count]) => Number.isInteger(count) && (count as number) >= 0,
     ),
   ) as Record<string, number>;
+}
+
+// A stored fact map keeping only entries that are exactly true.
+function facts(value: unknown): Record<string, true> {
+  return Object.fromEntries(
+    Object.entries(record<unknown>(value)).filter(([, v]) => v === true),
+  ) as Record<string, true>;
 }
 
 // One record per Sanity project, so a fresh project is a fresh start.
@@ -108,6 +117,8 @@ export function readProgress(project: string): Progress {
           seenGear: record<true>(saved.seenGear),
           side: record(saved.side),
           found: record<true>(saved.found),
+          bosses: facts(saved.bosses),
+          chests: facts(saved.chests),
           xp:
             typeof saved.xp === "number" && Number.isFinite(saved.xp)
               ? Math.max(0, saved.xp)

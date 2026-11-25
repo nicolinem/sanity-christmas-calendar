@@ -131,3 +131,11 @@ test("a delivered side quest gives its gear; one still in progress does not", ()
     0,
   );
 });
+
+test("the chest on floor 5 gives the plate armour", () => {
+  const none = ownedGear({ completed: {} });
+  assert.equal(none.has("armour:plate"), false);
+  const owned = ownedGear({ completed: {}, chests: { "cave-5": true } });
+  assert.equal(owned.has("armour:plate"), true);
+  assert.equal(gearSource("armour", "plate"), "Kista på etasje 5");
+});

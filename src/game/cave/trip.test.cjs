@@ -2,7 +2,7 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 require("sucrase/register");
-const { addToTrip, bankTrip, dropTrip } = require("./trip.ts");
+const { addToTrip, bankTrip, dropTrip, secureTrip } = require("./trip.ts");
 const { EMPTY_PROGRESS } = require("../quests/progress.ts");
 
 test("addToTrip adds up without mutating", () => {
@@ -49,4 +49,17 @@ test("dropTrip empties the trip and keeps everything else", () => {
   for (const key of ["xp", "inventory", "deepest", "completed", "side"]) {
     assert.deepEqual(dropped[key], p[key]);
   }
+});
+
+test("secureTrip banks the trip and keeps the player in the cave", () => {
+  const p = addToTrip(
+    { ...EMPTY_PROGRESS, inCave: true, inventory: { malm: 1 } },
+    "malm",
+    2,
+  );
+  const safe = secureTrip(p);
+  assert.equal(safe.inventory.malm, 3);
+  assert.deepEqual(safe.trip, {});
+  assert.equal(safe.inCave, true);
+  assert.equal(p.trip.malm, 2);
 });
