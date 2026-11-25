@@ -3,6 +3,8 @@
 // done waits to be handed in ("ready"). Pure: no DOM, React or Phaser.
 
 import { chapterOpensAt } from "../quests/engine";
+import { giverOf } from "../quests/label";
+import { NPCS, shouldShowQuestNpc, type NpcId } from "../village";
 import type { Chapter, Progress } from "../quests/types";
 import type {
   GiverId,
@@ -68,6 +70,23 @@ export function evaluateSideQuests(
     }
     return { quest, status: "ready", step: last };
   });
+}
+
+// People the lukes need right now, who show no side quest marker: the giver
+// of the luke in hand (whether it's waiting to be told, picked up somewhere or
+// being worked on) and anyone that luke asks you to talk to. Talking to them
+// is about the luke first; their side quest waits behind «Noe annet?».
+export function busyGivers(
+  current: {
+    quest: { giver?: NpcId; asksNpc?: NpcId };
+    status: string;
+  } | null,
+): NpcId[] {
+  if (!current) return [];
+  const asked = Object.values(NPCS)
+    .filter((npc) => shouldShowQuestNpc(current, npc.id))
+    .map((npc) => npc.id);
+  return [giverOf(current.quest).id, ...asked];
 }
 
 // Who shows which marker: «?» to hand something in, «!» to take something.

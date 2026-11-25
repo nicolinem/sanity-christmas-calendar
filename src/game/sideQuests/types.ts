@@ -4,6 +4,7 @@
 
 import type { Reward } from "../reward";
 import type { SpriteSheet } from "../sprites";
+import type { OwnObservation } from "../archive";
 import type { CheckResult, Hint, QuestContext } from "../quests/types";
 import type { NpcId } from "../village";
 
@@ -24,7 +25,7 @@ export type SideSpot = {
 
 // QuestContext plus what only side quests need (S5, phase S2).
 export type SideContext = QuestContext & {
-  ownObservations?: { _id: string; witness?: string; place?: string }[] | null;
+  ownObservations?: OwnObservation[] | null;
 };
 
 export type SideStep =

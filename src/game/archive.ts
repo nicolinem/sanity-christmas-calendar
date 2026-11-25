@@ -281,6 +281,14 @@ export const CASE_FILE_EXPECTED = WHO_IS_LYING.filter(
   ({ expected }) => expected === "confirmed",
 ).map(({ _id }) => _id);
 
+// An observation the player published, outside the five clues (_id not in
+// ARCHIVE_IDS). References are their ids: "witness-kari", "place-gjerdet".
+export type OwnObservation = {
+  _id: string;
+  witness?: string | null;
+  place?: string | null;
+};
+
 export type OwnCase = {
   _id: string;
   title?: string | null;

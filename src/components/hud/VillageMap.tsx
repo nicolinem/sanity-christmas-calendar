@@ -19,7 +19,7 @@ import {
 import SpriteIcon from "./SpriteIcon";
 import { nextStep } from "./nextStep";
 import { SIDE_SPOTS } from "@/game/sideQuests/data";
-import { sideMarkers } from "@/game/sideQuests/engine";
+import { busyGivers, sideMarkers } from "@/game/sideQuests/engine";
 import type { SideState } from "@/game/sideQuests/types";
 import type { NpcId } from "@/game/village";
 
@@ -77,12 +77,7 @@ export default function VillageMap({
   };
   // Side quests, the same rule as in the village: a blue «!» or «?» over
   // people the lukes don't need right now, and the next spot to find.
-  const sideMarks = sideMarkers(sideQuests, [
-    ...(current?.status === "offered" && !current.pickup
-      ? [giverOf(current.quest).id]
-      : []),
-    ...(showKari ? (["kari"] as NpcId[]) : []),
-  ]);
+  const sideMarks = sideMarkers(sideQuests, busyGivers(current));
   const sideFor = (giver: string) =>
     sideQuests.find((s) => s.quest.giver === giver && s.status === "ready") ??
     sideQuests.find((s) => s.quest.giver === giver && s.status === "available");

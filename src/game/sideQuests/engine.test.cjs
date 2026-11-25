@@ -8,6 +8,7 @@ const {
   advanceSide,
   deliverSide,
   evaluateSideQuests,
+  busyGivers,
   sideMarkers,
   sideObjectives,
 } = require("./engine.ts");
@@ -228,4 +229,21 @@ test("the journal ticks off steps as they're done", () => {
   assert.deepEqual(done(p), [true, true]);
   // Not taken: nothing is ticked.
   assert.deepEqual(done({}), [false, false]);
+});
+
+test("the luke's giver shows no side marker while the luke is in hand", () => {
+  const luke = (status, extra = {}) => ({
+    quest: { giver: "bakeren", ...extra },
+    status,
+  });
+  assert.deepEqual(busyGivers(null), []);
+  for (const status of ["offered", "active"])
+    assert.deepEqual(busyGivers(luke(status)), ["bakeren"]);
+  // Brann gives lukes when no giver is named.
+  assert.deepEqual(busyGivers({ quest: {}, status: "active" }), ["brann"]);
+  // The person an active luke asks about is busy too.
+  assert.deepEqual(busyGivers(luke("active", { asksNpc: "kari" })), [
+    "bakeren",
+    "kari",
+  ]);
 });

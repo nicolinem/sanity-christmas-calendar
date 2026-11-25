@@ -249,8 +249,8 @@ function buildPages(
           ...(FEATURES.sideQuests && previous.quest.id === FIRST_QUEST
             ? [
                 <>
-                  Ser du et blått utropstegn over noen i bygda, har de et lite
-                  ønske til deg. Det er frivillig, og lukene går først.
+                  Ser du et blått utropstegn over noen, trenger de en liten
+                  tjeneste. Den kan du ta når du har tid til overs.
                 </>,
               ]
             : []),
