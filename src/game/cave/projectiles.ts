@@ -26,6 +26,8 @@ export function spawnProjectile(shot: {
   };
 }
 
+// The caller clamps dtSec (the scene cuts a frame to 50 ms): a long step
+// could jump a lump past a wall or the player.
 export function stepProjectile(
   p: Projectile,
   dtSec: number,

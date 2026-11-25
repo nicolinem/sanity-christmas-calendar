@@ -27,7 +27,7 @@ export type Brain = {
   damage: number;
   windupMs: number | null;
   aimMs: number | null;
-  everyMs: number | null;
+  everyMs: number | null; // ms from a release until the next aim may start
   mode: "idle" | "chase" | "tell" | "windup" | "dash" | "aim" | "rest";
   until: number; // scene clock (ms) when the current timed mode ends
   dir: Point; // unit vector locked at windup start
@@ -86,8 +86,13 @@ export function stepBrain(
     n.x = p.x;
     n.y = p.y;
   };
+  // A pure shooter backs off inside KEEP_MIN rather than aim: a lump thrown
+  // point-blank would land before the player could step aside.
   const canShoot =
-    n.aimMs !== null && now >= n.nextShotAt && dist <= SHOOT_RANGE;
+    n.aimMs !== null &&
+    now >= n.nextShotAt &&
+    dist <= SHOOT_RANGE &&
+    (n.windupMs !== null || dist >= KEEP_MIN);
 
   if (n.mode === "chase") {
     if (n.windupMs !== null && dist < CHARGE_TRIGGER) {
@@ -115,6 +120,7 @@ export function stepBrain(
     shot = { x: n.x, y: n.y, dir: { ...n.aimDir }, damage: n.damage };
     n.mode = "rest";
     n.until = now + SHOT_REST_MS;
+    // Counted from the release, so throws come every everyMs + aimMs.
     n.nextShotAt = now + (n.everyMs ?? 0);
   } else if (n.mode === "tell" && now >= n.until) {
     if (dist <= BITE_RANGE) strike = n.damage;

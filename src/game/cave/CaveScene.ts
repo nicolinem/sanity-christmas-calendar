@@ -28,6 +28,7 @@ import { roomAt } from "./layout";
 import {
   AMBIENT,
   AMBIENT_DEEP,
+  BOTTOM_LIGHT,
   CAMERA_PAD_TILES,
   DEEP_FROM,
   ICE_BOSS_LIGHT,
@@ -327,10 +328,23 @@ export class CaveScene extends Phaser.Scene {
       this.withLight(
         this.add.image(at.x, at.y, p.sheet, p.frame).setDepth(at.y - 8),
       );
-    // The deepest floor has no stairs, only the spot where they would be.
+    // The deepest floor has no stairs, only rubble where they would be: a
+    // floor tile just above the baked floor, nothing to break or bump into.
     this.stairsImage =
       this.depth < MAX_DEPTH ? prop(CAVE_PROPS.stairs, floor.stairs) : null;
-    if (this.stairsImage) this.objects.push(this.stairsImage);
+    this.objects.push(
+      this.stairsImage ??
+        this.withLight(
+          this.add
+            .image(
+              floor.stairs.x,
+              floor.stairs.y,
+              floor.sheet,
+              CAVE_FRAMES.floorRocks,
+            )
+            .setDepth(-0.5),
+        ),
+    );
     this.chestOpened =
       !!floor.chest && bridge.world.openedChests.includes(floor.chest.id);
     this.chestImage = floor.chest ? prop(CAVE_PROPS.chest, floor.chest) : null;
@@ -470,21 +484,21 @@ export class CaveScene extends Phaser.Scene {
           l.radius * l.height,
         ),
       );
-      const m = MARKER_LIGHT;
       // Index 0 is the stairs; checkStairs relies on it. The deepest floor
-      // has no stairs light, and no lock for checkStairs to open.
-      const stairs = this.depth < MAX_DEPTH ? [floor.stairs] : [];
-      const spots = floor.chest ? [...stairs, floor.chest] : stairs;
-      this.markerLights = spots.map((p) =>
-        this.lights.addLight(
+      // lights its rubble more dimly, and has no lock for checkStairs to open.
+      const bottom = this.depth >= MAX_DEPTH;
+      const spots = floor.chest ? [floor.stairs, floor.chest] : [floor.stairs];
+      this.markerLights = spots.map((p, i) => {
+        const m = i === 0 && bottom ? BOTTOM_LIGHT : MARKER_LIGHT;
+        return this.lights.addLight(
           p.x,
           p.y,
           m.radius,
           m.color,
           m.intensity,
           m.radius * m.height,
-        ),
-      );
+        );
+      });
     }
     for (const d of floor.decor)
       this.objects.push(

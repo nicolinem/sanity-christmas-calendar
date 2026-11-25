@@ -30,10 +30,6 @@ test("every playable kind takes 2-5 hits at the matching forge level", () => {
   }
 });
 
-test("enemy damage stays at or under 3 on depth 10", () => {
-  for (const id of PLAYABLE) assert.ok(scaleEnemy(id, 10).damage <= 3, id);
-});
-
 test("damage is capped at 3 on depth 10, drake and aim time too", () => {
   for (const id of [...PLAYABLE, "drake"])
     assert.ok(scaleEnemy(id, 10).damage <= 3, id);

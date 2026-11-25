@@ -56,7 +56,7 @@ export type WorldState = {
     maxHp: number;
     stairsLocked: boolean;
     boss: { name: string; hp: number; maxHp: number } | null;
-    bottomNear?: boolean;
+    bottomNear: boolean;
   } | null;
   defeatedBosses: string[]; // boss ids beaten (progress.bosses)
   openedChests: string[]; // chest ids opened (progress.chests)

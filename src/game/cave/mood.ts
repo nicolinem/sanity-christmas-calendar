@@ -37,6 +37,8 @@ export const MARKER_LIGHT = {
   intensity: 0.7,
   height: 0.4,
 };
+// The same glow, dimmer, on the rubble where the deepest floor's stairs would be.
+export const BOTTOM_LIGHT = { ...MARKER_LIGHT, intensity: 0.4 };
 // Isdragen's own cold glow, so the boss shows on a dark floor.
 export const ICE_BOSS_LIGHT = {
   radius: 64,

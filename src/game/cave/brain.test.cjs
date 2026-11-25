@@ -135,6 +135,14 @@ test("cyclops keeps its distance", () => {
   assert.equal(mid.mode, "chase");
 });
 
+test("cyclops up close with a shot ready backs off instead of aiming", () => {
+  const c = awake("cyclops", 8); // nextShotAt 0, as when a swing wakes it
+  const r = stepBrain(c, at(40), 1000, 0.1, free);
+  assert.ok(r.brain.x < 0);
+  assert.notEqual(r.brain.mode, "aim");
+  assert.equal(r.shot, undefined);
+});
+
 test("cyclops aims, then throws exactly one shot toward the aim point", () => {
   const c = awake("cyclops", 8);
   const aimMs = scaleEnemy("cyclops", 8).aimMs;
