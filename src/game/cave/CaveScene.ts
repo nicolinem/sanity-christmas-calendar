@@ -16,18 +16,22 @@ import {
   INVULNERABLE_MS,
   KNOCK_ENEMY,
   KNOCK_PLAYER,
+  MAX_PROJECTILES,
   PLAYER_MAX_HP,
   rockDrop,
   type Facing,
 } from "./combat";
 import { ENEMIES, PLAYABLE, type EnemyId } from "./enemies";
+import { MAX_DEPTH } from "./floors";
 import { generateFloor, type Floor, type Point } from "./generate";
 import { roomAt } from "./layout";
 import {
   AMBIENT,
   AMBIENT_DEEP,
+  BOTTOM_LIGHT,
   CAMERA_PAD_TILES,
   DEEP_FROM,
+  ICE_BOSS_LIGHT,
   MARKER_LIGHT,
   PLAYER_LIGHT,
   ROOF_TINT,
@@ -35,6 +39,11 @@ import {
   TORCH_FLICKER,
   TORCH_LIGHT,
 } from "./mood";
+import {
+  spawnProjectile,
+  stepProjectile,
+  type Projectile,
+} from "./projectiles";
 import { CAVE_PROPS } from "./props";
 import { CAVE_FRAMES } from "./rooms";
 
@@ -43,9 +52,15 @@ const STAIRS_RANGE = 28;
 const CACHE_RANGE = 24;
 const CHEST_OPEN_FRAME = 91; // dungeon sheet: the chest with its lid up
 const CHEST_RANGE = 24;
-const CHEST_DEPTH = 5; // the only rest floor whose chest opens for now
-const BOSS: EnemyId = "yeti"; // the only boss drawn for now
-const BOSS_NAME = "Isvetten";
+const CHEST_DEPTHS = [5, 10]; // the rest floors whose chest opens for now
+// The bosses drawn so far, by the name on their bar.
+const BOSS_NAMES: Partial<Record<EnemyId, string>> = {
+  yeti: "Isvetten",
+  drake: "Isdragen",
+};
+// Kinds drawn in another colour than their sheet frame (multiplied).
+// 0xbfe6ff rather than 0x8fd3ff: the dark frame must stay visible.
+const KIND_TINT: Partial<Record<EnemyId, number>> = { drake: 0xbfe6ff };
 const SUMMON_GAP = 20; // px left and right of the boss for its two rats
 const LOCKED_TINT = 0x555a70; // the stairs while their room still has monsters
 const PULSE_MS = 300; // each half of the light pulse when the stairs open
@@ -53,6 +68,8 @@ const FADE_MS = 200;
 const MAX_STEP_MS = 50; // a long frame (tab switch, GC) is cut to this
 const FLASH_MS = 90; // white flash on a monster that was hit
 const MARK_GAP = 10; // px between the marks of a charge's line
+const AIM_LIFT = 3; // px a thrower rises while it aims
+const ISKLUMP_FRAME = 56; // dungeon sheet: the ice lump a thrower throws
 const FLOOR_TEXTURE = "cave-floor"; // floor and walls, baked once per floor
 
 const FACING_STEP: Record<Facing, Point> = {
@@ -72,9 +89,12 @@ type Monster = {
   marks: Phaser.GameObjects.Image[]; // the charge's line, only during windup
   flashUntil: number; // scene clock
   white: boolean; // the sprite is drawn with a white fill tint
+  tint: number | null; // its kind's own colour, back once the white clears
 };
 
 type Rock = Point & { image: Phaser.GameObjects.Image; box: Box };
+
+type Isklump = { p: Projectile; image: Phaser.GameObjects.Image };
 
 // The cave: one generated floor at a time, seen from above; the camera follows
 // the knight when the floor is bigger than the view. Monsters chase and
@@ -97,10 +117,13 @@ export class CaveScene extends Phaser.Scene {
   private torchLights: Phaser.GameObjects.Light[] = [];
   // Stairs (and chest) glow; steady, so the flicker loop leaves them alone.
   private markerLights: Phaser.GameObjects.Light[] = [];
+  // Isdragen's cold glow, following it while it lives (WebGL only).
+  private bossLight: Phaser.GameObjects.Light | null = null;
   private stairsImage: Phaser.GameObjects.Image | null = null;
   // The stairs room still has monsters: no way down until they are gone.
   private stairsLocked = false;
   private lockShown = false; // last world.cave.stairsLocked sent to the HUD
+  private bottomNear = false; // last world.cave.bottomNear sent to the HUD
   private cacheImage: Phaser.GameObjects.Image | null = null;
   private cacheOpened = false;
   private chestImage: Phaser.GameObjects.Image | null = null;
@@ -122,6 +145,7 @@ export class CaveScene extends Phaser.Scene {
   private solids: Box[] = [];
   private monsters: Monster[] = [];
   private rocks: Rock[] = [];
+  private isklumper: Isklump[] = [];
   private knight!: Phaser.GameObjects.Container;
   private knightBody!: Phaser.GameObjects.Image;
   private figureKey = "";
@@ -167,9 +191,11 @@ export class CaveScene extends Phaser.Scene {
     this.torches = [];
     this.torchLights = [];
     this.markerLights = [];
+    this.bossLight = null;
     this.stairsImage = null;
     this.stairsLocked = false;
     this.lockShown = false;
+    this.bottomNear = false;
     this.cacheImage = null;
     this.cacheOpened = false;
     this.chestImage = null;
@@ -179,6 +205,7 @@ export class CaveScene extends Phaser.Scene {
     this.restsReached = [];
     this.monsters = [];
     this.rocks = [];
+    this.isklumper = [];
     this.figureKey = "";
     this.clock = 0;
     this.hp = PLAYER_MAX_HP;
@@ -249,6 +276,7 @@ export class CaveScene extends Phaser.Scene {
     const teardown = () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, fit);
       this.clearFloorView();
+      this.clearIsklumper();
       if (this.knightLight) this.lights.removeLight(this.knightLight);
       this.knightLight = null;
       this.snow = null; // destroyed with the scene's display list
@@ -281,6 +309,7 @@ export class CaveScene extends Phaser.Scene {
     this.monsters.forEach((m) => this.removeMonster(m));
     this.rocks.forEach((r) => r.image.destroy());
     this.rocks = [];
+    this.clearIsklumper();
     const seed = Math.floor(Math.random() * 2 ** 31);
     this.seed = seed;
     const floor = generateFloor(this.depth, seed, previousRoom);
@@ -299,8 +328,23 @@ export class CaveScene extends Phaser.Scene {
       this.withLight(
         this.add.image(at.x, at.y, p.sheet, p.frame).setDepth(at.y - 8),
       );
-    this.stairsImage = prop(CAVE_PROPS.stairs, floor.stairs);
-    this.objects.push(this.stairsImage);
+    // The deepest floor has no stairs, only rubble where they would be: a
+    // floor tile just above the baked floor, nothing to break or bump into.
+    this.stairsImage =
+      this.depth < MAX_DEPTH ? prop(CAVE_PROPS.stairs, floor.stairs) : null;
+    this.objects.push(
+      this.stairsImage ??
+        this.withLight(
+          this.add
+            .image(
+              floor.stairs.x,
+              floor.stairs.y,
+              floor.sheet,
+              CAVE_FRAMES.floorRocks,
+            )
+            .setDepth(-0.5),
+        ),
+    );
     this.chestOpened =
       !!floor.chest && bridge.world.openedChests.includes(floor.chest.id);
     this.chestImage = floor.chest ? prop(CAVE_PROPS.chest, floor.chest) : null;
@@ -322,23 +366,41 @@ export class CaveScene extends Phaser.Scene {
     this.solids = [...floor.solids, ...this.rocks.map((r) => r.box)];
 
     // A rest floor draws one boss (its first spot), unless already beaten.
-    const bossSpawn =
-      floor.rest && !bridge.world.defeatedBosses.includes(BOSS)
-        ? floor.spawns.find((s) => s.enemy === BOSS)
-        : undefined;
+    const bossSpawn = floor.rest
+      ? floor.spawns.find(
+          (s) =>
+            BOSS_NAMES[s.enemy] &&
+            !bridge.world.defeatedBosses.includes(s.enemy),
+        )
+      : undefined;
     this.monsters = floor.spawns
       .filter((s) => PLAYABLE.includes(s.enemy) || s === bossSpawn)
       .map((s) => this.makeMonster(s.enemy, s, s.room));
     this.boss = bossSpawn
-      ? (this.monsters.find((m) => m.brain.enemy === BOSS) ?? null)
+      ? (this.monsters.find((m) => m.brain.enemy === bossSpawn.enemy) ?? null)
       : null;
     this.summoned = false;
+    if (this.lit && this.boss?.brain.enemy === "drake") {
+      const l = ICE_BOSS_LIGHT;
+      this.bossLight = this.lights.addLight(
+        this.boss.brain.x,
+        this.boss.brain.y - 8,
+        l.radius,
+        l.color,
+        l.intensity,
+        l.radius * l.height,
+      );
+    }
 
+    // No stairs, nothing to lock: the bottom never shows the lock line.
     this.stairsLocked =
-      floor.locked && this.monsters.some((m) => m.room === floor.stairsRoom);
+      !!this.stairsImage &&
+      floor.locked &&
+      this.monsters.some((m) => m.room === floor.stairsRoom);
     this.lockShown = false;
+    this.bottomNear = false;
     if (this.stairsLocked) {
-      this.stairsImage.setTint(LOCKED_TINT);
+      this.stairsImage?.setTint(LOCKED_TINT);
       if (this.markerLights[0]) this.markerLights[0].intensity = 0;
     }
 
@@ -364,6 +426,8 @@ export class CaveScene extends Phaser.Scene {
         .image(0, 0, def.sprite.sheet, def.sprite.frame)
         .setOrigin(0.5, 1),
     );
+    const tint = KIND_TINT[enemy] ?? null;
+    if (tint !== null) sprite.setTint(tint);
     const body = this.add.container(at.x, at.y, [
       this.withLight(this.add.image(0, 1, "shadow")),
       sprite,
@@ -378,6 +442,7 @@ export class CaveScene extends Phaser.Scene {
       marks: [],
       flashUntil: 0,
       white: false,
+      tint,
     };
   }
 
@@ -419,19 +484,21 @@ export class CaveScene extends Phaser.Scene {
           l.radius * l.height,
         ),
       );
-      const m = MARKER_LIGHT;
-      // Index 0 is the stairs; checkStairs relies on it.
+      // Index 0 is the stairs; checkStairs relies on it. The deepest floor
+      // lights its rubble more dimly, and has no lock for checkStairs to open.
+      const bottom = this.depth >= MAX_DEPTH;
       const spots = floor.chest ? [floor.stairs, floor.chest] : [floor.stairs];
-      this.markerLights = spots.map((p) =>
-        this.lights.addLight(
+      this.markerLights = spots.map((p, i) => {
+        const m = i === 0 && bottom ? BOTTOM_LIGHT : MARKER_LIGHT;
+        return this.lights.addLight(
           p.x,
           p.y,
           m.radius,
           m.color,
           m.intensity,
           m.radius * m.height,
-        ),
-      );
+        );
+      });
     }
     for (const d of floor.decor)
       this.objects.push(
@@ -455,8 +522,14 @@ export class CaveScene extends Phaser.Scene {
       this.lights.removeLight(l);
     });
     this.markerLights = [];
+    this.removeBossLight();
     if (this.textures.exists(FLOOR_TEXTURE))
       this.textures.remove(FLOOR_TEXTURE);
+  }
+
+  private removeBossLight() {
+    if (this.bossLight) this.lights.removeLight(this.bossLight);
+    this.bossLight = null;
   }
 
   // Whole-number zoom as in the village. A floor bigger than the view is
@@ -506,17 +579,18 @@ export class CaveScene extends Phaser.Scene {
         stairsLocked: this.lockShown,
         boss: this.boss
           ? {
-              name: BOSS_NAME,
+              name: BOSS_NAMES[this.boss.brain.enemy] ?? "",
               hp: this.boss.brain.hp,
               maxHp: this.boss.brain.maxHp,
             }
           : null,
+        bottomNear: this.bottomNear,
       },
     });
   }
 
   private descend() {
-    if (this.busy || this.stairsLocked) return;
+    if (this.busy || this.stairsLocked || this.depth >= MAX_DEPTH) return;
     this.busy = true;
     const cam = this.cameras.main;
     cam.fadeOut(FADE_MS);
@@ -624,6 +698,7 @@ export class CaveScene extends Phaser.Scene {
     const knightRoom = roomAt(this.knight.x, this.knight.y, this.floor.layout);
     if (!held) {
       this.stepMonsters(ms / 1000, knightRoom);
+      if (!this.busy) this.stepIsklumper(ms / 1000);
       // Blink while nothing can hurt the player.
       const safe = this.clock < this.invulnerableUntil;
       this.knight.alpha = safe && Math.floor(this.clock / 80) % 2 ? 0.3 : 1;
@@ -638,12 +713,15 @@ export class CaveScene extends Phaser.Scene {
 
     const { x, y } = this.knight;
     const { stairs } = this.floor;
+    const atStairs =
+      Phaser.Math.Distance.Between(x, y, stairs.x, stairs.y) < STAIRS_RANGE;
+    const bottom = this.depth >= MAX_DEPTH;
+    if (bottom && atStairs !== this.bottomNear) {
+      this.bottomNear = atStairs;
+      this.announce();
+    }
     let zone: Zone = null;
-    if (
-      !this.stairsLocked &&
-      Phaser.Math.Distance.Between(x, y, stairs.x, stairs.y) < STAIRS_RANGE
-    )
-      zone = "caveStairs";
+    if (!bottom && !this.stairsLocked && atStairs) zone = "caveStairs";
     else if (!this.cacheOpened && this.nearCache()) zone = "caveCache";
     else if (this.chestOpenable() && this.nearChest()) zone = "caveChest";
     bridge.setZone(zone);
@@ -655,6 +733,10 @@ export class CaveScene extends Phaser.Scene {
     if (this.knightLight) {
       this.knightLight.x = this.knight.x;
       this.knightLight.y = this.knight.y - 8;
+    }
+    if (this.bossLight && this.boss) {
+      this.bossLight.x = this.boss.brain.x;
+      this.bossLight.y = this.boss.brain.y - 8;
     }
     if (!this.reducedMotion) {
       const { radius } = TORCH_LIGHT;
@@ -767,10 +849,48 @@ export class CaveScene extends Phaser.Scene {
         m.room === knightRoom,
       );
       m.brain = r.brain;
+      // Past the cap the shot is lost; the brain's cooldown runs on anyway.
+      if (r.shot && this.isklumper.length < MAX_PROJECTILES)
+        this.isklumper.push({
+          p: spawnProjectile(r.shot),
+          image: this.withLight(
+            this.add
+              .image(r.shot.x, r.shot.y, "dungeon", ISKLUMP_FRAME)
+              .setOrigin(0.5, 1)
+              .setDepth(r.shot.y),
+          ),
+        });
       if (r.strike > 0) this.struck(m.brain, r.strike);
       if (this.busy) return; // fainted
     }
   }
+
+  // `dt` is the clamped step: stepProjectile does not cut long frames itself.
+  private stepIsklumper(dt: number) {
+    for (const k of [...this.isklumper]) {
+      const r = stepProjectile(k.p, dt, this.blocked, this.feet());
+      k.p = r.p;
+      k.image.setPosition(k.p.x, k.p.y).setDepth(k.p.y);
+      if (!k.p.alive) {
+        k.image.destroy();
+        this.isklumper = this.isklumper.filter((x) => x !== k);
+      }
+      if (r.hit > 0) this.struck(k.p, r.hit);
+      if (this.busy) return; // fainted
+    }
+  }
+
+  private clearIsklumper() {
+    this.isklumper.forEach((k) => k.image.destroy());
+    this.isklumper = [];
+  }
+
+  // Walls and the rocks still standing, tested with the same 8 × 4 feet box
+  // as moveBox, so an isklump stops where a walker would.
+  private blocked = (x: number, y: number) =>
+    this.solids.some(
+      (s) => x - 4 < s.x + s.w && x + 4 > s.x && y - 4 < s.y + s.h && y > s.y,
+    );
 
   private struck(from: Point, damage: number) {
     if (bridge.world.caveGod || this.clock < this.invulnerableUntil) return;
@@ -805,6 +925,9 @@ export class CaveScene extends Phaser.Scene {
     // The bite's tell: a ±1 px shake.
     m.sprite.x =
       b.mode === "tell" ? (Math.floor(this.clock / 40) % 2) * 2 - 1 : 0;
+    // The throw's tell: lifted and white. Set, not added, so it never builds up.
+    const aim = b.mode === "aim";
+    m.sprite.y = aim ? -AIM_LIFT : 0;
 
     const windup = b.mode === "windup";
     if (windup && !m.marks.length) {
@@ -822,11 +945,14 @@ export class CaveScene extends Phaser.Scene {
       m.marks = [];
     }
 
-    const white = windup || this.clock < m.flashUntil;
+    const white = windup || aim || this.clock < m.flashUntil;
     if (white === m.white) return;
     m.white = white;
     if (white) m.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
-    else m.sprite.clearTint();
+    else {
+      m.sprite.clearTint(); // back to multiply
+      if (m.tint !== null) m.sprite.setTint(m.tint);
+    }
     // A lit sprite would multiply the white down to slate.
     if (this.lit) m.sprite.setLighting(!white);
   }
@@ -865,6 +991,7 @@ export class CaveScene extends Phaser.Scene {
         // A boss's XP comes from its fact, so it never counts as a monster.
         if (m === this.boss) {
           this.boss = null;
+          this.removeBossLight();
           bridge.emit("bossDefeated", m.brain.enemy);
           this.announce();
         } else
@@ -892,7 +1019,13 @@ export class CaveScene extends Phaser.Scene {
         m.marks = [];
       }
       if (m === this.boss) {
-        if (!this.summoned && hp <= m.brain.maxHp / 2) this.summon(m);
+        // Only the yeti calls rats.
+        if (
+          m.brain.enemy === "yeti" &&
+          !this.summoned &&
+          hp <= m.brain.maxHp / 2
+        )
+          this.summon(m);
         this.announce();
       }
     }
@@ -996,7 +1129,7 @@ export class CaveScene extends Phaser.Scene {
   private chestOpenable() {
     return (
       !!this.floor.chest &&
-      this.depth === CHEST_DEPTH &&
+      CHEST_DEPTHS.includes(this.depth) &&
       !this.boss &&
       !this.chestOpened
     );

@@ -4,6 +4,7 @@ export default function CaveHud({
   found,
   boss,
   stairsLocked,
+  bottomNear,
   onLeave,
   onAttack,
   waiting = false,
@@ -14,6 +15,8 @@ export default function CaveHud({
   boss?: { name: string; hp: number; maxHp: number } | null;
   // The knight is in the stairs room and its monsters still guard the way.
   stairsLocked?: boolean;
+  // On the deepest floor, where the stairs would be.
+  bottomNear?: boolean;
   onLeave: () => void;
   // Only given on narrow screens, where there is no Space key.
   onAttack?: () => void;
@@ -48,6 +51,11 @@ export default function CaveHud({
       {stairsLocked && (
         <span className="cave-hud-locked">
           Trappa er stengt. Slå monstrene i rommet først.
+        </span>
+      )}
+      {bottomNear && (
+        <span className="cave-hud-locked">
+          Lenger ned er det ikke gravd ennå.
         </span>
       )}
       {onAttack && (
