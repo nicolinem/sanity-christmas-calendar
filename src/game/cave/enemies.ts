@@ -22,6 +22,8 @@ export type EnemyDef = {
   weakTo?: Element;
   immuneTo?: Element;
   flies?: true;
+  // The sheet frame looks right; the scene assumes left unless this is set.
+  facesRight?: true;
 };
 
 const d = (frame: number): SpriteDef => ({ sheet: "dungeon", frame });
@@ -37,6 +39,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     speed: 46,
     moves: [{ kind: "chase" }],
     xp: 10,
+    facesRight: true,
   },
   slime: {
     name: "Slim",

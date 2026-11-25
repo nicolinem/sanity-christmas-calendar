@@ -22,7 +22,17 @@ import {
 } from "./combat";
 import { ENEMIES, PLAYABLE } from "./enemies";
 import { generateFloor, type Floor, type Point } from "./generate";
-import { CAMERA_PAD_TILES, ROOF_TINT } from "./mood";
+import {
+  AMBIENT,
+  AMBIENT_DEEP,
+  CAMERA_PAD_TILES,
+  DEEP_FROM,
+  PLAYER_LIGHT,
+  ROOF_TINT,
+  SNOW,
+  TORCH_FLICKER,
+  TORCH_LIGHT,
+} from "./mood";
 import { CAVE_PROPS } from "./props";
 import { CAVE_FRAMES } from "./rooms";
 
@@ -46,6 +56,7 @@ type Monster = {
   brain: Brain;
   body: Phaser.GameObjects.Container; // at the feet, like the knight
   sprite: Phaser.GameObjects.Image;
+  facesRight: boolean; // the sheet frame looks right, not left
   marks: Phaser.GameObjects.Image[]; // the charge's line, only during windup
   flashUntil: number; // scene clock
   white: boolean; // the sprite is drawn with a white fill tint
@@ -67,6 +78,20 @@ export class CaveScene extends Phaser.Scene {
   private floorImage: Phaser.GameObjects.Image | null = null; // the baked floor
   // One image per torch over the baked floor, so each can be lit on its own.
   private torches: Phaser.GameObjects.Image[] = [];
+  // WebGL lighting is on; Canvas has none and draws everything unlit.
+  private lit = false;
+  private knightLight: Phaser.GameObjects.Light | null = null;
+  private torchLights: Phaser.GameObjects.Light[] = [];
+  private snow: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
+  // Each flake starts somewhere along the top edge of the view, read when it
+  // is emitted, so the camera can move freely.
+  private snowSource = {
+    getRandomPoint: (p: Phaser.Types.Math.Vector2Like) => {
+      const view = this.cameras.main.worldView;
+      p.x = view.x + Math.random() * view.width;
+      p.y = view.y - 4;
+    },
+  };
   private solids: Box[] = [];
   private monsters: Monster[] = [];
   private rocks: Rock[] = [];
@@ -113,6 +138,7 @@ export class CaveScene extends Phaser.Scene {
     this.objects = [];
     this.floorImage = null;
     this.torches = [];
+    this.torchLights = [];
     this.monsters = [];
     this.rocks = [];
     this.figureKey = "";
@@ -130,8 +156,24 @@ export class CaveScene extends Phaser.Scene {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    const shadow = this.add.image(0, 1, "shadow");
-    this.knightBody = this.add.image(0, 0, "dungeon", 96).setOrigin(0.5, 1);
+    this.lit = this.renderer.type === Phaser.WEBGL;
+    this.knightLight = null;
+    if (this.lit) {
+      this.lights.enable();
+      const l = PLAYER_LIGHT;
+      this.knightLight = this.lights.addLight(
+        0,
+        0,
+        l.radius,
+        l.color,
+        l.intensity,
+      );
+    }
+
+    const shadow = this.withLight(this.add.image(0, 1, "shadow"));
+    this.knightBody = this.withLight(
+      this.add.image(0, 0, "dungeon", 96).setOrigin(0.5, 1),
+    );
     this.knight = this.add.container(0, 0, [shadow, this.knightBody]);
 
     const cam = this.cameras.main;
@@ -139,6 +181,7 @@ export class CaveScene extends Phaser.Scene {
     cam.setRoundPixels(true);
 
     this.setupInput();
+    this.snow = this.reducedMotion ? null : this.makeSnow();
     this.buildFloor(undefined); // also fits the camera to the floor
     this.setFigure(bridge.world.figure);
 
@@ -165,6 +208,9 @@ export class CaveScene extends Phaser.Scene {
     const teardown = () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, fit);
       this.clearFloorView();
+      if (this.knightLight) this.lights.removeLight(this.knightLight);
+      this.knightLight = null;
+      this.snow = null; // destroyed with the scene's display list
       this.unsubscribe.forEach((u) => u());
       this.unsubscribe = [];
       bridge.setZone(null);
@@ -172,6 +218,12 @@ export class CaveScene extends Phaser.Scene {
     // game.destroy() only fires DESTROY; a scene stop only fires SHUTDOWN.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, teardown);
     this.events.once(Phaser.Scenes.Events.DESTROY, teardown);
+  }
+
+  // Draw `o` under the scene's lights when there are any (WebGL).
+  private withLight<T extends Phaser.GameObjects.Image>(o: T): T {
+    if (this.lit) o.setLighting(true);
+    return o;
   }
 
   // Busy with a fade, a dialogue open, or the player away: nothing moves.
@@ -192,12 +244,19 @@ export class CaveScene extends Phaser.Scene {
     const floor = generateFloor(this.depth, seed, previousRoom);
     this.floor = floor;
     this.rows = [...floor.rows];
+    if (this.lit)
+      this.lights.setAmbientColor(
+        this.depth >= DEEP_FROM ? AMBIENT_DEEP : AMBIENT,
+      );
 
     this.drawFloorView(floor);
     const prop = (
       p: { sheet: "dungeon" | "ski"; frame: number },
       at: { x: number; y: number },
-    ) => this.add.image(at.x, at.y, p.sheet, p.frame).setDepth(at.y - 8);
+    ) =>
+      this.withLight(
+        this.add.image(at.x, at.y, p.sheet, p.frame).setDepth(at.y - 8),
+      );
     this.objects.push(prop(CAVE_PROPS.stairs, floor.stairs));
     if (floor.chest) this.objects.push(prop(CAVE_PROPS.chest, floor.chest));
     this.rocks = floor.rocks.map((r) => ({
@@ -214,18 +273,21 @@ export class CaveScene extends Phaser.Scene {
       .filter((s) => PLAYABLE.includes(s.enemy))
       .slice(0, MAX_MONSTERS)
       .map((s) => {
-        const def = ENEMIES[s.enemy].sprite;
-        const sprite = this.add
-          .image(0, 0, def.sheet, def.frame)
-          .setOrigin(0.5, 1);
+        const def = ENEMIES[s.enemy];
+        const sprite = this.withLight(
+          this.add
+            .image(0, 0, def.sprite.sheet, def.sprite.frame)
+            .setOrigin(0.5, 1),
+        );
         const body = this.add.container(s.x, s.y, [
-          this.add.image(0, 1, "shadow"),
+          this.withLight(this.add.image(0, 1, "shadow")),
           sprite,
         ]);
         return {
           brain: spawnBrain(s.enemy, s, this.depth),
           body,
           sprite,
+          facesRight: !!def.facesRight,
           marks: [],
           flashUntil: 0,
           white: false,
@@ -255,27 +317,38 @@ export class CaveScene extends Phaser.Scene {
         ),
       );
       baked.render();
-      this.floorImage = this.add
-        .image(0, 0, FLOOR_TEXTURE)
-        .setOrigin(0)
-        .setDepth(-1);
+      this.floorImage = this.withLight(
+        this.add.image(0, 0, FLOOR_TEXTURE).setOrigin(0).setDepth(-1),
+      );
     }
-    // Exactly over the torch frame in the baked floor.
+    // Exactly over the torch frame in the baked floor. The flames stay unlit,
+    // so they glow; each casts its own warm light.
     this.torches = floor.torches.map((t) =>
       this.add.image(t.x, t.y, floor.sheet, CAVE_FRAMES.torch).setDepth(-0.5),
     );
+    if (this.lit) {
+      const l = TORCH_LIGHT;
+      this.torchLights = floor.torches.map((t) =>
+        this.lights.addLight(t.x, t.y, l.radius, l.color, l.intensity),
+      );
+    }
     for (const d of floor.decor)
       this.objects.push(
-        this.add.image(d.x, d.y, d.sheet, d.frame).setDepth(d.y),
+        this.withLight(
+          this.add.image(d.x, d.y, d.sheet, d.frame).setDepth(d.y),
+        ),
       );
   }
 
-  // The baked floor and the torches go with their floor, and with the scene.
+  // The baked floor and the torches (and their lights) go with their floor,
+  // and with the scene.
   private clearFloorView() {
     this.floorImage?.destroy();
     this.floorImage = null;
     this.torches.forEach((t) => t.destroy());
     this.torches = [];
+    this.torchLights.forEach((l) => this.lights.removeLight(l));
+    this.torchLights = [];
     if (this.textures.exists(FLOOR_TEXTURE))
       this.textures.remove(FLOOR_TEXTURE);
   }
@@ -288,6 +361,10 @@ export class CaveScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const zoom = integerZoom(width, height, TARGET_VIEW);
     cam.setZoom(zoom);
+    // The slowest flake lives long enough to cross the whole view.
+    if (this.snow)
+      this.snow.lifespan =
+        ((height / zoom + TILE) / (SNOW.fallSpeed * 0.8)) * 1000;
     const floorW = this.floor.rows[0].length * TILE;
     const floorH = this.floor.rows.length * TILE;
     if (floorW * zoom <= width && floorH * zoom <= height) {
@@ -417,12 +494,13 @@ export class CaveScene extends Phaser.Scene {
     });
   }
 
-  update(_time: number, delta: number) {
+  update(time: number, delta: number) {
     const ms = Math.min(delta, MAX_STEP_MS);
     const held = this.held();
     if (!held) this.clock += ms;
     this.moveKnight(ms / 1000, !held);
     this.knight.setDepth(this.knight.y);
+    this.updateMood(time, held);
     if (!held) {
       this.stepMonsters(ms / 1000);
       // Blink while nothing can hurt the player.
@@ -438,6 +516,38 @@ export class CaveScene extends Phaser.Scene {
         this.floor.stairs.y,
       ) < STAIRS_RANGE;
     bridge.setZone(near ? "caveStairs" : null);
+  }
+
+  // Lights, torch flicker and snow, all changed in place. The flicker is
+  // cosmetic, so it runs on Phaser's time rather than the scene clock.
+  private updateMood(time: number, held: boolean) {
+    if (this.knightLight) {
+      this.knightLight.x = this.knight.x;
+      this.knightLight.y = this.knight.y - 8;
+    }
+    if (!this.reducedMotion) {
+      const { radius } = TORCH_LIGHT;
+      const { amount, hz } = TORCH_FLICKER;
+      const w = 2 * Math.PI * hz * (time / 1000);
+      for (let i = 0; i < this.torchLights.length; i++)
+        this.torchLights[i].radius =
+          radius * (1 + amount * Math.sin(w + i * 2.4));
+    }
+    if (this.snow && this.snow.emitting === held) this.snow.emitting = !held;
+  }
+
+  // A few slow flakes falling from the top of the view.
+  private makeSnow() {
+    return this.add
+      .particles(0, 0, "px", {
+        emitZone: { type: "random", source: this.snowSource },
+        speedY: { min: SNOW.fallSpeed * 0.8, max: SNOW.fallSpeed * 1.2 },
+        speedX: { min: -3, max: 3 },
+        frequency: 1000 / SNOW.perSecond,
+        tint: 0xffffff,
+        alpha: SNOW.alpha,
+      })
+      .setDepth(10005); // over the floor and figures, under floatText
   }
 
   private moveKnight(dt: number, free: boolean) {
@@ -543,6 +653,9 @@ export class CaveScene extends Phaser.Scene {
   private drawMonster(m: Monster) {
     const b = m.brain;
     m.body.setPosition(b.x, b.y).setDepth(b.y);
+    // Face the knight; frames look left unless the kind says otherwise.
+    const right = this.knight.x > b.x;
+    m.sprite.setFlipX(m.facesRight ? !right : right);
     // The bite's tell: a ±1 px shake.
     m.sprite.x =
       b.mode === "tell" ? (Math.floor(this.clock / 40) % 2) * 2 - 1 : 0;
