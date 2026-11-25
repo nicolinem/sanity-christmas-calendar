@@ -51,7 +51,6 @@ test("floor sizes: 2×1 rooms on 1–2, 2×2 on 3, one room on 5", () => {
 });
 
 test("the stairs are never in the start room; no monsters there on 1–2", () => {
-  const tile = (p) => [(p.x - 8) / 16, (p.y - 8) / 16];
   const inStart = (p) => p.x < 24 * 16 && p.y < 14 * 16;
   for (let depth = 1; depth <= 12; depth++) {
     if (depth % 5 === 0) continue;
@@ -61,20 +60,25 @@ test("the stairs are never in the start room; no monsters there on 1–2", () =>
       assert.equal(inStart(f.stairs), false);
       if (depth <= 2) for (const s of f.spawns) assert.equal(inStart(s), false);
       else assert.ok(f.spawns.filter(inStart).length <= 1);
-      void tile;
     }
   }
 });
 
-test("every room's floor can be reached from the start", () => {
+test("the stairs and every room's floor can be reached from the start", () => {
   const T = 16;
   for (let depth = 1; depth <= 12; depth++) {
-    for (let seed = 0; seed < 1000; seed += 5) {
+    for (let seed = 0; seed < 1000; seed += 1) {
       const f = generateFloor(depth, seed);
       const seen = reachable(f.rows, [
         (f.start.x - 8) / T,
         (f.start.y - 8) / T,
       ]);
+      const tx = (f.stairs.x - 8) / T;
+      const ty = (f.stairs.y - 8) / T;
+      assert.ok(
+        seen.has(`${tx},${ty}`),
+        `stairs at depth ${depth} seed ${seed}`,
+      );
       for (let ry = 0; ry < f.rows.length / 14; ry++)
         for (let rx = 0; rx < f.rows[0].length / 24; rx++) {
           let any = false;

@@ -48,6 +48,10 @@ test("stitchRooms: 2×2 opens vertical walls too", () => {
     rng,
   );
   assert.equal(out.length, 28);
+  const xs = [...out[13].slice(0, 24)]
+    .map((c, x) => (c === "." && out[14][x] === "." ? x : -1))
+    .filter((x) => x >= 0);
+  assert.ok(xs.length >= 1);
   assert.ok(out[13].slice(0, 24).includes("."));
   assert.ok(out[14].slice(0, 24).includes("."));
 });

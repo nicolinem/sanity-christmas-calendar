@@ -153,6 +153,7 @@ export function generateFloor(
       for (const s of spots.slice(0, count))
         spawns.push({ enemy: pick(kinds), ...center(s) });
     }
+    // A guard: today's layouts cannot exceed 10.
     spawns = spawns.slice(0, MAX_SPAWNS_PER_FLOOR);
   }
 

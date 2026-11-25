@@ -182,8 +182,8 @@ export function mirror(rows: string[]): string[] {
 export function reachable(rows: string[], from: [number, number]): Set<string> {
   const seen = new Set<string>([`${from[0]},${from[1]}`]);
   const queue: [number, number][] = [from];
-  while (queue.length) {
-    const [x, y] = queue.shift()!;
+  for (let head = 0; head < queue.length; head++) {
+    const [x, y] = queue[head];
     for (const [dx, dy] of [
       [1, 0],
       [-1, 0],
