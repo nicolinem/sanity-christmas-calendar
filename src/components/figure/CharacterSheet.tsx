@@ -456,22 +456,22 @@ export default function CharacterSheet({
                       )}
                     </div>
                   )}
-                  {found.length > 0 && (
-                    <div className="cs-found">
-                      <p className="cs-found-title">Fra grotta</p>
-                      <ul>
-                        {found.map((id) => (
-                          <li key={id}>
-                            <SpriteIcon sprite={MATERIALS[id].sprite} />
-                            <span>{MATERIALS[id].name}</span>
-                            <span>× {materials[id]}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </>
               ))}
+            {mode === "bag" && found.length > 0 && (
+              <div className="cs-found">
+                <p className="cs-found-title">Fra grotta</p>
+                <ul>
+                  {found.map((id) => (
+                    <li key={id}>
+                      <SpriteIcon sprite={MATERIALS[id].sprite} />
+                      <span>{MATERIALS[id].name}</span>
+                      <span>× {materials[id]}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {mode !== "bag" && (
               <>
                 {cat.part && current && (

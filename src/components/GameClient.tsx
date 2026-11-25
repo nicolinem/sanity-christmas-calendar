@@ -202,6 +202,15 @@ function useCaveView() {
   return room === null || seed === null ? null : { room, seed };
 }
 
+// False while rendering on the server and during hydration, true after.
+function useHydrated() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 function useZone() {
   return useSyncExternalStore<Zone>(
     (cb) => bridge.on("zone", cb),
@@ -306,18 +315,22 @@ export default function GameClient() {
   } = useProgress();
   // A level gained from monsters, bosses or side quests gets a toast. The
   // first run only records the level, so a reload never shows it.
+  // Until hydrated the level is the server's empty progress, not the player's.
+  const hydrated = useHydrated();
   const shownLevel = useRef<number | null>(null);
   useEffect(() => {
-    if (!FEATURES.rpg) return;
+    if (!FEATURES.rpg || !hydrated) return;
     const before = shownLevel.current;
     shownLevel.current = forgeLevel;
     if (before === null) return;
+    // A progress reset: forget the luke levels it announced.
+    if (forgeLevel < before) lukeLevel.current = 0;
     const fromLuke = forgeLevel <= lukeLevel.current;
     const toast = levelUpToast(before, forgeLevel, fromLuke);
     if (!toast) return;
     pushToast({ ...toast, tone: "forge" });
     bridge.emit("forgeLevelUp", forgeLevel);
-  }, [forgeLevel]);
+  }, [forgeLevel, hydrated]);
   const [entryStage, setEntryStage] = useState<
     "title" | "track" | "welcome" | "share" | "figure" | "game"
   >("title");
