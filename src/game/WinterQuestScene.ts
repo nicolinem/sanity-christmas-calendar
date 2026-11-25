@@ -1,5 +1,7 @@
 import Phaser from "phaser";
-import { FIGURE_SIZE, drawFigure, type FigureChoice } from "./figure";
+import type { FigureChoice } from "./figure";
+import { figureTexture } from "./figureTexture";
+import { moveBox, type Box } from "./walk";
 import {
   bridge,
   type DoorMarker,
@@ -7,7 +9,8 @@ import {
   type WorldState,
   type Zone,
 } from "./bridge";
-import { SHEETS, TILE, type SpriteDef } from "./sprites";
+import { LUKE_LEVEL_CAP } from "./rules";
+import { SHEETS, TILE, VILLAGE_SHEETS, type SpriteDef } from "./sprites";
 import {
   BUILDINGS,
   FORGE_FIRE,
@@ -40,8 +43,6 @@ const TARGET_VIEW = { w: 480, h: 300 }; // world px we aim to show
 
 const FORGE_RANGE = 28;
 const WRAITH_RANGE = 40;
-
-type Box = { x: number; y: number; w: number; h: number };
 
 export class WinterQuestScene extends Phaser.Scene {
   private knight!: Phaser.GameObjects.Container;
@@ -90,8 +91,8 @@ export class WinterQuestScene extends Phaser.Scene {
 
   preload() {
     const frame = { frameWidth: TILE, frameHeight: TILE };
-    for (const [key, sheet] of Object.entries(SHEETS))
-      this.load.spritesheet(key, sheet.url, frame);
+    for (const key of VILLAGE_SHEETS)
+      this.load.spritesheet(key, SHEETS[key].url, frame);
   }
 
   create() {
@@ -544,19 +545,8 @@ export class WinterQuestScene extends Phaser.Scene {
       this.figureKey = "";
       return;
     }
-    const key = `figure:${JSON.stringify(choice)}`;
+    const key = figureTexture(this.textures, choice);
     if (key === this.figureKey) return;
-    if (!this.textures.exists(key)) {
-      const tex = this.textures.createCanvas(key, FIGURE_SIZE, FIGURE_SIZE)!;
-      tex
-        .getContext()
-        .putImageData(
-          new ImageData(drawFigure(choice), FIGURE_SIZE, FIGURE_SIZE),
-          0,
-          0,
-        );
-      tex.refresh();
-    }
     this.knightBody.setTexture(key);
     this.figureKey = key;
   }
@@ -574,8 +564,9 @@ export class WinterQuestScene extends Phaser.Scene {
     this.syncSideSpots(w.sideSpots);
     this.syncDoors(w.doors);
     // A cold forge smoulders; once lit it burns brighter with every level.
-    this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
-    this.sparks.frequency = w.forgeLit ? Math.round(150 / w.forgeLevel) : 260;
+    const forge = Math.min(LUKE_LEVEL_CAP, w.forgeLevel);
+    this.forgeGlow.setScale(w.forgeLit ? 3.4 + forge * 0.3 : 3);
+    this.sparks.frequency = w.forgeLit ? Math.round(150 / forge) : 260;
     if (w.frozen) {
       this.moveTarget = null;
       this.route = [];
@@ -931,17 +922,8 @@ export class WinterQuestScene extends Phaser.Scene {
   }
 
   private tryMove(dx: number, dy: number) {
-    const nx = this.knight.x + dx;
-    const ny = this.knight.y + dy;
-    const feet = { x: nx - 4, y: ny - 4, w: 8, h: 4 };
-    const blocked = this.solids.some(
-      (s) =>
-        feet.x < s.x + s.w &&
-        feet.x + feet.w > s.x &&
-        feet.y < s.y + s.h &&
-        feet.y + feet.h > s.y,
-    );
-    if (!blocked) this.knight.setPosition(nx, ny);
+    const p = moveBox(this.knight, dx, dy, this.solids);
+    this.knight.setPosition(p.x, p.y);
   }
 
   private moveWraith(dt: number) {

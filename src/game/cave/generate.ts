@@ -1,11 +1,11 @@
 import { enemiesAt, type EnemyId } from "./enemies";
 import { rng } from "./random";
+import type { Box } from "../walk";
 import { CAVE_FRAMES, REST_ROOMS, ROOMS, mirror } from "./rooms";
 
 const TILE = 16;
 
 export type Point = { x: number; y: number };
-export type Box = { x: number; y: number; w: number; h: number };
 
 export type Floor = {
   depth: number; // 1-based dungeon depth; drives the enemy mix
