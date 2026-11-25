@@ -16,6 +16,7 @@ import {
   INVULNERABLE_MS,
   KNOCK_ENEMY,
   KNOCK_PLAYER,
+  MAX_PROJECTILES,
   PLAYER_MAX_HP,
   rockDrop,
   type Facing,
@@ -35,6 +36,11 @@ import {
   TORCH_FLICKER,
   TORCH_LIGHT,
 } from "./mood";
+import {
+  spawnProjectile,
+  stepProjectile,
+  type Projectile,
+} from "./projectiles";
 import { CAVE_PROPS } from "./props";
 import { CAVE_FRAMES } from "./rooms";
 
@@ -53,6 +59,8 @@ const FADE_MS = 200;
 const MAX_STEP_MS = 50; // a long frame (tab switch, GC) is cut to this
 const FLASH_MS = 90; // white flash on a monster that was hit
 const MARK_GAP = 10; // px between the marks of a charge's line
+const AIM_LIFT = 3; // px a thrower rises while it aims
+const ISKLUMP_FRAME = 56; // dungeon sheet: the ice lump a thrower throws
 const FLOOR_TEXTURE = "cave-floor"; // floor and walls, baked once per floor
 
 const FACING_STEP: Record<Facing, Point> = {
@@ -75,6 +83,8 @@ type Monster = {
 };
 
 type Rock = Point & { image: Phaser.GameObjects.Image; box: Box };
+
+type Isklump = { p: Projectile; image: Phaser.GameObjects.Image };
 
 // The cave: one generated floor at a time, seen from above; the camera follows
 // the knight when the floor is bigger than the view. Monsters chase and
@@ -122,6 +132,7 @@ export class CaveScene extends Phaser.Scene {
   private solids: Box[] = [];
   private monsters: Monster[] = [];
   private rocks: Rock[] = [];
+  private isklumper: Isklump[] = [];
   private knight!: Phaser.GameObjects.Container;
   private knightBody!: Phaser.GameObjects.Image;
   private figureKey = "";
@@ -179,6 +190,7 @@ export class CaveScene extends Phaser.Scene {
     this.restsReached = [];
     this.monsters = [];
     this.rocks = [];
+    this.isklumper = [];
     this.figureKey = "";
     this.clock = 0;
     this.hp = PLAYER_MAX_HP;
@@ -249,6 +261,7 @@ export class CaveScene extends Phaser.Scene {
     const teardown = () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, fit);
       this.clearFloorView();
+      this.clearIsklumper();
       if (this.knightLight) this.lights.removeLight(this.knightLight);
       this.knightLight = null;
       this.snow = null; // destroyed with the scene's display list
@@ -281,6 +294,7 @@ export class CaveScene extends Phaser.Scene {
     this.monsters.forEach((m) => this.removeMonster(m));
     this.rocks.forEach((r) => r.image.destroy());
     this.rocks = [];
+    this.clearIsklumper();
     const seed = Math.floor(Math.random() * 2 ** 31);
     this.seed = seed;
     const floor = generateFloor(this.depth, seed, previousRoom);
@@ -624,6 +638,7 @@ export class CaveScene extends Phaser.Scene {
     const knightRoom = roomAt(this.knight.x, this.knight.y, this.floor.layout);
     if (!held) {
       this.stepMonsters(ms / 1000, knightRoom);
+      if (!this.busy) this.stepIsklumper(ms / 1000);
       // Blink while nothing can hurt the player.
       const safe = this.clock < this.invulnerableUntil;
       this.knight.alpha = safe && Math.floor(this.clock / 80) % 2 ? 0.3 : 1;
@@ -767,10 +782,48 @@ export class CaveScene extends Phaser.Scene {
         m.room === knightRoom,
       );
       m.brain = r.brain;
+      // Past the cap the shot is lost; the brain's cooldown runs on anyway.
+      if (r.shot && this.isklumper.length < MAX_PROJECTILES)
+        this.isklumper.push({
+          p: spawnProjectile(r.shot),
+          image: this.withLight(
+            this.add
+              .image(r.shot.x, r.shot.y, "dungeon", ISKLUMP_FRAME)
+              .setOrigin(0.5, 1)
+              .setDepth(r.shot.y),
+          ),
+        });
       if (r.strike > 0) this.struck(m.brain, r.strike);
       if (this.busy) return; // fainted
     }
   }
+
+  // `dt` is the clamped step: stepProjectile does not cut long frames itself.
+  private stepIsklumper(dt: number) {
+    for (const k of [...this.isklumper]) {
+      const r = stepProjectile(k.p, dt, this.blocked, this.feet());
+      k.p = r.p;
+      k.image.setPosition(k.p.x, k.p.y).setDepth(k.p.y);
+      if (!k.p.alive) {
+        k.image.destroy();
+        this.isklumper = this.isklumper.filter((x) => x !== k);
+      }
+      if (r.hit > 0) this.struck(k.p, r.hit);
+      if (this.busy) return; // fainted
+    }
+  }
+
+  private clearIsklumper() {
+    this.isklumper.forEach((k) => k.image.destroy());
+    this.isklumper = [];
+  }
+
+  // Walls and the rocks still standing, tested with the same 8 × 4 feet box
+  // as moveBox, so an isklump stops where a walker would.
+  private blocked = (x: number, y: number) =>
+    this.solids.some(
+      (s) => x - 4 < s.x + s.w && x + 4 > s.x && y - 4 < s.y + s.h && y > s.y,
+    );
 
   private struck(from: Point, damage: number) {
     if (bridge.world.caveGod || this.clock < this.invulnerableUntil) return;
@@ -805,6 +858,9 @@ export class CaveScene extends Phaser.Scene {
     // The bite's tell: a ±1 px shake.
     m.sprite.x =
       b.mode === "tell" ? (Math.floor(this.clock / 40) % 2) * 2 - 1 : 0;
+    // The throw's tell: lifted and white. Set, not added, so it never builds up.
+    const aim = b.mode === "aim";
+    m.sprite.y = aim ? -AIM_LIFT : 0;
 
     const windup = b.mode === "windup";
     if (windup && !m.marks.length) {
@@ -822,7 +878,7 @@ export class CaveScene extends Phaser.Scene {
       m.marks = [];
     }
 
-    const white = windup || this.clock < m.flashUntil;
+    const white = windup || aim || this.clock < m.flashUntil;
     if (white === m.white) return;
     m.white = white;
     if (white) m.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
