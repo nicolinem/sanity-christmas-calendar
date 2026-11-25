@@ -25,6 +25,7 @@ export const EMPTY_PROGRESS: Progress = {
   found: {},
   xp: 0,
   inventory: {},
+  deepest: 0,
 };
 
 // A stored record that is a plain object, else an empty one.
@@ -106,6 +107,10 @@ export function readProgress(project: string): Progress {
               ([, count]) => Number.isInteger(count) && (count as number) >= 0,
             ),
           ) as Record<string, number>,
+          deepest:
+            Number.isInteger(saved.deepest) && (saved.deepest as number) >= 0
+              ? (saved.deepest as number)
+              : 0,
         };
       }
     }

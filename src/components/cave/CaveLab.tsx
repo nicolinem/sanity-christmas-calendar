@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ENEMIES } from "@/game/cave/enemies";
 import { generateFloor } from "@/game/cave/generate";
+import { CAVE_PROPS } from "@/game/cave/props";
 import { ROOM_H, ROOM_W } from "@/game/cave/rooms";
 import { SHEETS, type SpriteDef } from "@/game/sprites";
 
@@ -11,9 +12,6 @@ import { SHEETS, type SpriteDef } from "@/game/sprites";
 
 const SCALE = 3;
 const TILE = 16;
-const STAIRS: SpriteDef = { sheet: "dungeon", frame: 55 };
-const ROCK: SpriteDef = { sheet: "dungeon", frame: 24 };
-const CHEST: SpriteDef = { sheet: "dungeon", frame: 89 };
 
 const newSeed = () => Math.floor(Math.random() * 100000);
 
@@ -88,9 +86,9 @@ export default function CaveLab() {
             ),
           ),
         );
-        sprite(STAIRS, floor.stairs.x, floor.stairs.y);
-        floor.rocks.forEach((r) => sprite(ROCK, r.x, r.y));
-        if (floor.chest) sprite(CHEST, floor.chest.x, floor.chest.y);
+        sprite(CAVE_PROPS.stairs, floor.stairs.x, floor.stairs.y);
+        floor.rocks.forEach((r) => sprite(CAVE_PROPS.rock, r.x, r.y));
+        if (floor.chest) sprite(CAVE_PROPS.chest, floor.chest.x, floor.chest.y);
         floor.spawns.forEach((s) => sprite(ENEMIES[s.enemy].sprite, s.x, s.y));
         // S marks where you arrive.
         ctx.font = `bold ${8 * SCALE}px sans-serif`;

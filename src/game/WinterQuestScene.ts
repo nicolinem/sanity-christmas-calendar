@@ -1,5 +1,8 @@
 import Phaser from "phaser";
-import { FIGURE_SIZE, drawFigure, type FigureChoice } from "./figure";
+import type { FigureChoice } from "./figure";
+import { figureTexture } from "./figureTexture";
+import { moveBox, type Box } from "./walk";
+import { integerZoom, TARGET_VIEW } from "./zoom";
 import {
   bridge,
   type DoorMarker,
@@ -7,9 +10,14 @@ import {
   type WorldState,
   type Zone,
 } from "./bridge";
-import { SHEETS, TILE, type SpriteDef } from "./sprites";
+import { CAVE_PROPS } from "./cave/props";
+import { FEATURES } from "./features";
+import { LUKE_LEVEL_CAP } from "./rules";
+import { SHEETS, TILE, VILLAGE_SHEETS, type SpriteDef } from "./sprites";
 import {
   BUILDINGS,
+  CAVE_ENTRANCE,
+  CAVE_MOUTH,
   FORGE_FIRE,
   FURNACE,
   GLADE,
@@ -36,12 +44,9 @@ import type { NpcId, QuestSiteId } from "./village";
 
 const WORLD_W = MAP_W * TILE;
 const WORLD_H = MAP_H * TILE;
-const TARGET_VIEW = { w: 480, h: 300 }; // world px we aim to show
 
 const FORGE_RANGE = 28;
 const WRAITH_RANGE = 40;
-
-type Box = { x: number; y: number; w: number; h: number };
 
 export class WinterQuestScene extends Phaser.Scene {
   private knight!: Phaser.GameObjects.Container;
@@ -90,8 +95,8 @@ export class WinterQuestScene extends Phaser.Scene {
 
   preload() {
     const frame = { frameWidth: TILE, frameHeight: TILE };
-    for (const [key, sheet] of Object.entries(SHEETS))
-      this.load.spritesheet(key, sheet.url, frame);
+    for (const key of VILLAGE_SHEETS)
+      this.load.spritesheet(key, SHEETS[key].url, frame);
   }
 
   create() {
@@ -125,10 +130,24 @@ export class WinterQuestScene extends Phaser.Scene {
       bridge.on("forgeLevelUp", () => this.onForgeLevelUp()),
       bridge.on("itemForged", (sprite) => this.onItemForged(sprite)),
       bridge.on("forgeFlare", () => this.flareForge()),
+      bridge.on("enterCave", (depth) => this.enterCave(depth)),
     );
     this.applyWorld(bridge.world);
 
+    // Back from the cave: stand in front of the entrance and fade in.
+    this.enteringCave = false;
+    const onWake = () => {
+      this.knight.setPosition(CAVE_ENTRANCE.x, CAVE_ENTRANCE.y + 16);
+      this.moveTarget = null;
+      this.route = [];
+      this.cameras.main.fadeIn(200);
+      // Only now: a pending «Gå til» sets its route after the reset above.
+      bridge.emit("leftCave", undefined);
+    };
+    this.events.on(Phaser.Scenes.Events.WAKE, onWake);
+
     const teardown = () => {
+      this.events.off(Phaser.Scenes.Events.WAKE, onWake);
       this.unsubscribe.forEach((u) => u());
       this.unsubscribe = [];
       bridge.setZone(null);
@@ -136,6 +155,25 @@ export class WinterQuestScene extends Phaser.Scene {
     // game.destroy() only fires DESTROY; a scene stop only fires SHUTDOWN.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, teardown);
     this.events.once(Phaser.Scenes.Events.DESTROY, teardown);
+  }
+
+  // Fade out, put the village to sleep and start the cave on `depth`. A second
+  // call while the fade runs is ignored.
+  private enteringCave = false;
+  private enterCave(depth: number) {
+    if (bridge.world.area !== "bygda") return;
+    if (this.enteringCave || bridge.world.frozen) return;
+    this.enteringCave = true;
+    this.cameras.main.fadeOut(200);
+    this.cameras.main.once(
+      Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,
+      () => {
+        bridge.setZone(null);
+        this.enteringCave = false;
+        this.scene.sleep();
+        this.scene.launch("Cave", { depth });
+      },
+    );
   }
 
   // --- construction ---------------------------------------------------------
@@ -211,6 +249,18 @@ export class WinterQuestScene extends Phaser.Scene {
         .setOrigin(0)
         .setDepth(y + TILE);
       if (p.solid) this.solids.push({ x: x + 2, y: y + 6, w: 12, h: 10 });
+    }
+
+    if (FEATURES.cave) {
+      CAVE_PROPS.entrance.forEach((def, i) => {
+        const [tx, ty] = CAVE_MOUTH[i];
+        this.add
+          .image(tx * TILE, ty * TILE, def.sheet, def.frame)
+          .setOrigin(0)
+          .setDepth((ty + 1) * TILE);
+      });
+      const [mx, my] = CAVE_MOUTH[0];
+      this.solids.push({ x: mx * TILE + 2, y: my * TILE + 6, w: 28, h: 10 });
     }
 
     const sign = QUEST_SITES.bakerySign;
@@ -519,10 +569,7 @@ export class WinterQuestScene extends Phaser.Scene {
     cam.startFollow(this.knight, true, 0.15, 0.15);
     const fit = () => {
       const { width, height } = this.scale;
-      let zoom = Math.max(
-        1,
-        Math.floor(Math.min(width / TARGET_VIEW.w, height / TARGET_VIEW.h)),
-      );
+      let zoom = integerZoom(width, height, TARGET_VIEW);
       while (width / zoom > WORLD_W || height / zoom > WORLD_H) zoom++;
       cam.setZoom(zoom);
     };
@@ -544,19 +591,8 @@ export class WinterQuestScene extends Phaser.Scene {
       this.figureKey = "";
       return;
     }
-    const key = `figure:${JSON.stringify(choice)}`;
+    const key = figureTexture(this.textures, choice);
     if (key === this.figureKey) return;
-    if (!this.textures.exists(key)) {
-      const tex = this.textures.createCanvas(key, FIGURE_SIZE, FIGURE_SIZE)!;
-      tex
-        .getContext()
-        .putImageData(
-          new ImageData(drawFigure(choice), FIGURE_SIZE, FIGURE_SIZE),
-          0,
-          0,
-        );
-      tex.refresh();
-    }
     this.knightBody.setTexture(key);
     this.figureKey = key;
   }
@@ -574,8 +610,9 @@ export class WinterQuestScene extends Phaser.Scene {
     this.syncSideSpots(w.sideSpots);
     this.syncDoors(w.doors);
     // A cold forge smoulders; once lit it burns brighter with every level.
-    this.forgeGlow.setScale(w.forgeLit ? 3.4 + w.forgeLevel * 0.3 : 3);
-    this.sparks.frequency = w.forgeLit ? Math.round(150 / w.forgeLevel) : 260;
+    const forge = Math.min(LUKE_LEVEL_CAP, w.forgeLevel);
+    this.forgeGlow.setScale(w.forgeLit ? 3.4 + forge * 0.3 : 3);
+    this.sparks.frequency = w.forgeLit ? Math.round(150 / forge) : 260;
     if (w.frozen) {
       this.moveTarget = null;
       this.route = [];
@@ -931,17 +968,8 @@ export class WinterQuestScene extends Phaser.Scene {
   }
 
   private tryMove(dx: number, dy: number) {
-    const nx = this.knight.x + dx;
-    const ny = this.knight.y + dy;
-    const feet = { x: nx - 4, y: ny - 4, w: 8, h: 4 };
-    const blocked = this.solids.some(
-      (s) =>
-        feet.x < s.x + s.w &&
-        feet.x + feet.w > s.x &&
-        feet.y < s.y + s.h &&
-        feet.y + feet.h > s.y,
-    );
-    if (!blocked) this.knight.setPosition(nx, ny);
+    const p = moveBox(this.knight, dx, dy, this.solids);
+    this.knight.setPosition(p.x, p.y);
   }
 
   private moveWraith(dt: number) {
@@ -1009,6 +1037,12 @@ export class WinterQuestScene extends Phaser.Scene {
       zone = "bakerySign";
     // Side quest spots come after every luke place, so a luke always wins E.
     else if (spot) zone = `side:${spot.id}`;
+    else if (
+      FEATURES.cave &&
+      Phaser.Math.Distance.Between(k.x, k.y, CAVE_ENTRANCE.x, CAVE_ENTRANCE.y) <
+        FORGE_RANGE
+    )
+      zone = "cave";
     // Where the wraith stands, or where it fell (which offers a rematch).
     else if (
       Phaser.Math.Distance.Between(

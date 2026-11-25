@@ -300,6 +300,34 @@ kbd {
 .hud-bc:has(.dialogue) {
   width: min(780px, calc(100cqw - var(--gutter) * 2));
 }
+.hud-tc {
+  top: var(--gutter);
+  left: 50%;
+  translate: -50% 0;
+}
+.cave-hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px 6px 14px;
+  font-size: 16px;
+  color: var(--snow);
+}
+.cave-hud-floor {
+  white-space: nowrap;
+}
+/* Narrow: the floor sits just above the hotbar instead of the top edge. */
+.cave-hud-belt {
+  display: none;
+}
+@container game (max-width: 720px) {
+  .hud-tc {
+    display: none;
+  }
+  .cave-hud-belt {
+    display: block;
+  }
+}
 .hud-bl {
   bottom: var(--gutter);
   left: var(--gutter);
