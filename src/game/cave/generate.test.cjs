@@ -32,11 +32,58 @@ test("floors 5 and 10 are rest floors with a boss and a chest; never locked", ()
   assert.equal(generateFloor(10, 1).sheet, "caveDeep");
 });
 
-test("monster count grows with depth: 2–3 on floor 1, at most 6", () => {
+test("monster count: 2–3 on floor 1, never more than 10", () => {
   for (let seed = 0; seed < 300; seed++) {
     const n1 = generateFloor(1, seed).spawns.length;
     assert.ok(n1 >= 2 && n1 <= 3);
-    assert.ok(generateFloor(9, seed).spawns.length <= 6);
+    for (const d of [3, 9, 12])
+      assert.ok(generateFloor(d, seed).spawns.length <= 10);
+  }
+});
+
+test("floor sizes: 2×1 rooms on 1–2, 2×2 on 3, one room on 5", () => {
+  const size = (f) => [f.rows[0].length, f.rows.length];
+  assert.deepEqual(size(generateFloor(1, 3)), [48, 14]);
+  assert.deepEqual(size(generateFloor(2, 3)), [48, 14]);
+  assert.deepEqual(size(generateFloor(3, 3)), [48, 28]);
+  assert.deepEqual(size(generateFloor(5, 3)), [24, 14]);
+  assert.equal(generateFloor(3, 3).rooms.length, 4);
+});
+
+test("the stairs are never in the start room; no monsters there on 1–2", () => {
+  const tile = (p) => [(p.x - 8) / 16, (p.y - 8) / 16];
+  const inStart = (p) => p.x < 24 * 16 && p.y < 14 * 16;
+  for (let depth = 1; depth <= 12; depth++) {
+    if (depth % 5 === 0) continue;
+    for (let seed = 0; seed < 300; seed++) {
+      const f = generateFloor(depth, seed);
+      assert.equal(inStart(f.start), true);
+      assert.equal(inStart(f.stairs), false);
+      if (depth <= 2) for (const s of f.spawns) assert.equal(inStart(s), false);
+      else assert.ok(f.spawns.filter(inStart).length <= 1);
+      void tile;
+    }
+  }
+});
+
+test("every room's floor can be reached from the start", () => {
+  const T = 16;
+  for (let depth = 1; depth <= 12; depth++) {
+    for (let seed = 0; seed < 1000; seed += 5) {
+      const f = generateFloor(depth, seed);
+      const seen = reachable(f.rows, [
+        (f.start.x - 8) / T,
+        (f.start.y - 8) / T,
+      ]);
+      for (let ry = 0; ry < f.rows.length / 14; ry++)
+        for (let rx = 0; rx < f.rows[0].length / 24; rx++) {
+          let any = false;
+          for (let y = ry * 14; y < ry * 14 + 14; y++)
+            for (let x = rx * 24; x < rx * 24 + 24; x++)
+              if (f.rows[y][x] === "." && seen.has(`${x},${y}`)) any = true;
+          assert.ok(any, `room ${rx},${ry} at depth ${depth} seed ${seed}`);
+        }
+    }
   }
 });
 

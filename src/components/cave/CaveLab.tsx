@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ENEMIES } from "@/game/cave/enemies";
 import { generateFloor } from "@/game/cave/generate";
 import { CAVE_PROPS } from "@/game/cave/props";
-import { ROOM_H, ROOM_W } from "@/game/cave/rooms";
 import { SHEETS, type SpriteDef } from "@/game/sprites";
 
 // A workbench for the cave floors, at /grotte in development. Pick depth and
@@ -48,7 +47,12 @@ export default function CaveLab() {
         if (cancelled) return;
         const images = new Map(loaded);
         ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, ROOM_W * TILE * SCALE, ROOM_H * TILE * SCALE);
+        ctx.clearRect(
+          0,
+          0,
+          floor.rows[0].length * TILE * SCALE,
+          floor.rows.length * TILE * SCALE,
+        );
         const draw = (
           url: string,
           cols: number,
@@ -167,8 +171,8 @@ export default function CaveLab() {
 
       <canvas
         ref={canvas}
-        width={ROOM_W * TILE * SCALE}
-        height={ROOM_H * TILE * SCALE}
+        width={floor.rows[0].length * TILE * SCALE}
+        height={floor.rows.length * TILE * SCALE}
         aria-label="Etasjen"
         style={{ imageRendering: "pixelated", maxWidth: "100%" }}
       />
