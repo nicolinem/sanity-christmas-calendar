@@ -507,3 +507,27 @@ Materialene får ingen bruk i G3. De venter på smiing med oppskrifter i Studio 
 - **«Fra grotta»** flyttes ut av fanelista i Ting.
 - **Spilltest** med tre personer.
 
+## 14. G4: beslutninger (2026-11-25)
+
+G4 fullfører etasje 6–10. Brukeren valgte at etasje 10 er bunnen inntil videre. Alt står fortsatt bak `FEATURES.cave`.
+
+### Troll og kyklop
+
+- **Troll** kommer fra etasje 6. Det går sakte, varsler lenge og stormer.
+- **Kyklop** kommer fra etasje 8.
+  - Den holder avstand, 4–7 ruter.
+  - Før den kaster, løfter den seg og blinker hvitt.
+  - Isklumpen (`dungeon` 56) er stor og treg nok til å unngås. Den stopper i vegger og steiner.
+  - Det er høyst 3 isklumper i lufta samtidig.
+- **Tallene er justert etter del 8.** Et treff på etasje 10 skal ta høyst 1,5 hjerter, så troll og Isdrage får `damage: 2` i stedet for 3.
+
+### Etasje 10: Isdragen og kista
+
+- **Isdragen** er `dungeon` 110 farget blå.
+  - Den stormer og kaster isklumper.
+  - Den er svak for ild og immun mot frost.
+  - Livet vises i HUD-en.
+  - Når den er slått, kommer den aldri tilbake (`bosses.drake`).
+- **Kista** kan åpnes når Isdragen er slått. Den gir 100 XP én gang (`chests["cave-10"]`). Toasten er `{ title: "Kista på etasje 10", body: "Den var full av gamle notater. Du fikk 100 XP." }`. Notatene peker mot smiing med oppskrifter (fase E).
+- **Bunnen.** Etasje 10 har ingen trapp ned. Der trappa ville stått, står det «Lenger ned er det ikke gravd ennå.» når du er i nærheten. Tauet til 10 virker som før.
+
