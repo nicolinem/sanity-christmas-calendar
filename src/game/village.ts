@@ -24,12 +24,10 @@ const PATHS: Rect[] = [
   { x: 6, y: 21, w: 15, h: 2 }, // south-west lane
 ];
 
-// The way to the cave, in the north-west forest edge: a lane west of the
-// house, then up to the opening.
-const CAVE_PATHS: Rect[] = [
-  { x: 4, y: 11, w: 6, h: 2 },
-  { x: 4, y: 4, w: 2, h: 7 },
-];
+// The way to the cave, in the north forest edge between the west house and
+// the forge: straight up from the west lane to the opening. East of the HUD's
+// left column, so the opening isn't hidden behind the quest tracker.
+const CAVE_PATHS: Rect[] = [{ x: 16, y: 4, w: 2, h: 7 }];
 
 export function villagePaths(cave: boolean): Rect[] {
   return cave ? [...PATHS, ...CAVE_PATHS] : PATHS;
@@ -37,10 +35,10 @@ export function villagePaths(cave: boolean): Rect[] {
 
 // The cave opening (tiles) and the middle of its zone (px) just in front.
 export const CAVE_MOUTH = [
-  [4, 3],
-  [5, 3],
+  [16, 3],
+  [17, 3],
 ] as const;
-export const CAVE_ENTRANCE = { x: 5 * 16, y: 4 * 16 + 8 };
+export const CAVE_ENTRANCE = { x: 17 * 16, y: 4 * 16 + 8 };
 
 // Frost glade, east of the village, where the wraith drifts about.
 export const GLADE: Rect = { x: 37, y: 11, w: 7, h: 10 };

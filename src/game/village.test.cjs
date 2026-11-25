@@ -122,9 +122,39 @@ test("the village paths are unchanged without the cave, and gain the way to the 
   assert.deepEqual(villagePaths(false), TODAYS_PATHS);
   assert.deepEqual(villagePaths(true), [
     ...TODAYS_PATHS,
-    { x: 4, y: 11, w: 6, h: 2 },
-    { x: 4, y: 4, w: 2, h: 7 },
+    { x: 16, y: 4, w: 2, h: 7 },
   ]);
+});
+
+test("the way to the cave runs on free ground and meets the west lane", () => {
+  const way = { x: 16, y: 4, w: 2, h: 7 };
+  for (let y = way.y; y < way.y + way.h; y++)
+    for (let x = way.x; x < way.x + way.w; x++) {
+      assert.equal(
+        PROPS.some((p) => p.solid && p.x === x && p.y === y),
+        false,
+      );
+      assert.equal(
+        BUILDINGS.some(
+          (b) =>
+            x >= b.x &&
+            x < b.x + b.rows[0].length &&
+            y >= b.y &&
+            y < b.y + b.rows.length,
+        ),
+        false,
+      );
+    }
+  const westLane = TODAYS_PATHS[3];
+  assert.equal(way.y + way.h, westLane.y);
+  assert.ok(way.x >= westLane.x && way.x + way.w <= westLane.x + westLane.w);
+});
+
+test("the cave mouth stays clear of the HUD's left column on desktop", () => {
+  // At 1280×720 the village is drawn at zoom 2 and the camera stops at the
+  // world's west edge, so a tile's screen x is its world x × 2. The quest
+  // tracker's column ends at about 324 css px.
+  for (const [x] of CAVE_MOUTH) assert.ok(x * 16 * 2 > 340);
 });
 
 test("the cave zone keeps clear of the other zones", () => {
