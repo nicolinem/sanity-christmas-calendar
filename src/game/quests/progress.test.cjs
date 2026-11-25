@@ -323,3 +323,26 @@ test("side quests and found spots survive a reload and an unrelated update", () 
   assert.deepEqual(restored.found, found);
   assert.equal(restored.introSeen, true);
 });
+
+test("xp and inventory default safely and drop bad values", () => {
+  const fresh = progress.readProgress("xp-fresh");
+  assert.equal(fresh.xp, 0);
+  assert.deepEqual(fresh.inventory, {});
+  for (const xp of [-3, "x", NaN, null]) {
+    records.set(
+      progress.storageKey(`xp-${String(xp)}`),
+      JSON.stringify({ xp }),
+    );
+    assert.equal(progress.readProgress(`xp-${String(xp)}`).xp, 0);
+  }
+  records.set(
+    progress.storageKey("inv"),
+    JSON.stringify({
+      xp: 40,
+      inventory: { isskar: 2, malm: -1, x: 1.5, y: "2" },
+    }),
+  );
+  const saved = progress.readProgress("inv");
+  assert.equal(saved.xp, 40);
+  assert.deepEqual(saved.inventory, { isskar: 2 });
+});
