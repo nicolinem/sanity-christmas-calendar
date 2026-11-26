@@ -324,7 +324,25 @@ kbd {
   white-space: nowrap;
 }
 .cave-hud-found {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--amber);
+}
+.cave-hud-floor {
+  display: grid;
+}
+.cave-hud-goal {
+  font-size: 12px;
+  opacity: 0.8;
+}
+.cave-hud-find {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.cave-hud-find .sprite {
+  --s: 1; /* as tall as the text beside it */
 }
 .cave-hud-boss {
   display: grid;
@@ -341,13 +359,16 @@ kbd {
   background: var(--glacier);
   box-shadow: inset 0 calc(var(--px) * -1) 0 0 #4d9fd6;
 }
+/* Notices take their own line under the buttons, never pushing them down. */
 .cave-hud-locked {
+  order: 1;
   flex-basis: 100%;
   white-space: normal;
   text-align: center;
   color: var(--amber);
 }
 .cave-hud-wait {
+  order: 1;
   flex-basis: 100%;
   text-align: center;
 }
@@ -6312,6 +6333,17 @@ kbd {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 8px;
+}
+.cs-found-trip {
+  color: var(--amber);
+}
+.cs-found-trip:not(:first-child) {
+  margin-left: 6px;
+}
+.cs-found-note {
+  margin: 6px 0 0;
+  font-size: 12px;
+  opacity: 0.8;
 }
 .cs-forge li {
   grid-template-columns: 1fr;

@@ -14,6 +14,8 @@ import {
   SHOOT_RANGE,
   SHOT_REST_MS,
   scaleEnemy,
+  sturdyHp,
+  type Attack,
 } from "./combat";
 import { ENEMIES, type EnemyId } from "./enemies";
 import type { Point } from "./generate";
@@ -39,14 +41,22 @@ export type Brain = {
 
 export type Shot = { x: number; y: number; dir: Point; damage: number };
 
-export function spawnBrain(enemy: EnemyId, at: Point, depth: number): Brain {
+// `attack`: the weapon in hand when the monster appears; it sets the
+// least life a normal monster has (sturdyHp).
+export function spawnBrain(
+  enemy: EnemyId,
+  at: Point,
+  depth: number,
+  attack: Attack | null = null,
+): Brain {
   const s = scaleEnemy(enemy, depth);
+  const hp = sturdyHp(enemy, s.hp, attack);
   return {
     enemy,
     x: at.x,
     y: at.y,
-    hp: s.hp,
-    maxHp: s.hp,
+    hp,
+    maxHp: hp,
     damage: s.damage,
     windupMs: s.windupMs,
     aimMs: s.aimMs,

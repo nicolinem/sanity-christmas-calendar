@@ -31,12 +31,19 @@ export type Floor = {
   stairs: Point; // tile-centre px; the way down
   kinds: RoomKind[]; // per room, row-major; room 0 is always "start"
   stairsRoom: number; // index of the room the stairs are in
-  // Tile-centre px. Calm rooms get 0–1 enemies, normal rooms 2–3, a nest 4–5
-  // (up to 10 in all) from the depth's mix; rest floors get one boss on every
-  // m. `room` is the row-major room index the spawn belongs to. There are no
+  // Tile-centre px. Calm rooms get 0–1 enemies, normal rooms 4–5 on depth 1–2
+  // and 3–4 below, a nest 4–5 (up to 12 in all) from the depth's mix; rest
+  // floors get one boss on every m. `room` is the row-major room index the
+  // spawn belongs to. The start room is empty on depth 1 and has at most one
+  // monster below, as far from the start as its spots allow. There are no
   // calm rooms on depth 1–2, so those floors always have a monster.
   spawns: { enemy: EnemyId; x: number; y: number; room: number }[];
   rocks: Point[]; // tile-centre px of the o tiles that survived a 60% roll
+  // 1–2 of the rocks that glitter and always give malm. None on rest floors.
+  veins: Point[];
+  // The stairs lie under a rock the scene puts on them, about one floor in
+  // three from depth 2. Never on a locked or rest floor.
+  stairsHidden: boolean;
   // Rest floors only (and only if the template has a k): id is `cave-${depth}`.
   chest?: { id: string; x: number; y: number }; // tile-centre px
   // A small loot cache in the nest room (never on rest floors). Not saved: the
@@ -67,7 +74,8 @@ function cells(rows: string[], ch: string): [number, number][] {
   return out;
 }
 
-const MAX_SPAWNS_PER_FLOOR = 10;
+const MAX_SPAWNS_PER_FLOOR = 12;
+const HIDDEN_STAIRS_CHANCE = 1 / 3;
 const MAX_ATTEMPTS = 20;
 
 // Rocks block, so check against the worst case: every o stays. Every room must
@@ -176,16 +184,21 @@ export function generateFloor(
       if (kind === "calm") count = r() < 0.5 ? 0 : 1;
       else if (kind === "nest") count = 4 + (r() < 0.5 ? 0 : 1);
       else {
-        count = Math.min(
-          3,
-          2 + Math.floor((depth - 1) / 3) + (r() < 0.5 ? 0 : 1),
-        );
-        if (i === 0) count = depth <= 2 ? 0 : Math.min(1, count);
+        const coin = r() < 0.5 ? 0 : 1;
+        count = depth <= 2 ? 4 + coin : 3 + coin;
+        if (i === 0) count = depth === 1 ? 0 : 1;
       }
       // Fisher–Yates, then take the first n spots.
       for (let k = spots.length - 1; k > 0; k--) {
         const j = Math.floor(r() * (k + 1));
         [spots[k], spots[j]] = [spots[j], spots[k]];
+      }
+      // The start room's one monster stands as far from the start as it can,
+      // so a new floor never opens with a bite.
+      if (i === 0) {
+        const away = ([x, y]: [number, number]) =>
+          Math.hypot(x - startTile[0], y - startTile[1]);
+        spots.sort((a, b) => away(b) - away(a));
       }
       perRoom.push(
         spots
@@ -218,6 +231,16 @@ export function generateFloor(
     !spawns.some((s) => s.room === stairsRoom && PLAYABLE.includes(s.enemy))
   )
     locked = false;
+  const stairsHidden =
+    !rest && depth > 1 && !locked && r() < HIDDEN_STAIRS_CHANCE;
+
+  // 1–2 rocks glitter: ore veins, drawn at random from the rocks that stand.
+  const veins: Point[] = [];
+  if (!rest) {
+    const left = [...rocks];
+    for (let n = 1 + (r() < 0.5 ? 0 : 1); n > 0 && left.length; n--)
+      veins.push(left.splice(Math.floor(r() * left.length), 1)[0]);
+  }
 
   const built = rows.map((row, y) =>
     [...row]
@@ -308,6 +331,8 @@ export function generateFloor(
     stairs: center(stairsTile),
     spawns,
     rocks,
+    veins,
+    stairsHidden,
     ...(cache && { cache }),
     ...(chestTile && { chest: { id: `cave-${depth}`, ...center(chestTile) } }),
     locked,

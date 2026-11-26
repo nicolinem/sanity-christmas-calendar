@@ -1,20 +1,30 @@
+import { MATERIALS, type MaterialId } from "@/game/materials";
+import SpriteIcon from "./SpriteIcon";
+
 // The floor the player is on, what the trip has found so far, and the way home.
 export default function CaveHud({
   depth,
   found,
+  goal,
   boss,
   stairsLocked,
+  stairsHidden,
   bottomNear,
   onLeave,
   onAttack,
   waiting = false,
 }: {
   depth: number;
-  found: number;
+  // The trip's finds so far, one row per material.
+  found: { id: MaterialId; trip: number }[];
+  // What the cave is for right now: the next chest, or a recipe's materials.
+  goal?: string | null;
   // The floor's boss while it lives.
   boss?: { name: string; hp: number; maxHp: number } | null;
   // The knight is in the stairs room and its monsters still guard the way.
   stairsLocked?: boolean;
+  // The stairs on this floor lie under a rock.
+  stairsHidden?: boolean;
   // On the deepest floor, where the stairs would be.
   bottomNear?: boolean;
   onLeave: () => void;
@@ -25,9 +35,25 @@ export default function CaveHud({
 }) {
   return (
     <div className="cave-hud frame frame--slate">
-      <span className="cave-hud-floor">Etasje {depth}</span>
-      {found > 0 && (
-        <span className="cave-hud-found">Funnet på turen: {found}</span>
+      <span className="cave-hud-floor">
+        Etasje {depth}
+        {goal && <small className="cave-hud-goal">{goal}</small>}
+      </span>
+      {found.length > 0 && (
+        <span className="cave-hud-found">
+          På turen:
+          {found.map(({ id, trip }) => (
+            <span
+              key={id}
+              className="cave-hud-find"
+              title={MATERIALS[id].name}
+              aria-label={`${trip} ${MATERIALS[id].name.toLowerCase()}`}
+            >
+              <SpriteIcon sprite={MATERIALS[id].sprite} />
+              {trip}
+            </span>
+          ))}
+        </span>
       )}
       {boss && (
         <div className="cave-hud-boss">
@@ -52,6 +78,9 @@ export default function CaveHud({
         <span className="cave-hud-locked">
           Trappa er stengt. Slå monstrene i rommet først.
         </span>
+      )}
+      {stairsHidden && (
+        <span className="cave-hud-locked">Trappa ligger under en stein.</span>
       )}
       {bottomNear && (
         <span className="cave-hud-locked">

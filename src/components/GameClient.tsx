@@ -56,6 +56,7 @@ import { useProgress, useQuestBoard } from "./hud/useQuests";
 import {
   PLAYER_ID,
   PROGRESS_PROJECT,
+  readProgress,
   updateProgress,
 } from "@/game/quests/progress";
 import {
@@ -72,14 +73,21 @@ import { levelUpToast } from "@/game/levelUp";
 import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
 import { CHEST_TOASTS } from "@/game/cave/chests";
-import { applyForgings, type Forging } from "@/game/forge";
+import { applyForgings, caveGoal, type Forging } from "@/game/forge";
 import { RECIPES, unlockedRecipes } from "@/game/recipes";
 
 const FORGED_GEAR = new Set<string>(
   Object.values(RECIPES).map((recipe) => recipe.gear),
 );
 import { xpFor } from "@/game/cave/combat";
-import { addToTrip, bankTrip, dropTrip, secureTrip } from "@/game/cave/trip";
+import {
+  addToTrip,
+  bankTrip,
+  dropTrip,
+  caveFinds,
+  findsText,
+  secureTrip,
+} from "@/game/cave/trip";
 import { useWindowActive } from "./hud/useWindowActive";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
@@ -199,6 +207,14 @@ function useCaveStairsLocked() {
   );
 }
 
+function useCaveStairsHidden() {
+  return useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.stairsHidden ?? false,
+    () => false,
+  );
+}
+
 function useCaveBottomNear() {
   return useSyncExternalStore(
     (cb) => bridge.on("world", cb),
@@ -273,6 +289,7 @@ export default function GameClient() {
   const caveHp = useCaveHp();
   const caveBoss = useCaveBoss();
   const caveStairsLocked = useCaveStairsLocked();
+  const caveStairsHidden = useCaveStairsHidden();
   const caveBottomNear = useCaveBottomNear();
   const caveView = useCaveView();
   const narrow = useNarrow();
@@ -958,10 +975,13 @@ export default function GameClient() {
   useEffect(
     () =>
       bridge.on("fainted", () => {
+        const lost = findsText(readProgress(PROGRESS_PROJECT).trip);
         updateProgress(PROGRESS_PROJECT, dropTrip);
         pushToast({
           title: "Du besvimte",
-          body: "Du våknet hos Brann. Det du fant på turen, ble liggende igjen.",
+          body: lost
+            ? `Du våknet hos Brann, men ${lost} ble liggende igjen i grotta.`
+            : "Du våknet hos Brann.",
           tone: "lesson",
         });
       }),
@@ -992,9 +1012,17 @@ export default function GameClient() {
   // A resting place: the trip's finds so far are safe.
   useEffect(
     () =>
-      bridge.on("restReached", () =>
-        updateProgress(PROGRESS_PROJECT, secureTrip),
-      ),
+      bridge.on("restReached", () => {
+        const safe = findsText(readProgress(PROGRESS_PROJECT).trip);
+        updateProgress(PROGRESS_PROJECT, secureTrip);
+        // Said only when something was made safe: the rope starts here too.
+        if (safe)
+          pushToast({
+            title: "En hvileplass",
+            body: `Livet er fylt opp, og ${safe} ligger trygt i sekken.`,
+            tone: "lesson",
+          });
+      }),
     [],
   );
   // A trip left open by a closed tab: its finds are banked once on mount.
@@ -1004,7 +1032,14 @@ export default function GameClient() {
   useEffect(
     () =>
       bridge.on("leftCave", () => {
+        const home = findsText(readProgress(PROGRESS_PROJECT).trip);
         updateProgress(PROGRESS_PROJECT, bankTrip);
+        if (home)
+          pushToast({
+            title: "Hjemme med funnene",
+            body: `Du har ${home} i sekken nå.`,
+            tone: "forge",
+          });
         const target = pendingTravel.current;
         pendingTravel.current = null;
         if (target) bridge.emit("travelToSite", target);
@@ -1035,7 +1070,8 @@ export default function GameClient() {
     () => bridge.emit("caveAttack", undefined),
     [],
   );
-  const found = Object.values(progress.trip).reduce((sum, n) => sum + n, 0);
+  const found = useMemo(() => caveFinds({}, progress.trip), [progress.trip]);
+  const caveGoalText = useMemo(() => caveGoal(progress), [progress]);
   useEffect(
     () =>
       bridge.on("drinkResult", (result) => {
@@ -1672,6 +1708,8 @@ export default function GameClient() {
                 found={found}
                 boss={caveBoss}
                 stairsLocked={caveStairsLocked}
+                stairsHidden={caveStairsHidden}
+                goal={caveGoalText}
                 bottomNear={caveBottomNear}
                 onLeave={leaveCave}
                 waiting={studio.open}
@@ -1829,6 +1867,8 @@ export default function GameClient() {
                   found={found}
                   boss={caveBoss}
                   stairsLocked={caveStairsLocked}
+                  stairsHidden={caveStairsHidden}
+                  goal={caveGoalText}
                   bottomNear={caveBottomNear}
                   onLeave={leaveCave}
                   onAttack={attackInCave}
@@ -2020,6 +2060,7 @@ export default function GameClient() {
             onEquip={handleEquip}
             level={forgeLevel}
             inventory={progress.inventory}
+            trip={progress.trip}
             forgings={forgings ?? []}
             chests={progress.chests}
             crafted={progress.crafted}

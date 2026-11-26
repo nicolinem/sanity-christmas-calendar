@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { bridge, type Zone } from "../bridge";
 import { figureTexture } from "../figureTexture";
-import { MATERIALS } from "../materials";
+import { MATERIALS, type MaterialId } from "../materials";
 import { CAVE_SHEETS, SHEETS, TILE } from "../sprites";
 import { moveBox, routeFromOwnTile, type Box } from "../walk";
 import { integerZoom, TARGET_VIEW } from "../zoom";
@@ -11,14 +11,17 @@ import {
   canSwing,
   DASH_MAX,
   DRINK_HEAL,
+  HIT_ROLL_MAX,
   hitEnemy,
   inSwing,
   INVULNERABLE_MS,
   KNOCK_ENEMY,
   KNOCK_PLAYER,
   MAX_PROJECTILES,
+  monsterDrop,
   PLAYER_MAX_HP,
   rockDrop,
+  VEIN_MALM,
   type Facing,
 } from "./combat";
 import { ENEMIES, PLAYABLE, type EnemyId } from "./enemies";
@@ -47,7 +50,7 @@ import {
 import { CAVE_PROPS } from "./props";
 import { CAVE_FRAMES } from "./rooms";
 
-const SPEED = 64; // world px per second, as in the village
+const SPEED = 80; // world px per second; the village walks at 64
 const STAIRS_RANGE = 28;
 const CACHE_RANGE = 24;
 const CHEST_OPEN_FRAME = 91; // dungeon sheet: the chest with its lid up
@@ -71,6 +74,8 @@ const MARK_GAP = 10; // px between the marks of a charge's line
 const AIM_LIFT = 3; // px a thrower rises while it aims
 const ISKLUMP_FRAME = 56; // dungeon sheet: the ice lump a thrower throws
 const FLOOR_TEXTURE = "cave-floor"; // floor and walls, baked once per floor
+const VEIN_TINT = 0xffb35c; // an ore vein: the rock in a warm, rusty glow
+const SPARK_TINT = [0xffd15a, 0xfff1b8]; // its glitter, as the forge's sparks
 
 const FACING_STEP: Record<Facing, Point> = {
   left: { x: -1, y: 0 },
@@ -92,7 +97,13 @@ type Monster = {
   tint: number | null; // its kind's own colour, back once the white clears
 };
 
-type Rock = Point & { image: Phaser.GameObjects.Image; box: Box };
+type Rock = Point & {
+  image: Phaser.GameObjects.Image;
+  box: Box;
+  vein: boolean; // glitters and always gives malm
+  sparks: Phaser.GameObjects.Particles.ParticleEmitter | null;
+  covers: boolean; // lies on the stairs
+};
 
 type Isklump = { p: Projectile; image: Phaser.GameObjects.Image };
 
@@ -122,6 +133,8 @@ export class CaveScene extends Phaser.Scene {
   private stairsImage: Phaser.GameObjects.Image | null = null;
   // The stairs room still has monsters: no way down until they are gone.
   private stairsLocked = false;
+  // The stairs lie under a rock that hasn't been broken yet.
+  private stairsHidden = false;
   private lockShown = false; // last world.cave.stairsLocked sent to the HUD
   private bottomNear = false; // last world.cave.bottomNear sent to the HUD
   private cacheImage: Phaser.GameObjects.Image | null = null;
@@ -148,6 +161,7 @@ export class CaveScene extends Phaser.Scene {
   private isklumper: Isklump[] = [];
   private knight!: Phaser.GameObjects.Container;
   private knightBody!: Phaser.GameObjects.Image;
+  private weapon!: Phaser.GameObjects.Image;
   private figureKey = "";
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<
@@ -194,6 +208,7 @@ export class CaveScene extends Phaser.Scene {
     this.bossLight = null;
     this.stairsImage = null;
     this.stairsLocked = false;
+    this.stairsHidden = false;
     this.lockShown = false;
     this.bottomNear = false;
     this.cacheImage = null;
@@ -236,11 +251,23 @@ export class CaveScene extends Phaser.Scene {
       );
     }
 
+    // The knight, holding the equipped weapon, as in the village.
     const shadow = this.withLight(this.add.image(0, 1, "shadow"));
     this.knightBody = this.withLight(
       this.add.image(0, 0, "dungeon", 96).setOrigin(0.5, 1),
     );
-    this.knight = this.add.container(0, 0, [shadow, this.knightBody]);
+    this.weapon = this.withLight(
+      this.add
+        .image(5, -4, "dungeon", 103)
+        .setOrigin(0.3, 0.85)
+        .setAngle(20)
+        .setVisible(false),
+    );
+    this.knight = this.add.container(0, 0, [
+      shadow,
+      this.weapon,
+      this.knightBody,
+    ]);
 
     const cam = this.cameras.main;
     cam.setBackgroundColor("#181425");
@@ -250,6 +277,7 @@ export class CaveScene extends Phaser.Scene {
     this.snow = this.reducedMotion ? null : this.makeSnow();
     this.buildFloor(undefined); // also fits the camera to the floor
     this.setFigure(bridge.world.figure);
+    this.setWeapon(bridge.world.weapon);
 
     const fit = () => this.fitCamera();
     this.scale.on(Phaser.Scale.Events.RESIZE, fit);
@@ -262,7 +290,10 @@ export class CaveScene extends Phaser.Scene {
     cam.fadeIn(FADE_MS);
 
     this.unsubscribe.push(
-      bridge.on("world", (w) => this.setFigure(w.figure)),
+      bridge.on("world", (w) => {
+        this.setFigure(w.figure);
+        this.setWeapon(w.weapon);
+      }),
       bridge.on("descend", () => this.descend()),
       bridge.on("leaveCave", () => this.leave()),
       bridge.on("caveAttack", () => this.swing()),
@@ -307,7 +338,7 @@ export class CaveScene extends Phaser.Scene {
     this.objects = [];
     this.clearFloorView();
     this.monsters.forEach((m) => this.removeMonster(m));
-    this.rocks.forEach((r) => r.image.destroy());
+    this.rocks.forEach((r) => this.removeRockView(r));
     this.rocks = [];
     this.clearIsklumper();
     const seed = Math.floor(Math.random() * 2 ** 31);
@@ -355,12 +386,32 @@ export class CaveScene extends Phaser.Scene {
     this.cacheImage = floor.cache ? prop(CAVE_PROPS.chest, floor.cache) : null;
     if (this.cacheImage) this.objects.push(this.cacheImage);
     this.cacheOpened = false;
-    this.rocks = floor.rocks.map((r) => ({
-      x: r.x,
-      y: r.y,
-      image: prop(CAVE_PROPS.rock, r),
-      box: { x: r.x - 8, y: r.y - 8, w: TILE, h: TILE },
-    }));
+    const isVein = (p: Point) =>
+      floor.veins.some((v) => v.x === p.x && v.y === p.y);
+    const rock = (p: Point, covers: boolean): Rock => {
+      const vein = isVein(p);
+      const image = prop(CAVE_PROPS.rock, p);
+      // Unlit, as the torch flames, so a vein glows in the dark.
+      if (vein) image.setTint(VEIN_TINT).setLighting(false);
+      return {
+        x: p.x,
+        y: p.y,
+        image,
+        box: { x: p.x - 8, y: p.y - 8, w: TILE, h: TILE },
+        vein,
+        sparks: vein && !this.reducedMotion ? this.makeSparks(p) : null,
+        covers,
+      };
+    };
+    this.rocks = floor.rocks.map((p) => rock(p, false));
+    // Hidden stairs: a rock on them, the stairs unseen until it breaks.
+    this.stairsHidden = floor.stairsHidden && !!this.stairsImage;
+    if (this.stairsHidden) {
+      this.rocks.push(rock(floor.stairs, true));
+      this.setRow(floor.stairs, "o");
+      this.stairsImage?.setVisible(false);
+      if (this.markerLights[0]) this.markerLights[0].intensity = 0;
+    }
 
     // Walls, plus one box per rock. Flyers use flyMove, which skips rocks.
     this.solids = [...floor.solids, ...this.rocks.map((r) => r.box)];
@@ -433,7 +484,7 @@ export class CaveScene extends Phaser.Scene {
       sprite,
     ]);
     return {
-      brain: spawnBrain(enemy, at, this.depth),
+      brain: spawnBrain(enemy, at, this.depth, bridge.world.attack),
       room,
       move: def.flies ? this.flyMove : this.move,
       body,
@@ -577,6 +628,7 @@ export class CaveScene extends Phaser.Scene {
         hp: this.hp,
         maxHp: PLAYER_MAX_HP,
         stairsLocked: this.lockShown,
+        stairsHidden: this.stairsHidden,
         boss: this.boss
           ? {
               name: BOSS_NAMES[this.boss.brain.enemy] ?? "",
@@ -590,7 +642,13 @@ export class CaveScene extends Phaser.Scene {
   }
 
   private descend() {
-    if (this.busy || this.stairsLocked || this.depth >= MAX_DEPTH) return;
+    if (
+      this.busy ||
+      this.stairsLocked ||
+      this.stairsHidden ||
+      this.depth >= MAX_DEPTH
+    )
+      return;
     this.busy = true;
     const cam = this.cameras.main;
     cam.fadeOut(FADE_MS);
@@ -660,6 +718,14 @@ export class CaveScene extends Phaser.Scene {
     this.figureKey = key;
   }
 
+  private setWeapon(sprite: typeof bridge.world.weapon) {
+    if (!sprite || !this.textures.exists(sprite.sheet)) {
+      this.weapon.setVisible(false);
+      return;
+    }
+    this.weapon.setTexture(sprite.sheet, sprite.frame).setVisible(true);
+  }
+
   private setupInput() {
     const kb = this.input.keyboard!;
     this.cursors = kb.createCursorKeys();
@@ -721,7 +787,8 @@ export class CaveScene extends Phaser.Scene {
       this.announce();
     }
     let zone: Zone = null;
-    if (!bottom && !this.stairsLocked && atStairs) zone = "caveStairs";
+    if (!bottom && !this.stairsLocked && !this.stairsHidden && atStairs)
+      zone = "caveStairs";
     else if (!this.cacheOpened && this.nearCache()) zone = "caveCache";
     else if (this.chestOpenable() && this.nearChest()) zone = "caveChest";
     bridge.setZone(zone);
@@ -978,7 +1045,11 @@ export class CaveScene extends Phaser.Scene {
 
     for (const m of [...this.monsters]) {
       if (!inSwing(from, this.facing, m.brain)) continue;
-      const hit = hitEnemy(attack, m.brain.enemy, Phaser.Math.Between(0, 2));
+      const hit = hitEnemy(
+        attack,
+        m.brain.enemy,
+        Phaser.Math.Between(0, HIT_ROLL_MAX),
+      );
       const { x, y } = m.brain;
       if (hit.affinity === "immune") this.floatText(x, y, "immun", "#8fd3ff");
       else if (hit.affinity === "weak")
@@ -994,11 +1065,14 @@ export class CaveScene extends Phaser.Scene {
           this.removeBossLight();
           bridge.emit("bossDefeated", m.brain.enemy);
           this.announce();
-        } else
+        } else {
           bridge.emit("enemyDefeated", {
             enemy: m.brain.enemy,
             depth: this.depth,
           });
+          const item = monsterDrop(Math.random(), this.depth);
+          if (item) this.find(x, y, item, 1);
+        }
         if (m.room === this.floor.stairsRoom) this.checkStairs();
         continue;
       }
@@ -1035,26 +1109,76 @@ export class CaveScene extends Phaser.Scene {
   }
 
   private breakRock(r: Rock) {
-    r.image.destroy();
+    this.removeRockView(r);
     this.rocks = this.rocks.filter((x) => x !== r);
     this.solids = this.solids.filter((s) => s !== r.box);
-    const tx = Math.floor(r.x / TILE);
-    const ty = Math.floor(r.y / TILE);
-    const row = this.rows[ty];
-    this.rows[ty] = row.slice(0, tx) + "." + row.slice(tx + 1);
+    this.setRow(r, ".");
     this.puff(r.x, r.y + 8, [0x8b9bb4, 0xc0cbdc], 10);
-    const item = rockDrop(Math.random());
-    if (!item) return;
-    this.floatText(r.x, r.y + 8, "+1 " + MATERIALS[item].name, "#fdbe53");
-    bridge.emit("found", { item, count: 1 });
+    if (r.covers) this.revealStairs();
+    if (r.vein) return this.find(r.x, r.y + 8, "malm", VEIN_MALM);
+    const item = rockDrop(Math.random(), this.depth);
+    if (item) this.find(r.x, r.y + 8, item, 1);
+  }
+
+  private removeRockView(r: Rock) {
+    r.image.destroy();
+    r.sparks?.destroy();
+  }
+
+  // One tile of the walkable rows, for tap-to-walk routes.
+  private setRow(p: Point, ch: string) {
+    const tx = Math.floor(p.x / TILE);
+    const ty = Math.floor(p.y / TILE);
+    const row = this.rows[ty];
+    this.rows[ty] = row.slice(0, tx) + ch + row.slice(tx + 1);
+  }
+
+  // A find goes into the trip, with its name over the spot.
+  private find(x: number, y: number, item: MaterialId, count: number) {
+    this.floatText(x, y, `+${count} ${MATERIALS[item].name}`, "#fdbe53");
+    bridge.emit("found", { item, count });
+  }
+
+  // A few gold sparks rising from an ore vein, now and then.
+  private makeSparks(p: Point) {
+    const sparks = this.add
+      .particles(p.x, p.y - 6, "px", {
+        x: { min: -5, max: 5 },
+        y: { min: -4, max: 4 },
+        speedY: { min: -14, max: -6 },
+        lifespan: 600,
+        frequency: 300,
+        quantity: 1,
+        scale: { start: 2, end: 1 },
+        tint: SPARK_TINT,
+        alpha: { start: 1, end: 0 },
+      })
+      .setDepth(p.y + 1);
+    return sparks;
+  }
+
+  // The rock on the stairs broke: they show, and their light pulses.
+  private revealStairs() {
+    this.stairsHidden = false;
+    this.stairsImage?.setVisible(true);
+    this.pulseStairsLight();
+    this.announce();
   }
 
   // As the village's lunge, toward where the knight faces.
   private lunge() {
     const along = this.facing === "left" || this.facing === "right";
     if (along) this.knight.scaleX = this.facing === "left" ? -1 : 1;
-    this.tweens.killTweensOf(this.knightBody);
+    this.tweens.killTweensOf([this.knightBody, this.weapon]);
     this.knightBody.x = 0;
+    this.weapon.setAngle(20);
+    this.tweens.add({
+      targets: this.weapon,
+      angle: { from: -40, to: 70 },
+      duration: 140,
+      yoyo: true,
+      onComplete: () => this.weapon.setAngle(20),
+    });
     this.tweens.add({
       targets: this.knightBody,
       ...(along
@@ -1086,6 +1210,10 @@ export class CaveScene extends Phaser.Scene {
     if (this.monsters.some((m) => m.room === room)) return;
     this.stairsLocked = false;
     this.stairsImage?.clearTint();
+    this.pulseStairsLight();
+  }
+
+  private pulseStairsLight() {
     const light = this.markerLights[0]; // the stairs' own; only when lit
     if (!light) return;
     light.intensity = MARKER_LIGHT.intensity;
