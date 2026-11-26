@@ -761,7 +761,10 @@ export default function GameClient() {
   // When a luke waits at the same place, E is for the luke, unless the luke
   // in hand asks for this person.
   const placeZone =
-    zone && zone !== "wraith" && !zone.startsWith("side:")
+    zone &&
+    zone !== "wraith" &&
+    !zone.startsWith("side:") &&
+    !zone.startsWith("ghost:")
       ? (zone as QuestSiteId)
       : null;
   const npcHere = npcAtSite(placeZone);
