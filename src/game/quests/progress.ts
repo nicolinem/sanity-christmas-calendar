@@ -1,3 +1,4 @@
+import { normalizeAbout } from "../about";
 import type { Progress } from "./types";
 
 // Quest progress lives in the player's browser, one record per Sanity project,
@@ -143,6 +144,9 @@ export function readProgress(project: string): Progress {
         };
         // Only a literal true counts; anything else is removed, not kept as undefined.
         if (value.inCave !== true) delete value.inCave;
+        const about = normalizeAbout(saved.about);
+        if (about) value.about = about;
+        else delete value.about;
       }
     }
   } catch {

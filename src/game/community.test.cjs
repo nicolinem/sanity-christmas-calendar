@@ -118,6 +118,7 @@ test("characters include players without milestones and count all unique milesto
       figure: DEFAULT_FIGURE,
       name: "Kari",
       hints: null,
+      about: null,
     },
     {
       playerId: "ijklmnop",
@@ -128,6 +129,7 @@ test("characters include players without milestones and count all unique milesto
       figure: null,
       name: null,
       hints: null,
+      about: null,
     },
     {
       playerId: "newcomer",
@@ -138,6 +140,7 @@ test("characters include players without milestones and count all unique milesto
       figure: null,
       name: null,
       hints: null,
+      about: null,
     },
   ]);
 });
@@ -262,4 +265,45 @@ test("week progress counts a player's core lukes on their own track", () => {
     weekProgress([]).reduce((sum, w) => sum + w.done, 0),
     0,
   );
+});
+
+test("player snapshot stores a cleaned Om meg and rejects a broken one", () => {
+  const base = {
+    playerId: "abc123",
+    character: { visible: true, weapon: null },
+  };
+  const ok = characterFor({
+    ...base,
+    character: {
+      ...base.character,
+      about: { food: " taco ", activity: "å bake", topics: ["GROQ"] },
+    },
+  });
+  assert.deepEqual(ok.about, {
+    food: "taco",
+    activity: "bake",
+    topics: ["GROQ"],
+  });
+  assert.equal(
+    characterFor({
+      ...base,
+      character: { ...base.character, about: { topics: 5 } },
+    }),
+    null,
+  );
+  assert.equal("about" in characterFor(base), false);
+});
+
+test("players carry their Om meg, or null", () => {
+  const about = { food: "taco", activity: "ski", topics: ["a", "b", "c"] };
+  const players = playersFromMilestones(
+    [],
+    [
+      { playerId: "aaa111", weapon: null, about },
+      { playerId: "bbb222", weapon: null },
+    ],
+  );
+  const byId = Object.fromEntries(players.map((p) => [p.playerId, p]));
+  assert.deepEqual(byId.aaa111.about, about);
+  assert.equal(byId.bbb222.about, null);
 });

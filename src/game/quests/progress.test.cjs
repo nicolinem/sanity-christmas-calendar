@@ -436,3 +436,23 @@ test("crafted keeps only string values and defaults to empty", () => {
   records.set(progress.storageKey("old"), JSON.stringify({ completed: {} }));
   assert.deepEqual(progress.readProgress("old").crafted, {});
 });
+
+test("a saved Om meg loads cleaned, and a broken one is left out", () => {
+  records.set(
+    progress.storageKey("about-alpha"),
+    JSON.stringify({
+      about: { food: "taco", activity: "å gå", topics: ["x"] },
+    }),
+  );
+  records.set(
+    progress.storageKey("about-beta"),
+    JSON.stringify({ about: "tull" }),
+  );
+  progress = loadProgress();
+  assert.deepEqual(progress.readProgress("about-alpha").about, {
+    food: "taco",
+    activity: "gå",
+    topics: ["x"],
+  });
+  assert.equal("about" in progress.readProgress("about-beta"), false);
+});

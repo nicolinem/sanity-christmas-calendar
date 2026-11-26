@@ -1,3 +1,4 @@
+import { normalizeAbout, type About } from "./about";
 import { normalizeFigure, type FigureChoice } from "./figure";
 import { CHAPTERS } from "./quests/chapters";
 import type { QuestTrack } from "./quests/types";
@@ -37,6 +38,8 @@ export type CommunityPlayer = {
   name: string | null;
   // Hints used per finished luke, or null when the player keeps them private.
   hints: Record<string, number> | null;
+  // «Om meg», for their ghost in other villages. Null when not written.
+  about: About | null;
 };
 
 export function forgeLevelFromMilestones(questIds: Iterable<string>) {
@@ -58,7 +61,7 @@ export function forgeLevelFromMilestones(questIds: Iterable<string>) {
 export function playersFromMilestones(
   milestones: { playerId: string; questId: string; hints?: number | null }[],
   profiles: (Pick<CommunityPlayer, "playerId" | "weapon"> &
-    Partial<Pick<CommunityPlayer, "figure" | "name">>)[],
+    Partial<Pick<CommunityPlayer, "figure" | "name" | "about">>)[],
 ): CommunityPlayer[] {
   const completed = new Map<string, Set<string>>();
   const hints = new Map<string, Record<string, number>>();
@@ -81,6 +84,7 @@ export function playersFromMilestones(
       figure: byId.get(playerId)?.figure ?? null,
       name: byId.get(playerId)?.name ?? null,
       hints: hints.get(playerId) ?? null,
+      about: byId.get(playerId)?.about ?? null,
     }))
     .sort(
       (a, b) =>
@@ -99,11 +103,13 @@ export function characterFor(input: unknown) {
     typeof character !== "object"
   )
     return null;
-  const { weapon, figure, name, visible } = character as Record<
+  const { weapon, figure, name, visible, about } = character as Record<
     string,
     unknown
   >;
   if (visible !== undefined && typeof visible !== "boolean") return null;
+  const cleanAbout = about != null ? normalizeAbout(about) : null;
+  if (about != null && !cleanAbout) return null;
   if (figure != null && !isSmallStringRecord(figure)) return null;
   // A weapon the page can't show is left off (or its sprite is), so it never
   // keeps the figure, name and finished doors from being shared.
@@ -130,6 +136,7 @@ export function characterFor(input: unknown) {
       ? { figure: normalizeFigure(figure as Record<string, string>) }
       : {}),
     ...(displayName(name) ? { name: displayName(name)! } : {}),
+    ...(cleanAbout ? { about: cleanAbout } : {}),
   };
 }
 
