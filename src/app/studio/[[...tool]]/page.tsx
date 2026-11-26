@@ -1,5 +1,5 @@
 import { NextStudio } from "next-sanity/studio";
-import config from "../../../../sanity.config";
+import config from "@/sanity/studio/config";
 import { isSanityConfigured } from "@/sanity/env";
 
 // Embeds the whole Sanity Studio at /studio. The game shows it in a pane beside

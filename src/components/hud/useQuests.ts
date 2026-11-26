@@ -9,6 +9,7 @@ import { forgedPower, xpProgress } from "@/game/rules";
 import { playerLevel, totalXp } from "@/game/xp";
 import { CHAPTERS } from "@/game/quests/chapters";
 import { chaptersForTrack, evaluateQuests } from "@/game/quests/engine";
+import { studioTypesOpen } from "@/game/studioTypes";
 import {
   EMPTY_PROGRESS,
   PROGRESS_PROJECT as PROJECT,
@@ -292,6 +293,21 @@ export function useQuestBoard({
     if (wraithDefeatedNow && !progress.wraithDefeated)
       updateProgress(PROJECT, (p) => ({ ...p, wraithDefeated: true }));
   }, [wraithDefeatedNow, progress.wraithDefeated]);
+
+  // The Studio shows a document type once its luke has opened. Saved, so it
+  // stays there; with ?dev only the dates are skipped, so «Hopp hit» shows
+  // the types week by week.
+  useEffect(() => {
+    const opened = studioTypesOpen(chapters, progress, new Date(), devUnlock);
+    if (opened.every((type) => progress.studioTypes?.[type])) return;
+    updateProgress(PROJECT, (p) => ({
+      ...p,
+      studioTypes: {
+        ...p.studioTypes,
+        ...Object.fromEntries(opened.map((type) => [type, true as const])),
+      },
+    }));
+  }, [chapters, progress, devUnlock]);
 
   useEffect(() => {
     // Read the store, not the render's snapshot, so a repeated effect run

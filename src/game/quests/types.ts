@@ -31,6 +31,9 @@ export type Progress = {
   weeksSeen: Record<string, true | number>;
   // Gear choices whose new-unlock badge the player has already seen.
   seenGear: Record<string, true>;
+  // Studio document types that have shown (src/game/studioTypes.ts). Written
+  // by the game, read by the Studio; a type never hides again.
+  studioTypes: Record<string, true>;
   // The player's own figure (src/game/figure.ts). Left out: the knight.
   figure?: Record<string, string>;
   // The player's chosen display name, shown on the community page.

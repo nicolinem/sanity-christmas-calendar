@@ -11,9 +11,9 @@ import { isSolved, isTrack } from "../lib/solved";
 // queries a fixed copy of the same kind of data in the code window.
 
 export const STATUS_TITLES: Record<string, string> = {
-  unknown: "Unknown",
-  confirmed: "Confirmed",
-  rumor: "Rumor",
+  unknown: "Ukjent",
+  confirmed: "Bekreftet",
+  rumor: "Rykte",
 };
 
 const hideModeledField = () =>
@@ -21,51 +21,51 @@ const hideModeledField = () =>
 
 export const observation = defineType({
   name: "observation",
-  title: "Observation",
+  title: "Observasjon",
   type: "document",
   icon: EyeOpenIcon,
   fields: [
     defineField({
       name: "what",
-      title: "What was seen",
+      title: "Hva ble sett",
       type: "string",
       validation: (r) => r.required(),
     }),
     defineField({
       name: "time",
-      title: "Time",
+      title: "Tid",
       type: "string",
-      description: "HH:MM, the same evening",
+      description: "TT:MM, samme kveld",
     }),
     defineField({
       name: "place",
-      title: "Place",
+      title: "Sted",
       type: "reference",
       to: [{ type: "place" }],
       hidden: hideModeledField,
     }),
     defineField({
       name: "placeNote",
-      title: "Place (as written down)",
+      title: "Sted (slik det ble skrevet)",
       type: "string",
       description:
-        "What the witness wrote. The Place reference above is what the archive can search.",
+        "Det vitnet skrev. Sted-feltet over er det arkivet kan søke i.",
       hidden: ({ value }) => !value,
     }),
     defineField({
       name: "witness",
-      title: "Witness",
+      title: "Vitne",
       type: "reference",
       to: [{ type: "witness" }],
       hidden: hideModeledField,
     }),
     defineField({
       name: "seen",
-      title: "Seen with own eyes",
+      title: "Så det selv",
       type: "boolean",
       initialValue: true,
     }),
-    defineField({ name: "image", title: "Picture", type: "image" }),
+    defineField({ name: "image", title: "Bilde", type: "image" }),
     defineField({
       name: "status",
       title: "Status",
@@ -83,7 +83,7 @@ export const observation = defineType({
     }),
   ],
   orderings: [
-    { title: "Time", name: "time", by: [{ field: "time", direction: "asc" }] },
+    { title: "Tid", name: "time", by: [{ field: "time", direction: "asc" }] },
   ],
   preview: {
     select: {
@@ -106,26 +106,26 @@ export const observation = defineType({
 
 export const place = defineType({
   name: "place",
-  title: "Place",
+  title: "Sted",
   type: "document",
   icon: PinIcon,
   fields: [
     defineField({
       name: "name",
-      title: "Name",
+      title: "Navn",
       type: "string",
       validation: (r) => r.required(),
     }),
     // Where the place is on the village map, in percent. Read by the game.
     defineField({
       name: "x",
-      title: "Map x (%)",
+      title: "Kart x (%)",
       type: "number",
       hidden: true,
     }),
     defineField({
       name: "y",
-      title: "Map y (%)",
+      title: "Kart y (%)",
       type: "number",
       hidden: true,
     }),
@@ -134,13 +134,13 @@ export const place = defineType({
 
 export const witness = defineType({
   name: "witness",
-  title: "Witness",
+  title: "Vitne",
   type: "document",
   icon: UserIcon,
   fields: [
     defineField({
       name: "name",
-      title: "Name",
+      title: "Navn",
       type: "string",
       validation: (r) => r.required(),
     }),
@@ -149,19 +149,19 @@ export const witness = defineType({
 
 export const caseFile = defineType({
   name: "case",
-  title: "Case",
+  title: "Saksmappe",
   type: "document",
   icon: FolderIcon,
   fields: [
     defineField({
       name: "title",
-      title: "Title",
+      title: "Tittel",
       type: "string",
       validation: (r) => r.required(),
     }),
     defineField({
       name: "observations",
-      title: "Observations",
+      title: "Observasjoner",
       type: "array",
       of: [
         {
@@ -176,7 +176,7 @@ export const caseFile = defineType({
     select: { title: "title", observations: "observations" },
     prepare: ({ title, observations }) => ({
       title,
-      subtitle: `${Array.isArray(observations) ? observations.length : 0} observations`,
+      subtitle: `${Array.isArray(observations) ? observations.length : 0} observasjoner`,
     }),
   },
 });

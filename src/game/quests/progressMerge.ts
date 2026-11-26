@@ -25,6 +25,7 @@ export const EMPTY_PROGRESS: Progress = {
   solved: {},
   weeksSeen: {},
   seenGear: {},
+  studioTypes: {},
   side: {},
   found: {},
   bosses: {},
@@ -103,6 +104,7 @@ export function normalizeProgress(raw: unknown): Progress | null {
     sharePrompted:
       typeof saved.sharePrompted === "boolean" ? saved.sharePrompted : false,
     seenGear: record<true>(saved.seenGear),
+    studioTypes: facts(saved.studioTypes),
     side: record(saved.side),
     found: record<true>(saved.found),
     bosses: facts(saved.bosses),
@@ -216,6 +218,7 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
     solved: { ...older.solved, ...newer.solved },
     weeksSeen: { ...older.weeksSeen, ...newer.weeksSeen },
     seenGear: { ...older.seenGear, ...newer.seenGear },
+    studioTypes: { ...older.studioTypes, ...newer.studioTypes },
     side: furthest(older.side, newer.side),
     found: { ...older.found, ...newer.found },
     bosses: { ...older.bosses, ...newer.bosses },
