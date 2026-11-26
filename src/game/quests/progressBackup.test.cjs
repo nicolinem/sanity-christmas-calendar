@@ -311,6 +311,18 @@ test("choices that can change come from the copy saved last", () => {
   assert.deepEqual(merged.inventory, { ice: 1 });
 });
 
+test("the chosen weapon follows the copy saved last, and a fresh browser keeps it", () => {
+  const older = { ...EMPTY_PROGRESS, equipped: "sword-1", savedAt: AT };
+  const newer = { ...EMPTY_PROGRESS, equipped: "axe-2", savedAt: LATER };
+  assert.equal(mergeProgress(older, newer).equipped, "axe-2");
+  const fresh = { ...EMPTY_PROGRESS, savedAt: LATER };
+  assert.equal(mergeProgress(older, fresh).equipped, "sword-1");
+  assert.equal(
+    Object.hasOwn(mergeProgress(EMPTY_PROGRESS, fresh), "equipped"),
+    false,
+  );
+});
+
 test("merging again with the merged copy changes nothing", () => {
   const copies = [
     { ...EMPTY_PROGRESS },

@@ -667,3 +667,11 @@ Brukeren valgte hele forslaget, også 4c og 5b.
 
 **Hva vi justerer først** hvis det ikke føles riktig: antall monstre, så ganghastigheten, og først til slutt liv og skade.
 
+### Flagget er på (2026-11-26)
+
+Brukeren valgte at alle bygde funksjoner er på som standard. `FEATURES.cave`, `FEATURES.rpg` og `FEATURES.sideQuests` er på uten noe i `.env.local`. `NEXT_PUBLIC_FEATURE_CAVE=0` slår grotta av, og det samme gjelder de andre flaggene. Nye funksjoner følger samme regel.
+
+### Valgt våpen huskes
+
+Våpenet du tar i hånda, lagres i `Progress.equipped` og overlever en reload. Det følger også med i sikkerhetskopien. Det er det sterkeste våpenet til du velger selv, og igjen hvis våpenet ditt blir slettet (`pickEquipped` i `items.ts`).
+
