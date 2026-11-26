@@ -142,3 +142,15 @@ test("dev ghosts are four complete made-up players", () => {
     assert.ok(g.about.topics.length >= 3);
   }
 });
+
+test("chooseGhosts leaves out players whose name isn't plain text", () => {
+  const players = [
+    { playerId: "objname1", name: { x: 1 }, figure: DEFAULT_FIGURE },
+    { playerId: "blankname", name: "   ", figure: DEFAULT_FIGURE },
+    { playerId: "goodname", name: "Kari", figure: DEFAULT_FIGURE },
+  ];
+  assert.deepEqual(
+    chooseGhosts(players, "me", seeded(7)).map((g) => g.playerId),
+    ["goodname"],
+  );
+});

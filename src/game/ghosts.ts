@@ -57,13 +57,21 @@ export function chooseGhosts(
   random: () => number = Math.random,
 ): GhostInput[] {
   return shuffled(
-    players.filter((p) => p.playerId !== ownId && p.figure && p.name),
+    // Community data is other people's: a name that isn't plain text would
+    // break the dialogue, so that player just isn't a ghost.
+    players.filter(
+      (p) =>
+        p.playerId !== ownId &&
+        p.figure &&
+        typeof p.name === "string" &&
+        p.name.trim(),
+    ),
     random,
   )
     .slice(0, MAX_GHOSTS)
     .map((p) => ({
       playerId: p.playerId,
-      name: p.name!,
+      name: p.name!.trim(),
       figure: normalizeFigure(p.figure),
       about: p.about ?? null,
     }));
