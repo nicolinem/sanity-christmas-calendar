@@ -61,7 +61,7 @@ import {
   type OwnObservation,
 } from "@/game/archive";
 import { SAMPLE_ORDERS } from "@/game/bakery";
-import { APPRENTICE_ITEM_ID } from "@/game/apprentice";
+import { APPRENTICE_ITEM_ID, isRestoredHammer } from "@/game/apprentice";
 import BakerySign from "./hud/BakerySign";
 import CaveHud from "./hud/CaveHud";
 import { levelUpToast } from "@/game/levelUp";
@@ -1060,7 +1060,9 @@ export default function GameClient() {
     ) ||
     board.states.some(
       (s) =>
-        ["who-is-lying", "case-file"].includes(s.quest.id) &&
+        // From the model board on: the five are in Studio, with the board's
+        // fields hidden, when the board is solved.
+        ["archive-model", "who-is-lying", "case-file"].includes(s.quest.id) &&
         s.status === "active",
     );
   useEffect(() => {
@@ -1149,16 +1151,18 @@ export default function GameClient() {
     (state) =>
       state.quest.id === "apprentice-mistake" && state.status === "active",
   );
+  // Asked once per visit while the hammer is still wrong: the route also
+  // writes the History revisions again when they are about to expire.
   const apprenticeHammer = items.find((item) => item.id === APPRENTICE_ITEM_ID);
+  const hammerRestored = isRestoredHammer(apprenticeHammer);
   useEffect(() => {
-    if (!needsApprentice || apprenticeHammer || apprenticeSeeded.current)
-      return;
+    if (!needsApprentice || hammerRestored || apprenticeSeeded.current) return;
     apprenticeSeeded.current = true;
     markOwnWrite();
     fetch("/api/apprentice", { method: "POST" })
       .then((response) => (response.ok ? refresh() : undefined))
       .catch(() => {});
-  }, [needsApprentice, apprenticeHammer, refresh]);
+  }, [needsApprentice, hammerRestored, refresh]);
 
   // A publish in Studio closes what's open in the game, so the weapon, the
   // sign or the celebration can be seen, and offers the way back.

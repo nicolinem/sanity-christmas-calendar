@@ -13,18 +13,10 @@ export const bakerySign = defineType({
       of: [
         {
           type: "block",
+          // Only bold: the luke is about one mark, so nothing else to choose.
           marks: {
             decorators: [{ title: "Fet", value: "strong" }],
-            annotations: [
-              {
-                name: "link",
-                title: "Lenke",
-                type: "object",
-                fields: [
-                  { name: "href", title: "Adresse (https://)", type: "url" },
-                ],
-              },
-            ],
+            annotations: [],
           },
         },
       ],

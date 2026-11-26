@@ -12,7 +12,7 @@ const order = (id, item, updatedAt) => ({ _id: id, item, updatedAt });
 const signText = (sign) => sign?.text?.[0]?.children?.[0]?.text;
 const solution = () => {
   const task = WINDOW_TASKS["baker-function"];
-  return runModule(task.solution, task.modules).exports.onOrderPublished;
+  return runModule(task.solution, task.modules).exports.handler;
 };
 
 test("the first look only remembers; later, new and republished orders count", () => {

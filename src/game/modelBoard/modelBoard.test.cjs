@@ -131,7 +131,7 @@ test("the archive model has six meaningful decisions and can be solved", () => {
   };
   assert.equal(board.cards.length, 6);
   assert.equal(
-    board.cards.some(({ text }) => text === "21:40"),
+    board.cards.some(({ text }) => text === "18:45"),
     false,
   );
   assert.equal(

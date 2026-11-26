@@ -265,7 +265,7 @@ export function npcQuestLine(
   questId: string | undefined,
 ): string | undefined {
   if (npc === "kari" && questId === "morning-rush")
-    return "Julekake, selvfølgelig!";
+    return "Bestillingen min? Julekake, selvfølgelig! Det er det samme hvert år.";
 }
 
 // Doors that share a place stand side by side, 22px apart.

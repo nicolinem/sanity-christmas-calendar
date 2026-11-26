@@ -21,6 +21,7 @@ export const ForgeAction: DocumentActionComponent = (props) => {
     onHandle: () => {
       patch.execute([{ set: { forgedAt: new Date().toISOString() } }]);
       publish.execute();
+      props.onComplete();
     },
   };
 };

@@ -38,7 +38,7 @@ function save(saved: Saved) {
 function loadFunction(): OrderFunction | null {
   const source = loadDraft(bakerFunctionTask.id, bakerFunctionTask.solution);
   const loaded = runModule(source, bakerFunctionTask.modules);
-  const fn = loaded.ok ? loaded.exports.onOrderPublished : null;
+  const fn = loaded.ok ? loaded.exports.handler : null;
   return typeof fn === "function" ? (fn as OrderFunction) : null;
 }
 

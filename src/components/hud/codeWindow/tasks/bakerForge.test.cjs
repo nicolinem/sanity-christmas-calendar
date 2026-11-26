@@ -28,10 +28,12 @@ test("the starter cannot smi or publish anything", () => {
 test("patching forgedAt and publishing in order completes the door", () => {
   const { useDocumentOperation } = bakerForgeTask.modules.sanity;
   const result = bakerForgeTask.judge({
-    ForgeAction: () => {
+    ForgeAction: (props) => {
       const { patch, publish } = useDocumentOperation();
       return {
         label: "Smi",
+        disabled:
+          props.draft?.kind !== "weapon" && props.published?.kind !== "weapon",
         onHandle() {
           patch.execute([{ set: { forgedAt: new Date().toISOString() } }]);
           publish.execute();
@@ -62,4 +64,35 @@ test("publishing before the stamp or stamping an old date fails", () => {
     });
     assert.equal(result.done, false);
   }
+});
+
+test("Smi must be grey for materials and potions, and open for weapons", () => {
+  const { useDocumentOperation } = bakerForgeTask.modules.sanity;
+  const action = (disabled) => (props) => {
+    const { patch, publish } = useDocumentOperation();
+    return {
+      label: "Smi",
+      disabled: disabled(props),
+      onHandle() {
+        patch.execute([{ set: { forgedAt: new Date().toISOString() } }]);
+        publish.execute();
+        props.onComplete();
+      },
+    };
+  };
+  const kind = (props) => (props.draft ?? props.published)?.kind;
+  assert.equal(
+    bakerForgeTask.judge({ ForgeAction: action(() => false) }).done,
+    false,
+  );
+  assert.equal(
+    bakerForgeTask.judge({ ForgeAction: action(() => true) }).done,
+    false,
+  );
+  assert.equal(
+    bakerForgeTask.judge({
+      ForgeAction: action((props) => kind(props) !== "weapon"),
+    }).done,
+    true,
+  );
 });

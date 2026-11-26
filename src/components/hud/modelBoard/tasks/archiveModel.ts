@@ -2,7 +2,7 @@ import type { BoardTask } from "@/game/modelBoard/modelBoard";
 
 export const archiveModelTask: BoardTask = {
   id: "archive-model",
-  note: "Arkivarens notat: «21:40 – fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde. Ikke sjekket.»",
+  note: "Arkivarens notat: «18:45 – fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde. Ikke sjekket.»",
   slots: [
     {
       id: "text",
@@ -47,7 +47,7 @@ export const archiveModelTask: BoardTask = {
         boolean:
           "Fotspor er ikke et ja eller nei; da mister jeg det hun faktisk så.",
         image:
-          "Jeg har ikke selve bildet av fotsporene, bare ordene i notatet.",
+          "Bildet har sitt eget kort. Her er det ordene hennes jeg vil ta vare på.",
         list: "Folk ser alt mulig. Jeg kan ikke lage en liste over alt.",
         place: "Fotsporene er observasjonen, ikke stedet der den skjedde.",
         witness: "Fotspor kan ikke være vitnet jeg skal spørre igjen.",
@@ -68,7 +68,7 @@ export const archiveModelTask: BoardTask = {
       card: "witness",
       accept: ["witness"],
       feedback: {
-        text: 'Regelen min sier *et annet vitne*. "Kari" og "kari" blir to forskjellige vitner.',
+        text: "Regelen min sier «et annet vitne». Står navnet som tekst, blir «Kari» og «kari» to forskjellige vitner.",
         boolean: "Jeg må vite hvem det var, ikke bare om noen var der.",
         image: "Et portrett forteller ikke arkivet hvilken Kari jeg mener.",
         list: "En navneliste blir feil så snart et nytt vitne melder seg.",
@@ -79,7 +79,7 @@ export const archiveModelTask: BoardTask = {
       card: "seen",
       accept: ["boolean"],
       feedback: {
-        text: "Jeg må kunne sortere på det. Fritekst kan ikke sorteres.",
+        text: "Regelen min spør bare om én ting: så hun det selv, ja eller nei? Med fritekst får jeg «ja», «Ja» og «tror det».",
         image: "Et bilde beviser ikke om Kari så hendelsen med egne øyne.",
         list: "Her finnes bare to svar; en lang valgliste gjør regelen uklar.",
         place: "Dette sier hvordan hun vet det, ikke hvor det skjedde.",
