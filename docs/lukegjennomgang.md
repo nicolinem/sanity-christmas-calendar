@@ -14,6 +14,16 @@ er, og om sjekken stemmer. Grotta (`FEATURES.cave`) er ikke med.
 > - **#15:** Smi må være grå for alt annet enn våpen.
 >
 > Ingenting er spilt i nettleseren.
+>
+> **Testet i Studio samme dag (#1):** Det første oppsettet («Created» og så
+> «Live edited») gir to punkter i *History*, så det virker. Men to vanlige
+> endringer rett etter hverandre ble slått sammen til ett «Live edited». Da
+> kunne ikke den riktige versjonen velges, og den første rettelsen av #1
+> virket ikke. Nå legges den riktige hammeren inn som en publisering (utkast,
+> så *Publish*), og feilen som en vanlig endring. Det gir to punkter. Hele
+> veien er prøvd med Studio 6.20: *History* › «Published» › *Revert to
+> revision* › bekreft › bytt til *Draft* › *Publish*. Spillet viste «Brann sin
+> hammer» etterpå.
 
 **Slik er det gjort:** Jeg har lest koden og dataene: `chapters.ts`,
 modellbrettene, kodevinduets oppgaver, Studio-skjemaene, `structure.ts`,
