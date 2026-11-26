@@ -197,6 +197,7 @@ export const WHO_IS_LYING: {
   _id: string;
   place?: string;
   placeNote?: string;
+  linksTo?: string; // where a misspelt note really is: the technical track gets it linked
   time: string;
   what: string;
   witness: string;
@@ -226,6 +227,7 @@ export const WHO_IS_LYING: {
   {
     _id: "archive-c",
     placeNote: "bakriet",
+    linksTo: "bakeriet",
     time: "19:06",
     what: "Melsekken revnet ved bakdøra",
     witness: "kari",

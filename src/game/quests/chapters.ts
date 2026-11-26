@@ -512,7 +512,7 @@ const followTheTrail: Quest = {
   door: 5,
   title: "GROQ: følg sporet",
   intro: [
-    "Femti observasjoner ligger i arkivet, rykter og fakta om hverandre. Vi begynner med det som er bekreftet.",
+    "Nesten femti observasjoner ligger i arkivet, rykter og fakta om hverandre. Vi begynner med det som er bekreftet.",
     "Skriv én GROQ-spørring mot observasjonene mine: bare det som er bekreftet, i tidsrekkefølge, og med stedet. Kartet viser hvor sporet går.",
   ],
   outro: [
@@ -521,11 +521,11 @@ const followTheTrail: Quest = {
   ],
   goal: "Skriv en GROQ-spørring som gir de bekreftede observasjonene i tidsrekkefølge, med stedet.",
   explain: {
-    what: "Én GROQ-spørring som filtrerer femti observasjoner ned til de bekreftede, sorterer dem på tid og henter stedet de peker på. Svaret tegnes som et spor på kartet.",
+    what: "Én GROQ-spørring som filtrerer nesten femti observasjoner ned til de bekreftede, sorterer dem på tid og henter stedet de peker på. Svaret tegnes som et spor på kartet.",
     why: "Et godt filter gir svaret: ryktene peker mot torget, men de bekreftede observasjonene viser hvor sporet egentlig går.",
   },
   goalPreview: {
-    before: "Femti observasjoner, rykter og fakta om hverandre.",
+    before: "Nesten femti observasjoner, rykter og fakta om hverandre.",
     after: "Bare bekreftede, i tidsrekkefølge, med sted.",
   },
   where: "I kodevinduet.",

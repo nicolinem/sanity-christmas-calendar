@@ -48,8 +48,8 @@ vm.runInNewContext(
   },
 );
 
-const request = (origin = "https://game.example") => ({
-  url: "https://game.example/api/archive",
+const request = (origin = "https://game.example", query = "") => ({
+  url: `https://game.example/api/archive${query}`,
   headers: { get: () => origin },
 });
 
@@ -80,4 +80,20 @@ test("the archive also returns the player's own observations, outside the clues"
   assert.match(routeSource, /!\(_id in \$ids\)/);
   assert.match(routeSource, /"witness": witness\._ref/);
   assert.match(routeSource, /own,/);
+});
+
+test("the technical track gets the clues sorted and C linked to Bakeriet", async () => {
+  created.length = 0;
+  await mod.exports.POST(request(undefined, "?track=technical"));
+  const clues = created.filter(({ _type }) => _type === "observation");
+  assert.equal(clues.length, 5);
+  for (const clue of clues)
+    assert.equal(
+      clue.status,
+      archive.WHO_IS_LYING.find(({ _id }) => _id === clue._id).expected,
+    );
+  assert.equal(
+    clues.find(({ _id }) => _id === "archive-c").place._ref,
+    "place-bakeriet",
+  );
 });
