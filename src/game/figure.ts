@@ -580,7 +580,7 @@ export const EXTRAS: Part[] = [
     id: "shield",
     label: "Isskjold",
     // Held at the other hand from the lantern.
-    grid: grid(10, "XXXX", "XWFX", "XFfX", "XFfX", ".XfX", "..X"),
+    grid: grid(10, "XXXX", "XWFX", "XFfX", "XFfX", ".XX."),
     unlock: RECIPE_5_SOURCE,
   },
   {

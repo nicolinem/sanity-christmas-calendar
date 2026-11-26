@@ -6203,6 +6203,9 @@ kbd {
   align-items: center;
   gap: 8px;
 }
+.cs-forge li {
+  grid-template-columns: 1fr;
+}
 .cs-forge li.is-missing {
   opacity: 0.55;
 }

@@ -546,7 +546,7 @@ G5 gir materialene en bruk. Kistene på etasje 5 og 10 gir hver sin oppskrift. S
 
 - Oppskriftene står i koden (`src/game/recipes.ts`), som materialene. Det er koden som avgjør hva som trekkes, ikke dokumentet i Sanity.
 - **En oppskrift er låst opp når kista er åpnet** (`chests["cave-5"]` og `chests["cave-10"]`). Det regnes ut, og ingenting nytt lagres. De som åpnet kista på etasje 5 før G5, har oppskriften med en gang.
-- Utstyret er tegnet som resten av figuren, i Kenneys palett. Kilden i Utstyr er «Oppskrift fra etasje 5» og «Oppskrift fra etasje 10». Med flagget av ser det ut som annet gjemt utstyr.
+- Utstyret er tegnet som resten av figuren, i Kenneys palett. Kilden i Utseende er «Oppskrift fra etasje 5» og «Oppskrift fra etasje 10». Med flagget av ser det ut som annet gjemt utstyr.
 
 ### I Studio
 
@@ -562,7 +562,7 @@ To ferdige typer, på samme måte som arkivet i uke 2. Spillerens egne filer (`i
 ### I spillet
 
 - **Når en publisert Smiing finnes,** og oppskriften er låst opp:
-  - Har spilleren nok i `inventory`, trekkes materialene, og `crafted[_id]` settes til oppskriften. Utstyret er ditt. Toasten er «Isskjold» med navnet spilleren ga det.
+  - Har spilleren nok i `inventory`, trekkes materialene, og `crafted[_id]` settes til oppskriften. Utstyret er ditt. Toasten har tittelen «Isskjold» og teksten «Trykk C for å ta på deg «navnet spilleren ga det».»
   - Mangler det noe, trekkes ingenting. Smia i Ting viser «Mangler 2 Isskår». Den smis av seg selv når materialene er samlet, uten å publisere på nytt.
   - Det som ligger i `trip`, teller ikke før det er trygt.
 - **Hver oppskrift gir utstyret én gang.** En ny Smiing av samme oppskrift trekker ingenting. Å publisere samme dokument igjen gjør ingenting, fordi `_id` ligger i `crafted`.

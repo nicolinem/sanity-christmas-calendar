@@ -85,7 +85,10 @@ export function recipeStates(p: Progress, forgings: Forging[]): RecipeState[] {
     const missing = missingFor(p.inventory, id);
     if (Object.values(p.crafted).includes(id))
       return { id, state: "done", missing: [] };
-    const published = forgings.some((f) => f.recipe === id);
+    // A forging already used for another recipe is not waiting.
+    const published = forgings.some(
+      (f) => f.recipe === id && !p.crafted[f._id],
+    );
     return {
       id,
       state: published && missing.length > 0 ? "missing" : "todo",

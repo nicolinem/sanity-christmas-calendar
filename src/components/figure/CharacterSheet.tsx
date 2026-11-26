@@ -29,8 +29,8 @@ import {
   type GearKey,
 } from "@/game/wardrobe";
 import {
+  EMPTY_PROGRESS,
   PROGRESS_PROJECT,
-  readProgress,
   updateProgress,
 } from "@/game/quests/progress";
 import type { GameItemView } from "@/game/items";
@@ -153,6 +153,8 @@ type Props = {
   level: number;
   inventory: Record<string, number>;
   forgings: Forging[];
+  chests: Record<string, true>;
+  crafted: Record<string, string>;
   onDone: (
     choice: FigureChoice,
     name: string,
@@ -177,6 +179,8 @@ export default function CharacterSheet({
   level,
   inventory: materials,
   forgings,
+  chests,
+  crafted,
   onDone,
   onClose,
 }: Props) {
@@ -210,11 +214,9 @@ export default function CharacterSheet({
     cat.color &&
     categoryUsesColor(choice, cat.part, cat.color.key, cat.color.options);
   const inventory = items.filter((item) => item.id !== "builtin-fists");
-  // Chests and crafted gear change together with the inventory, which
-  // re-renders the sheet.
   const forgeRows = FEATURES.cave
     ? recipeStates(
-        { ...readProgress(PROGRESS_PROJECT), inventory: materials },
+        { ...EMPTY_PROGRESS, chests, crafted, inventory: materials },
         forgings,
       )
     : [];
@@ -488,22 +490,16 @@ export default function CharacterSheet({
                       key={row.id}
                       className={row.state === "missing" ? "is-missing" : ""}
                     >
-                      <SpriteIcon
-                        sprite={
-                          MATERIALS[RECIPES[row.id].ingredients[0].material]
-                            .sprite
-                        }
-                      />
                       <span>
                         {RECIPES[row.id].name}
                         <small>{ingredientLine(materials, row.id)}</small>
-                      </span>
-                      <span>
-                        {row.state === "done"
-                          ? "Smidd"
-                          : row.state === "missing"
-                            ? missingText(row.missing)
-                            : "Lag en Smiing i Studio"}
+                        <small>
+                          {row.state === "done"
+                            ? "Smidd"
+                            : row.state === "missing"
+                              ? missingText(row.missing)
+                              : "Lag en Smiing i Studio"}
+                        </small>
                       </span>
                     </li>
                   ))}

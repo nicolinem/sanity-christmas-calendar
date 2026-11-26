@@ -181,3 +181,19 @@ test("the ingredient line shows held against needed", () => {
     "Gammel malm 0/4 · Isskår 0/2",
   );
 });
+
+test("a forging already used for another recipe does not make this one missing", () => {
+  const p = progress({
+    chests: { "cave-5": true, "cave-10": true },
+    inventory: { malm: 0, isskar: 0 },
+    crafted: { f1: "recipe-isskjold" },
+  });
+  const reused = { _id: "f1", name: "Mitt skjold", recipe: "recipe-ishjelm" };
+  assert.deepEqual(
+    recipeStates(p, [reused]).map((s) => [s.id, s.state]),
+    [
+      ["recipe-isskjold", "done"],
+      ["recipe-ishjelm", "todo"],
+    ],
+  );
+});
