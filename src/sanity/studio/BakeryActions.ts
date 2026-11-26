@@ -12,8 +12,17 @@ import { useMorningRush } from "../lib/solved";
 export const ForgeAction: DocumentActionComponent = (props) => {
   const { patch, publish } = useDocumentOperation(props.id, props.type);
   const kind = (props.draft ?? props.published)?.kind;
+  // Smi publishes a new or changed weapon. A published weapon with nothing
+  // changed has nothing to publish, so Smi is grey like Publish: say why.
+  const title =
+    kind !== "weapon"
+      ? "Bare våpen kan smis."
+      : !props.draft
+        ? "Endre våpenet først, så stempler og publiserer Smi endringen."
+        : undefined;
   return {
     label: "Smi",
+    title,
     disabled:
       !props.ready ||
       kind !== "weapon" ||

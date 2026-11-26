@@ -73,9 +73,11 @@ export default function WeekComplete({
         </ul>
 
         <p className="week-done-friday">
+          {/* After the last week there is no next week, only julaften. */}
+          {`${summary.next ? "Til neste uke" : "Fram til julaften"} kan du utforske bygda`}
           {summary.optional
-            ? `Til neste uke kan du utforske bygda. Har du lyst på mer, henger «${summary.optional.title}» fortsatt ved ${summary.optional.place}.`
-            : "Til neste uke kan du utforske bygda og prøve våpnene dine."}
+            ? `. Har du lyst på mer, henger «${summary.optional.title}» fortsatt ved ${summary.optional.place}.`
+            : " og prøve våpnene dine."}
         </p>
 
         {summary.next ? (

@@ -998,11 +998,11 @@ const bakerForge: Quest = {
   learn: { label: "Document actions", url: `${DOCS}/document-actions` },
   lesson: {
     title: "*Document action*",
-    text: "En *document action* legger et nytt arbeidssteg i Studio. Kodevinduet sjekket både stempel og publisering; spillet kan ikke se hvilket knappetrykk som skapte feltet. Studio bruker vår trygge Smi-versjon.",
+    text: "En *document action* gjør et arbeidssteg til én knapp. Den bestemmer selv når den er grå (`disabled`), og hva som skjer når du trykker (`onHandle`). Studio bruker vår versjon av Smi, så koden din kan ikke ødelegge noe der.",
   },
   checkedBy: "window",
   studioPractice:
-    "Åpne et våpen i Studio og prøv Smi. Et materiale skal ikke kunne smis.",
+    "Endre et våpen i Studio, eller lag et nytt, og trykk Smi i stedet for *Publish*. Et materiale skal ikke kunne smis.",
   check: fromWindow("baker-forge"),
 };
 

@@ -516,9 +516,10 @@ export default function CodeWindow({
                 >
                   <p role="status">
                     <strong>Oppgave godkjent!</strong>{" "}
-                    {task.studioCode === false
-                      ? "Svaret stemmer med Arkivarens."
-                      : "Studio bruker nå vår versjon av koden."}
+                    {task.doneNote ??
+                      (task.studioCode === false
+                        ? "Svaret stemmer med Arkivarens."
+                        : "Studio bruker nå vår versjon av koden.")}
                   </p>
                   <StudioPractice
                     state={state}
@@ -527,9 +528,10 @@ export default function CodeWindow({
                   />
                   <details>
                     <summary>
-                      {task.studioCode === false
-                        ? "Arkivarens spørring"
-                        : "Koden som er slått på i Studio"}
+                      {task.oursLabel ??
+                        (task.studioCode === false
+                          ? "Arkivarens spørring"
+                          : "Koden som er slått på i Studio")}
                     </summary>
                     <pre className="cw-ours">{task.ours}</pre>
                   </details>

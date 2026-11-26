@@ -172,6 +172,9 @@ export const bakerFunctionTask: WindowTask = {
   ours: `if (!item) return;
 // Etter getDocument:
 if (sign?.text?.[0]?.children?.[0]?.text === text) return;`,
+  doneNote:
+    "Spillet kjører nå funksjonen din hver gang du publiserer en bestilling i Studio.",
+  oursLabel: "De to vaktene i vår versjon",
   references: [
     {
       file: "sanity.blueprint.ts",
