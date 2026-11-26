@@ -1197,9 +1197,12 @@ const bakerSign: Quest = {
         { label: "Minst to avsnitt", done: sign.twoBlocks },
         { label: "Et fet ord i første avsnitt", done: sign.boldFirst },
       ],
-      message: sign.done
-        ? undefined
-        : "Publiser skiltet med to avsnitt og et fet ord i det første.",
+      // Only what the objectives don't already say: that the sign is empty
+      // or not published yet.
+      message:
+        sign.twoBlocks || sign.boldFirst
+          ? undefined
+          : "Skiltet i bygda er tomt. Bare publisert tekst vises der.",
     };
   },
 };

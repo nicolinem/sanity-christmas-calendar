@@ -63,3 +63,21 @@ test("unpublished or unsafe links cannot appear on the village sign", () => {
   assert.doesNotMatch(html, /href=/);
   assert.match(html, /Farlig/);
 });
+
+test("the app view shows only the first paragraph, the sign shows all", () => {
+  const html = render({
+    text: [
+      {
+        _type: "block",
+        children: [
+          { text: "Nystekte ", marks: [] },
+          { text: "lussekatter", marks: ["strong"] },
+        ],
+      },
+      { _type: "block", children: [{ text: "Åpent til fire.", marks: [] }] },
+    ],
+  });
+  assert.equal((html.match(/<strong>lussekatter<\/strong>/g) ?? []).length, 2);
+  assert.equal((html.match(/Åpent til fire\./g) ?? []).length, 1);
+  assert.match(html, /første avsnitt/);
+});
