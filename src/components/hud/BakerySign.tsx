@@ -6,14 +6,17 @@ type Props = { sign: Sign | null; byFunction?: boolean; onClose: () => void };
 export function BakeryText({
   sign,
   empty,
+  first,
 }: {
   sign: Sign | null;
   empty?: string;
+  first?: boolean; // the app has room for the first paragraph only
 }) {
-  const blocks =
+  const all =
     sign?.text?.filter(
       (block) => block._type === "block" && block.children?.length,
     ) ?? [];
+  const blocks = first ? all.slice(0, 1) : all;
 
   if (!blocks.length) return empty ? <p>{empty}</p> : null;
 
@@ -83,9 +86,10 @@ export default function BakerySign({ sign, byFunction, onClose }: Props) {
             </div>
           </figure>
           <figure className="bakery-sign-view">
-            <figcaption>Kortversjon, som i en app</figcaption>
+            <figcaption>Kortversjon, som i en app: første avsnitt</figcaption>
             <div className="bakery-sign-preview bakery-sign-preview--app bakery-sign-text">
               <BakeryText
+                first
                 sign={sign}
                 empty="Skiltet er tomt. Publiser skilttekst i Studio for å vise den her."
               />

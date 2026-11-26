@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { QuestState, SolvedTask } from "@/game/quests/types";
 import {
   judgeBoard,
+  type BoardTask,
   type BoardToggle,
   type Placement,
 } from "@/game/modelBoard/modelBoard";
@@ -51,6 +52,85 @@ const toggleLabel: Record<BoardToggle, string> = {
   required: "Påkrevd",
   initial: "Startverdi",
 };
+
+const plain = (label: string) => label.replace(/`/g, "");
+
+// A board with toggles is a spec sheet, the way a designer hands it to a
+// developer: one row per piece of the note, with its type and the two
+// choices. Each choice is yes or no; nothing counts until it's picked.
+function SpecTable({
+  task,
+  placement,
+  requirements,
+  onSlot,
+  onToggle,
+}: {
+  task: BoardTask;
+  placement: Placement;
+  requirements: { done: boolean; message?: string }[];
+  onSlot: (card: string, slot: string) => void;
+  onToggle: (card: string, toggle: BoardToggle, value: boolean) => void;
+}) {
+  return (
+    <section className="mb-spec" aria-label="Spesifikasjon">
+      <div className="mb-spec-row mb-spec-head" aria-hidden="true">
+        <span>Fra lappen</span>
+        <span>Type</span>
+        {task.allowToggles?.map((toggle) => (
+          <span key={toggle}>{toggleLabel[toggle]}</span>
+        ))}
+      </div>
+      {task.cards.map((card, index) => {
+        const answer = placement[card.id] ?? {};
+        const requirement = requirements[index];
+        return (
+          <div
+            key={card.id}
+            className={`mb-spec-row${requirement.done ? " is-done" : ""}`}
+            role="group"
+            aria-label={card.text}
+          >
+            <strong className="mb-spec-card">
+              {requirement.done && <IconCheck size={12} />}
+              {card.text}
+            </strong>
+            <select
+              aria-label={`Type for ${card.text}`}
+              value={answer.slot ?? ""}
+              onChange={(event) => onSlot(card.id, event.target.value)}
+            >
+              <option value="">Velg type</option>
+              {task.slots.map((slot) => (
+                <option key={slot.id} value={slot.id}>
+                  {plain(slot.label)}
+                </option>
+              ))}
+            </select>
+            {task.allowToggles?.map((toggle) => (
+              <fieldset key={toggle} className="mb-spec-choice">
+                <legend>{toggleLabel[toggle]}</legend>
+                {[true, false].map((value) => (
+                  <label key={String(value)}>
+                    <input
+                      type="radio"
+                      name={`${task.id}-${card.id}-${toggle}`}
+                      checked={answer[toggle] === value}
+                      onChange={() => onToggle(card.id, toggle, value)}
+                    />
+                    {value ? "Ja" : "Nei"}
+                  </label>
+                ))}
+              </fieldset>
+            ))}
+            {!requirement.done && requirement.message && (
+              <small role="status">{renderText(requirement.message)}</small>
+            )}
+          </div>
+        );
+      })}
+    </section>
+  );
+}
 
 export default function ModelBoard({
   state,
@@ -141,95 +221,121 @@ export default function ModelBoard({
             <p>{renderText(task.note)}</p>
           </section>
 
-          <section className="mb-cards" aria-label="Kort">
-            {task.cards.map((card, index) => {
-              const requirement = verdict.requirements[index];
-              return (
-                <div className="mb-card-wrap" key={card.id}>
-                  <button
-                    type="button"
-                    className={`mb-card${selected === card.id ? " is-selected" : ""}${requirement.done ? " is-done" : ""}`}
-                    aria-pressed={selected === card.id}
-                    onClick={() => setSelected(card.id)}
-                  >
-                    {requirement.done && <IconCheck size={12} />}
-                    {card.text}
-                  </button>
-                  {!requirement.done && requirement.message && (
-                    <small role="status">
-                      {renderText(requirement.message)}
-                    </small>
-                  )}
-                </div>
-              );
-            })}
-          </section>
+          {task.allowToggles ? (
+            <SpecTable
+              task={task}
+              placement={placement}
+              requirements={verdict.requirements}
+              onSlot={(card, slot) =>
+                setPlacement((current) => ({
+                  ...current,
+                  [card]: { ...current[card], slot: slot || undefined },
+                }))
+              }
+              onToggle={setToggle}
+            />
+          ) : (
+            <>
+              <section className="mb-cards" aria-label="Kort">
+                {task.cards.map((card, index) => {
+                  const requirement = verdict.requirements[index];
+                  return (
+                    <div className="mb-card-wrap" key={card.id}>
+                      <button
+                        type="button"
+                        className={`mb-card${selected === card.id ? " is-selected" : ""}${requirement.done ? " is-done" : ""}`}
+                        aria-pressed={selected === card.id}
+                        onClick={() => setSelected(card.id)}
+                      >
+                        {requirement.done && <IconCheck size={12} />}
+                        {card.text}
+                      </button>
+                      {!requirement.done && requirement.message && (
+                        <small role="status">
+                          {renderText(requirement.message)}
+                        </small>
+                      )}
+                    </div>
+                  );
+                })}
+              </section>
 
-          <div className="mb-selection" aria-live="polite">
-            <span>
-              {selected
-                ? `Valgt: ${task.cards.find(({ id }) => id === selected)?.text}`
-                : "Velg et kort, og velg deretter hvor det hører hjemme."}
-            </span>
-          </div>
+              <div className="mb-selection" aria-live="polite">
+                <span>
+                  {selected
+                    ? `Valgt: ${task.cards.find(({ id }) => id === selected)?.text}`
+                    : "Velg et kort, og velg deretter hvor det hører hjemme."}
+                </span>
+              </div>
 
-          <section className="mb-slots" aria-label="Felt på modellbrettet">
-            {task.slots.map((slot) => {
-              const cards = task.cards.filter(
-                ({ id }) => placement[id]?.slot === slot.id,
-              );
-              return (
-                <article className="mb-slot frame frame--slate" key={slot.id}>
-                  <h3>{renderText(slot.label)}</h3>
-                  <p>{slot.about}</p>
-                  <button
-                    type="button"
-                    className="btn btn--quiet"
-                    disabled={!selected}
-                    onClick={() => placeSelected(slot.id)}
-                  >
-                    Legg valgt kort her
-                  </button>
-                  <ul>
-                    {cards.map((card) => (
-                      <li key={card.id}>
-                        <div className="mb-placed-row">
-                          <button
-                            type="button"
-                            className="mb-placed-card"
-                            onClick={() => setSelected(card.id)}
-                          >
-                            {card.text}
-                          </button>
-                          <button
-                            type="button"
-                            className="mb-remove-card"
-                            aria-label={`Fjern ${card.text} fra brettet`}
-                            title={`Fjern ${card.text}`}
-                            onClick={() => removeCard(card.id)}
-                          >
-                            ×
-                          </button>
-                        </div>
-                        {task.allowToggles?.map((toggle) => (
-                          <label key={toggle}>
-                            <input
-                              type="checkbox"
-                              checked={Boolean(placement[card.id]?.[toggle])}
-                              onChange={(event) =>
-                                setToggle(card.id, toggle, event.target.checked)
-                              }
-                            />
-                            {toggleLabel[toggle]}
-                          </label>
+              <section className="mb-slots" aria-label="Felt på modellbrettet">
+                {task.slots.map((slot) => {
+                  const cards = task.cards.filter(
+                    ({ id }) => placement[id]?.slot === slot.id,
+                  );
+                  return (
+                    <article
+                      className="mb-slot frame frame--slate"
+                      key={slot.id}
+                    >
+                      <h3>{renderText(slot.label)}</h3>
+                      <p>{slot.about}</p>
+                      <button
+                        type="button"
+                        className="btn btn--quiet"
+                        disabled={!selected}
+                        onClick={() => placeSelected(slot.id)}
+                      >
+                        Legg valgt kort her
+                      </button>
+                      <ul>
+                        {cards.map((card) => (
+                          <li key={card.id}>
+                            <div className="mb-placed-row">
+                              <button
+                                type="button"
+                                className="mb-placed-card"
+                                onClick={() => setSelected(card.id)}
+                              >
+                                {card.text}
+                              </button>
+                              <button
+                                type="button"
+                                className="mb-remove-card"
+                                aria-label={`Fjern ${card.text} fra brettet`}
+                                title={`Fjern ${card.text}`}
+                                onClick={() => removeCard(card.id)}
+                              >
+                                ×
+                              </button>
+                            </div>
+                            {task.allowToggles?.map((toggle) => (
+                              <label key={toggle}>
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(
+                                    placement[card.id]?.[toggle],
+                                  )}
+                                  onChange={(event) =>
+                                    setToggle(
+                                      card.id,
+                                      toggle,
+                                      event.target.checked,
+                                    )
+                                  }
+                                />
+                                {toggleLabel[toggle]}
+                              </label>
+                            ))}
+                          </li>
                         ))}
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              );
-            })}
-          </section>
+                      </ul>
+                    </article>
+                  );
+                })}
+              </section>
+            </>
+          )}
 
           <section className="cw-panel cw-check" aria-label="Kriterier">
             <header className="cw-panel-head">

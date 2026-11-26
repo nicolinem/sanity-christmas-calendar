@@ -69,7 +69,7 @@ test("an empty board has one unfinished requirement per card", () => {
 test("a completely correct board is done", () => {
   const result = judgeBoard(task, {
     tracks: { slot: "text" },
-    seen: { slot: "boolean", required: true },
+    seen: { slot: "boolean", required: true, initial: false },
   });
   assert.equal(result.done, true);
   assert.ok(result.requirements.every(({ done }) => done));
@@ -119,43 +119,65 @@ test("every board task covers every believable wrong slot", () => {
   }
 });
 
-test("the archive model has six meaningful decisions and can be solved", () => {
+test("the archive model has more cards than slots, and some must be weighed", () => {
   const board = BOARD_TASKS["archive-model"];
   const placement = {
+    time: { slot: "text" },
+    big: { slot: "text" },
     tracks: { slot: "text" },
+    smia: { slot: "place" },
     place: { slot: "place" },
     witness: { slot: "witness" },
     seen: { slot: "boolean" },
     photo: { slot: "image" },
     status: { slot: "list" },
   };
-  assert.equal(board.cards.length, 6);
-  assert.equal(
-    board.cards.some(({ text }) => text === "18:45"),
-    false,
-  );
+  assert.ok(board.cards.length > board.slots.length);
   assert.equal(
     board.cards.find(({ id }) => id === "seen").text,
     "Kari så det selv (ikke hørt fra andre)",
   );
   assert.equal(judgeBoard(board, placement).done, true);
+  const smiaAsText = judgeBoard(board, {
+    ...placement,
+    smia: { slot: "text" },
+  });
+  assert.equal(smiaAsText.done, false);
+  assert.match(
+    smiaAsText.requirements.find(({ label }) => label === "Smia").message,
+    /samme stedet/,
+  );
 });
 
 test("the bakery model requires the intended fields and starting values", () => {
   const board = BOARD_TASKS["baker-model"];
   const placement = {
-    item: { slot: "text", required: true },
-    orderedBy: { slot: "text" },
+    item: { slot: "text", required: true, initial: false },
+    orderedBy: { slot: "text", required: false, initial: false },
     date: { slot: "date", required: true, initial: true },
     status: { slot: "list", required: true, initial: true },
+    note: { slot: "text", required: false, initial: false },
   };
-  assert.equal(board.cards.length, 4);
+  assert.equal(board.cards.length, 5);
   assert.equal(judgeBoard(board, placement).done, true);
   assert.equal(
     judgeBoard(board, {
       ...placement,
-      orderedBy: { slot: "text", required: true },
+      orderedBy: { slot: "text", required: true, initial: false },
     }).done,
     false,
   );
+});
+
+test("a toggle left undecided is not an answer, and says nothing yet", () => {
+  const board = BOARD_TASKS["baker-model"];
+  const verdict = judgeBoard(board, {
+    orderedBy: { slot: "text" },
+    item: { slot: "text", required: true },
+  });
+  const row = (label) =>
+    verdict.requirements.find((requirement) => requirement.label === label);
+  assert.equal(row("Brann").done, false);
+  assert.equal(row("Brann").message, undefined);
+  assert.equal(row("Lussekatter").message, undefined);
 });

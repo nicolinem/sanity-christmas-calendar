@@ -293,8 +293,16 @@ export type OwnCase = {
   _id: string;
   title?: string | null;
   observations: string[];
-  entries?: { _id: string; what: string; place?: string | null }[];
+  entries?: {
+    _id: string;
+    what: string;
+    time?: string | null;
+    place?: string | null;
+  }[];
 };
+const timeOf = (id: string) =>
+  WHO_IS_LYING.find((observation) => observation._id === id)?.time ?? "";
+
 export function caseFileResult(cases: OwnCase[], hasDraft = false) {
   const expected = new Set(CASE_FILE_EXPECTED);
   const bestCase = cases.reduce<OwnCase | undefined>((best, candidate) => {
@@ -319,7 +327,22 @@ export function caseFileResult(cases: OwnCase[], hasDraft = false) {
       done: false,
     })),
   ];
-  const done = right === CASE_FILE_EXPECTED.length && wrongIds.length === 0;
+  // An array keeps its order: the folder is read top to bottom on the
+  // square, so the evidence goes in the order it happened.
+  const byTime = [...CASE_FILE_EXPECTED].sort((a, b) =>
+    timeOf(a).localeCompare(timeOf(b)),
+  );
+  const inOrder =
+    right === CASE_FILE_EXPECTED.length &&
+    (bestCase?.observations ?? [])
+      .filter((id) => expected.has(id))
+      .every((id, i) => id === byTime[i]);
+  objectives.push({
+    label: "Observasjonene står i tidsrekkefølge",
+    done: inOrder,
+  });
+  const done =
+    right === CASE_FILE_EXPECTED.length && wrongIds.length === 0 && inOrder;
 
   return {
     done,

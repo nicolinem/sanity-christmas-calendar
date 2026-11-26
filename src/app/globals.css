@@ -12,6 +12,7 @@
   --frost-dim: #8b9bb4;
   --snow: #e3ebf5;
   --evergreen: #2c5a4b;
+  --evergreen-light: #6bbf8f; /* done borders on the model board */
   --wood: #bd6c4a;
   --wood-dark: #763b36;
   --wood-deep: #2e1d25;
@@ -3692,6 +3693,101 @@ kbd {
 }
 .mb-slot input {
   accent-color: var(--amber);
+}
+/* A board with toggles: one row per card, like a spec sheet. */
+.mb-spec {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.mb-spec-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(0, 1.4fr) repeat(2, auto);
+  align-items: center;
+  gap: 8px 14px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--frost-dim) 35%, transparent);
+  border-radius: 4px;
+  background: var(--night-2);
+}
+.mb-spec-row.is-done {
+  border-color: var(--evergreen-light);
+}
+.mb-spec-head {
+  padding-block: 0;
+  border: 0;
+  background: none;
+  color: var(--frost-dim);
+  font-size: 12px;
+}
+.mb-spec-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--snow);
+  font-weight: 600;
+}
+.mb-spec-row select {
+  /* Long option names must not widen the board. */
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--frost-dim) 45%, transparent);
+  border-radius: 4px;
+  background: var(--night);
+  color: var(--snow);
+  font: inherit;
+}
+.mb-spec-row select:focus-visible {
+  outline: 2px solid var(--glacier);
+  outline-offset: 2px;
+}
+.mb-spec-choice {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.mb-spec-choice legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.mb-spec-choice label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--frost);
+  font-size: 13px;
+}
+.mb-spec-choice input {
+  accent-color: var(--amber);
+}
+.mb-spec-row small {
+  grid-column: 1 / -1;
+  color: #ffd2c9;
+  line-height: 1.35;
+}
+@container game (max-width: 560px) {
+  .mb-spec-head {
+    display: none;
+  }
+  .mb-spec-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .mb-spec-choice legend {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    margin-right: 4px;
+    color: var(--frost-dim);
+    font-size: 12px;
+  }
 }
 .mb > .log-head + .mb-scroll > .cw-status {
   max-height: none;

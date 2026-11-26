@@ -40,7 +40,11 @@ export default function ArchiveNoticeboard({
                 {(caseFile.entries ?? []).map((entry) => (
                   <li key={entry._id}>
                     <strong>{entry.what}</strong>
-                    <span>{entry.place || "Ukjent sted"}</span>
+                    <span>
+                      {[entry.time, entry.place || "Ukjent sted"]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                   </li>
                 ))}
               </ul>

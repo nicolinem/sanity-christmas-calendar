@@ -445,3 +445,161 @@ ukeoversikten etter `chapters.ts`.
   lista «Ny bestilling», og ikke bare i den globale +-knappen. Hvis ikke, ser
   ikke-teknisk spor (og teknisk spor før luke 9) ferdige maler for tidlig.
 - Jeg har ikke endret noen filer bortsett fra denne rapporten.
+
+---
+
+# Del 2: Er de ikke-tekniske lukene gode nok? (26. november, spilt i nettleseren)
+
+> **Status:** O1–O6 og S1–S6 er gjort. Endringene er ikke committet.
+>
+> - **O3:** Modellbrettet i luke 7 er nå en tabell (Fra lappen | Type |
+>   Påkrevd | Startverdi), og bryterne må besvares med ja eller nei. Før talte
+>   en bryter som ikke var rørt, som «nei», så kunden ble riktig uten at noe
+>   var bestemt.
+> - **O4:** Tavla på torget viser klokkeslettet ved hver observasjon.
+> - **O5:** Kortversjonen viser bare første avsnitt.
+> - **Studio:** Bestillingen har fått feltet *Merknad*, og typen heter
+>   «Bestilling».
+> - **Sjekket:** Testene og `verify-release` er grønne. Brettene er sjekket i
+>   nettleseren, også på 375 px.
+> - **Ikke sjekket i ekte Studio:** luke 6 og 8, fordi de trenger Sanity og
+>   ble ikke spilt etter endringen.
+
+Spilt i Chrome på port 3000 mot ditt eget prosjekt, med en midlertidig
+framgang i ikke-teknisk spor og `?dev`. Framgangen din er satt tilbake
+etterpå. Jeg så på dialogene, «Slik blir det», modellbrettene og
+Studio-delen av luke 5, *Klar* i luke 9 og Function-oppgaven i teknisk
+luke 11.
+
+## Det som ble sjekket og virker
+
+- **Luke 3 (*History*):** Hele veien virker, se #1.
+- ***Klar* (luke 9):** Den grå knappen viser forklaringen i menyen ved
+  *Publish*, for eksempel «Mangler dato og vare».
+- **+-knappen i «Ny bestilling»:** Den lager en bestilling rett fra
+  standardmalen, så «Bestilling fra …» lekker ikke ut før teknisk luke 9 er
+  løst.
+- **Studio i luke 5:** Lista viser tid, sted og status. Vitne og «Seen with
+  own eyes» står inne i hvert dokument.
+- **Teknisk luke 11:** Kodevinduet viser `functions/bakery-sign/index.ts` og
+  den låste `sanity.blueprint.ts` med forklaring, og kravene teller riktig.
+
+## Kort svar
+
+Lukene lærer riktige ting, og fem av ni er gode. Men fire av dem består
+mest av å klikke det spillet allerede har vist: modellbrettene i luke 4 og 7,
+saksmappa i luke 6 og bodskiltet i luke 8. Grunnen er stort sett den samme:
+«Slik blir det» røper svaret, eller brettet har bare ett mulig svar. Det kan
+rettes uten nye spillfunksjoner, og uke 2 og 3 åpner først 7. og 14.
+desember.
+
+| Luke | Dom | Hvorfor |
+|---|---|---|
+| 1 Lag et våpen | ✓ behold | Sterkeste øyeblikket: våpenet dukker opp i spillet |
+| 2 Samme tekst | ✓ behold | Lite, men tydelig og synlig på to flater |
+| 3 Lærlingen rotet | ✓ behold | Ekte Studio-ferdighet, morsom, og testet nå |
+| 4 Rydd notatene | ✗ **oppgrader** | Fasit står i «Slik blir det», og det er ett kort per plass |
+| 5 Hvem lyver? | ✓ behold, liten justering | Ekte deduksjon. «Slik blir det» røper B og C |
+| 6 Saksmappa | ~ **oppgrader** | Lista «Bare bekreftede» og «Slik blir det» gir svaret, så det blir tre klikk |
+| 7 Hva er en bestilling? | ✗ **oppgrader** | Typene er gitt, «Slik blir det» røper bryterne, og meldingen ser ut som en feil |
+| 8 Bodskiltet | ~ oppgrader hvis tid | Bare gjør ett ord fet. Lærer lite om *Portable Text* |
+| 9 Morgenrushet | ✓ behold | Ut i bygda og inn i Studio, *validation* og *action* virker sammen |
+
+## Oppgraderinger, i rekkefølge
+
+### O1. Ikke vis fasit i «Slik blir det» (luke 4, 5, 6, 7) · liten · før uke 2
+
+- **Hvor:** `src/components/hud/goalPreviews.tsx:543-598`, `:624-627`
+- **Hva er galt:**
+  - Luke 4 viser hver felttype.
+  - Luke 5 viser at B og C er *Confirmed*.
+  - Luke 6 viser A, B og C i mappa.
+  - Luke 7 viser dato «i dag», status «ny» og at *Publish* stopper uten vare.
+
+  Skillen sier at «Slik blir det» skal vise *det deltakeren endrer*, ikke
+  svaret.
+- **Forslag:** Vis formen på resultatet, men skjul valgene.
+  - **Luke 4:** feltene med «?» i stedet for typene.
+  - **Luke 5:** to rader med «?».
+  - **Luke 6:** en mappe med tre tomme lapper.
+  - **Luke 7:** skjemaet med feltene, men uten verdier og uten stopp.
+
+### O2. Luke 4: et brett der man må tenke · middels · før uke 2
+
+- **Hvor:** `src/components/hud/modelBoard/tasks/archiveModel.ts`
+- **Hva er galt:** Seks kort og seks plasser, ett til hver. Kortene ligner
+  plassene («Kari» › «Reference → Vitne», «bilde» › «Bilde»). Det kan løses
+  ved å utelukke, uten å tenke på typene.
+- **Forslag:** Flere kort enn plasser, og plasser som kan brukes flere
+  ganger, så noen kort må veies:
+  - **«18:45»:** hører til Tekst. Ja/nei og liste er feil. Det er det samme
+    valget som det ekte skjemaet tok (`time` er `string`).
+  - **«store»** (fotsporene var store): hører til Tekst, sammen med «fotspor i
+    snøen». Valgliste er fristende, men gir feil svar: «Folk beskriver
+    størrelse på hundre måter.»
+  - **«Smia»** alene, ved siden av «ved smia, tror jeg»: begge hører til
+    `Reference` › Sted. Det viser at to måter å skrive det på er samme sted.
+
+  Det blir åtte–ni kort på seks plasser, og hver feil plass har allerede sin
+  egen tilbakemelding. Krav: hvert kort får sin egen `decision`. Det er samme
+  motor.
+
+### O3. Luke 7: et spesifikasjonsark i stedet for tre plasser · middels · før uke 3
+
+- **Hvor:** `src/components/hud/modelBoard/ModelBoard.tsx`,
+  `tasks/bakerModel.ts`
+- **Hva er galt:**
+  - Typene er nesten gitt: to kort til Tekst, ett til Dato og ett til Liste.
+  - Bryterne vises først når kortet er lagt. Da kommer det med en gang en
+    melding som ser ut som en feil («En bestilling uten vare er ingenting»),
+    før man har fått krysse av noe.
+  - Det ekte valget, at kunden ikke skal være påkrevd, drukner.
+- **Forslag:**
+  - Vis brettet som en tabell, slik en designer faktisk spesifiserer:
+    Felt | Type | Påkrevd | Startverdi, med én rad per kort.
+  - Ta med ett kort til med et ekte dilemma: «uten nøtter, takk» → Tekst,
+    ikke påkrevd, ingen startverdi.
+  - Gi tilbakemelding på bryterne først når raden er fylt ut, eller når man
+    trykker «Sjekk».
+
+### O4. Luke 6: saksmappa i tidsrekkefølge · liten · før uke 2
+
+- **Hvor:** `src/game/archive.ts:caseFileResult`, `chapters.ts` (caseFile)
+- **Hva er galt:** Med lista «Bare bekreftede» åpen er luka tre klikk. Det
+  som er særegent for en *array*, at rekkefølgen betyr noe, læres ikke.
+- **Forslag:**
+  - Krev at observasjonene står i tidsrekkefølge (A 18:45, B 19:05, C 19:06),
+    slik folk på torget skal lese dem.
+  - Nytt kriterium: «Observasjonene står i tidsrekkefølge».
+  - Nytt hint: «Dra i håndtaket til venstre på en observasjon for å flytte
+    den.»
+  - Tavla på torget viser dem i den rekkefølgen mappa har.
+  - Liten endring i sjekken, og ingen ny UI.
+
+### O5. Luke 8: to avsnitt, ikke bare ett fet ord · liten · før uke 3
+
+- **Hvor:** `src/game/bakery.ts:signHasStrong`, `chapters.ts` (bakerSign),
+  `BakerySign.tsx`
+- **Hva er galt:** *Portable Text* er en liste av blokker med *marks*, men
+  luka bruker bare én *mark*.
+- **Forslag:**
+  - La kortversjonen vise bare **første avsnitt**. Krav: minst to avsnitt, og
+    det fete ordet i det første.
+  - Da må deltakeren tenke på hva som står først, og ser at teksten er delt i
+    blokker.
+  - Ny linje i intro: «I appen er det bare plass til første avsnitt.»
+
+### O6. Luke 5: justering · liten
+
+- **Forslag:** Bare O1. Luka er god som den er.
+
+## Småfeil funnet i nettleseren
+
+| # | Hvor | Feil | Forslag |
+|---|---|---|---|
+| S1 | `goalPreviews.tsx` (baker-function) | Etter #41 passer ikke «Slik blir det» lenger: «Utkast endret → hoppet over», men blueprinten filtrerer nå hendelsene, og kravet er «uten vare» | Bytt raden til «Bestilling uten vare → hoppet over» |
+| S2 | `BakeryActions.ts` (ReadyAction) | På en ny, ulagret bestilling sier *Klar* «Mangler dato og vare», selv om datoen står i skjemaet | Når dokumentet ikke er lagret ennå: «Fyll inn varen først.» |
+| S3 | `bakeryOrder.ts` | Ny bestilling får tittelen «New Ny bestilling» | Gi typen tittelen «Bestilling», og bytt *Ny bestilling* i `where` for luke 7 og 9 |
+| S4 | `bakerFunction.tsx` (starter) | Linje 5 og 8 blir kuttet i kodevinduet, og startkoden viser en rød «reading 'trim'» før man har skrevet noe | Kortere kommentar. `apiVersion` på egen linje. Start med `const item = order.item?.trim()` |
+| S5 | `chapters.ts` (bakerModel.check) | En gammel bestilling med status «ny» krysser av «En ny bestilling er publisert» før luka er begynt | Krev at bestillingen er laget etter at brettet ble løst |
+| S6 | Dev-panelet | «…som gitt» på luke 5–9 setter ikke modellbrettene som løst, så Studio mangler feltene for testere | Sett `solved` for brettene ved hopp. Gjelder bare testing |

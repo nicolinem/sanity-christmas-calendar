@@ -17,10 +17,7 @@ test("the starter does not pass the simulated Function challenge", async () => {
 
 test("skipping empty orders and checking the current sign pass all three checks", async () => {
   const source = bakerFunctionTask.starter
-    .replace(
-      "// Sjekk at bestillingen har en vare.",
-      "if (!order?.item?.trim()) return",
-    )
+    .replace("// Sjekk at bestillingen har en vare.", "if (!item) return")
     .replace(
       "// Ikke skriv hvis skiltet allerede viser denne teksten.",
       "if (sign?.text?.[0]?.children?.[0]?.text === text) return",
@@ -32,7 +29,7 @@ test("skipping empty orders and checking the current sign pass all three checks"
 test("unconditional sign writes fail the repeat-delivery check", async () => {
   const source = bakerFunctionTask.starter.replace(
     "// Sjekk at bestillingen har en vare.",
-    "if (!order?.item?.trim()) return",
+    "if (!item) return",
   );
   const verdict = await run(source);
   assert.equal(verdict.requirements[0].done, true);

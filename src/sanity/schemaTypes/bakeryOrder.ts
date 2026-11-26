@@ -6,7 +6,7 @@ import { isSolved, isTrack } from "../lib/solved";
 // existing orders keep what the editor wrote.
 export const bakeryOrder = defineType({
   name: "bakeryOrder",
-  title: "Ny bestilling",
+  title: "Bestilling",
   type: "document",
   initialValue: () =>
     isSolved("baker-template") ||
@@ -26,6 +26,8 @@ export const bakeryOrder = defineType({
         ),
     }),
     defineField({ name: "orderedBy", title: "Bestilt av", type: "string" }),
+    // From the model board in luke 7: a wish, never required.
+    defineField({ name: "note", title: "Merknad", type: "string" }),
     defineField({
       name: "date",
       title: "Dato",

@@ -53,7 +53,7 @@ export async function GET() {
         { ids: ARCHIVE_IDS },
       ),
       client.fetch<OwnCase[]>(
-        '*[_type == "case"] | order(_updatedAt desc){_id, title, "observations": observations[]._ref, "entries": observations[]->{_id, what, "place": place->name}}',
+        '*[_type == "case"] | order(_updatedAt desc){_id, title, "observations": observations[]._ref, "entries": observations[]->{_id, what, time, "place": place->name}}',
       ),
       hasUnpublishedCaseDraft(),
       // Observations the player wrote themselves, outside the five clues: a

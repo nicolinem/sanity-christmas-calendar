@@ -68,10 +68,36 @@ export const signHasStrong = (sign: BakerySign | null) =>
     ),
   );
 
+// Luke 8: the app shows only the first paragraph, so the sign needs at least
+// two, with the bold word in the first. Portable Text is a list of blocks.
+const textBlocks = (sign: BakerySign | null) =>
+  sign?.text?.filter(
+    (block) =>
+      block._type === "block" &&
+      block.children?.some((span) => span.text?.trim()),
+  ) ?? [];
+
+export function signCheck(sign: BakerySign | null) {
+  const blocks = textBlocks(sign);
+  const twoBlocks = blocks.length >= 2;
+  const boldFirst = Boolean(
+    blocks[0]?.children?.some(
+      (span) => span.text?.trim() && span.marks?.includes("strong"),
+    ),
+  );
+  return { twoBlocks, boldFirst, done: twoBlocks && boldFirst };
+}
+
 export const isNewOrder = (order: BakeryOrder) =>
   order.status === "ny" &&
   /^\d{4}-\d{2}-\d{2}$/.test(order.date ?? "") &&
   Boolean(order.item?.trim());
+
+// Luke 7: an order made after the model board, so one left over from before
+// doesn't tick the box. Ten minutes' slack for a browser clock that runs fast.
+export const isOrderSince = (order: BakeryOrder, since: string | undefined) =>
+  isNewOrder(order) &&
+  Date.parse(order.createdAt ?? "") >= Date.parse(since ?? "") - 10 * 60 * 1000;
 
 export const isReadyOrder = (order: BakeryOrder) =>
   order.status === "klar" &&

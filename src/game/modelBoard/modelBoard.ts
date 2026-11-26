@@ -47,8 +47,13 @@ export function judgeBoard(task: BoardTask, placement: Placement) {
         message: decision.feedback[answer.slot],
       };
 
-    const wrongToggle = Object.entries(decision.toggles ?? {}).find(
-      ([toggle, rule]) => Boolean(answer[toggle as BoardToggle]) !== rule.want,
+    // A toggle counts once it's decided, yes or no. Left untouched it isn't
+    // an answer, or «not required» would pass without a thought.
+    const toggles = Object.entries(decision.toggles ?? {});
+    if (toggles.some(([toggle]) => answer[toggle as BoardToggle] === undefined))
+      return { label: card.text, done: false, message: undefined };
+    const wrongToggle = toggles.find(
+      ([toggle, rule]) => answer[toggle as BoardToggle] !== rule.want,
     );
     if (wrongToggle)
       return {

@@ -10,13 +10,16 @@ const starter = `import { documentEventHandler } from "@sanity/functions"
 import { createClient } from "@sanity/client"
 
 // Kjører når en bestilling publiseres (se sanity.blueprint.ts).
-// I spillet skriver client til bodskiltet i bygda, ikke til Sanity-prosjektet ditt.
+// I spillet skriver client bare til bodskiltet i bygda.
 export const handler = documentEventHandler(async ({ context, event }) => {
-  const order = event.data
-  const client = createClient({ ...context.clientOptions, apiVersion: "2025-05-08" })
+  const item = event.data.item?.trim()
+  const client = createClient({
+    ...context.clientOptions,
+    apiVersion: "2025-05-08",
+  })
   // Sjekk at bestillingen har en vare.
 
-  const text = "Dagens bestilling: " + order.item.trim()
+  const text = "Dagens bestilling: " + item
   const sign = await client.getDocument("bakery-sign")
   // Ikke skriv hvis skiltet allerede viser denne teksten.
 
@@ -156,7 +159,7 @@ export const bakerFunctionTask: WindowTask = {
   solution: starter
     .replace(
       "  // Sjekk at bestillingen har en vare.\n",
-      "  if (!order?.item?.trim()) return\n",
+      "  if (!item) return\n",
     )
     .replace(
       "  // Ikke skriv hvis skiltet allerede viser denne teksten.\n",
@@ -166,7 +169,7 @@ export const bakerFunctionTask: WindowTask = {
   judge: judgeBakerFunction,
   resultTitle: "Sanity Function",
   Result,
-  ours: `if (!order?.item?.trim()) return;
+  ours: `if (!item) return;
 // Etter getDocument:
 if (sign?.text?.[0]?.children?.[0]?.text === text) return;`,
   references: [
