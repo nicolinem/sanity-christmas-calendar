@@ -6161,6 +6161,18 @@ kbd {
   padding: 24px 32px 28px;
   overflow-y: auto;
 }
+/* A tab with several parts (Hode): one section each. */
+.cs-section {
+  display: grid;
+  gap: 12px;
+}
+.cs-heading {
+  margin: 0;
+  color: var(--snow);
+  font:
+    600 16px var(--font-pixel),
+    var(--font-body);
+}
 .cs-label {
   margin: 0 0 8px;
   font:
@@ -6414,10 +6426,11 @@ kbd {
 }
 .cs-share input {
   flex: none;
-  width: 18px;
-  height: 18px;
-  margin: 2px 0 0;
+  width: 24px;
+  height: 24px;
+  margin: 0;
   accent-color: var(--amber);
+  cursor: pointer;
 }
 .cs-share span,
 .cs-share small {
@@ -6425,7 +6438,7 @@ kbd {
 }
 .cs-share strong {
   color: var(--snow);
-  font-size: 13px;
+  font-size: 14px;
 }
 .cs-share small {
   margin-top: 3px;

@@ -1965,7 +1965,11 @@ export default function GameClient() {
             owned={owned}
             firstTime={entryStage === "figure"}
             initialTab={progress.figure ? sheetTab : "look"}
-            initialShareProfile={progress.shareProfile}
+            // Ticked until the player has answered once; nothing is shared
+            // before they press Ferdig.
+            initialShareProfile={
+              progress.sharePrompted ? progress.shareProfile : true
+            }
             initialShareHints={progress.shareHints}
             seenGear={progress.seenGear}
             items={items}

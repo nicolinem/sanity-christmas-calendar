@@ -45,58 +45,87 @@ import SpriteIcon from "../hud/SpriteIcon";
 type PartKey =
   "hair" | "facialHair" | "top" | "hat" | "armour" | "scarf" | "extra";
 type ColorKey =
-  "skin" | "hairColor" | "topColor" | "pants" | "hatColor" | "scarfColor";
+  | "skin"
+  | "hairColor"
+  | "topColor"
+  | "pants"
+  | "hatColor"
+  | "scarfColor"
+  | "extraColor";
 type Swatch = { id: string; label: string; colors: readonly [string, string] };
-type Category = {
-  id: string;
-  label: string;
-  part?: PartKey;
-  color?: { key: ColorKey; label: string; options: Swatch[] };
-};
+type ColorSpec = { key: ColorKey; label: string; options: Swatch[] };
+// A tab shows one or more sections: a part's styles, a colour, or both.
+type Section = { part?: PartKey; heading?: string; color?: ColorSpec };
+type Category = { id: string; label: string; sections: Section[] };
 
 const LOOK: Category[] = [
+  // Skin, hair and facial hair together, so the first tab is more than a
+  // row of skin colours. Facial hair has the hair's colour.
   {
-    id: "skin",
-    label: "Hud",
-    color: { key: "skin", label: "Hudfarge", options: SKINS },
-  },
-  {
-    id: "hair",
-    label: "Hår",
-    part: "hair",
-    color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS },
-  },
-  {
-    id: "facial",
-    label: "Skjegg",
-    part: "facialHair",
-    color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS },
+    id: "head",
+    label: "Hode",
+    sections: [
+      { color: { key: "skin", label: "Hudfarge", options: SKINS } },
+      {
+        part: "hair",
+        heading: "Hår",
+        color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS },
+      },
+      { part: "facialHair", heading: "Ansiktshår" },
+    ],
   },
   {
     id: "top",
     label: "Overdel",
-    part: "top",
-    color: { key: "topColor", label: "Farge", options: CLOTH_COLORS },
+    sections: [
+      {
+        part: "top",
+        color: { key: "topColor", label: "Farge", options: CLOTH_COLORS },
+      },
+    ],
   },
-  { id: "armour", label: "Rustning", part: "armour" },
+  { id: "armour", label: "Rustning", sections: [{ part: "armour" }] },
   {
     id: "pants",
     label: "Bukse",
-    color: { key: "pants", label: "Buksefarge", options: PANTS },
+    sections: [
+      { color: { key: "pants", label: "Buksefarge", options: PANTS } },
+    ],
   },
   {
     id: "hat",
     label: "Hodeplagg",
-    part: "hat",
-    color: { key: "hatColor", label: "Luefarge", options: CLOTH_COLORS },
+    sections: [
+      {
+        part: "hat",
+        color: { key: "hatColor", label: "Luefarge", options: CLOTH_COLORS },
+      },
+    ],
   },
   {
     id: "scarf",
     label: "Hals",
-    part: "scarf",
-    color: { key: "scarfColor", label: "Skjerffarge", options: CLOTH_COLORS },
+    sections: [
+      {
+        part: "scarf",
+        color: {
+          key: "scarfColor",
+          label: "Skjerffarge",
+          options: CLOTH_COLORS,
+        },
+      },
+    ],
   },
-  { id: "extra", label: "Ekstra", part: "extra" },
+  {
+    id: "extra",
+    label: "Ekstra",
+    sections: [
+      {
+        part: "extra",
+        color: { key: "extraColor", label: "Farge", options: CLOTH_COLORS },
+      },
+    ],
+  },
 ];
 
 type Mode = "bag" | "look";
@@ -111,28 +140,13 @@ const INVENTORY_FILTERS: { id: InventoryFilter; label: string }[] = [
 type Option = { id: string; label: string };
 
 // Only show a colour when the chosen style actually uses it (no hair colour
-// for a bald head without a beard, no hat colour for a helmet).
+// for a bald head without facial hair, no hat colour for a helmet).
 function usesColor(choice: FigureChoice, key: ColorKey, options: Swatch[]) {
   if (options.length < 2) return true;
   const a = drawFigure({ ...choice, [key]: options[0].id });
   const b = drawFigure({ ...choice, [key]: options[1].id });
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return true;
   return false;
-}
-
-function categoryUsesColor(
-  choice: FigureChoice,
-  part: PartKey | undefined,
-  key: ColorKey,
-  options: Swatch[],
-) {
-  const isolated = { ...choice };
-  if (key === "hairColor") {
-    if (part === "hair") isolated.facialHair = "none";
-    if (part === "facialHair") isolated.hair = "bald";
-  }
-  if (key === "scarfColor" && part === "scarf") isolated.extra = "none";
-  return usesColor(isolated, key, options);
 }
 
 const cleanName = (s: string) =>
@@ -192,7 +206,7 @@ export default function CharacterSheet({
   const [shareHints, setShareHints] = useState(initialShareHints);
   const [history, setHistory] = useState<FigureChoice[]>([]);
   const [mode, setMode] = useState<Mode>(firstTime ? "look" : initialTab);
-  const [catId, setCatId] = useState("skin");
+  const [catId, setCatId] = useState("head");
   const [inventoryFilter, setInventoryFilter] =
     useState<InventoryFilter>("all");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -200,19 +214,19 @@ export default function CharacterSheet({
 
   const cats = LOOK;
   const cat = cats.find((c) => c.id === catId) ?? cats[0];
-  const options = useMemo(
-    () => (cat.part ? (FIGURE_OPTIONS[cat.part] as readonly Option[]) : []),
-    [cat],
-  );
+  const catParts = cat.sections.flatMap((s) => (s.part ? [s.part] : []));
+  // The arrows (and ‹ ›) step through a tab's styles when it has one part.
+  const stepPart = catParts.length === 1 ? catParts[0] : undefined;
+  const optionsOf = (part: PartKey) =>
+    FIGURE_OPTIONS[part] as readonly Option[];
   const isOwned = (part: PartKey, id: string) =>
     !isGear(part, id) || owned.has(`${part}:${id}`);
-  const usable = options.filter((o) => isOwned(cat.part!, o.id));
-  const current = cat.part
-    ? options.find((o) => o.id === choice[cat.part!])
+  const usable = stepPart
+    ? optionsOf(stepPart).filter((o) => isOwned(stepPart, o.id))
+    : [];
+  const current = stepPart
+    ? optionsOf(stepPart).find((o) => o.id === choice[stepPart])
     : undefined;
-  const showColor =
-    cat.color &&
-    categoryUsesColor(choice, cat.part, cat.color.key, cat.color.options);
   const inventory = items.filter((item) => item.id !== "builtin-fists");
   const forgeRows = FEATURES.cave
     ? recipeStates(
@@ -229,20 +243,21 @@ export default function CharacterSheet({
   const selectedItem =
     filteredItems.find((item) => item.id === selectedItemId) ?? null;
   const equippedItem = items.find((item) => item.id === equippedId) ?? null;
-  const part = cat.part;
   const newGearKeys = useMemo(
     () =>
-      part
-        ? options
-            .filter(
-              (option) =>
-                isGear(part, option.id) &&
-                owned.has(`${part}:${option.id}`) &&
-                !seenGear[`${part}:${option.id}`],
-            )
-            .map((option) => `${part}:${option.id}`)
-        : [],
-    [part, options, owned, seenGear],
+      cat.sections.flatMap(({ part }) =>
+        part
+          ? (FIGURE_OPTIONS[part] as readonly Option[])
+              .filter(
+                (option) =>
+                  isGear(part, option.id) &&
+                  owned.has(`${part}:${option.id}`) &&
+                  !seenGear[`${part}:${option.id}`],
+              )
+              .map((option) => `${part}:${option.id}`)
+          : [],
+      ),
+    [cat, owned, seenGear],
   );
 
   const set = (next: FigureChoice) => {
@@ -250,11 +265,11 @@ export default function CharacterSheet({
     setChoice(next);
   };
   const step = (by: number) => {
-    if (mode === "bag" || !cat.part || usable.length === 0) return;
-    const at = usable.findIndex((o) => o.id === choice[cat.part!]);
+    if (mode === "bag" || !stepPart || usable.length === 0) return;
+    const at = usable.findIndex((o) => o.id === choice[stepPart]);
     const nextIndex = at < 0 ? (by > 0 ? 0 : usable.length - 1) : at + by;
     const next = usable[(nextIndex + usable.length) % usable.length];
-    set({ ...choice, [cat.part]: next.id });
+    set({ ...choice, [stepPart]: next.id });
   };
   const undo = () => {
     const prev = history.at(-1);
@@ -319,10 +334,80 @@ export default function CharacterSheet({
 
   const switchMode = (m: Mode) => {
     setMode(m);
-    setCatId("skin");
+    setCatId("head");
     setInventoryFilter("all");
     setSelectedItemId(null);
   };
+
+  const renderGrid = (part: PartKey) => (
+    <div className="cs-grid">
+      {optionsOf(part).map((o) => {
+        const mine = isOwned(part, o.id);
+        const source = visibleGearSource(gearSource(part, o.id), FEATURES.cave);
+        // Not found yet: a blurred shape, no name to give it away.
+        const hidden = !mine && source === HIDDEN_GEAR;
+        const key = `${part}:${o.id}`;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            className={`cs-option${mine ? "" : " is-locked"}${hidden ? " is-hidden" : ""}`}
+            data-new-gear={newGearKeys.includes(key) ? key : undefined}
+            aria-pressed={choice[part] === o.id}
+            disabled={!mine}
+            title={
+              mine
+                ? o.label
+                : hidden
+                  ? HIDDEN_GEAR
+                  : `${o.label}: ${source ?? "ikke funnet ennå"}`
+            }
+            aria-label={hidden ? HIDDEN_GEAR : undefined}
+            onClick={() => set({ ...choice, [part]: o.id })}
+          >
+            <FigureCanvas
+              // Hair is hidden under most hats, so show it bare.
+              choice={{
+                ...choice,
+                ...(part === "hair" || part === "facialHair"
+                  ? { hat: "none" }
+                  : {}),
+                [part]: o.id,
+              }}
+              scale={4}
+            />
+            <span>{hidden ? "?" : o.label}</span>
+            {newGearKeys.includes(key) && (
+              <span className="cs-new-badge">Ny</span>
+            )}
+            {!mine && <small>{source ?? "Ikke funnet ennå"}</small>}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderSwatches = (color: ColorSpec) => (
+    <div>
+      <p className="cs-label">{color.label}</p>
+      <div className="cs-swatches">
+        {color.options.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            className="cs-swatch"
+            aria-pressed={choice[color.key] === o.id}
+            aria-label={`${color.label}: ${o.label}`}
+            title={o.label}
+            onClick={() => set({ ...choice, [color.key]: o.id })}
+            style={{
+              background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="log-backdrop" onClick={firstTime ? undefined : onClose}>
@@ -396,15 +481,16 @@ export default function CharacterSheet({
                   );
                 })
               : cats.map((c) => {
-                  const part = c.part;
-                  const hasNew = part
-                    ? (FIGURE_OPTIONS[part] as readonly Option[]).some(
+                  const hasNew = c.sections.some(
+                    ({ part }) =>
+                      part &&
+                      (FIGURE_OPTIONS[part] as readonly Option[]).some(
                         (option) =>
                           isGear(part, option.id) &&
                           owned.has(`${part}:${option.id}`) &&
                           !seenGear[`${part}:${option.id}`],
-                      )
-                    : false;
+                      ),
+                  );
                   return (
                     <button
                       key={c.id}
@@ -522,7 +608,7 @@ export default function CharacterSheet({
             )}
             {mode !== "bag" && (
               <>
-                {cat.part && current && (
+                {stepPart && current && (
                   <div className="cs-stepper">
                     <button
                       type="button"
@@ -551,83 +637,24 @@ export default function CharacterSheet({
                   </div>
                 )}
 
-                {cat.part && (
-                  <div className="cs-grid">
-                    {options.map((o) => {
-                      const mine = isOwned(cat.part!, o.id);
-                      const source = visibleGearSource(
-                        gearSource(cat.part!, o.id),
-                        FEATURES.cave,
-                      );
-                      // Not found yet: a blurred shape, no name to give it away.
-                      const hidden = !mine && source === HIDDEN_GEAR;
-                      return (
-                        <button
-                          key={o.id}
-                          type="button"
-                          className={`cs-option${mine ? "" : " is-locked"}${hidden ? " is-hidden" : ""}`}
-                          data-new-gear={
-                            newGearKeys.includes(`${cat.part}:${o.id}`)
-                              ? `${cat.part}:${o.id}`
-                              : undefined
-                          }
-                          aria-pressed={choice[cat.part!] === o.id}
-                          disabled={!mine}
-                          title={
-                            mine
-                              ? o.label
-                              : hidden
-                                ? HIDDEN_GEAR
-                                : `${o.label}: ${source ?? "ikke funnet ennå"}`
-                          }
-                          aria-label={hidden ? HIDDEN_GEAR : undefined}
-                          onClick={() => set({ ...choice, [cat.part!]: o.id })}
-                        >
-                          <FigureCanvas
-                            // Hairstyles are hidden under most hats, so show them bare.
-                            choice={{
-                              ...choice,
-                              ...(cat.part === "hair" ? { hat: "none" } : {}),
-                              [cat.part!]: o.id,
-                            }}
-                            scale={4}
-                          />
-                          <span>{hidden ? "?" : o.label}</span>
-                          {newGearKeys.includes(`${cat.part}:${o.id}`) && (
-                            <span className="cs-new-badge">Ny</span>
-                          )}
-                          {!mine && (
-                            <small>{source ?? "Ikke funnet ennå"}</small>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {cat.color && showColor && (
-                  <div>
-                    <p className="cs-label">{cat.color.label}</p>
-                    <div className="cs-swatches">
-                      {cat.color.options.map((o) => (
-                        <button
-                          key={o.id}
-                          type="button"
-                          className="cs-swatch"
-                          aria-pressed={choice[cat.color!.key] === o.id}
-                          aria-label={`${cat.color!.label}: ${o.label}`}
-                          title={o.label}
-                          onClick={() =>
-                            set({ ...choice, [cat.color!.key]: o.id })
-                          }
-                          style={{
-                            background: `linear-gradient(135deg, ${o.colors[0]} 55%, ${o.colors[1]} 55%)`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {cat.sections.map((section) => (
+                  <section
+                    key={section.part ?? section.color?.key}
+                    className="cs-section"
+                  >
+                    {section.heading && (
+                      <h3 className="cs-heading">{section.heading}</h3>
+                    )}
+                    {section.part && renderGrid(section.part)}
+                    {section.color &&
+                      usesColor(
+                        choice,
+                        section.color.key,
+                        section.color.options,
+                      ) &&
+                      renderSwatches(section.color)}
+                  </section>
+                ))}
               </>
             )}
           </div>
