@@ -9,6 +9,7 @@ const {
   missingFor,
   missingText,
   recipeStates,
+  caveGoal,
 } = require("./forge.ts");
 const { RECIPE_IDS, unlockedRecipes } = require("./recipes.ts");
 
@@ -195,5 +196,37 @@ test("a forging already used for another recipe does not make this one missing",
       ["recipe-isskjold", "done"],
       ["recipe-ishjelm", "todo"],
     ],
+  );
+});
+
+test("caveGoal: the next chest, then the recipe it gave, counting the trip", () => {
+  assert.equal(caveGoal(progress({})), "Kista er på etasje 5");
+  assert.equal(
+    caveGoal(
+      progress({
+        chests: { "cave-5": true },
+        inventory: { malm: 2 },
+        trip: { malm: 1, isskar: 1 },
+      }),
+    ),
+    "Isskjold: Gammel malm 3/4 · Isskår 1/2",
+  );
+  assert.equal(
+    caveGoal(
+      progress({
+        chests: { "cave-5": true },
+        crafted: { f1: "recipe-isskjold" },
+      }),
+    ),
+    "Kista er på etasje 10",
+  );
+  assert.equal(
+    caveGoal(
+      progress({
+        chests: { "cave-5": true, "cave-10": true },
+        crafted: { f1: "recipe-isskjold", f2: "recipe-ishjelm" },
+      }),
+    ),
+    null,
   );
 });

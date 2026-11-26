@@ -33,6 +33,10 @@ export const PROJECTILE_SPEED = 60;
 export const PROJECTILE_HIT = 10;
 export const PROJECTILE_RANGE = 240;
 export const MAX_PROJECTILES = 3;
+export const HIT_ROLL_MAX = 2; // a swing adds 0–2 to the weapon's damage
+export const VEIN_MALM = 2; // an ore vein always gives this much malm
+export const MONSTER_DROP_CHANCE = 0.25;
+const MALM_CHANCE = 0.4;
 
 export type Attack = { damage: number; element: Element | null };
 export type Facing = "left" | "right" | "up" | "down";
@@ -118,8 +122,38 @@ export function xpFor(id: EnemyId, depth: number): number {
   return ENEMIES[id].xp + 2 * (depth - 1);
 }
 
-export function rockDrop(roll: number): MaterialId | null {
-  if (roll < 0.4) return "malm";
-  if (roll < 0.55) return "isskar";
+// Isskår lies deeper: 5 % of rocks on depth 1–2, 15 % to depth 5, 25 % below.
+export function isskarChance(depth: number): number {
+  if (depth <= 2) return 0.05;
+  if (depth <= 5) return 0.15;
+  return 0.25;
+}
+
+export function rockDrop(roll: number, depth: number): MaterialId | null {
+  if (roll < MALM_CHANCE) return "malm";
+  if (roll < MALM_CHANCE + isskarChance(depth)) return "isskar";
   return null;
+}
+
+// One monster in four drops a material, in the same mix as a rock that gives
+// something. One roll, so the same roll always drops the same.
+export function monsterDrop(roll: number, depth: number): MaterialId | null {
+  if (roll >= MONSTER_DROP_CHANCE) return null;
+  const mix = MALM_CHANCE + isskarChance(depth);
+  return rockDrop((roll / MONSTER_DROP_CHANCE) * mix, depth);
+}
+
+// A normal monster always takes at least two swings from the weapon in hand,
+// a slime three, even at the best roll: players come down already strong from
+// the lukes. An element it is weak to still cuts that short. Bosses keep
+// their own life.
+const MIN_HITS: Partial<Record<EnemyId, number>> = { slime: 3 };
+export function sturdyHp(
+  id: EnemyId,
+  hp: number,
+  attack: Attack | null,
+): number {
+  if (!attack || ENEMIES[id].boss) return hp;
+  const best = attack.damage + HIT_ROLL_MAX;
+  return Math.max(hp, ((MIN_HITS[id] ?? 2) - 1) * best + 1);
 }

@@ -10,6 +10,9 @@ const {
   canDrink,
   xpFor,
   rockDrop,
+  monsterDrop,
+  sturdyHp,
+  HIT_ROLL_MAX,
   PLAYER_MAX_HP,
 } = require("./combat.ts");
 const { PLAYABLE, ENEMIES } = require("./enemies.ts");
@@ -100,8 +103,64 @@ test("xp grows with depth", () => {
   assert.equal(xpFor("rat", 4), 16);
 });
 
-test("rock drops", () => {
-  assert.equal(rockDrop(0.39), "malm");
-  assert.equal(rockDrop(0.5), "isskar");
-  assert.equal(rockDrop(0.9), null);
+test("rock drops: malm 40 % everywhere, isskår 5 / 15 / 25 % by depth", () => {
+  for (const depth of [1, 4, 9]) {
+    assert.equal(rockDrop(0, depth), "malm");
+    assert.equal(rockDrop(0.39, depth), "malm");
+    assert.equal(rockDrop(0.9, depth), null);
+  }
+  assert.equal(rockDrop(0.44, 2), "isskar");
+  assert.equal(rockDrop(0.46, 2), null);
+  assert.equal(rockDrop(0.54, 3), "isskar");
+  assert.equal(rockDrop(0.56, 4), null);
+  assert.equal(rockDrop(0.64, 6), "isskar");
+  assert.equal(rockDrop(0.66, 9), null);
+});
+
+test("a monster drops something one time in four, isskår more often deeper", () => {
+  const share = (depth) => {
+    let drops = 0;
+    let isskar = 0;
+    for (let i = 0; i < 1000; i++) {
+      const item = monsterDrop(i / 1000, depth);
+      if (item) drops++;
+      if (item === "isskar") isskar++;
+    }
+    return { drops, isskar };
+  };
+  for (const depth of [1, 4, 9]) assert.equal(share(depth).drops, 250);
+  assert.ok(share(1).isskar < share(4).isskar);
+  assert.ok(share(4).isskar < share(9).isskar);
+  assert.equal(monsterDrop(0.25, 1), null);
+});
+
+test("a normal monster always takes at least 2 swings, a slime 3, at any level", () => {
+  for (const damage of FORGE_DAMAGE)
+    for (let depth = 1; depth <= 10; depth++)
+      for (const id of PLAYABLE) {
+        if (ENEMIES[id].from > depth) continue;
+        const attack = { damage, element: null };
+        const hp = sturdyHp(id, scaleEnemy(id, depth).hp, attack);
+        const hits = Math.ceil(hp / (damage + HIT_ROLL_MAX));
+        assert.ok(
+          hits >= (id === "slime" ? 3 : 2),
+          `${id} at depth ${depth}, damage ${damage}: ${hits}`,
+        );
+      }
+});
+
+test("sturdyHp leaves bosses, weak weapons and no weapon alone", () => {
+  const strong = { damage: 22, element: null };
+  assert.equal(sturdyHp("yeti", 70, strong), 70);
+  assert.equal(sturdyHp("rat", 12, null), 12);
+  assert.equal(sturdyHp("rat", 12, { damage: 4, element: null }), 12);
+  assert.equal(sturdyHp("rat", 12, strong), 25);
+  assert.equal(sturdyHp("slime", 18, strong), 49);
+});
+
+test("an element the monster is weak to still pays off against sturdy hp", () => {
+  const fire = { damage: 14, element: "fire" };
+  const hp = sturdyHp("slime", scaleEnemy("slime", 1).hp, fire);
+  const best = hitEnemy(fire, "slime", HIT_ROLL_MAX).damage;
+  assert.ok(Math.ceil(hp / best) < 3);
 });

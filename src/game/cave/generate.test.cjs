@@ -32,13 +32,39 @@ test("floors 5 and 10 are rest floors with a boss and a chest; never locked", ()
   assert.equal(generateFloor(10, 1).sheet, "caveDeep");
 });
 
-test("monster count: 2–3 on floor 1, never more than 10", () => {
+test("monster count: 4–5 on floor 1, 5–6 on floor 2, never more than 12", () => {
   for (let seed = 0; seed < 300; seed++) {
     const n1 = generateFloor(1, seed).spawns.length;
-    assert.ok(n1 >= 2 && n1 <= 3);
+    assert.ok(n1 >= 4 && n1 <= 5, `floor 1 seed ${seed}: ${n1}`);
+    const n2 = generateFloor(2, seed).spawns.length;
+    assert.ok(n2 >= 5 && n2 <= 6, `floor 2 seed ${seed}: ${n2}`);
     for (const d of [3, 9, 12])
-      assert.ok(generateFloor(d, seed).spawns.length <= 10);
+      assert.ok(generateFloor(d, seed).spawns.length <= 12);
   }
+});
+
+test("normal rooms from floor 3 have 3–4 monsters (before the cap)", () => {
+  for (let seed = 0; seed < 300; seed++) {
+    const f = generateFloor(3, seed);
+    if (f.spawns.length >= 12) continue; // trimmed by the cap
+    f.kinds.forEach((k, i) => {
+      if (k !== "normal") return;
+      const n = f.spawns.filter((s) => s.room === i).length;
+      assert.ok(n >= 3 && n <= 4, `seed ${seed} room ${i}: ${n}`);
+    });
+  }
+});
+
+test("a monster in the start room stands where it can't see the start", () => {
+  for (const depth of [2, 3, 4])
+    for (let seed = 0; seed < 300; seed++) {
+      const f = generateFloor(depth, seed);
+      for (const s of f.spawns.filter((s) => s.room === 0))
+        assert.ok(
+          Math.hypot(s.x - f.start.x, s.y - f.start.y) > 112,
+          `depth ${depth} seed ${seed}`,
+        );
+    }
 });
 
 test("floor sizes: 2×1 rooms on 1–2, 2×2 on 3, one room on 5", () => {
@@ -50,7 +76,7 @@ test("floor sizes: 2×1 rooms on 1–2, 2×2 on 3, one room on 5", () => {
   assert.equal(generateFloor(3, 3).rooms.length, 4);
 });
 
-test("the stairs are never in the start room; no monsters there on 1–2", () => {
+test("the stairs are never in the start room; no monsters there on 1, one at most on 2+", () => {
   const inStart = (p) => p.x < 24 * 16 && p.y < 14 * 16;
   for (let depth = 1; depth <= 12; depth++) {
     if (depth % 5 === 0) continue;
@@ -58,7 +84,8 @@ test("the stairs are never in the start room; no monsters there on 1–2", () =>
       const f = generateFloor(depth, seed);
       assert.equal(inStart(f.start), true);
       assert.equal(inStart(f.stairs), false);
-      if (depth <= 2) for (const s of f.spawns) assert.equal(inStart(s), false);
+      if (depth === 1)
+        for (const s of f.spawns) assert.equal(inStart(s), false);
       else assert.ok(f.spawns.filter(inStart).length <= 1);
     }
   }
@@ -253,7 +280,7 @@ test("calm rooms have at most 1 monster; nests have 4+ when the spots allow", ()
         assert.ok(n >= 4);
       }
     });
-    assert.ok(f.spawns.length <= 10);
+    assert.ok(f.spawns.length <= 12);
   });
   assert.ok(nests > 100);
 });
@@ -339,4 +366,44 @@ test("cache: at least 2 tiles (Chebyshev) from the stairs", () => {
 test("depth 2 always has at least one monster", () => {
   for (let seed = 0; seed < 1500; seed++)
     assert.ok(generateFloor(2, seed).spawns.length >= 1, `seed ${seed}`);
+});
+
+test("veins: 1–2 of the rocks on a normal floor, none on rest floors", () => {
+  let floors = 0;
+  for (const { f } of allFloors()) {
+    const key = (p) => `${p.x},${p.y}`;
+    const rocks = new Set(f.rocks.map(key));
+    for (const v of f.veins) assert.ok(rocks.has(key(v)));
+    assert.equal(new Set(f.veins.map(key)).size, f.veins.length);
+    if (f.rest) assert.equal(f.veins.length, 0);
+    else if (f.rocks.length >= 2) {
+      floors++;
+      assert.ok(f.veins.length >= 1 && f.veins.length <= 2);
+    }
+  }
+  assert.ok(floors > 5000);
+  for (let seed = 0; seed < 100; seed++)
+    assert.equal(generateFloor(5, seed).veins.length, 0);
+});
+
+test("hidden stairs: about one floor in three from floor 2, never locked, rest or floor 1", () => {
+  let hidden = 0;
+  let floors = 0;
+  for (const { f } of allFloors()) {
+    if (f.depth === 1 || f.rest || f.locked)
+      assert.equal(f.stairsHidden, false);
+    else {
+      floors++;
+      if (f.stairsHidden) hidden++;
+    }
+    // The stairs tile itself is still in the rows; the scene covers it.
+    if (f.stairsHidden)
+      assert.equal(f.rows[(f.stairs.y - 8) / 16][(f.stairs.x - 8) / 16], "T");
+  }
+  assert.ok(
+    hidden / floors > 0.28 && hidden / floors < 0.39,
+    `${hidden / floors}`,
+  );
+  for (let seed = 0; seed < 100; seed++)
+    assert.equal(generateFloor(10, seed).stairsHidden, false);
 });

@@ -13,7 +13,8 @@ import {
   type FigureChoice,
 } from "@/game/figure";
 import { HIDDEN_GEAR } from "@/game/figure";
-import { MATERIALS, type MaterialId } from "@/game/materials";
+import { MATERIALS } from "@/game/materials";
+import { caveFinds } from "@/game/cave/trip";
 import {
   ingredientLine,
   missingText,
@@ -175,6 +176,8 @@ type Props = {
   onEquip: (item: GameItemView) => void;
   level: number;
   inventory: Record<string, number>;
+  // Finds from the cave trip under way: not the player's until they are safe.
+  trip: Record<string, number>;
   forgings: Forging[];
   chests: Record<string, true>;
   crafted: Record<string, string>;
@@ -204,6 +207,7 @@ export default function CharacterSheet({
   onEquip,
   level,
   inventory: materials,
+  trip,
   forgings,
   chests,
   crafted,
@@ -248,9 +252,8 @@ export default function CharacterSheet({
         forgings,
       )
     : [];
-  const found = (Object.keys(MATERIALS) as MaterialId[]).filter(
-    (id) => (materials[id] ?? 0) > 0,
-  );
+  const found = caveFinds(materials, trip);
+  const onTrip = found.some((row) => row.trip > 0);
   const filteredItems = inventory.filter(
     (item) => inventoryFilter === "all" || item.kind === inventoryFilter,
   );
@@ -610,14 +613,28 @@ export default function CharacterSheet({
               <div className="cs-found">
                 <p className="cs-found-title">Fra grotta</p>
                 <ul>
-                  {found.map((id) => (
+                  {found.map(({ id, safe, trip: count }) => (
                     <li key={id}>
                       <SpriteIcon sprite={MATERIALS[id].sprite} />
                       <span>{MATERIALS[id].name}</span>
-                      <span>× {materials[id]}</span>
+                      <span>
+                        {safe > 0 && `× ${safe}`}
+                        {count > 0 && (
+                          <small className="cs-found-trip">
+                            {safe > 0 ? "+" : ""}
+                            {count} på turen
+                          </small>
+                        )}
+                      </span>
                     </li>
                   ))}
                 </ul>
+                {onTrip && (
+                  <p className="cs-found-note">
+                    Det du finner på turen, blir ditt når du kommer hjem eller
+                    til en hvileplass. Besvimer du, blir det liggende igjen.
+                  </p>
+                )}
               </div>
             )}
             {mode !== "bag" && (

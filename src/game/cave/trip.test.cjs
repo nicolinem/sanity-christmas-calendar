@@ -63,3 +63,22 @@ test("secureTrip banks the trip and keeps the player in the cave", () => {
   assert.equal(safe.inCave, true);
   assert.equal(p.trip.malm, 2);
 });
+
+test("caveFinds lists each material with what is safe and what is on the trip", () => {
+  const { caveFinds } = require("./trip.ts");
+  assert.deepEqual(caveFinds({ malm: 3 }, { malm: 2, isskar: 1 }), [
+    { id: "isskar", safe: 0, trip: 1 },
+    { id: "malm", safe: 3, trip: 2 },
+  ]);
+  assert.deepEqual(caveFinds({ isskar: 0 }, {}), []);
+  // Ids the game no longer knows are left out.
+  assert.deepEqual(caveFinds({ gull: 4 }, { gull: 1 }), []);
+});
+
+test("findsText says a trip's finds in words", () => {
+  const { findsText } = require("./trip.ts");
+  assert.equal(findsText({}), "");
+  assert.equal(findsText({ malm: 0 }), "");
+  assert.equal(findsText({ malm: 1 }), "1 gammel malm");
+  assert.equal(findsText({ malm: 2, isskar: 1 }), "1 isskår og 2 gammel malm");
+});
