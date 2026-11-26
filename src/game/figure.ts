@@ -18,6 +18,9 @@ type Pair = readonly [main: string, shade: string];
 export const HIDDEN_GEAR = "Gjemt et sted i verden";
 // Source label of the floor-5 cave chest gear.
 export const CAVE_CHEST_5_SOURCE = "Kista på etasje 5";
+// Source labels of the gear forged from the cave recipes.
+export const RECIPE_5_SOURCE = "Oppskrift fra etasje 5";
+export const RECIPE_10_SOURCE = "Oppskrift fra etasje 10";
 
 type Option<T> = { id: string; label: string; unlock?: string } & T;
 
@@ -96,6 +99,8 @@ const FIXED: Record<string, string> = {
   R: "#eaa56c", // horn
   r: "#bd6c4a", // horn shade
   X: OUTLINE, // lines drawn inside a part, like a helmet's ridges
+  F: "#2ce8f5", // ice
+  f: "#0099db", // ice shade
 };
 
 // --- Parts --------------------------------------------------------------------
@@ -466,6 +471,22 @@ export const HATS: Part[] = [
     ),
     unlock: HIDDEN_GEAR,
   },
+  // The open helmet again, in ice instead of iron.
+  {
+    id: "icehelm",
+    label: "Ishjelm",
+    grid: grid(
+      3,
+      ".....FfffffF",
+      "....XfXfXfXf",
+      "....ffXfXfXf",
+      "....ffffffff",
+      "....f",
+      "....f",
+      "....f",
+    ),
+    unlock: RECIPE_10_SOURCE,
+  },
   // Closed knight's helmet with a crest and visor slits (frame 96).
   {
     id: "knight",
@@ -554,6 +575,13 @@ export const EXTRAS: Part[] = [
       ".............kkk",
     ),
     unlock: "Arkivarens spørsmål",
+  },
+  {
+    id: "shield",
+    label: "Isskjold",
+    // Held at the other hand from the lantern.
+    grid: grid(10, "XXXX", "XWFX", "XFfX", "XFfX", ".XX."),
+    unlock: RECIPE_5_SOURCE,
   },
   {
     id: "cape",

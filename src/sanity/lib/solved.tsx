@@ -19,6 +19,7 @@ import {
   spriteAfterKindChange,
   spriteIdsForItemKind,
 } from "../../game/sprites";
+import { unlockedRecipes } from "../../game/recipes";
 import type { QuestTrack, SolvedTask } from "../../game/quests/types";
 import { TASK_ICONS, type TaskIconName } from "./taskIcons";
 
@@ -28,6 +29,7 @@ let lastRaw: string | null | undefined;
 let last: Solved = {};
 let lastTrack: QuestTrack = "technical";
 let lastBriefed: Record<string, boolean> = {};
+let lastChests: Record<string, true> = {};
 
 function read(): Solved {
   let raw: string | null = null;
@@ -43,10 +45,12 @@ function read(): Solved {
     last = parsed.solved || {};
     lastTrack = parsed.track === "nonTechnical" ? "nonTechnical" : "technical";
     lastBriefed = parsed.briefed || {};
+    lastChests = parsed.chests || {};
   } catch {
     last = {};
     lastTrack = "technical";
     lastBriefed = {};
+    lastChests = {};
   }
   return last;
 }
@@ -57,6 +61,14 @@ export function isTrack(track: QuestTrack): boolean {
   if (typeof window === "undefined") return false;
   read();
   return lastTrack === track;
+}
+
+// Recipes found in the cave, for the Smiing's reference list. None without a
+// browser or storage.
+export function unlockedRecipeIds(): string[] {
+  if (typeof window === "undefined") return [];
+  read();
+  return unlockedRecipes({ chests: lastChests });
 }
 
 function subscribe(onChange: () => void) {

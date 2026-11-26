@@ -15,13 +15,24 @@ import {
 import { HIDDEN_GEAR } from "@/game/figure";
 import { MATERIALS, type MaterialId } from "@/game/materials";
 import {
+  ingredientLine,
+  missingText,
+  recipeStates,
+  type Forging,
+} from "@/game/forge";
+import { RECIPES } from "@/game/recipes";
+import {
   gearSource,
   isGear,
   visibleGearSource,
   wearable,
   type GearKey,
 } from "@/game/wardrobe";
-import { PROGRESS_PROJECT, updateProgress } from "@/game/quests/progress";
+import {
+  EMPTY_PROGRESS,
+  PROGRESS_PROJECT,
+  updateProgress,
+} from "@/game/quests/progress";
 import type { GameItemView } from "@/game/items";
 import FigureCanvas from "./FigureCanvas";
 import ItemDetails from "../hud/ItemDetails";
@@ -141,6 +152,9 @@ type Props = {
   onEquip: (item: GameItemView) => void;
   level: number;
   inventory: Record<string, number>;
+  forgings: Forging[];
+  chests: Record<string, true>;
+  crafted: Record<string, string>;
   onDone: (
     choice: FigureChoice,
     name: string,
@@ -164,6 +178,9 @@ export default function CharacterSheet({
   onEquip,
   level,
   inventory: materials,
+  forgings,
+  chests,
+  crafted,
   onDone,
   onClose,
 }: Props) {
@@ -197,6 +214,12 @@ export default function CharacterSheet({
     cat.color &&
     categoryUsesColor(choice, cat.part, cat.color.key, cat.color.options);
   const inventory = items.filter((item) => item.id !== "builtin-fists");
+  const forgeRows = FEATURES.cave
+    ? recipeStates(
+        { ...EMPTY_PROGRESS, chests, crafted, inventory: materials },
+        forgings,
+      )
+    : [];
   const found = (Object.keys(MATERIALS) as MaterialId[]).filter(
     (id) => (materials[id] ?? 0) > 0,
   );
@@ -458,6 +481,31 @@ export default function CharacterSheet({
                   )}
                 </>
               ))}
+            {mode === "bag" && FEATURES.cave && forgeRows.length > 0 && (
+              <div className="cs-found cs-forge">
+                <p className="cs-found-title">Smia</p>
+                <ul>
+                  {forgeRows.map((row) => (
+                    <li
+                      key={row.id}
+                      className={row.state === "missing" ? "is-missing" : ""}
+                    >
+                      <span>
+                        {RECIPES[row.id].name}
+                        <small>{ingredientLine(materials, row.id)}</small>
+                        <small>
+                          {row.state === "done"
+                            ? "Smidd"
+                            : row.state === "missing"
+                              ? missingText(row.missing)
+                              : "Lag en Smiing i Studio"}
+                        </small>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {mode === "bag" && found.length > 0 && (
               <div className="cs-found">
                 <p className="cs-found-title">Fra grotta</p>

@@ -22,7 +22,10 @@ type Template = {
 
 export function orderTemplates<T>(previous: T[]): (T | Template)[] {
   return [
-    ...previous,
+    // Recipes are made by the game, never by hand: no blank «Oppskrift».
+    ...previous.filter(
+      (t) => (t as { schemaType?: string }).schemaType !== "recipe",
+    ),
     ...BAKERY_CUSTOMERS.map((customer) => ({
       id: `order-${customer.name}`,
       title: `Bestilling fra ${customer.name}`,
