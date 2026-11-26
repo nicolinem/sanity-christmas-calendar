@@ -58,4 +58,8 @@ export type WindowTask = {
   // false: nothing switches on in the Studio (a GROQ answer, say), so the
   // window doesn't claim it does.
   studioCode?: false;
+  // What the window says once solved, and the heading over `ours`, when the
+  // defaults (Studio code, or Arkivaren's GROQ answer) don't fit.
+  doneNote?: string;
+  oursLabel?: string;
 };
