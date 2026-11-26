@@ -296,6 +296,7 @@ test("«+» leaves out the types that haven't opened", () => {
     "../lib/solved": {
       isTypeShown: (type) => shownTypes.has(type) || !STUDIO_TYPE_OPENERS[type],
     },
+    "./BakeryActions": { ReadyAction: () => null },
   }).default;
   const options = [
     "item",
@@ -315,4 +316,40 @@ test("«+» leaves out the types that haven't opened", () => {
     ),
     ["item", "place"],
   );
+});
+
+test("Klar comes first for orders, so it is the big button when it shows", () => {
+  const Publish = () => null;
+  const Delete = () => null;
+  const ReadyAction = () => null;
+  const ForgeAction = () => null;
+  const config = load("src/sanity/studio/config.ts", {
+    "../../../sanity.config": {
+      __esModule: true,
+      default: {
+        name: "test",
+        document: {
+          newDocumentOptions: (previous) => previous,
+          // As in sanity.config.ts: the player's resolver appends Klar.
+          actions: (previous, { schemaType }) =>
+            schemaType === "bakeryOrder"
+              ? [...previous, ReadyAction]
+              : schemaType === "item"
+                ? [...previous, ForgeAction]
+                : previous,
+        },
+      },
+    },
+    "../lib/solved": { isTypeShown: () => true },
+    "./BakeryActions": { ReadyAction },
+  }).default;
+  const order = config.document.actions([Publish, Delete], {
+    schemaType: "bakeryOrder",
+  });
+  // The array comes from the vm's realm: compare the entries, not the array.
+  assert.deepEqual([...order], [ReadyAction, Publish, Delete]);
+  const item = config.document.actions([Publish, Delete], {
+    schemaType: "item",
+  });
+  assert.deepEqual([...item], [Publish, Delete, ForgeAction]);
 });

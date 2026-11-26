@@ -55,9 +55,9 @@ const toggleLabel: Record<BoardToggle, string> = {
 
 const plain = (label: string) => label.replace(/`/g, "");
 
-// A board with toggles is a spec sheet, the way a designer hands it to a
-// developer: one row per piece of the note, with its type and the two
-// choices. Each choice is yes or no; nothing counts until it's picked.
+// A table board is a spec sheet, the way a designer hands it to a
+// developer: one row per field, with the bit of the note that goes in it,
+// its type, and any yes/no choices. Nothing counts until it's picked.
 function SpecTable({
   task,
   placement,
@@ -71,10 +71,11 @@ function SpecTable({
   onSlot: (card: string, slot: string) => void;
   onToggle: (card: string, toggle: BoardToggle, value: boolean) => void;
 }) {
+  const toggles = task.allowToggles?.length ? " has-toggles" : "";
   return (
     <section className="mb-spec" aria-label="Spesifikasjon">
-      <div className="mb-spec-row mb-spec-head" aria-hidden="true">
-        <span>Fra lappen</span>
+      <div className={`mb-spec-row mb-spec-head${toggles}`} aria-hidden="true">
+        <span>Felt i Studio</span>
         <span>Type</span>
         {task.allowToggles?.map((toggle) => (
           <span key={toggle}>{toggleLabel[toggle]}</span>
@@ -86,16 +87,23 @@ function SpecTable({
         return (
           <div
             key={card.id}
-            className={`mb-spec-row${requirement.done ? " is-done" : ""}`}
+            className={`mb-spec-row${toggles}${requirement.done ? " is-done" : ""}`}
             role="group"
-            aria-label={card.text}
+            aria-label={card.field ?? card.text}
           >
-            <strong className="mb-spec-card">
-              {requirement.done && <IconCheck size={12} />}
-              {card.text}
-            </strong>
+            <span className="mb-spec-card">
+              <strong>
+                {requirement.done && <IconCheck size={12} />}
+                {card.field ?? card.text}
+              </strong>
+              {card.field && (
+                <small>
+                  {task.source ?? "Eksempel"}: «{card.text}»
+                </small>
+              )}
+            </span>
             <select
-              aria-label={`Type for ${card.text}`}
+              aria-label={`Type for ${card.field ?? card.text}`}
               value={answer.slot ?? ""}
               onChange={(event) => onSlot(card.id, event.target.value)}
             >
@@ -221,7 +229,7 @@ export default function ModelBoard({
             <p>{renderText(task.note)}</p>
           </section>
 
-          {task.allowToggles ? (
+          {task.layout === "table" || task.allowToggles ? (
             <SpecTable
               task={task}
               placement={placement}
