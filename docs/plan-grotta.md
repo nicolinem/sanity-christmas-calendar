@@ -325,7 +325,8 @@ Grotta kommer **etter** sideoppdragene i bygda (S0–S2), og etter fase A. Det e
 | **G3: etasje 1–5** (fase D, del 1) | Flaggermus, full etasje, Isvette og kisten med rustning på etasje 5. `bosses`, `chests` og `deepest`. Tau til 5. | Du kan nå etasje 5, slå Isvetten, få rustningen én gang og starte fra 5 neste gang. | Middels |
 | **Lansering av G0–G3** | Flagget snus til på. Kunngjøres i kanalen. | I `main` **senest fredag 18. desember** | Liten |
 | **G4: etasje 6–10** (fase D, del 2) | Troll og kyklop, mørkere farger, Isdragen og kisten på etasje 10. | Du kan nå etasje 10, og tauet virker til 10. | Middels |
-| **Fase E og F** | Smiing med materialene. Etasje 11–20 med `split`, `blink` og `freeze`. | Som i planen. | Som i planen |
+| **G5: smiing** (fase E) | To oppskrifter fra kistene, `recipe` og `forging` i Studio, trekk av materialer og utstyr til figuren (del 15). | En publisert Smiing gir utstyret én gang, materialene trekkes, og «Mangler 2 Isskår» vises til de er samlet. | Middels |
+| **Fase F** | Etasje 11–20 med `split`, `blink` og `freeze`. | Som i `plan-utforsking.md`. | Som i planen |
 
 **Mest usikkert:**
 
@@ -531,3 +532,52 @@ G4 fullfører etasje 6–10. Brukeren valgte at etasje 10 er bunnen inntil vider
 - **Kista** kan åpnes når Isdragen er slått. Den gir 100 XP én gang (`chests["cave-10"]`). Toasten er `{ title: "Kista på etasje 10", body: "Den var full av gamle notater. Du fikk 100 XP." }`. Notatene peker mot smiing med oppskrifter (fase E).
 - **Bunnen.** Etasje 10 har ingen trapp ned. Der trappa ville stått, står det «Lenger ned er det ikke gravd ennå.» når du er i nærheten. Tauet til 10 virker som før.
 
+
+## 15. G5: smiing (besluttet 2026-11-26)
+
+G5 gir materialene en bruk. Kistene på etasje 5 og 10 gir hver sin oppskrift. Spilleren smir i Studio, og spillet trekker materialene. Brukeren valgte at det smidde blir **utstyr til figuren**. Det gir ingen balanse-risiko, og det synes på figuren og på «Hvem er med». Alt står bak `FEATURES.cave`.
+
+### Oppskriftene (startverdier)
+
+| Oppskrift | Fra | Gir | Ingredienser |
+| --- | --- | --- | --- |
+| **Isskjold** (`recipe-isskjold`) | Kista på etasje 5 | `extra:shield`, «Isskjold» | Gammel malm × 4, Isskår × 2 |
+| **Ishjelm** (`recipe-ishjelm`) | Kista på etasje 10 | `hat:icehelm`, «Ishjelm» | Gammel malm × 6, Isskår × 4 |
+
+- Oppskriftene står i koden (`src/game/recipes.ts`), som materialene. Det er koden som avgjør hva som trekkes, ikke dokumentet i Sanity.
+- **En oppskrift er låst opp når kista er åpnet** (`chests["cave-5"]` og `chests["cave-10"]`). Det regnes ut, og ingenting nytt lagres. De som åpnet kista på etasje 5 før G5, har oppskriften med en gang.
+- Utstyret er tegnet som resten av figuren, i Kenneys palett. Kilden i Utstyr er «Oppskrift fra etasje 5» og «Oppskrift fra etasje 10». Med flagget av ser det ut som annet gjemt utstyr.
+
+### I Studio
+
+To ferdige typer, på samme måte som arkivet i uke 2. Spillerens egne filer (`item.tsx` og `sanity.config.ts`) røres ikke.
+
+- **`recipe`** («Oppskrift»): navn, hva den gir, ingredienser (`array` av objekter med materiale og antall) og beskrivelse. Bare til å lese.
+- **`forging`** («Smiing»): navn og en `reference` til en oppskrift.
+  - Lista over oppskrifter viser bare dem spilleren har låst opp (`options.filter`). Den leser kistene fra den samme `localStorage`-posten som `solved.tsx`.
+  - Spilleren gir tingen sitt eget navn og publiserer.
+- **Oppskriftene legges inn i spillerens prosjekt** av spillet (`POST /api/forge`), første gang en låst opp oppskrift mangler der. Det samme dokumentet skrives aldri over.
+- Begge tilsvarer uke 2-typene: alle spillere får dem ferdige, og ingen skriver dem som oppgave. Å skrive filteret eller en «Smi»-knapp selv kan bli en luke senere.
+
+### I spillet
+
+- **Når en publisert Smiing finnes,** og oppskriften er låst opp:
+  - Har spilleren nok i `inventory`, trekkes materialene, og `crafted[_id]` settes til oppskriften. Utstyret er ditt. Toasten er «Isskjold» med navnet spilleren ga det.
+  - Mangler det noe, trekkes ingenting. Smia i Ting viser «Mangler 2 Isskår». Den smis av seg selv når materialene er samlet, uten å publisere på nytt.
+  - Det som ligger i `trip`, teller ikke før det er trygt.
+- **Hver oppskrift gir utstyret én gang.** En ny Smiing av samme oppskrift trekker ingenting. Å publisere samme dokument igjen gjør ingenting, fordi `_id` ligger i `crafted`.
+- **Utstyret beholdes** selv om dokumentet slettes. Å nullstille fremgangen tar det bort, som annet utstyr.
+- **Smia i Ting** viser hver låst opp oppskrift med ingrediensene («Isskår 1/2») og én linje:
+  - «Smidd»;
+  - «Mangler 2 Isskår» (når en Smiing er publisert);
+  - «Lag en Smiing i Studio» (når ingen er publisert).
+- **Kistene sier fra:**
+  - Etasje 5: `{ title: "Rustning og en oppskrift", body: "Kista på etasje 5 hadde rustning og oppskriften på et isskjold." }`.
+  - Etasje 10: `{ title: "Kista på etasje 10", body: "Den var full av gamle notater, og ett var oppskriften på en ishjelm. Du fikk 100 XP." }`.
+- Materialene sier «Brukes i smia.» i stedet for «Brukes i smia senere.»
+
+### Ikke i G5
+
+- Våpen, drikker eller andre typer ting fra oppskrifter.
+- En «Smi»-knapp (*document action*) og GROQ-oppgaven «Hva kan jeg lage nå?». De passer som luker senere.
+- Flere oppskrifter enn to, og oppskrifter fra steder utenfor grotta.
