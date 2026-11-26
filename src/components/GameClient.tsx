@@ -8,7 +8,7 @@ import {
 import { communityEndpoint } from "@/game/communityEndpoint";
 import { useOrderFunction } from "./hud/useOrderFunction";
 import { MAX_HINTS, type CommunityPlayer } from "@/game/community";
-import { normalizeAbout } from "@/game/about";
+import { aboutProgress, normalizeAbout, type About } from "@/game/about";
 import { chooseGhosts, DEV_GHOSTS, type GhostInput } from "@/game/ghosts";
 import { pickLine, type PickedLine } from "@/game/ghostLines";
 import GhostDialogue from "./hud/GhostDialogue";
@@ -448,12 +448,16 @@ export default function GameClient() {
       name: string,
       shareProfile: boolean,
       shareHints: boolean,
+      about: About,
     ) => {
       if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
+      const written =
+        about.food || about.activity || about.topics.length || about.saying;
       updateProgress(PROGRESS_PROJECT, (p) => ({
         ...p,
         figure: { ...choice },
         name: name || undefined,
+        about: written ? about : undefined,
         shareProfile,
         shareHints,
         sharePrompted: true,
@@ -678,6 +682,7 @@ export default function GameClient() {
               : null,
           figure,
           name: progress.name,
+          ...(progress.about ? { about: progress.about } : {}),
         },
       }),
     }).catch(() => {});
@@ -690,6 +695,7 @@ export default function GameClient() {
     progress.hints,
     figure,
     progress.name,
+    progress.about,
     equipped,
     autoEquip,
     bestWeapon,
@@ -1298,8 +1304,16 @@ export default function GameClient() {
     entryStage === "track" ||
     entryStage === "welcome" ||
     entryStage === "share";
+  // Sharing, with a figure, but no Om meg yet (a save from before the tab):
+  // the sheet opens on Om meg once, and stays until it's filled in.
+  const aboutMissing =
+    entryStage === "game" &&
+    progress.shareProfile &&
+    Boolean(progress.figure) &&
+    !aboutProgress(progress.about, true).complete;
   const sheetShown =
-    entryStage === "figure" || (entryStage === "game" && sheetOpen);
+    entryStage === "figure" ||
+    (entryStage === "game" && (sheetOpen || aboutMissing));
 
   // A finished week gets its summary once, after the last door's celebration;
   // the journal can open it again (weekShown).
@@ -2045,7 +2059,11 @@ export default function GameClient() {
             initialName={progress.name ?? ""}
             owned={owned}
             firstTime={entryStage === "figure"}
-            initialTab={progress.figure ? sheetTab : "look"}
+            locked={aboutMissing}
+            initialAbout={progress.about ?? null}
+            initialTab={
+              aboutMissing ? "about" : progress.figure ? sheetTab : "look"
+            }
             // Ticked until the player has answered once; nothing is shared
             // before they press Ferdig.
             initialShareProfile={
