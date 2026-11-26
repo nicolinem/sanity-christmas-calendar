@@ -76,7 +76,7 @@ export const BUILTIN_ITEMS: GameItemView[] = [
       name: "Bare Fists",
       kind: "weapon",
       spriteId: null,
-      description: "No weapon equipped. Forge something better in Sanity!",
+      description: "Du har ikke noe våpen i hånda. Lag et i Sanity Studio.",
     },
     1,
   ),

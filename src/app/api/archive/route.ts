@@ -97,6 +97,11 @@ export async function POST(request: Request) {
     token,
     useCdn: false,
   });
+  // The technical track gets the clues already sorted and linked: its lists
+  // and document view (luke 6–7) need something to show in Studio, and
+  // sorting them is the non-technical track's task, not theirs.
+  const technical =
+    new URL(request.url).searchParams.get("track") === "technical";
   try {
     // Identical content gives the same asset, so this is safe to repeat.
     const asset = await writer.assets.upload(
@@ -111,21 +116,23 @@ export async function POST(request: Request) {
     const tx = writer.transaction();
     for (const p of PLACES) tx.createIfNotExists({ ...p });
     for (const w of WITNESSES) tx.createIfNotExists({ ...w });
-    for (const o of WHO_IS_LYING)
+    for (const o of WHO_IS_LYING) {
+      const place = o.place ?? (technical ? o.linksTo : undefined);
       tx.createIfNotExists({
         _id: o._id,
         _type: "observation",
         what: o.what,
         time: o.time,
-        ...(o.place ? { place: ref(`place-${o.place}`) } : {}),
+        ...(place ? { place: ref(`place-${place}`) } : {}),
         ...(o.placeNote ? { placeNote: o.placeNote } : {}),
         witness: ref(`witness-${o.witness}`),
         seen: o.seen,
-        status: "unknown",
+        status: technical ? o.expected : "unknown",
         ...(o.image
           ? { image: { _type: "image", asset: ref(asset._id) } }
           : {}),
       });
+    }
     await tx.commit();
     return Response.json({ ok: true });
   } catch (error) {

@@ -68,7 +68,7 @@ function completeStarter() {
           />`,
     )
     .replace(
-      "// TODO: send Sanity's unset() patch through props.onChange.",
+      "// TODO: send unset() til props.onChange, så valget fjernes.",
       "props.onChange(unset())",
     );
 }

@@ -4181,6 +4181,8 @@ kbd {
   border: 1px solid #c8ced8;
   border-radius: 4px;
   background: #fff;
+  /* The code window's light text would vanish on the white button. */
+  color: #1f2633;
   cursor: pointer;
 }
 .cw-sprite-preview .sprite-picker__clear:disabled {

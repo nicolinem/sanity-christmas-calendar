@@ -1061,10 +1061,17 @@ export default function GameClient() {
     board.states.some(
       (s) =>
         // From the model board on: the five are in Studio, with the board's
-        // fields hidden, when the board is solved.
-        ["archive-model", "who-is-lying", "case-file"].includes(s.quest.id) &&
-        s.status === "active",
+        // fields hidden, when the board is solved. The technical track needs
+        // them for its lists and document view (luke 6–7) in Studio.
+        [
+          "archive-model",
+          "who-is-lying",
+          "case-file",
+          "archive-lists",
+          "who-points-here",
+        ].includes(s.quest.id) && s.status === "active",
     );
+  const archiveTrack = progress.track;
   useEffect(() => {
     if (
       !needsArchive ||
@@ -1075,10 +1082,10 @@ export default function GameClient() {
     if (archiveSeeded.current) return;
     archiveSeeded.current = true;
     markOwnWrite();
-    fetch("/api/archive", { method: "POST" })
+    fetch(`/api/archive?track=${archiveTrack}`, { method: "POST" })
       .then((r) => (r.ok ? refresh() : undefined))
       .catch(() => {});
-  }, [needsArchive, archive, refresh]);
+  }, [needsArchive, archive, archiveTrack, refresh]);
 
   // The recipes the player has unlocked get their documents once per visit,
   // so the Studio's Smiing can point at them.

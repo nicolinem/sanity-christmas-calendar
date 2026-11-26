@@ -49,7 +49,7 @@ export function SpritePicker(props: StringInputProps) {
         aria-label="Fjern valgt sprite"
         disabled={!props.value}
         onClick={() => {
-          // TODO: send Sanity's unset() patch through props.onChange.
+          // TODO: send unset() til props.onChange, så valget fjernes.
         }}
       >
         Fjern valgt sprite

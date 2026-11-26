@@ -235,18 +235,19 @@ function PlaceDoc({ view }: { view: boolean }) {
         <span>Bakeriet</span>
       </div>
       <div className="gp-tabs">
-        <span className={view ? undefined : "is-on"}>Edit</span>
+        <span className={view ? undefined : "is-on"}>Editor</span>
         {view && <span className="is-on">Observasjoner her</span>}
       </div>
+      {/* What was seen stays hidden: finding it out is the end of uke 2. */}
       {view ? (
         <ul className="gp-list">
           <li>
             <span className="gp-chip">19:05</span>
-            <span className="gp-row-title">Kaker har forsvunnet</span>
+            <span className="gp-row-title">?</span>
           </li>
           <li>
             <span className="gp-chip">19:10</span>
-            <span className="gp-row-title">Iskaldt i rommet etterpå</span>
+            <span className="gp-row-title">?</span>
           </li>
         </ul>
       ) : (

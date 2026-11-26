@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useClient } from "sanity";
 import type { UserViewComponent } from "sanity/structure";
 import { Card, Stack, Text } from "@sanity/ui";
+import { STATUS_TITLES } from "../schemaTypes/archive";
 
 // Relative imports på denne fila, ikke "@/": Sanity CLI bygger Studio uten den
 // snarveien.
@@ -51,7 +52,7 @@ export const ObservationsHere: UserViewComponent = (props) => {
       {rows.map((o) => (
         <Card key={o._id} padding={3} border radius={2}>
           <Text size={1}>
-            {o.time} · {o.what} · {o.status}
+            {o.time} · {o.what} · {STATUS_TITLES[o.status ?? ""] ?? o.status}
           </Text>
         </Card>
       ))}

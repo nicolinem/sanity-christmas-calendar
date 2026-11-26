@@ -10,7 +10,7 @@ import { isSolved, isTrack } from "../lib/solved";
 // links the observations the game puts in your project; the technical track
 // queries a fixed copy of the same kind of data in the code window.
 
-const STATUS_TITLES: Record<string, string> = {
+export const STATUS_TITLES: Record<string, string> = {
   unknown: "Unknown",
   confirmed: "Confirmed",
   rumor: "Rumor",
