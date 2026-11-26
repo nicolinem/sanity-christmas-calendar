@@ -3,6 +3,8 @@ import type { BoardTask } from "@/game/modelBoard/modelBoard";
 export const bakerModelTask: BoardTask = {
   id: "baker-model",
   note: "Bakerens notat: «Lussekatter til Brann, i dag. Ny. Uten nøtter, takk.»",
+  layout: "table",
+  source: "Fra lappen",
   slots: [
     { id: "text", label: "Tekst · `string`", about: "Ord som varierer" },
     { id: "date", label: "Dato · `date`", about: "En kalenderdato" },
@@ -13,11 +15,11 @@ export const bakerModelTask: BoardTask = {
     },
   ],
   cards: [
-    { id: "item", text: "Lussekatter" },
-    { id: "orderedBy", text: "Brann" },
-    { id: "date", text: "i dag" },
-    { id: "status", text: "Ny" },
-    { id: "note", text: "uten nøtter, takk" },
+    { id: "item", field: "Vare", text: "Lussekatter" },
+    { id: "orderedBy", field: "Bestilt av", text: "Brann" },
+    { id: "date", field: "Dato", text: "i dag" },
+    { id: "status", field: "Status", text: "Ny" },
+    { id: "note", field: "Merknad", text: "uten nøtter, takk" },
   ],
   decisions: [
     {

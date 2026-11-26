@@ -127,6 +127,8 @@ export class WinterQuestScene extends Phaser.Scene {
         this.onHit(damage, defeated, affinity),
       ),
       bridge.on("whiff", () => this.onWhiff()),
+      // Space always swings, as in the cave; it only hits near the wraith.
+      bridge.on("villageSwing", () => this.lunge(this.knight.scaleX || 1)),
       bridge.on("forgeLevelUp", () => this.onForgeLevelUp()),
       bridge.on("itemForged", (sprite) => this.onItemForged(sprite)),
       bridge.on("forgeFlare", () => this.flareForge()),
@@ -740,8 +742,7 @@ export class WinterQuestScene extends Phaser.Scene {
 
   // --- combat effects -------------------------------------------------------
 
-  private lunge() {
-    const dir = Math.sign(this.wraith.x - this.knight.x) || 1;
+  private lunge(dir = Math.sign(this.wraith.x - this.knight.x) || 1) {
     this.knight.scaleX = dir;
     this.tweens.add({
       targets: this.weapon,

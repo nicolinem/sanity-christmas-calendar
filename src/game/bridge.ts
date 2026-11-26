@@ -118,6 +118,7 @@ type EventMap = {
   reachedFloor: number; // cave → HUD: a new floor was entered
   leftCave: void; // cave → HUD: back in the village
   caveAttack: void; // HUD → cave: swing
+  villageSwing: void; // HUD → village: Space away from the wraith swings at the air
   drink: string; // HUD → cave: drink this item (id)
   drinkResult: "ok" | "again" | "limit" | "full"; // cave → HUD
   enemyDefeated: { enemy: EnemyId; depth: number }; // cave → HUD

@@ -1137,18 +1137,20 @@ export default function GameClient() {
     side.states.some(
       (s) => s.quest.id === "kari-saw" && s.status === "active",
     ) ||
+    // As soon as week 2 has opened, when Studio starts showing Observasjon,
+    // whether or not Arkivaren has handed the luke over yet: a player who
+    // looks in Studio first (or jumps ahead) finds the five there. In the
+    // non-technical track the board's fields stay hidden until it is solved.
+    Boolean(progress.studioTypes?.observation) ||
     board.states.some(
       (s) =>
-        // From the model board on: the five are in Studio, with the board's
-        // fields hidden, when the board is solved. The technical track needs
-        // them for its lists and document view (luke 6–7) in Studio.
         [
           "archive-model",
           "who-is-lying",
           "case-file",
           "archive-lists",
           "who-points-here",
-        ].includes(s.quest.id) && s.status === "active",
+        ].includes(s.quest.id) && s.status !== "locked",
     );
   const archiveTrack = progress.track;
   useEffect(() => {
@@ -1573,6 +1575,19 @@ export default function GameClient() {
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
+        return;
+      }
+      // Elsewhere in the village Space swings at the air, like in the cave,
+      // so the key always does something. Not while talking or typing.
+      if (
+        e.key === " " &&
+        area === "bygda" &&
+        !talkOpen &&
+        !onControl &&
+        !(e.target as HTMLElement)?.closest?.("input, textarea")
+      ) {
+        e.preventDefault();
+        bridge.emit("villageSwing", undefined);
         return;
       }
       if (

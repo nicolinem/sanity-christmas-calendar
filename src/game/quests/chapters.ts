@@ -731,16 +731,16 @@ const archiveModel: Quest = {
     "Nå har hver opplysning sin egen plass. Neste gang noen spør hva som skjedde ved smia, finner Studio det for meg.",
     "Åpne Studio og se: valgene dine er blitt feltene i *Observasjon*.",
   ],
-  goal: "Sorter bitene i notatet etter hvordan de bør lagres.",
+  goal: "Velg en type for hvert felt Arkivaren vil ha i Studio.",
   explain: {
-    what: "En innholdsmodell: for hver del av notatet bestemmer du hvilken type felt det blir i Studio. Når brettet er løst, slår spillet på de feltene i *Observasjon*.",
+    what: "En innholdsmodell: for hvert felt Arkivaren vil ha, bestemmer du hvilken type det blir i Studio. Når brettet er løst, slår spillet på de feltene i *Observasjon*.",
     why: "Felttypen avgjør hva du kan gjøre med innholdet senere: sortere på tid, filtrere på status, samle alt fra ett sted. Det er denne samtalen du har med utviklerne før de lager *schema*-et.",
   },
   steps: [
     "Trykk «Åpne modellbrettet».",
-    "Velg et kort fra notatet, og trykk «Legg valgt kort her» på feltet det hører hjemme i.",
-    "Et kort som ligger riktig, får en hake. Ligger det feil, forklarer Arkivaren hvorfor.",
-    "Når alle kortene har hake, er notatet ryddet.",
+    "Hver rad er et felt Observasjon skal ha i Studio, med eksempelet fra notatet. Velg en type for hvert.",
+    "Et felt med riktig type får en hake. Er typen feil, forklarer Arkivaren hvorfor.",
+    "Når alle feltene har hake, er notatet ryddet.",
   ],
   goalPreview: {
     before: "Ett notat der alt er blandet sammen.",
@@ -1233,7 +1233,7 @@ const morningRush: Quest = {
     "Åpne bestillingene i Studio.",
     "Fyll inn datoen på Arkivarens bestilling.",
     "Spør Kari ved huset vest i bygda hva hun bestilte, og fyll inn varen hennes.",
-    "Velg *Klar* på alle fire. Den ligger i menyen ved siden av *Publish*.",
+    "Trykk *Klar* på alle fire. Den står nederst til høyre, der *Publish* pleier å stå.",
   ],
   goalPreview: {
     before: "To av fire lapper har mangler, og ingen er klare.",
@@ -1250,7 +1250,7 @@ const morningRush: Quest = {
       link: { label: "Document actions", url: `${DOCS}/document-actions` },
     },
     {
-      text: "Har du trykket *Publish* i stedet? Da er status fortsatt den gamle. Trykk *Klar* også; den setter status og publiserer i ett.",
+      text: "Har du trykket *Publish* fra menyen i stedet? Da er status fortsatt den gamle. Trykk *Klar* også; den setter status og publiserer i ett.",
     },
   ],
   learn: { label: "Document actions", url: `${DOCS}/document-actions` },
