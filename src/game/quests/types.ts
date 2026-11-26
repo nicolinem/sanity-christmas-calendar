@@ -38,6 +38,8 @@ export type Progress = {
   figure?: Record<string, string>;
   // The player's chosen display name, shown on the community page.
   name?: string;
+  // The weapon the player took in hand (an item id). Left out: the strongest.
+  equipped?: string;
   // Side quests the player has taken (src/game/sideQuests): when, the step
   // in progress, and when delivered. Never in `completed`, which the
   // community server only accepts luke ids in.

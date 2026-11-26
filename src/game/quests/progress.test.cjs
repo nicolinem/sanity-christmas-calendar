@@ -436,3 +436,11 @@ test("crafted keeps only string values and defaults to empty", () => {
   records.set(progress.storageKey("old"), JSON.stringify({ completed: {} }));
   assert.deepEqual(progress.readProgress("old").crafted, {});
 });
+
+test("the chosen weapon survives a reload; a bad value is dropped", () => {
+  progress.updateProgress("weapon", (p) => ({ ...p, equipped: "sword-1" }));
+  progress = loadProgress();
+  assert.equal(progress.readProgress("weapon").equipped, "sword-1");
+  records.set(progress.storageKey("bad"), JSON.stringify({ equipped: 3 }));
+  assert.equal(Object.hasOwn(progress.readProgress("bad"), "equipped"), false);
+});
