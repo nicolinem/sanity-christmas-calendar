@@ -18,6 +18,7 @@ const {
   isNewOrder,
   isReadyOrder,
   morningRushReadyCount,
+  signCheck,
   signHasStrong,
   signText,
 } = moduleResult.exports;
@@ -151,4 +152,43 @@ test("the skilt needs readable published text with a genuinely bold span", () =>
     false,
   );
   assert.equal(signHasStrong(null), false);
+});
+
+test("the skilt needs two paragraphs with the bold word in the first", () => {
+  const block = (text, marks = []) => ({
+    _type: "block",
+    children: [{ _type: "span", text, marks }],
+  });
+  const plain = (x) => JSON.parse(JSON.stringify(x));
+  assert.deepEqual(plain(signCheck({ text: [block("Nystekt", ["strong"])] })), {
+    twoBlocks: false,
+    boldFirst: true,
+    done: false,
+  });
+  assert.equal(
+    signCheck({ text: [block("Åpent til fire"), block("Nystekt", ["strong"])] })
+      .done,
+    false,
+  );
+  assert.equal(
+    signCheck({ text: [block("Nystekt", ["strong"]), block("Åpent til fire")] })
+      .done,
+    true,
+  );
+  assert.equal(signCheck(null).done, false);
+});
+
+test("luke 7 counts only an order made after the model board was solved", () => {
+  const { isOrderSince } = require("./bakery.ts");
+  const order = {
+    _id: "o",
+    item: "Lussekatter",
+    date: "2026-12-14",
+    status: "ny",
+    createdAt: "2026-12-14T10:00:00Z",
+  };
+  assert.equal(isOrderSince(order, "2026-12-14T09:59:00Z"), true);
+  assert.equal(isOrderSince(order, "2026-12-14T10:05:00Z"), true);
+  assert.equal(isOrderSince(order, "2026-12-14T11:00:00Z"), false);
+  assert.equal(isOrderSince(order, undefined), false);
 });

@@ -19,7 +19,7 @@ const CUSTOMERS = [
   { name: "Kari", item: "Julekake" },
 ]
 
-// Studio kaller denne med malene som finnes fra før, som «Ny bestilling».
+// Studio kaller denne med malene som finnes fra før, som «Bestilling».
 export function templates(previous) {
   return [
     ...previous,
@@ -44,7 +44,7 @@ type Order = {
 
 const DEFAULT: Template = {
   id: "bakeryOrder",
-  title: "Ny bestilling",
+  title: "Bestilling",
   schemaType: "bakeryOrder",
 };
 
@@ -97,7 +97,7 @@ export function judgeBakerTemplate(exports: Record<string, unknown>): Verdict {
   );
   const requirements = [
     {
-      label: "«Ny bestilling» er fortsatt med",
+      label: "«Bestilling» er fortsatt med",
       done: list.includes(DEFAULT),
     },
     {

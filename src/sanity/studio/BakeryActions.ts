@@ -42,15 +42,19 @@ export const ReadyAction: DocumentActionComponent = (props) => {
   const missing = [!current?.date && "dato", !item.trim() && "vare"].filter(
     Boolean,
   );
-  const title = missing.length
-    ? `Mangler ${missing.join(" og ")}`
-    : hasErrors
-      ? "Rett valideringsfeil før du trykker Klar."
-      : validation.isValidating
-        ? "Validerer bestillingen…"
-        : current?.status === "klar"
-          ? "Bestillingen er allerede klar."
-          : undefined;
+  // A new order isn't saved until something is typed: its starting values
+  // show in the form but aren't in the document yet.
+  const title = !current
+    ? "Fyll inn varen først."
+    : missing.length
+      ? `Mangler ${missing.join(" og ")}`
+      : hasErrors
+        ? "Rett valideringsfeil før du trykker Klar."
+        : validation.isValidating
+          ? "Validerer bestillingen…"
+          : current?.status === "klar"
+            ? "Bestillingen er allerede klar."
+            : undefined;
   if (!enabled) return null;
   return {
     label: "Klar",

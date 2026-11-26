@@ -1,6 +1,6 @@
 import { caseFileResult, linkScore, sourceCheckScore } from "../archive";
 import { APPRENTICE_ITEM_ID, isRestoredHammer } from "../apprentice";
-import { isNewOrder, morningRushReadyCount, signHasStrong } from "../bakery";
+import { isOrderSince, morningRushReadyCount, signCheck } from "../bakery";
 import type { GameItemView } from "../items";
 import type { Chapter, CheckResult, Quest, QuestContext } from "./types";
 
@@ -744,7 +744,7 @@ const archiveModel: Quest = {
   ],
   goalPreview: {
     before: "Ett notat der alt er blandet sammen.",
-    after: "Hver del er et eget felt med sin type.",
+    after: "Hver del blir et eget felt. Typen velger du.",
   },
   where: "På modellbrettet. Etterpå kan du se modellen i Sanity Studio.",
   hints: [
@@ -852,25 +852,26 @@ const caseFile: Quest = {
   topic: "*Array of references*",
   intro: [
     "Folk på torget har hørt hver sin versjon og krangler om hvem som har rett. Løse lapper på oppslagstavla gjør det bare verre.",
-    "Jeg vil henge opp én saksmappe med bare det vi vet sikkert: de tre bekreftede observasjonene, og ingen rykter.",
+    "Jeg vil henge opp én saksmappe med bare det vi vet sikkert: de bekreftede observasjonene, i den rekkefølgen det skjedde, så folk kan lese den ovenfra og ned. Ingen rykter.",
   ],
   outro: [
     "Saksmappa henger på torget, og krangelen har stilnet. Store fotspor ved smia og en revnet melsekk ved bakeriet, og ingen ble skadet. Markedet går som planlagt.",
     "Mappa peker på observasjonene i stedet for å kopiere dem. Prøv å gi Bakeriet et nytt navn i Studio og publiser: tavla på torget følger med.",
   ],
-  goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene, og ingen rykter.",
+  goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene i tidsrekkefølge, og ingen rykter.",
   explain: {
-    what: "En saksmappe, et *Case*-dokument, med en liste av *references* til de tre bekreftede observasjonene. Den henges opp på oppslagstavla på torget.",
+    what: "En saksmappe, et *Case*-dokument, med en liste av *references* til de bekreftede observasjonene, i den rekkefølgen de skjedde. Den henges opp på oppslagstavla på torget.",
     why: "Mappa peker på observasjonene i stedet for å kopiere dem. Retter noen en observasjon, er mappa riktig med en gang.",
   },
   steps: [
     "Lag et nytt *Case*-dokument i Studio, og gi det en tittel.",
-    "Under *Observations*: trykk «Add item» og velg en bekreftet observasjon. Gjør det for alle tre.",
+    "Under *Observations*: trykk «Add item» og velg en bekreftet observasjon. Gjør det for alle.",
+    "Sett dem i tidsrekkefølge, det som skjedde først øverst.",
     "Trykk *Publish*, og se saksmappa på oppslagstavla på torget.",
   ],
   goalPreview: {
     before: "Løse lapper, rykter også, på tavla.",
-    after: "Én saksmappe med de tre bekreftede.",
+    after: "Én saksmappe med bare det som er sikkert, i tidsrekkefølge.",
   },
   where: "I Sanity Studio, under *Case*.",
   hints: [
@@ -881,13 +882,14 @@ const caseFile: Quest = {
       text: "Trykk *Add item* under *Observations*, og skriv noen bokstaver av det som ble sett, for eksempel «fotspor». Velg treffet.",
     },
     {
-      text: "Ser spillet ingen saksmappe? Da er den bare et utkast. Trykk *Publish*. Har du flere, ser spillet på den som er nærmest riktig.",
+      text: "Står de i feil rekkefølge? Dra i håndtaket til venstre på en observasjon for å flytte den. Klokkeslettet står i hver av dem.",
+      link: { label: "Array type", url: `${DOCS}/array-type` },
     },
   ],
   learn: { label: "Array of references", url: `${DOCS}/array-type` },
   lesson: {
     title: "En liste av *references*",
-    text: "Én *Case* kan peke på mange observasjoner uten å kopiere dem. Tavla følger referansene videre til stedsnavnet, så en endring slår gjennom overalt.",
+    text: "Én *Case* kan peke på mange observasjoner uten å kopiere dem, og lista husker rekkefølgen du la dem i. Tavla følger referansene videre til stedsnavnet, så en endring slår gjennom overalt.",
     atWork:
       "Én kilde, mange steder: endrer du den ett sted, er den riktig overalt.",
   },
@@ -923,7 +925,7 @@ const bakerTemplate: Quest = {
     why: "Det som nesten alltid er likt, bør ikke skrives for hånd. En mal per vanlig tilfelle gir færre tastetrykk og færre feil.",
   },
   goalPreview: {
-    before: "Bare «Ny bestilling», med tomme felt.",
+    before: "Bare «Bestilling», med tomme felt.",
     after: "En mal per kunde, ferdig utfylt.",
   },
   where: "I kodevinduet hos Bakeren. Prøv malene i Studio etterpå.",
@@ -1042,7 +1044,7 @@ const bakerFunction: Quest = {
       text: '`getDocument("bakery-sign")` returnerer skiltet. Sammenlign tekstspennet der med den nye `text`-verdien.',
     },
     {
-      text: "Legg inn `return` når `order.item?.trim()` er tom, og når `sign?.text?.[0]?.children?.[0]?.text === text`. Resten av oppdateringen er klar.",
+      text: "Legg inn `return` når `item` er tom, og når `sign?.text?.[0]?.children?.[0]?.text === text`. Resten av oppdateringen er klar.",
     },
   ],
   learn: { label: "Sanity Functions", url: `${DOCS}/functions` },
@@ -1076,17 +1078,17 @@ const bakerModel: Quest = {
     why: "Påkrevde felt stopper ufullstendige lapper, og startverdier sparer Bakeren for å skrive det samme hver gang. Det er dette du ber utviklerne om.",
   },
   steps: [
-    "Trykk «Åpne modellbrettet», og sorter bitene fra lappen til Bakeren.",
-    "Kryss av for «Påkrevd» og «Startverdi» der det passer.",
+    "Trykk «Åpne modellbrettet».",
+    "Velg type for hver bit fra lappen, og svar ja eller nei på «Påkrevd» og «Startverdi».",
     "Lag en ny bestilling i Studio. Se at dato og status allerede er fylt ut.",
     "Fyll inn varen, og trykk *Publish*.",
   ],
   goalPreview: {
     before: "Ingenting er fylt ut, og alt kan publiseres.",
-    after: "Dato og status er fylt ut. Uten vare stopper Publish.",
+    after: "Studio fyller ut og passer på det du har bestemt.",
   },
   where:
-    "Først på modellbrettet. Deretter i ditt eget Sanity Studio under *Ny bestilling*.",
+    "Først på modellbrettet. Deretter i ditt eget Sanity Studio under *Bestilling*.",
   hints: [
     {
       text: "«Påkrevd» stopper *Publish* når feltet er tomt. «Startverdi» fyller ut feltet når en ny bestilling lages, og du kan endre det. Et felt kan ha begge.",
@@ -1100,7 +1102,7 @@ const bakerModel: Quest = {
       },
     },
     {
-      text: "Vare, dato og status må alltid være med. Kunden må ikke det, for noen bestiller uten å si navnet sitt.",
+      text: "Vare, dato og status må alltid være med. Kunden og merknaden må ikke det: noen bestiller uten å si navnet sitt, og de fleste har ingen ønsker.",
     },
   ],
   learn: { label: "Validation", url: `${DOCS}/validation` },
@@ -1113,12 +1115,14 @@ const bakerModel: Quest = {
   checkedBy: "board",
   reward: { forgeLevel: 1 },
   check: ({ bakeryOrders, progress }) => {
-    const modeled = Boolean(progress.solved["baker-model"]);
-    const order = Boolean(bakeryOrders?.some(isNewOrder));
+    const modeled = progress.solved["baker-model"];
+    const order = Boolean(
+      modeled && bakeryOrders?.some((item) => isOrderSince(item, modeled.at)),
+    );
     return {
-      done: modeled && order,
+      done: Boolean(modeled) && order,
       objectives: [
-        { label: "Modellbrettet er løst", done: modeled },
+        { label: "Modellbrettet er løst", done: Boolean(modeled) },
         { label: "En ny bestilling er publisert", done: order },
       ],
       message: !modeled
@@ -1142,53 +1146,62 @@ const bakerSign: Quest = {
   topic: "*Portable Text*",
   intro: [
     "I går gikk folk rett forbi boden min. Ingen så at brødet var nystekt.",
-    "Jeg vil ha et skilt med ett ord som virkelig synes. Den samme teksten skal stå på skiltet ved boden og i en kortversjon, slik den ville sett ut i en app.",
+    "Jeg vil ha et skilt med ett ord som virkelig synes. Den samme teksten skal stå på skiltet ved boden og i en kortversjon, slik den ville sett ut i en app. Der er det bare plass til første avsnitt.",
   ],
   outro: [
     "Folk stopper ved boden nå, og flere har allerede spurt hva som er nystekt.",
-    "Se på skiltet og kortversjonen: det fremhevede ordet ser forskjellig ut, men teksten er den samme.",
+    "Se på skiltet og kortversjonen: appen viser bare første avsnitt, og det fete ordet ser annerledes ut der. Teksten er den samme.",
   ],
-  goal: "Publiser én rik tekst som fungerer på skiltet og i kortversjonen.",
+  goal: "Publiser et skilt med minst to avsnitt og ett fet ord i det første, så kortversjonen får med det viktigste.",
   explain: {
-    what: "Et skilt i *Portable Text*: tekst der ett ord er fet. Samme tekst vises på skiltet ved boden og i en kortversjon, slik den ville sett ut i en app.",
+    what: "Et skilt i *Portable Text*: to avsnitt, der ett ord i det første er fet. Skiltet ved boden viser alt, og kortversjonen, slik den ville sett ut i en app, viser bare første avsnitt.",
     why: "Folk skal se fra andre siden av torget at det er nystekt, og den samme beskjeden skal kunne stå i en app uten at Bakeren skriver den to ganger.",
   },
   steps: [
     "Åpne *Bodskilt* i Studio.",
-    "Skriv en kort beskjed i *Skilttekst*.",
-    "Marker det viktigste ordet, og gjør det fet (B, eller Cmd/Ctrl + B).",
+    "Skriv to korte avsnitt i *Skilttekst*, med det viktigste først.",
+    "Marker det viktigste ordet i første avsnitt, og gjør det fet (B, eller Cmd/Ctrl + B).",
     "Trykk *Publish*, og les skiltet ved boden (E).",
   ],
   goalPreview: {
     before: "Boden har et tomt skilt.",
-    after: "Samme tekst, fet skrift på to måter.",
+    after: "Skiltet viser alt. Appen viser første avsnitt.",
   },
   where:
     "Hent oppgaven ved bodskiltet utenfor bakeriet. Skriv deretter i ditt eget Sanity Studio under *Bodskilt*.",
   hints: [
     {
-      text: "Hvilket ord vil du at folk skal se fra andre siden av torget? Det er det ordet som skal bli fet.",
+      text: "Hva vil du at folk skal se fra andre siden av torget? Det hører hjemme i første avsnitt, og det er det ordet som skal bli fet.",
     },
     {
-      text: "*Skilttekst* er *Portable Text*: tekst der ord kan ha formatering. Fet skrift er en *mark* på ordet, ikke store bokstaver.",
+      text: "*Skilttekst* er *Portable Text*: en liste av avsnitt (*blocks*), der ord kan ha formatering. Enter gir et nytt avsnitt. Fet skrift er en *mark* på ordet, ikke store bokstaver.",
       link: { label: "Portable Text", url: `${DOCS}/block-content` },
     },
     {
-      text: "Ser skiltet i bygda tomt ut? Bare publisert tekst vises der.",
+      text: "Mangler noe i kortversjonen? Den viser bare første avsnitt, og bare publisert tekst.",
     },
   ],
   learn: { label: "Portable Text", url: `${DOCS}/block-content` },
   lesson: {
     title: "*Portable Text*",
-    text: "En tekstblokk kan inneholde ord med egne *marks*, som fet skrift. Spillet brukte samme publiserte verdi på skiltet og i appvisningen, men ga markeringen ulik stil på de to flatene.",
+    text: "*Portable Text* er en liste av blokker, og ord i en blokk kan ha *marks*, som fet skrift. Skiltet viste alle blokkene, appvisningen bare den første, og hver flate ga fet skrift sin egen stil.",
     atWork:
       "Teksten bærer ikke utseendet. Den sier bare hva som er viktig. Hver flate bestemmer selv hvordan «viktig» ser ut.",
   },
   checkedBy: "game",
-  check: ({ bakerySign }) => ({
-    done: signHasStrong(bakerySign ?? null),
-    message: "Publiser et bodskilt med tekst og minst ett ord i fet skrift.",
-  }),
+  check: ({ bakerySign }) => {
+    const sign = signCheck(bakerySign ?? null);
+    return {
+      done: sign.done,
+      objectives: [
+        { label: "Minst to avsnitt", done: sign.twoBlocks },
+        { label: "Et fet ord i første avsnitt", done: sign.boldFirst },
+      ],
+      message: sign.done
+        ? undefined
+        : "Publiser skiltet med to avsnitt og et fet ord i det første.",
+    };
+  },
 };
 
 const morningRush: Quest = {
@@ -1223,7 +1236,7 @@ const morningRush: Quest = {
     before: "To av fire lapper har mangler, og ingen er klare.",
     after: "Alle fire er komplette og publisert med status «klar».",
   },
-  where: "I ditt eget Sanity Studio, under *Ny bestilling*.",
+  where: "I ditt eget Sanity Studio, under *Bestilling*.",
   hints: [
     {
       text: "Begynn med lappene som har røde felt. Det er der noe mangler. Holder du musa over *Klar*, ser du hva.",

@@ -2,7 +2,7 @@ import type { BoardTask } from "@/game/modelBoard/modelBoard";
 
 export const archiveModelTask: BoardTask = {
   id: "archive-model",
-  note: "Arkivarens notat: «18:45 – fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde. Ikke sjekket.»",
+  note: "Arkivarens notat: «18:45 – store fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde. Ikke sjekket.» Under har noen skrevet: «Smia, sier Per.»",
   slots: [
     {
       id: "text",
@@ -31,8 +31,13 @@ export const archiveModelTask: BoardTask = {
       about: "Peker på ett vitne",
     },
   ],
+  // More cards than slots, and slots used more than once: some cards have
+  // to be weighed, not just matched to the slot with the same word.
   cards: [
+    { id: "time", text: "18:45" },
+    { id: "big", text: "store" },
     { id: "tracks", text: "fotspor i snøen" },
+    { id: "smia", text: "Smia" },
     { id: "place", text: "ved smia, tror jeg" },
     { id: "witness", text: "Kari" },
     { id: "seen", text: "Kari så det selv (ikke hørt fra andre)" },
@@ -40,6 +45,41 @@ export const archiveModelTask: BoardTask = {
     { id: "status", text: "Ikke sjekket" },
   ],
   decisions: [
+    {
+      card: "time",
+      accept: ["text"],
+      feedback: {
+        boolean: "Et klokkeslett er ikke ja eller nei.",
+        image: "Klokkeslettet står i notatet, ikke på bildet.",
+        list: "Det finnes for mange klokkeslett til en liste. Jeg kan ikke lage et valg for hvert minutt.",
+        place: "18:45 sier når, ikke hvor.",
+        witness: "18:45 sier når, ikke hvem.",
+      },
+    },
+    {
+      card: "big",
+      accept: ["text"],
+      feedback: {
+        boolean:
+          "«Store» er ikke ja eller nei. Folk sier store, digre og svære om det samme.",
+        image:
+          "Hvor store de var, står i ordene hennes. Bildet har sitt eget kort.",
+        list: "Folk beskriver størrelse på hundre måter. En fast liste ville tvinge dem til å velge feil ord.",
+        place: "«Store» sier noe om fotsporene, ikke om stedet.",
+        witness: "«Store» sier noe om fotsporene, ikke om hvem som så dem.",
+      },
+    },
+    {
+      card: "smia",
+      accept: ["place"],
+      feedback: {
+        text: "«Smia» og «ved smia, tror jeg» er det samme stedet. Som tekst blir de to forskjellige, og «Per sted» finner bare den ene.",
+        boolean: "Jeg må vite hvilket sted, ikke bare om det var et sted.",
+        image: "Et bilde av smia kobler ikke notatet til Smia i arkivet.",
+        list: "En fast liste blir utdatert når bygda får et nytt sted.",
+        witness: "Per er vitnet. Smia er stedet han snakker om.",
+      },
+    },
     {
       card: "tracks",
       accept: ["text"],

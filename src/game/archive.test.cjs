@@ -85,21 +85,21 @@ test("case feedback names every missing and wrong observation", () => {
     ],
     false,
   );
-  assert.equal(result.objectives.length, 4);
+  assert.equal(result.objectives.length, 5);
   assert.ok(
     result.objectives.some((item) => item.label.includes("Melsekken revnet")),
   );
   assert.ok(
     result.objectives.some((item) => item.label.includes("Noen hørte et brøl")),
   );
-  assert.equal(result.objectives.filter((item) => !item.done).length, 3);
+  assert.equal(result.objectives.filter((item) => !item.done).length, 4);
 });
 
 test("case feedback identifies an unpublished draft when no case is published", () => {
   const result = caseFileResult([], true);
   assert.equal(result.done, false);
   assert.equal(result.message, "Saksmappa er ikke publisert.");
-  assert.equal(result.objectives.length, CASE_FILE_EXPECTED.length);
+  assert.equal(result.objectives.length, CASE_FILE_EXPECTED.length + 1);
 });
 
 test("who-is-lying needs five correct statuses and C linked to Bakeriet", () => {
@@ -112,4 +112,17 @@ test("who-is-lying needs five correct statuses and C linked to Bakeriet", () => 
   assert.deepEqual(plain(linkScore(docs)), { right: 1, total: 1 });
   docs.find(({ _id }) => _id === "archive-d").status = "confirmed";
   assert.equal(sourceCheckScore(docs).right, 4);
+});
+
+test("the case file needs its three observations in the order they happened", () => {
+  const folder = (observations) =>
+    caseFileResult([{ _id: "case", observations, entries: [] }], false);
+  assert.equal(folder(["archive-a", "archive-b", "archive-c"]).done, true);
+  const shuffled = folder(["archive-c", "archive-a", "archive-b"]);
+  assert.equal(shuffled.done, false);
+  assert.equal(
+    shuffled.objectives.find((item) => item.label.includes("tidsrekkefølge"))
+      .done,
+    false,
+  );
 });

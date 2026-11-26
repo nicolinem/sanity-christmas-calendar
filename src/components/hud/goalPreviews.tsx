@@ -396,7 +396,7 @@ function OrderForm({
   return (
     <StudioCard>
       <div className="gp-doc-head">
-        <span>Ny bestilling</span>
+        <span>Bestilling</span>
         <span className={`gp-publish${blocked ? " is-off" : ""}`}>Publish</span>
       </div>
       <dl className="gp-fields">
@@ -415,8 +415,9 @@ function OrderForm({
 }
 
 // The stall sign and the short app version of the same Portable Text.
+// The sign shows both paragraphs; the app has room for the first only.
 function SignPair({ word }: { word?: string }) {
-  const text = word ? (
+  const first = word ? (
     <>
       Nystekte <strong>{word}</strong> i dag
     </>
@@ -425,8 +426,12 @@ function SignPair({ word }: { word?: string }) {
   );
   return (
     <div className="gp-signs">
-      <div className="gp-sign">{text}</div>
-      <div className="gp-app">{text}</div>
+      <div className="gp-sign">
+        {first}
+        {word && <br />}
+        {word && "Åpent til fire."}
+      </div>
+      <div className="gp-app">{first}</div>
     </div>
   );
 }
@@ -547,14 +552,16 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
         Ikke sjekket.
       </Note>
     ),
+    // The shape of the result, not the answer: the types are the task.
     after: (
       <TypedForm
         rows={[
-          ["What", "fotspor i snøen", "string"],
-          ["Place", "Smia →", "reference"],
-          ["Witness", "Kari →", "reference"],
-          ["Seen", "ja", "boolean"],
-          ["Status", "Unknown", "list"],
+          ["What", "fotspor i snøen", "?"],
+          ["Place", "ved smia", "?"],
+          ["Witness", "Kari", "?"],
+          ["Seen", "så det selv", "?"],
+          ["Picture", "bilde", "?"],
+          ["Status", "Ikke sjekket", "?"],
         ]}
       />
     ),
@@ -566,8 +573,8 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
     after: (
       <PlaceList
         rows={[
-          { what: "B · Melsekken revnet", status: "Confirmed", tone: "ok" },
-          { what: "C · Melsekken revnet", status: "Confirmed", tone: "ok" },
+          { what: "B · Melsekken revnet", status: "?" },
+          { what: "C · Melsekken revnet", status: "?" },
         ]}
       />
     ),
@@ -585,9 +592,9 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
       <Noticeboard>
         <span className="gp-folder">
           <strong>Saksmappa</strong>
-          <span>A · Smia</span>
-          <span>B · Bakeriet</span>
-          <span>C · Bakeriet</span>
+          <span>1 · ?</span>
+          <span>2 · ?</span>
+          <span>3 · ?</span>
         </span>
       </Noticeboard>
     ),
@@ -602,14 +609,14 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
     before: (
       <TimedList
         label="Ny …"
-        rows={[{ text: "Ny bestilling", status: "tomme felt" }]}
+        rows={[{ text: "Bestilling", status: "tomme felt" }]}
       />
     ),
     after: (
       <TimedList
         label="Ny …"
         rows={[
-          { text: "Ny bestilling" },
+          { text: "Bestilling" },
           { text: "Bestilling fra Brann", status: "Lussekatter", tone: "ok" },
           {
             text: "Bestilling fra Arkivaren",
@@ -623,7 +630,7 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   },
   "baker-model": {
     before: <OrderForm />,
-    after: <OrderForm date="i dag" status="ny" blocked />,
+    after: <OrderForm item="?" date="?" status="?" />,
   },
   "baker-forge": {
     before: <ForgeDoc smi={false} />,
@@ -640,7 +647,7 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
             status: "skrevet igjen",
             tone: "bad",
           },
-          { text: "Utkast endret", status: "skrevet", tone: "bad" },
+          { text: "Bestilling uten vare", status: "skrevet feil", tone: "bad" },
         ]}
       />
     ),
@@ -650,7 +657,7 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
         rows={[
           { text: "Bestilling publisert", status: "skrevet", tone: "ok" },
           { text: "Samme bestilling igjen", status: "hoppet over" },
-          { text: "Utkast endret", status: "hoppet over" },
+          { text: "Bestilling uten vare", status: "hoppet over" },
         ]}
       />
     ),

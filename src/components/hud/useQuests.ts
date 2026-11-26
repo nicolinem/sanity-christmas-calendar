@@ -158,9 +158,20 @@ export function useProgress() {
       // "…som gitt" means ready to work on, so it's picked up too.
       const fetched = { ...p.fetched };
       if (briefed && questId !== "__end") fetched[questId] = true;
+      // Boards and code tasks before the jump count as solved, so the Studio
+      // switches on what they would have: fields, lists, actions.
+      const solvedIn = new Set(
+        CHAPTERS.flatMap((c) => c.quests)
+          .filter((q) => q.checkedBy === "board" || q.checkedBy === "window")
+          .map((q) => q.id),
+      );
+      const solved = { ...p.solved };
+      for (const id of order) if (solvedIn.has(id)) delete solved[id];
+      for (const id of before) if (solvedIn.has(id)) solved[id] = { at: now };
       return {
         ...p,
         fetched,
+        solved,
         introSeen: true,
         metBlacksmith: true,
         wraithDefeated: before.length > 0 || p.wraithDefeated,

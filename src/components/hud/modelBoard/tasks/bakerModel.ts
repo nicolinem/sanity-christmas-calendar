@@ -2,7 +2,7 @@ import type { BoardTask } from "@/game/modelBoard/modelBoard";
 
 export const bakerModelTask: BoardTask = {
   id: "baker-model",
-  note: "Bakerens notat: «Lussekatter til Brann, i dag. Ny.»",
+  note: "Bakerens notat: «Lussekatter til Brann, i dag. Ny. Uten nøtter, takk.»",
   slots: [
     { id: "text", label: "Tekst · `string`", about: "Ord som varierer" },
     { id: "date", label: "Dato · `date`", about: "En kalenderdato" },
@@ -17,6 +17,7 @@ export const bakerModelTask: BoardTask = {
     { id: "orderedBy", text: "Brann" },
     { id: "date", text: "i dag" },
     { id: "status", text: "Ny" },
+    { id: "note", text: "uten nøtter, takk" },
   ],
   decisions: [
     {
@@ -89,6 +90,25 @@ export const bakerModelTask: BoardTask = {
         initial: {
           want: true,
           feedback: "Alt begynner som nytt.",
+        },
+      },
+    },
+    {
+      card: "note",
+      accept: ["text"],
+      feedback: {
+        date: "Det er et ønske fra kunden, ikke en dag.",
+        list: "Folk ønsker alt mulig. Uten nøtter, ekstra sukker, ikke for brunt. Det får ikke plass i en liste.",
+      },
+      toggles: {
+        required: {
+          want: false,
+          feedback:
+            "De fleste har ingen ønsker. Da skal ikke Studio stoppe bestillingen.",
+        },
+        initial: {
+          want: false,
+          feedback: "Jeg kan ikke vite hva kunden ønsker før hun sier det.",
         },
       },
     },
