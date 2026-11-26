@@ -83,3 +83,54 @@ test("colour palettes: unique ids and #rrggbb pairs", () => {
     }
   }
 });
+
+test("a new figure starts without a hat, so hairstyles show while choosing", () => {
+  assert.equal(DEFAULT_FIGURE.hat, "none");
+});
+
+test("there is a hair colour between black and dark brown", () => {
+  const ids = FIGURE_OPTIONS.hairColor.map(({ id }) => id);
+  assert.equal(ids.indexOf("blackbrown"), ids.indexOf("black") + 1);
+  assert.equal(ids.indexOf("darkbrown"), ids.indexOf("blackbrown") + 1);
+});
+
+test("mittens and the cape have their own colour, apart from the scarf", () => {
+  const base = {
+    ...DEFAULT_FIGURE,
+    extra: "mittens",
+    scarf: "scarf",
+    scarfColor: "green",
+  };
+  const red = drawFigure({ ...base, extraColor: "red" });
+  const blue = drawFigure({ ...base, extraColor: "blue" });
+  assert.notDeepEqual([...red], [...blue]);
+  const scarfOnly = { ...base, extra: "none" };
+  assert.deepEqual(
+    [...drawFigure({ ...scarfOnly, extraColor: "red" })],
+    [...drawFigure({ ...scarfOnly, extraColor: "blue" })],
+  );
+});
+
+test("a figure saved before extraColor keeps its scarf-coloured mittens", () => {
+  assert.equal(normalizeFigure({ scarfColor: "blue" }).extraColor, "blue");
+  assert.equal(
+    normalizeFigure({ scarfColor: "blue", extraColor: "red" }).extraColor,
+    "red",
+  );
+});
+
+test("facial hair has its own colour, and old figures keep the hair's", () => {
+  const base = { ...DEFAULT_FIGURE, hair: "bald", facialHair: "beard" };
+  assert.notDeepEqual(
+    [...drawFigure({ ...base, beardColor: "grey" })],
+    [...drawFigure({ ...base, beardColor: "black" })],
+  );
+  // Hair colour no longer touches a beard on a bald head.
+  assert.deepEqual(
+    [...drawFigure({ ...base, hairColor: "grey" })],
+    [...drawFigure({ ...base, hairColor: "black" })],
+  );
+  assert.equal(normalizeFigure({ hairColor: "red" }).beardColor, "red");
+  const random = randomFigure(() => 0.42);
+  assert.equal(random.beardColor, random.hairColor);
+});

@@ -39,6 +39,8 @@ export const SKINS: Option<{ colors: Pair }>[] = [
 // Natural shades first, some of them muted on purpose, then the fun ones.
 export const HAIR_COLORS: Option<{ colors: Pair }>[] = [
   { id: "black", label: "Svart", colors: ["#3a4466", "#262b44"] },
+  // Between black and dark brown: black is close to the outline colour.
+  { id: "blackbrown", label: "Svartbrun", colors: ["#4f3a34", "#36282a"] },
   { id: "darkbrown", label: "Mørkebrun", colors: ["#6e4a3a", "#52362c"] },
   { id: "brown", label: "Brun", colors: ["#b86f50", "#763b36"] },
   { id: "ashbrown", label: "Askebrun", colors: ["#9c7a5c", "#6b5040"] },
@@ -251,24 +253,25 @@ export const HAIRSTYLES: Part[] = [
 ];
 
 // Facial hair, in the hair colour, drawn over the clothes.
+// Facial hair: D main, d shade, in its own colour (grey beard, dark hair).
 export const FACIAL_HAIR: Part[] = [
   { id: "none", label: "Ingen", grid: BLANK },
-  { id: "moustache", label: "Bart", grid: grid(9, "......HhhH") },
+  { id: "moustache", label: "Bart", grid: grid(9, "......DddD") },
   {
     id: "beard",
     label: "Skjegg",
-    grid: grid(8, "....H......H", "....HHHHHHHH", ".....hHHHHh"),
+    grid: grid(8, "....D......D", "....DDDDDDDD", ".....dDDDDd"),
   },
   {
     id: "long",
     label: "Langt skjegg",
     grid: grid(
       8,
-      "....H......H",
-      "....HHHHHHHH",
-      ".....HHHHHH",
-      "......HHHH",
-      ".......hh",
+      "....D......D",
+      "....DDDDDDDD",
+      ".....DDDDDD",
+      "......DDDD",
+      ".......dd",
     ),
   },
   // Down to the belt, like the wizard's (frame 84).
@@ -277,13 +280,13 @@ export const FACIAL_HAIR: Part[] = [
     label: "Trollmannsskjegg",
     grid: grid(
       8,
-      "....H......H",
-      "....HHHHHHHH",
-      "....HHHHHHHH",
-      ".....HHHHHH",
-      ".....HHHHHH",
-      "......HHhH",
-      ".......hH",
+      "....D......D",
+      "....DDDDDDDD",
+      "....DDDDDDDD",
+      ".....DDDDDD",
+      ".....DDDDDD",
+      "......DDdD",
+      ".......dD",
     ),
   },
 ];
@@ -554,7 +557,7 @@ export const SCARVES: Part[] = [
   },
 ];
 
-// Small extras. M mittens and the cape (K/q) use the scarf colour; the cape
+// Small extras. M mittens and the cape (Q/q) have their own colour; the cape
 // hangs behind the body.
 export const EXTRAS: Part[] = [
   { id: "none", label: "Ingen", grid: BLANK },
@@ -589,11 +592,11 @@ export const EXTRAS: Part[] = [
     // Shows at the waist and behind the legs; the body covers the rest.
     grid: grid(
       10,
-      "...KKKKKKKKKK",
-      "...KKKKKKKKKK",
-      "...KKKKKKKKKK",
-      "...KKKKKKKKKK",
-      "...KqqqqqqqqK",
+      "...QQQQQQQQQQ",
+      "...QQQQQQQQQQ",
+      "...QQQQQQQQQQ",
+      "...QQQQQQQQQQ",
+      "...QqqqqqqqqQ",
       "....qqqqqqqq",
     ),
     behind: true,
@@ -614,6 +617,7 @@ export type FigureChoice = {
   hair: string;
   hairColor: string;
   facialHair: string;
+  beardColor: string;
   top: string;
   topColor: string;
   armour: string;
@@ -623,6 +627,7 @@ export type FigureChoice = {
   scarf: string;
   scarfColor: string;
   extra: string;
+  extraColor: string; // mittens and cape
 };
 
 // What each choice picks from, in the order a creator would show them.
@@ -633,6 +638,7 @@ export const FIGURE_OPTIONS: {
   hair: HAIRSTYLES,
   hairColor: HAIR_COLORS,
   facialHair: FACIAL_HAIR,
+  beardColor: HAIR_COLORS,
   top: TOPS,
   topColor: CLOTH_COLORS,
   armour: ARMOURS,
@@ -642,6 +648,7 @@ export const FIGURE_OPTIONS: {
   scarf: SCARVES,
   scarfColor: CLOTH_COLORS,
   extra: EXTRAS,
+  extraColor: CLOTH_COLORS,
 };
 
 export const DEFAULT_FIGURE: FigureChoice = {
@@ -649,15 +656,18 @@ export const DEFAULT_FIGURE: FigureChoice = {
   hair: "short",
   hairColor: "brown",
   facialHair: "none",
+  beardColor: "brown",
   top: "sweater",
   topColor: "red",
   armour: "none",
   pants: "dark",
-  hat: "santa",
+  // No hat to start: a hat hides most hairstyles while you choose them.
+  hat: "none",
   hatColor: "red",
   scarf: "none",
   scarfColor: "green",
   extra: "none",
+  extraColor: "green",
 };
 
 // Any stored choice becomes a valid one: unknown ids fall back to the default,
@@ -666,6 +676,13 @@ export function normalizeFigure(
   input: Partial<Record<string, unknown>> | null | undefined,
 ): FigureChoice {
   const out = { ...DEFAULT_FIGURE };
+  // Mittens and the cape used the scarf's colour before they had their own;
+  // a figure saved then keeps its look.
+  if (typeof input?.scarfColor === "string" && input.extraColor == null)
+    out.extraColor = input.scarfColor;
+  // Facial hair had the hair's colour before it had its own.
+  if (typeof input?.hairColor === "string" && input.beardColor == null)
+    out.beardColor = input.hairColor;
   for (const key of Object.keys(FIGURE_OPTIONS) as (keyof FigureChoice)[]) {
     const value = input?.[key];
     if (
@@ -683,6 +700,8 @@ export function randomFigure(random: () => number = Math.random): FigureChoice {
   const out = {} as FigureChoice;
   for (const key of Object.keys(FIGURE_OPTIONS) as (keyof FigureChoice)[])
     out[key] = pick(FIGURE_OPTIONS[key]);
+  // A random beard matches the hair; a different colour is a choice to make.
+  out.beardColor = out.hairColor;
   return out;
 }
 
@@ -718,6 +737,8 @@ export function drawFigure(
     s: pair(SKINS, c.skin)[1],
     H: pair(HAIR_COLORS, c.hairColor)[0],
     h: pair(HAIR_COLORS, c.hairColor)[1],
+    D: pair(HAIR_COLORS, c.beardColor)[0],
+    d: pair(HAIR_COLORS, c.beardColor)[1],
     C: pair(CLOTH_COLORS, c.topColor)[0],
     c: pair(CLOTH_COLORS, c.topColor)[1],
     P: pair(PANTS, c.pants)[0],
@@ -725,8 +746,9 @@ export function drawFigure(
     A: pair(CLOTH_COLORS, c.hatColor)[0],
     a: pair(CLOTH_COLORS, c.hatColor)[1],
     K: pair(CLOTH_COLORS, c.scarfColor)[0],
-    M: pair(CLOTH_COLORS, c.scarfColor)[0],
-    q: pair(CLOTH_COLORS, c.scarfColor)[1],
+    Q: pair(CLOTH_COLORS, c.extraColor)[0],
+    M: pair(CLOTH_COLORS, c.extraColor)[0],
+    q: pair(CLOTH_COLORS, c.extraColor)[1],
   };
   const extra = find(EXTRAS, c.extra);
   const hair = find(HAIRSTYLES, c.hair);
