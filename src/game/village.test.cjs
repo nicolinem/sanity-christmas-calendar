@@ -9,6 +9,8 @@ const {
   CAVE_ENTRANCE,
   CAVE_MOUTH,
   DOOR_ANCHORS,
+  GHOST_SPOTS,
+  GLADE,
   NPCS,
   PROPS,
   QUEST_SITES,
@@ -187,5 +189,36 @@ test("the cave mouth is on free ground, not on a prop or in a building", () => {
       ),
       false,
     );
+  }
+});
+
+test("ghost spots are on paths, out of the glade and away from doors, sites and people", () => {
+  const far = (a, b) => Math.hypot(a.x - b.x, a.y - b.y) >= 40;
+  const keepClear = [
+    ...Object.values(QUEST_SITES),
+    ...Object.values(DOOR_ANCHORS),
+    ...Object.values(NPCS),
+    CAVE_ENTRANCE,
+    WRAITH_HOME,
+  ];
+  assert.ok(GHOST_SPOTS.length >= 10);
+  for (const s of GHOST_SPOTS) {
+    const tx = Math.floor(s.x / 16);
+    const ty = Math.floor(s.y / 16);
+    assert.ok(isPath(tx, ty), `${JSON.stringify(s)} is on a path`);
+    assert.ok(
+      !(
+        tx >= GLADE.x &&
+        tx < GLADE.x + GLADE.w &&
+        ty >= GLADE.y &&
+        ty < GLADE.y + GLADE.h
+      ),
+      `${JSON.stringify(s)} is out of the glade`,
+    );
+    for (const p of keepClear)
+      assert.ok(
+        far(s, p),
+        `${JSON.stringify(s)} too close to ${JSON.stringify(p)}`,
+      );
   }
 });
