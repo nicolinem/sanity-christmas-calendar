@@ -184,6 +184,9 @@ type Props = {
     shareProfile: boolean,
     shareHints: boolean,
   ) => void;
+  // Takes the figure and name away, and the player off «Hvem er med». Left
+  // out while there is no figure to remove.
+  onRemove?: () => void;
   onClose: () => void;
 };
 
@@ -205,8 +208,10 @@ export default function CharacterSheet({
   chests,
   crafted,
   onDone,
+  onRemove,
   onClose,
 }: Props) {
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const [choice, setChoice] = useState<FigureChoice>(() =>
     wearable(initial, owned),
   );
@@ -750,6 +755,20 @@ export default function CharacterSheet({
                 >
                   Ferdig
                 </button>
+                {onRemove && (
+                  <button
+                    type="button"
+                    className="btn btn--quiet cs-remove"
+                    onClick={() =>
+                      confirmRemove ? onRemove() : setConfirmRemove(true)
+                    }
+                    onBlur={() => setConfirmRemove(false)}
+                  >
+                    {confirmRemove
+                      ? "Klikk igjen for å fjerne figur og navn, også fra «Hvem er med»"
+                      : "Fjern figuren min"}
+                  </button>
+                )}
               </>
             ) : (
               <div className="cs-hero-meta">

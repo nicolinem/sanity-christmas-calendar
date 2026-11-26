@@ -48,6 +48,10 @@ import {
   weekSummary,
 } from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
+import {
+  backupWanted,
+  startProgressBackup,
+} from "@/game/quests/progressBackup";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import {
   PLAYER_ID,
@@ -359,6 +363,20 @@ export default function GameClient() {
       .then((data) => setCommunityReady(Boolean(data?.publishing)))
       .catch(() => {}); // The shared project is optional; the game stays playable offline.
   }, []);
+  // A copy of the progress in the player's own project, so another browser
+  // gets it back. Nothing is shared with the others until it has answered, so
+  // a choice made in another browser (stop sharing, remove the figure) counts.
+  const [backupSettled, setBackupSettled] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      !backupWanted(PROGRESS_PROJECT, window.location.search),
+  );
+  useEffect(() => {
+    if (backupWanted(PROGRESS_PROJECT, window.location.search))
+      return startProgressBackup(PROGRESS_PROJECT, {
+        onSettled: () => setBackupSettled(true),
+      });
+  }, []);
   const dev = useDevMode();
   // The figure as worn: gear the player hasn't earned (yet) is left off.
   const owned = useMemo(() => ownedGear(progress, { dev }), [progress, dev]);
@@ -426,13 +444,16 @@ export default function GameClient() {
       shareHints: boolean,
     ) => {
       if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
+      const at = new Date().toISOString();
       updateProgress(PROGRESS_PROJECT, (p) => ({
         ...p,
         figure: { ...choice },
         name: name || undefined,
+        lookAt: at,
         shareProfile,
         shareHints,
         sharePrompted: true,
+        shareAt: at,
         introSeen: true,
       }));
       setSheetOpen(false);
@@ -440,6 +461,25 @@ export default function GameClient() {
     },
     [progress.shareProfile, withdrawCommunityProfile],
   );
+  // «Fjern figuren min»: off «Hvem er med», and figure and name gone, here
+  // and in the backup.
+  const removeFigure = useCallback(() => {
+    withdrawCommunityProfile();
+    const at = new Date().toISOString();
+    updateProgress(PROGRESS_PROJECT, (p) => {
+      const next = {
+        ...p,
+        lookAt: at,
+        shareProfile: false,
+        sharePrompted: true,
+        shareAt: at,
+      };
+      delete next.figure;
+      delete next.name;
+      return next;
+    });
+    setSheetOpen(false);
+  }, [withdrawCommunityProfile]);
   const begin = useCallback(() => {
     setEntryStage(progress.trackChosen ? "welcome" : "track");
   }, [progress.trackChosen]);
@@ -450,6 +490,7 @@ export default function GameClient() {
         ...p,
         shareProfile,
         sharePrompted: true,
+        shareAt: new Date().toISOString(),
       }));
       setEntryStage("game");
     },
@@ -623,6 +664,7 @@ export default function GameClient() {
   useEffect(() => {
     if (
       !communityReady ||
+      !backupSettled ||
       configured !== true ||
       PROGRESS_PROJECT === "demo" ||
       !progress.shareProfile ||
@@ -659,6 +701,7 @@ export default function GameClient() {
     }).catch(() => {});
   }, [
     communityReady,
+    backupSettled,
     configured,
     progress.completed,
     progress.shareProfile,
@@ -1981,6 +2024,7 @@ export default function GameClient() {
             chests={progress.chests}
             crafted={progress.crafted}
             onDone={saveFigure}
+            onRemove={progress.figure ? removeFigure : undefined}
             onClose={() => setSheetOpen(false)}
           />
         )}
