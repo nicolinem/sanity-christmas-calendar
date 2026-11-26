@@ -1,3 +1,4 @@
+import type { About } from "../about";
 import type { OwnArchiveDoc, OwnCase } from "../archive";
 import type { BakeryOrder, BakerySign } from "../bakery";
 import type { GameItemView } from "../items";
@@ -38,6 +39,9 @@ export type Progress = {
   figure?: Record<string, string>;
   // The player's chosen display name, shown on the community page.
   name?: string;
+  // «Om meg» from the character sheet (src/game/about.ts): words their ghost
+  // says in other players' villages.
+  about?: About;
   // The weapon the player took in hand (an item id). Left out: the strongest.
   equipped?: string;
   // Side quests the player has taken (src/game/sideQuests): when, the step

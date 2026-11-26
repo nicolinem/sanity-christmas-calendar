@@ -7,7 +7,11 @@ import {
 } from "@/game/figure";
 import { communityEndpoint } from "@/game/communityEndpoint";
 import { useOrderFunction } from "./hud/useOrderFunction";
-import { MAX_HINTS } from "@/game/community";
+import { MAX_HINTS, type CommunityPlayer } from "@/game/community";
+import { aboutProgress, normalizeAbout, type About } from "@/game/about";
+import { chooseGhosts, DEV_GHOSTS, type GhostInput } from "@/game/ghosts";
+import { pickLine, type PickedLine } from "@/game/ghostLines";
+import GhostDialogue from "./hud/GhostDialogue";
 import { ownedGear, wearable } from "@/game/wardrobe";
 import CharacterSheet from "./figure/CharacterSheet";
 import {
@@ -291,6 +295,12 @@ export default function GameClient() {
   const caveView = useCaveView();
   const narrow = useNarrow();
   const [talking, setTalking] = useState(false);
+  // Other players' ghosts in the village, and the one being talked to.
+  const [communityGhosts, setCommunityGhosts] = useState<GhostInput[]>([]);
+  const [ghostTalk, setGhostTalk] = useState<{
+    id: string;
+    line: PickedLine;
+  } | null>(null);
   // «Gå hjem?» asked before leaving the cave for another place.
   const [confirmTravel, setConfirmTravel] = useState<
     QuestSiteId | "wraith" | null
@@ -374,7 +384,20 @@ export default function GameClient() {
   useEffect(() => {
     fetch(communityEndpoint, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
-      .then((data) => setCommunityReady(Boolean(data?.publishing)))
+      .then((data) => {
+        setCommunityReady(Boolean(data?.publishing));
+        if (!Array.isArray(data?.players)) return;
+        // Chosen once per load, so the same ghosts stay in the village.
+        setCommunityGhosts(
+          chooseGhosts(
+            (data.players as CommunityPlayer[]).map((player) => ({
+              ...player,
+              about: normalizeAbout(player.about),
+            })),
+            PLAYER_ID,
+          ),
+        );
+      })
       .catch(() => {}); // The shared project is optional; the game stays playable offline.
   }, []);
   // A copy of the progress in the player's own project, so another browser
@@ -392,6 +415,7 @@ export default function GameClient() {
       });
   }, []);
   const dev = useDevMode();
+  const ghosts = dev ? DEV_GHOSTS : communityGhosts;
   // The figure as worn: gear the player hasn't earned (yet) is left off.
   const owned = useMemo(() => ownedGear(progress, { dev }), [progress, dev]);
   const previousOwnedGear = useRef<Set<string> | null>(null);
@@ -456,13 +480,17 @@ export default function GameClient() {
       name: string,
       shareProfile: boolean,
       shareHints: boolean,
+      about: About,
     ) => {
       if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
+      const written =
+        about.food || about.activity || about.topics.length || about.saying;
       const at = new Date().toISOString();
       updateProgress(PROGRESS_PROJECT, (p) => ({
         ...p,
         figure: { ...choice },
         name: name || undefined,
+        about: written ? about : undefined,
         lookAt: at,
         shareProfile,
         shareHints,
@@ -490,6 +518,7 @@ export default function GameClient() {
       };
       delete next.figure;
       delete next.name;
+      delete next.about;
       return next;
     });
     setSheetOpen(false);
@@ -706,6 +735,7 @@ export default function GameClient() {
               : null,
           figure,
           name: progress.name,
+          ...(progress.about ? { about: progress.about } : {}),
         },
       }),
     }).catch(() => {});
@@ -719,6 +749,7 @@ export default function GameClient() {
     progress.hints,
     figure,
     progress.name,
+    progress.about,
     equipped,
   ]);
 
@@ -806,7 +837,10 @@ export default function GameClient() {
   // When a luke waits at the same place, E is for the luke, unless the luke
   // in hand asks for this person.
   const placeZone =
-    zone && zone !== "wraith" && !zone.startsWith("side:")
+    zone &&
+    zone !== "wraith" &&
+    !zone.startsWith("side:") &&
+    !zone.startsWith("ghost:")
       ? (zone as QuestSiteId)
       : null;
   const npcHere = npcAtSite(placeZone);
@@ -869,6 +903,25 @@ export default function GameClient() {
   const spotHere = zone?.startsWith("side:")
     ? side.atSpot(zone.slice("side:".length))
     : undefined;
+  // Another player's ghost, when the knight stands by one. The talk is open
+  // only while the knight is still by that ghost.
+  const ghostHere = zone?.startsWith("ghost:")
+    ? ghosts.find((g) => g.playerId === zone.slice("ghost:".length))
+    : undefined;
+  const ghostOpen =
+    ghostTalk && ghostHere?.playerId === ghostTalk.id ? ghostTalk : null;
+  const talkToGhost = useCallback(() => {
+    if (!ghostHere) return;
+    setGhostTalk((open) => ({
+      id: ghostHere.playerId,
+      line: pickLine(
+        ghostHere,
+        ghosts,
+        open?.id === ghostHere.playerId ? open.line.template : null,
+      ),
+    }));
+  }, [ghostHere, ghosts]);
+  const closeGhost = useCallback(() => setGhostTalk(null), []);
   const { advance: advanceSide } = side;
   const findSpot = useCallback(() => {
     if (!spotHere) return;
@@ -1318,8 +1371,16 @@ export default function GameClient() {
     entryStage === "track" ||
     entryStage === "welcome" ||
     entryStage === "share";
+  // Sharing, with a figure, but no Om meg yet (a save from before the tab):
+  // the sheet opens on Om meg once, and stays until it's filled in.
+  const aboutMissing =
+    entryStage === "game" &&
+    progress.shareProfile &&
+    Boolean(progress.figure) &&
+    !aboutProgress(progress.about, true).complete;
   const sheetShown =
-    entryStage === "figure" || (entryStage === "game" && sheetOpen);
+    entryStage === "figure" ||
+    (entryStage === "game" && (sheetOpen || aboutMissing));
 
   // A finished week gets its summary once, after the last door's celebration;
   // the journal can open it again (weekShown).
@@ -1407,7 +1468,10 @@ export default function GameClient() {
       wraithDefeated: combat.defeated,
       sideMarkers: sideMarkers(side.states, busyGivers(current)),
       sideSpots: side.spots.map(({ id, x, y, prop }) => ({ id, x, y, prop })),
+      ghosts,
+      talkingGhost: ghostOpen?.id ?? null,
       frozen:
+        ghostOpen !== null ||
         dialogueOpen ||
         sideOpen ||
         logOpen ||
@@ -1444,6 +1508,8 @@ export default function GameClient() {
     sheetShown,
     figure,
     confirmTravel,
+    ghosts,
+    ghostOpen,
   ]);
 
   const slots = narrow ? 5 : 8;
@@ -1479,6 +1545,14 @@ export default function GameClient() {
       }
       if (caseOpen) {
         if (e.key === "Escape") setCaseOpen(false);
+        return;
+      }
+      if (ghostOpen) {
+        if (e.key === "Escape") closeGhost();
+        else if (e.key === "e" || e.key === "E") {
+          e.preventDefault();
+          talkToGhost();
+        }
         return;
       }
       const onControl = (e.target as HTMLElement)?.closest?.(
@@ -1557,6 +1631,11 @@ export default function GameClient() {
         openChest();
         return;
       }
+      if ((e.key === "e" || e.key === "E") && ghostHere) {
+        e.preventDefault();
+        talkToGhost();
+        return;
+      }
       if (e.key === " " && zone === "wraith" && !onControl) {
         e.preventDefault();
         combat.attack();
@@ -1629,6 +1708,10 @@ export default function GameClient() {
     descend,
     openCache,
     openChest,
+    ghostHere,
+    ghostOpen,
+    talkToGhost,
+    closeGhost,
     combat,
     items,
     slots,
@@ -1723,6 +1806,19 @@ export default function GameClient() {
             )}
             {zone === "forge" && progress.briefed["apprentice-mistake"] && (
               <ForgeHammer hammer={apprenticeHammer} />
+            )}
+            {ghostOpen && ghostHere && (
+              <GhostDialogue
+                speaker={ghostHere}
+                line={ghostOpen.line}
+                onMore={talkToGhost}
+                onClose={closeGhost}
+              />
+            )}
+            {ghostHere && !ghostOpen && !logOpen && (
+              <button type="button" className="prompt" onClick={talkToGhost}>
+                <kbd>E</kbd> Snakk med {ghostHere.name}
+              </button>
             )}
             {dialogueOpen && (
               <ForgeDialogue
@@ -2047,7 +2143,11 @@ export default function GameClient() {
             initialName={progress.name ?? ""}
             owned={owned}
             firstTime={entryStage === "figure"}
-            initialTab={progress.figure ? sheetTab : "look"}
+            locked={aboutMissing}
+            initialAbout={progress.about ?? null}
+            initialTab={
+              aboutMissing ? "about" : progress.figure ? sheetTab : "look"
+            }
             // Ticked until the player has answered once; nothing is shared
             // before they press Ferdig.
             initialShareProfile={

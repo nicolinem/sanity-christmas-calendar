@@ -1,5 +1,6 @@
 import type { SpriteDef, SpriteSheet } from "./sprites";
 import type { FigureChoice } from "./figure";
+import type { GhostInput } from "./ghosts";
 import type { Element } from "./magic";
 import type { Attack } from "./cave/combat";
 import type { EnemyId } from "./cave/enemies";
@@ -21,6 +22,7 @@ export type Zone =
   | "caveCache" // the nest's chest, in the cave
   | "caveChest" // a rest floor's chest, once its boss is gone
   | `side:${string}`
+  | `ghost:${string}` // another player's ghost, by playerId (src/game/ghosts.ts)
   | null;
 // One calendar door shown in the village: a numbered window that hangs over
 // the place its task belongs to. Dark while locked, outlined while open, lit
@@ -69,6 +71,9 @@ export type WorldState = {
   // need right now; and the spots still to find, with their props.
   sideMarkers: Partial<Record<string, "!" | "?">>;
   sideSpots: SideSpotView[];
+  // Other players' figures strolling the village, and the one being talked to.
+  ghosts: GhostInput[];
+  talkingGhost: string | null;
 };
 
 export type SideSpotView = {
@@ -155,6 +160,8 @@ class Bridge {
     caveGod: false,
     sideMarkers: {},
     sideSpots: [],
+    ghosts: [],
+    talkingGhost: null,
   };
 
   zone: Zone = null;

@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { FigureChoice } from "./figure";
 import { figureTexture } from "./figureTexture";
+import { spawnGhosts, stepGhosts, type Ghost, type GhostInput } from "./ghosts";
 import { moveBox, type Box } from "./walk";
 import { integerZoom, TARGET_VIEW } from "./zoom";
 import {
@@ -58,6 +59,19 @@ export class WinterQuestScene extends Phaser.Scene {
   private sideMarkers = new Map<NpcId, Phaser.GameObjects.Text>();
   private sideProps = new Map<string, Phaser.GameObjects.Image>();
   private sideSpots: SideSpotView[] = [];
+  // Other players' ghosts: the simulation (src/game/ghosts.ts) and what's drawn.
+  private ghosts: Ghost[] = [];
+  private ghostViews = new Map<
+    string,
+    {
+      body: Phaser.GameObjects.Image;
+      shadow: Phaser.GameObjects.Image;
+      name: Phaser.GameObjects.Text;
+      bubble: Phaser.GameObjects.Text;
+    }
+  >();
+  private ghostsKey = "";
+  private ghostClock = 0;
   private doorMarkers: Phaser.GameObjects.Container[] = [];
   private doorsKey = "";
   private goalBadge!: Phaser.GameObjects.Container;
@@ -612,6 +626,7 @@ export class WinterQuestScene extends Phaser.Scene {
     }
     this.syncSideSpots(w.sideSpots);
     this.syncDoors(w.doors);
+    this.syncGhosts(w.ghosts);
     // A cold forge smoulders; once lit it burns brighter with every level.
     const forge = Math.min(LUKE_LEVEL_CAP, w.forgeLevel);
     this.forgeGlow.setScale(w.forgeLit ? 3.4 + forge * 0.3 : 3);
@@ -826,6 +841,75 @@ export class WinterQuestScene extends Phaser.Scene {
     this.tweens.add({ targets: this.wraith, alpha: 0.92, duration: 600 });
   }
 
+  // New ghosts when the list of players changes; the same ones keep walking.
+  private syncGhosts(list: GhostInput[]) {
+    const key = list.map((g) => g.playerId).join(",");
+    if (key === this.ghostsKey) return;
+    this.ghostsKey = key;
+    for (const view of this.ghostViews.values())
+      for (const part of Object.values(view)) part.destroy();
+    this.ghostViews.clear();
+    this.ghosts = spawnGhosts(list);
+    for (const g of this.ghosts) {
+      this.ghostViews.set(g.playerId, {
+        shadow: this.add.image(g.x, g.y + 1, "shadow"),
+        body: this.add
+          .image(g.x, g.y, figureTexture(this.textures, g.figure))
+          .setOrigin(0.5, 1),
+        name: this.text(g.x, g.y - 18, g.name, 8, "#ffffff")
+          .setDepth(9000)
+          .setVisible(false),
+        bubble: this.text(g.x, g.y - 17, "…", 10, "#ffffff")
+          .setDepth(9000)
+          .setVisible(false),
+      });
+    }
+  }
+
+  private moveGhosts(delta: number) {
+    if (!this.ghosts.length) return;
+    stepGhosts(this.ghosts, delta, {
+      holdId: bridge.world.talkingGhost,
+      face: this.knight,
+    });
+    this.ghostClock += delta / 1000;
+    const bob = Math.floor(this.ghostClock * 6) % 2 ? -1 : 0;
+    // One name at a time, so two ghosts side by side don't run together: the
+    // one being talked to, else the nearest within a few steps.
+    const talking = bridge.world.talkingGhost;
+    let named = talking;
+    if (!named) {
+      let best = 48;
+      for (const g of this.ghosts) {
+        const d = Phaser.Math.Distance.Between(
+          this.knight.x,
+          this.knight.y,
+          g.x,
+          g.y,
+        );
+        if (d < best) {
+          best = d;
+          named = g.playerId;
+        }
+      }
+    }
+    for (const g of this.ghosts) {
+      const view = this.ghostViews.get(g.playerId);
+      if (!view) continue;
+      const x = Math.round(g.x);
+      const y = Math.round(g.y);
+      view.shadow.setPosition(x, y + 1).setDepth(y - 1);
+      view.body
+        .setPosition(x, y + (g.walking ? bob : 0))
+        .setFlipX(g.facing < 0)
+        .setDepth(y);
+      view.bubble.setPosition(x, y - 17).setVisible(g.bubble);
+      view.name
+        .setPosition(x, y - (g.bubble ? 27 : 18))
+        .setVisible(named === g.playerId);
+    }
+  }
+
   private pickWraithTarget() {
     if (this.wraithGone || bridge.zone === "wraith") return;
     this.wraithTarget.set(
@@ -840,6 +924,7 @@ export class WinterQuestScene extends Phaser.Scene {
     const dt = delta / 1000;
     this.moveKnight(dt);
     this.moveWraith(dt);
+    this.moveGhosts(delta);
     this.knight.setDepth(this.knight.y);
     this.updateZone();
     bridge.knight.x = Math.round(this.knight.x);
@@ -1055,6 +1140,20 @@ export class WinterQuestScene extends Phaser.Scene {
       ) < WRAITH_RANGE
     )
       zone = "wraith";
+    // Other players' ghosts come last, so they never take E from a luke.
+    else {
+      const talking = bridge.world.talkingGhost;
+      const near = this.ghosts
+        .map((g) => ({
+          g,
+          d: Phaser.Math.Distance.Between(k.x, k.y, g.x, g.y),
+        }))
+        .filter(({ d }) => d < FORGE_RANGE)
+        .sort((a, b) => a.d - b.d);
+      const ghost =
+        near.find(({ g }) => g.playerId === talking)?.g ?? near[0]?.g;
+      if (ghost) zone = `ghost:${ghost.playerId}`;
+    }
     bridge.setZone(zone);
   }
 }

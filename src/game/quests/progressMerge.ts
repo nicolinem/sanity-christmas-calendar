@@ -1,3 +1,4 @@
+import { normalizeAbout } from "../about";
 import type { Progress, SideRecord } from "./types";
 
 // Reading a saved progress record and merging two copies of one. Pure, so the
@@ -128,6 +129,9 @@ export function normalizeProgress(raw: unknown): Progress | null {
   if (typeof value.lookAt !== "string") delete value.lookAt;
   if (typeof value.equipped !== "string") delete value.equipped;
   if (typeof value.shareAt !== "string") delete value.shareAt;
+  const about = normalizeAbout(saved.about);
+  if (about) value.about = about;
+  else delete value.about;
   return value;
 }
 
@@ -183,7 +187,7 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
         ? a
         : b;
   const track = madeBy((p) => p.trackChosen);
-  // Figure and name, and sharing, follow when they were last chosen, so a
+  // Figure, name and Om meg, and sharing, follow when they were last chosen, so a
   // browser that hasn't heard yet can't bring a removed figure back or switch
   // sharing on again. Older saves have no times: there, the copy with a
   // figure, and sharing only if both copies say yes.
@@ -204,6 +208,7 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
     trackChosen: a.trackChosen || b.trackChosen,
     figure: look.figure,
     name: look.name,
+    about: look.about,
     equipped: madeBy((p) => p.equipped).equipped,
     lookAt: look.lookAt,
     shareProfile,

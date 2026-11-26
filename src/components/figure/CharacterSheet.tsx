@@ -36,6 +36,14 @@ import {
 } from "@/game/quests/progress";
 import type { GameItemView } from "@/game/items";
 import FigureCanvas from "./FigureCanvas";
+import {
+  ABOUT_LIMITS,
+  aboutProgress,
+  cleanAboutText,
+  normalizeAbout,
+  type About,
+  type AboutField,
+} from "@/game/about";
 import ItemDetails from "../hud/ItemDetails";
 import SpriteIcon from "../hud/SpriteIcon";
 
@@ -138,7 +146,7 @@ const LOOK: Category[] = [
   },
 ];
 
-type Mode = "bag" | "look";
+type Mode = "bag" | "look" | "about";
 type InventoryFilter = "all" | "weapon" | "material" | "potion";
 const INVENTORY_FILTERS: { id: InventoryFilter; label: string }[] = [
   { id: "all", label: "Alt" },
@@ -167,6 +175,8 @@ type Props = {
   initialName: string;
   owned: Set<GearKey>;
   firstTime: boolean; // no figure yet: nothing to go back to, so no close
+  locked?: boolean; // must be finished (Om meg missing while sharing): no close
+  initialAbout: About | null;
   initialTab: Mode;
   initialShareProfile: boolean;
   initialShareHints: boolean;
@@ -186,6 +196,7 @@ type Props = {
     name: string,
     shareProfile: boolean,
     shareHints: boolean,
+    about: About,
   ) => void;
   // Takes the figure and name away, and the player off «Hvem er med». Left
   // out while there is no figure to remove.
@@ -198,6 +209,8 @@ export default function CharacterSheet({
   initialName,
   owned,
   firstTime,
+  locked = false,
+  initialAbout,
   initialTab,
   initialShareProfile,
   initialShareHints,
@@ -222,6 +235,15 @@ export default function CharacterSheet({
   const [name, setName] = useState(initialName);
   const [shareProfile, setShareProfile] = useState(initialShareProfile);
   const [shareHints, setShareHints] = useState(initialShareHints);
+  const [about, setAbout] = useState<About>(
+    () => initialAbout ?? { food: "", activity: "", topics: [] },
+  );
+  const [topicDraft, setTopicDraft] = useState("");
+  const foodRef = useRef<HTMLInputElement>(null);
+  const activityRef = useRef<HTMLInputElement>(null);
+  const topicRef = useRef<HTMLInputElement>(null);
+  const sayingRef = useRef<HTMLInputElement>(null);
+  const closable = !firstTime && !locked;
   const [history, setHistory] = useState<FigureChoice[]>([]);
   const [mode, setMode] = useState<Mode>(firstTime ? "look" : initialTab);
   const [catId, setCatId] = useState("head");
@@ -294,8 +316,39 @@ export default function CharacterSheet({
     setHistory((h) => h.slice(0, -1));
     setChoice(prev);
   };
-  const done = () =>
-    onDone(choice, cleanName(name).trim(), shareProfile, shareHints);
+  // Om meg as it would be saved: a topic still in the box counts too, so
+  // pressing Ferdig without Enter doesn't lose it.
+  const aboutNow = normalizeAbout({
+    ...about,
+    topics: [...about.topics, topicDraft],
+  })!;
+  const aboutState = aboutProgress(aboutNow, shareProfile);
+  const focusField = (field: AboutField | "saying") =>
+    window.requestAnimationFrame(() => {
+      const refs = {
+        food: foodRef,
+        activity: activityRef,
+        topics: topicRef,
+        saying: sayingRef,
+      };
+      refs[field].current?.focus();
+    });
+  const done = () => {
+    if (!aboutState.complete) {
+      setMode("about");
+      if (aboutState.firstMissing) focusField(aboutState.firstMissing);
+      return;
+    }
+    onDone(choice, cleanName(name).trim(), shareProfile, shareHints, aboutNow);
+  };
+  const addTopic = () => {
+    const next = normalizeAbout({
+      ...about,
+      topics: [...about.topics, topicDraft],
+    })!;
+    setAbout((a) => ({ ...a, topics: next.topics }));
+    setTopicDraft("");
+  };
 
   useEffect(() => {
     doneRef.current?.focus({ preventScroll: true });
@@ -334,7 +387,7 @@ export default function CharacterSheet({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !firstTime) {
+      if (e.key === "Escape" && closable) {
         onClose();
         return;
       }
@@ -342,8 +395,8 @@ export default function CharacterSheet({
         if (e.key === "Escape") (e.target as HTMLElement).blur();
         return;
       }
-      if (mode !== "bag" && e.key === "ArrowLeft") step(-1);
-      if (mode !== "bag" && e.key === "ArrowRight") step(1);
+      if (mode === "look" && e.key === "ArrowLeft") step(-1);
+      if (mode === "look" && e.key === "ArrowRight") step(1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -426,8 +479,25 @@ export default function CharacterSheet({
     </div>
   );
 
+  const doneButton = (
+    <>
+      <p className="cs-missing" role="status">
+        {aboutState.message}
+      </p>
+      <button
+        ref={doneRef}
+        type="button"
+        className="btn btn--amber cs-done"
+        aria-disabled={!aboutState.complete}
+        onClick={done}
+      >
+        Ferdig
+      </button>
+    </>
+  );
+
   return (
-    <div className="log-backdrop" onClick={firstTime ? undefined : onClose}>
+    <div className="log-backdrop" onClick={closable ? onClose : undefined}>
       <section
         className="cs frame frame--slate"
         role="dialog"
@@ -442,13 +512,16 @@ export default function CharacterSheet({
               : initialName.trim() || "Figuren din"}
           </h2>
           <div className="log-tabs" role="tablist">
-            {(firstTime
-              ? [{ id: "look" as const, label: "Utseende" }]
-              : [
-                  { id: "bag" as const, label: "Ting" },
-                  { id: "look" as const, label: "Utseende" },
-                ]
-            ).map(({ id: m, label }) => (
+            {[
+              ...(firstTime ? [] : [{ id: "bag" as const, label: "Ting" }]),
+              { id: "look" as const, label: "Utseende" },
+              {
+                id: "about" as const,
+                label: aboutState.complete
+                  ? "Om meg"
+                  : `Om meg ${aboutState.done}/${aboutState.total}`,
+              },
+            ].map(({ id: m, label }) => (
               <button
                 key={m}
                 type="button"
@@ -461,7 +534,7 @@ export default function CharacterSheet({
               </button>
             ))}
           </div>
-          {!firstTime && (
+          {closable && (
             <button
               ref={mode === "bag" ? doneRef : undefined}
               type="button"
@@ -476,51 +549,64 @@ export default function CharacterSheet({
         <div className="cs-body">
           <nav
             className="cs-cats"
-            aria-label={mode === "bag" ? "Ting" : "Utseende"}
+            aria-label={
+              mode === "bag" ? "Ting" : mode === "about" ? "Om meg" : "Utseende"
+            }
           >
-            {mode === "bag"
-              ? INVENTORY_FILTERS.map(({ id, label }) => {
-                  const count =
-                    id === "all"
-                      ? inventory.length
-                      : inventory.filter((item) => item.kind === id).length;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      className="cs-cat"
-                      aria-current={inventoryFilter === id}
-                      onClick={() => setInventoryFilter(id)}
-                    >
-                      <span>{label}</span>
-                      <span className="cs-cat-count">{count}</span>
-                    </button>
-                  );
-                })
-              : cats.map((c) => {
-                  const hasNew = c.sections.some(
-                    ({ part }) =>
-                      part &&
-                      (FIGURE_OPTIONS[part] as readonly Option[]).some(
-                        (option) =>
-                          isGear(part, option.id) &&
-                          owned.has(`${part}:${option.id}`) &&
-                          !seenGear[`${part}:${option.id}`],
-                      ),
-                  );
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className="cs-cat"
-                      aria-current={c.id === cat.id}
-                      onClick={() => setCatId(c.id)}
-                    >
-                      <span>{c.label}</span>
-                      {hasNew && <span className="cs-new-badge">Ny</span>}
-                    </button>
-                  );
-                })}
+            {mode === "about"
+              ? ABOUT_NAV.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className="cs-cat"
+                    onClick={() => focusField(id)}
+                  >
+                    <span>{label}</span>
+                  </button>
+                ))
+              : mode === "bag"
+                ? INVENTORY_FILTERS.map(({ id, label }) => {
+                    const count =
+                      id === "all"
+                        ? inventory.length
+                        : inventory.filter((item) => item.kind === id).length;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        className="cs-cat"
+                        aria-current={inventoryFilter === id}
+                        onClick={() => setInventoryFilter(id)}
+                      >
+                        <span>{label}</span>
+                        <span className="cs-cat-count">{count}</span>
+                      </button>
+                    );
+                  })
+                : cats.map((c) => {
+                    const hasNew = c.sections.some(
+                      ({ part }) =>
+                        part &&
+                        (FIGURE_OPTIONS[part] as readonly Option[]).some(
+                          (option) =>
+                            isGear(part, option.id) &&
+                            owned.has(`${part}:${option.id}`) &&
+                            !seenGear[`${part}:${option.id}`],
+                        ),
+                    );
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className="cs-cat"
+                        aria-current={c.id === cat.id}
+                        onClick={() => setCatId(c.id)}
+                      >
+                        <span>{c.label}</span>
+                        {hasNew && <span className="cs-new-badge">Ny</span>}
+                      </button>
+                    );
+                  })}
           </nav>
 
           <div className="cs-pick">
@@ -637,7 +723,108 @@ export default function CharacterSheet({
                 )}
               </div>
             )}
-            {mode !== "bag" && (
+            {mode === "about" && (
+              <div className="cs-about">
+                <label className="cs-name">
+                  <span className="cs-label">Favorittmat</span>
+                  <input
+                    ref={foodRef}
+                    value={about.food}
+                    placeholder="pepperkaker"
+                    onChange={(e) =>
+                      setAbout((a) => ({
+                        ...a,
+                        food: cleanAboutText(e.target.value, ABOUT_LIMITS.text),
+                      }))
+                    }
+                  />
+                </label>
+                <label className="cs-name">
+                  <span className="cs-label">Liker å gjøre</span>
+                  <input
+                    ref={activityRef}
+                    value={about.activity}
+                    placeholder="gå på ski"
+                    onChange={(e) =>
+                      setAbout((a) => ({
+                        ...a,
+                        activity: cleanAboutText(
+                          e.target.value,
+                          ABOUT_LIMITS.text,
+                        ),
+                      }))
+                    }
+                  />
+                </label>
+                <div className="cs-name">
+                  <label className="cs-label" htmlFor="cs-topic">
+                    Ting jeg prater om
+                  </label>
+                  {about.topics.length > 0 && (
+                    <ul className="cs-chips">
+                      {about.topics.map((topic) => (
+                        <li key={topic} className="cs-chip">
+                          <span>{topic}</span>
+                          <button
+                            type="button"
+                            aria-label={`Fjern ${topic}`}
+                            onClick={() =>
+                              setAbout((a) => ({
+                                ...a,
+                                topics: a.topics.filter((t) => t !== topic),
+                              }))
+                            }
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <input
+                    id="cs-topic"
+                    ref={topicRef}
+                    value={topicDraft}
+                    disabled={about.topics.length >= ABOUT_LIMITS.maxTopics}
+                    placeholder={
+                      about.topics.length >= ABOUT_LIMITS.maxTopics
+                        ? "Det holder med åtte"
+                        : "Skriv og trykk Enter"
+                    }
+                    onChange={(e) =>
+                      setTopicDraft(
+                        cleanAboutText(e.target.value, ABOUT_LIMITS.text),
+                      )
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      e.preventDefault();
+                      addTopic();
+                    }}
+                  />
+                </div>
+                <label className="cs-name">
+                  <span className="cs-label">
+                    Det sier jeg ofte <small>valgfritt</small>
+                  </span>
+                  <input
+                    ref={sayingRef}
+                    value={about.saying ?? ""}
+                    placeholder="Har du prøvd å skru den av og på?"
+                    onChange={(e) =>
+                      setAbout((a) => ({
+                        ...a,
+                        saying: cleanAboutText(
+                          e.target.value,
+                          ABOUT_LIMITS.saying,
+                        ),
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+            )}
+            {mode === "look" && (
               <>
                 {stepPart && current && (
                   <div className="cs-stepper">
@@ -719,8 +906,8 @@ export default function CharacterSheet({
                   <span>
                     <strong>Vis for andre</strong>
                     <small>
-                      Navnet og figuren din vises for de andre deltakerne.
-                      Fremgangen din vises også.
+                      Navnet, figuren og det du skriver under Om meg vises for
+                      de andre deltakerne. Fremgangen din vises også.
                     </small>
                   </span>
                 </label>
@@ -764,14 +951,7 @@ export default function CharacterSheet({
                     Angre
                   </button>
                 </div>
-                <button
-                  ref={doneRef}
-                  type="button"
-                  className="btn btn--amber cs-done"
-                  onClick={done}
-                >
-                  Ferdig
-                </button>
+                {doneButton}
                 {onRemove && (
                   <button
                     type="button"
@@ -782,11 +962,13 @@ export default function CharacterSheet({
                     onBlur={() => setConfirmRemove(false)}
                   >
                     {confirmRemove
-                      ? "Klikk igjen for å fjerne figur og navn, også fra «Hvem er med»"
+                      ? "Klikk igjen for å fjerne figur, navn og Om meg, også fra «Hvem er med»"
                       : "Fjern figuren min"}
                   </button>
                 )}
               </>
+            ) : mode === "about" ? (
+              doneButton
             ) : (
               <div className="cs-hero-meta">
                 <strong>{initialName.trim() || "Figuren din"}</strong>
@@ -804,6 +986,14 @@ export default function CharacterSheet({
     </div>
   );
 }
+
+// The Om meg tab's left column: jumps to a field.
+const ABOUT_NAV: { id: AboutField | "saying"; label: string }[] = [
+  { id: "food", label: "Mat" },
+  { id: "activity", label: "Gjøre" },
+  { id: "topics", label: "Prater om" },
+  { id: "saying", label: "Sier ofte" },
+];
 
 // «Tilfeldig» changes your looks, not the gear you are wearing.
 function pickGear(choice: FigureChoice): Partial<FigureChoice> {

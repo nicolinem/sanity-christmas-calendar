@@ -246,6 +246,27 @@ export const NPCS: Record<NpcId, Npc> = {
   },
 };
 
+// Where other players' ghosts stroll to and stand about (px, path tile
+// centres). Kept clear of doors, luke places, the people and the glade, so a
+// ghost is never in the way of a luke.
+const spot = (x: number, y: number) => ({ x: x * 16 + 8, y: y * 16 + 8 });
+export const GHOST_SPOTS: { x: number; y: number }[] = [
+  spot(24, 16), // the square
+  spot(26, 14),
+  spot(20, 17),
+  spot(17, 17),
+  spot(22, 12), // the forge path
+  spot(16, 12), // the west lane
+  spot(32, 16), // the road to the glade
+  spot(36, 16),
+  spot(21, 20), // the south road
+  spot(22, 24),
+  spot(21, 28),
+  spot(18, 21), // the south-west lane
+  spot(13, 22),
+  spot(8, 21),
+];
+
 // Who stands at a place, if anyone.
 export function npcAtSite(
   site: QuestSiteId | null | undefined,

@@ -6550,3 +6550,72 @@ kbd {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Another player's own word in a ghost's line. */
+.dialogue-speech .ghost-word {
+  color: #fdbe53;
+  font-weight: 700;
+}
+
+/* «Om meg» in the character sheet: what the player's ghost talks about. */
+.cs-about {
+  display: grid;
+  gap: 18px;
+  max-width: 460px;
+}
+.cs-about .cs-label small {
+  margin-left: 6px;
+  color: var(--frost-dim);
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.cs-about input:disabled {
+  opacity: 0.6;
+}
+.cs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.cs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 9px;
+  color: var(--snow);
+  font: 600 14px var(--font-body);
+  background: var(--night-3);
+  border: var(--px) solid var(--frost-dim);
+}
+.cs-chip button {
+  width: 22px;
+  height: 22px;
+  color: var(--frost);
+  font-size: 16px;
+  line-height: 1;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.cs-chip button:hover,
+.cs-chip button:focus-visible {
+  color: var(--amber);
+}
+/* Room for two lines, so Ferdig doesn't jump as the message changes. */
+.cs-missing {
+  min-height: 2.9em;
+  margin: 0;
+  color: var(--frost);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+.cs-done[aria-disabled="true"] {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}

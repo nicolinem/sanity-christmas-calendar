@@ -444,3 +444,28 @@ test("the game hears once when the backup has answered, so sharing can wait for 
   await settle();
   assert.equal(settled, 2);
 });
+
+test("Om meg follows the figure: the latest choice wins, and a removal sticks", () => {
+  const about = { food: "taco", activity: "ski", topics: ["a", "b", "c"] };
+  const older = {
+    ...EMPTY_PROGRESS,
+    figure: { body: "fox" },
+    lookAt: AT,
+    savedAt: AT,
+  };
+  const newer = { ...older, about, lookAt: LATER, savedAt: AT };
+  assert.deepEqual(mergeProgress(older, newer).about, about);
+  assert.deepEqual(mergeProgress(newer, older).about, about);
+  const removed = { ...EMPTY_PROGRESS, lookAt: LATEST, savedAt: AT };
+  assert.equal(Object.hasOwn(mergeProgress(newer, removed), "about"), false);
+});
+
+test("a backup's Om meg is cleaned, and a broken one left out", () => {
+  assert.deepEqual(
+    normalizeProgress({
+      about: { food: " taco ", activity: "å gå", topics: ["x"] },
+    }).about,
+    { food: "taco", activity: "gå", topics: ["x"] },
+  );
+  assert.equal(Object.hasOwn(normalizeProgress({ about: 5 }), "about"), false);
+});

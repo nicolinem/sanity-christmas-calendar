@@ -72,9 +72,12 @@ export async function GET(request: Request) {
     return reply(request, { configured: false, events: [], players: [] });
   try {
     const profiles = await reader.fetch<
-      Pick<CommunityPlayer, "playerId" | "weapon" | "figure" | "name">[]
+      Pick<
+        CommunityPlayer,
+        "playerId" | "weapon" | "figure" | "name" | "about"
+      >[]
     >(
-      '*[_type == "communityPlayer" && visible == true]{playerId, weapon, figure, name}',
+      '*[_type == "communityPlayer" && visible == true]{playerId, weapon, figure, name, about}',
     );
     const playerIds = profiles.map((profile) => profile.playerId);
     if (!playerIds.length)
@@ -194,6 +197,7 @@ export async function POST(request: Request) {
           weapon: character.weapon,
           ...(character.figure ? { figure: character.figure } : {}),
           ...(character.name ? { name: character.name } : {}),
+          ...(character.about ? { about: character.about } : {}),
         }),
       );
     }
