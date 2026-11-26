@@ -5,6 +5,7 @@ require("sucrase/register");
 const { EMPTY_PROGRESS } = require("./quests/progress.ts");
 const {
   applyForgings,
+  ingredientLine,
   missingFor,
   missingText,
   recipeStates,
@@ -168,4 +169,15 @@ test("recipes are listed with floor 5 first and unlock from chests", () => {
   ]);
   assert.deepEqual(unlockedRecipes({}), []);
   assert.deepEqual(missingFor({ malm: 9, isskar: 9 }, "recipe-ishjelm"), []);
+});
+
+test("the ingredient line shows held against needed", () => {
+  assert.equal(
+    ingredientLine({ malm: 3, isskar: 2 }, "recipe-isskjold"),
+    "Gammel malm 3/4 · Isskår 2/2",
+  );
+  assert.equal(
+    ingredientLine({}, "recipe-isskjold"),
+    "Gammel malm 0/4 · Isskår 0/2",
+  );
 });

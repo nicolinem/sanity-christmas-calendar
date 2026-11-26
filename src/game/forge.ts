@@ -37,6 +37,19 @@ export function missingText(missing: Missing): string {
     .join(" og ")}`;
 }
 
+// "Gammel malm 3/4 · Isskår 2/2": what the inventory holds against the recipe.
+export function ingredientLine(
+  inventory: Record<string, number>,
+  id: RecipeId,
+): string {
+  return RECIPES[id].ingredients
+    .map(
+      (i) =>
+        `${MATERIALS[i.material].name} ${inventory[i.material] ?? 0}/${i.count}`,
+    )
+    .join(" · ");
+}
+
 // Forges what it can, in the order the forgings come. A recipe gives its gear
 // once, and a forging is used once. Returns the same progress when nothing is
 // forged.

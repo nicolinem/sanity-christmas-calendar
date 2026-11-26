@@ -68,6 +68,8 @@ import { levelUpToast } from "@/game/levelUp";
 import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
 import { CHEST_TOASTS } from "@/game/cave/chests";
+import { applyForgings, type Forging } from "@/game/forge";
+import { RECIPES, unlockedRecipes } from "@/game/recipes";
 import { xpFor } from "@/game/cave/combat";
 import { addToTrip, bankTrip, dropTrip, secureTrip } from "@/game/cave/trip";
 import { useWindowActive } from "./hud/useWindowActive";
@@ -491,10 +493,13 @@ export default function GameClient() {
   // Dev panel overrides for checks: pretend a quest passes or fails.
   const [devChecks, setDevChecks] = useState<Record<string, boolean>>({});
 
+  const [forgings, setForgings] = useState<Forging[] | null>(null);
+  const [recipeDocs, setRecipeDocs] = useState<string[] | null>(null);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, own, bakery] = await Promise.all([
+      const [res, own, bakery, forge] = await Promise.all([
         fetch("/api/items", { cache: "no-store" }),
         fetch("/api/archive", { cache: "no-store" })
           .then((r) => r.json())
@@ -502,7 +507,14 @@ export default function GameClient() {
         fetch("/api/bakery", { cache: "no-store" })
           .then((r) => r.json())
           .catch(() => null),
+        FEATURES.cave
+          ? fetch("/api/forge", { cache: "no-store" })
+              .then((r) => r.json())
+              .catch(() => null)
+          : null,
       ]);
+      setForgings(forge?.error || !forge ? null : (forge.forgings ?? null));
+      setRecipeDocs(forge?.error || !forge ? null : (forge.recipes ?? null));
       setArchive(own?.error ? null : (own?.docs ?? null));
       setArchiveCases(own?.error ? null : (own?.cases ?? null));
       setArchiveCaseDrafts(Boolean(own?.caseDraft));
@@ -1057,6 +1069,45 @@ export default function GameClient() {
       .then((r) => (r.ok ? refresh() : undefined))
       .catch(() => {});
   }, [needsArchive, archive, refresh]);
+
+  // The recipes the player has unlocked get their documents once per visit,
+  // so the Studio's Smiing can point at them.
+  const recipesSeeded = useRef(false);
+  const chestsOpened = progress.chests;
+  useEffect(() => {
+    if (!FEATURES.cave || recipeDocs === null || recipesSeeded.current) return;
+    if (
+      unlockedRecipes({ chests: chestsOpened }).every((id) =>
+        recipeDocs.includes(id),
+      )
+    )
+      return;
+    recipesSeeded.current = true;
+    markOwnWrite();
+    fetch("/api/forge", { method: "POST" })
+      .then((r) => (r.ok ? refresh() : undefined))
+      .catch(() => {});
+  }, [recipeDocs, chestsOpened, refresh]);
+
+  // A published Smiing with enough materials is forged: the materials go and
+  // the gear is recorded. `crafted` stops a second run, and the toasts come
+  // from the same call that writes.
+  const { inventory, crafted } = progress;
+  useEffect(() => {
+    if (!FEATURES.cave || forgings === null) return;
+    let forged: ReturnType<typeof applyForgings>["forged"] = [];
+    updateProgress(PROGRESS_PROJECT, (p) => {
+      const result = applyForgings(p, forgings);
+      forged = result.forged;
+      return result.progress;
+    });
+    for (const { forging, recipe } of forged)
+      pushToast({
+        title: RECIPES[recipe].name,
+        body: `«${forging.name}» er klar. Du finner den under Utstyr.`,
+        tone: "forge",
+      });
+  }, [forgings, inventory, chestsOpened, crafted]);
 
   const bakerySeeded = useRef(false);
   const needsBakery = board.states.some(
@@ -1897,6 +1948,7 @@ export default function GameClient() {
             onEquip={handleEquip}
             level={forgeLevel}
             inventory={progress.inventory}
+            forgings={forgings ?? []}
             onDone={saveFigure}
             onClose={() => setSheetOpen(false)}
           />

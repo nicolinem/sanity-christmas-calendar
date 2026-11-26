@@ -6203,6 +6203,13 @@ kbd {
   align-items: center;
   gap: 8px;
 }
+.cs-forge li.is-missing {
+  opacity: 0.55;
+}
+.cs-forge small {
+  display: block;
+  opacity: 0.8;
+}
 .cs-inv-item.slot {
   width: 46px;
   height: 46px;
