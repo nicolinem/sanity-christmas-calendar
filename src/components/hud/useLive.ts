@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 export type LiveMode = "off" | "live" | "polling";
 
 const QUERY =
-  '*[_type in ["item", "observation", "case", "bakeryOrder", "bakerySign"]]';
+  '*[_type in ["item", "observation", "case", "bakeryOrder", "bakerySign", "forging", "recipe"]]';
 
 // Sanity pushes every change to the browser as it happens. The game listens
 // for published items and refetches, so a blade appears the moment you press
