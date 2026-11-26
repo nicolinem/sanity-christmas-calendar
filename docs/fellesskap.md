@@ -22,7 +22,12 @@ Spilleren velger figur og visningsnavn i spillets karakterside; begge sendes
 til spillerkortet sammen med våpenet.
 Egne achievements, figurnivå (ikke smienivå) og fullt inventar er ikke
 publisert ennå. `?dev` sender ikke.
-Lokal «Nullstill fremgang» sletter **ikke** allerede publiserte hendelser.
+«Nullstill fremgang» og «Fjern figuren min» (i figurskaperen) sender
+`visible: false`, og da sletter serveren spillerkortet og alle spillerens
+milepæler. Er fellestjenesten utilgjengelig akkurat da, blir de liggende.
+Fremgangen har en sikkerhetskopi i spillerens eget prosjekt
+(`/api/progress`). Spillet deler ingenting før den har svart, så valg gjort i
+en annen nettleser (slutte å dele, fjerne figuren) gjelder også her.
 
 ## Prøv delingsflyten (kun arrangøren)
 

@@ -7,7 +7,7 @@ import type { NpcId, QuestSiteId } from "../village";
 export type QuestTrack = "technical" | "nonTechnical";
 
 // Facts the player has earned. Stored per Sanity project in the browser
-// (progress.ts) and never taken back: deleting a sword doesn't undo a quest.
+// (progress.ts), backed up in the player's own project, and never taken back: deleting a sword doesn't undo a quest.
 export type Progress = {
   track: QuestTrack;
   trackChosen: boolean; // player has completed track choice (legacy saves migrate to true)
@@ -59,6 +59,15 @@ export type Progress = {
   trip: Record<string, number>;
   // Set while the player is in the cave; absent otherwise.
   inCave?: true;
+  // When this record last changed, and when this game began (set by «Nytt
+  // spill»; absent for the first game). The backup in Sanity uses both to
+  // merge two copies (progressMerge.ts).
+  savedAt?: string;
+  startedAt?: string;
+  // When the figure and name, and the sharing choice, were last set, so an
+  // older copy can't bring a removed figure back or switch sharing on again.
+  lookAt?: string;
+  shareAt?: string;
 };
 
 export type SideRecord = { at: string; step: number; done?: string };
