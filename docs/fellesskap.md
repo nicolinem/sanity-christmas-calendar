@@ -19,7 +19,12 @@ Journalen → **Andre** viser alle kjente spillere, også de uten fullføringer.
 Smienivå og totalt antall fullførte luker beregnes av _alle_ publiserte
 milepæler. Feedet viser de 12 nyeste av de 100 siste hentede hendelsene.
 Spilleren velger figur og visningsnavn i spillets karakterside; begge sendes
-til spillerkortet sammen med våpenet.
+til spillerkortet sammen med våpenet. Det samme gjør «Om meg» (`about`:
+favorittmat, noe de liker å gjøre, 3–8 ting de prater om og en valgfri
+setning), som andres spøkelser i bygda bruker i replikkene sine. Serveren
+renser teksten med `normalizeAbout` og avviser et `about` med feil form.
+Spillet henter spillerne én gang ved oppstart og viser opptil åtte av dem som
+spøkelser.
 Egne achievements, figurnivå (ikke smienivå) og fullt inventar er ikke
 publisert ennå. `?dev` sender ikke.
 Lokal «Nullstill fremgang» sletter **ikke** allerede publiserte hendelser.
@@ -53,7 +58,7 @@ Lokal «Nullstill fremgang» sletter **ikke** allerede publiserte hendelser.
 
 **Ikke distribuer felles token til spillerne.** POST-ruten er fremdeles uten
 innlogging: tillatte origins kan forfalskes utenfor nettleseren, og klienten
-kan forfalske fremgang. 30 forespørsler/minutt/IP begrenses per serverinstans,
+kan forfalske fremgang. 300 forespørsler/minutt/IP begrenses per serverinstans,
 ikke på tvers av Vercel-instansene. Dette er ikke verifisert deltakerfremgang
 og ikke trygt for offentlig konkurranse; aktiver plattformdekkende rate limit
 og avklar autentisering/samtykke før bred lansering. `COMMUNITY_WRITES_ENABLED`
