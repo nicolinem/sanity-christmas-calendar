@@ -6496,3 +6496,9 @@ kbd {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Another player's own word in a ghost's line. */
+.dialogue-speech .ghost-word {
+  color: #fdbe53;
+  font-weight: 700;
+}

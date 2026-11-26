@@ -873,6 +873,25 @@ export class WinterQuestScene extends Phaser.Scene {
     });
     this.ghostClock += delta / 1000;
     const bob = Math.floor(this.ghostClock * 6) % 2 ? -1 : 0;
+    // One name at a time, so two ghosts side by side don't run together: the
+    // one being talked to, else the nearest within a few steps.
+    const talking = bridge.world.talkingGhost;
+    let named = talking;
+    if (!named) {
+      let best = 48;
+      for (const g of this.ghosts) {
+        const d = Phaser.Math.Distance.Between(
+          this.knight.x,
+          this.knight.y,
+          g.x,
+          g.y,
+        );
+        if (d < best) {
+          best = d;
+          named = g.playerId;
+        }
+      }
+    }
     for (const g of this.ghosts) {
       const view = this.ghostViews.get(g.playerId);
       if (!view) continue;
@@ -883,12 +902,10 @@ export class WinterQuestScene extends Phaser.Scene {
         .setPosition(x, y + (g.walking ? bob : 0))
         .setFlipX(g.facing < 0)
         .setDepth(y);
-      const near =
-        Phaser.Math.Distance.Between(this.knight.x, this.knight.y, x, y) < 48;
       view.bubble.setPosition(x, y - 17).setVisible(g.bubble);
       view.name
         .setPosition(x, y - (g.bubble ? 27 : 18))
-        .setVisible(near || bridge.world.talkingGhost === g.playerId);
+        .setVisible(named === g.playerId);
     }
   }
 
