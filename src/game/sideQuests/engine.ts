@@ -33,6 +33,20 @@ function met(
   return true;
 }
 
+// Open: taken already, or its requirements are met. Unlike evaluateSideQuests,
+// no checks run and ?dev changes nothing.
+export function sideQuestOpen(
+  quest: SideQuest,
+  progress: Progress,
+  chapters: Chapter[],
+  now: Date,
+): boolean {
+  return (
+    Boolean(progress.side?.[quest.id]) ||
+    met(quest.requires, progress, chapters, now)
+  );
+}
+
 // A saved step that isn't a whole number in range counts as the first step.
 function savedStep(raw: unknown, steps: number): number {
   return typeof raw === "number" && Number.isInteger(raw) && raw >= 0

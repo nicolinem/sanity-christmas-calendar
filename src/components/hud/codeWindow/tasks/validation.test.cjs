@@ -182,11 +182,11 @@ function starterExports({ name = false, sprite = false } = {}) {
   let source = task.starter;
   if (name) {
     const field =
-      'defineField({ name: "name", title: "Name", type: "string" })';
+      'defineField({ name: "name", title: "Navn", type: "string" })';
     assert.ok(source.includes(field));
     source = source.replace(
       field,
-      `defineField({ name: "name", title: "Name", type: "string", validation: ${nameRuleSource} })`,
+      `defineField({ name: "name", title: "Navn", type: "string", validation: ${nameRuleSource} })`,
     );
   }
   if (sprite) {

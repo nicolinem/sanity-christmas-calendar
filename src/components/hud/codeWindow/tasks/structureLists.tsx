@@ -18,7 +18,7 @@ const STARTER = `// Arkivaren: «Jeg kan ikke skrive GROQ hver gang
 // «Per sted» viser stedene, og under hvert sted observasjonene der.
 export const structure = (S) =>
   S.list()
-    .title("Content")
+    .title("Innhold")
     .items([
       // dine punkter her
 
@@ -77,10 +77,10 @@ function node(kind: string, args: unknown[] = []): Node {
 }
 
 const TYPES = [
-  { name: "item", title: "Item" },
-  { name: "observation", title: "Observation" },
-  { name: "place", title: "Place" },
-  { name: "witness", title: "Witness" },
+  { name: "item", title: "Gjenstand" },
+  { name: "observation", title: "Observasjon" },
+  { name: "place", title: "Sted" },
+  { name: "witness", title: "Vitne" },
 ];
 
 function makeS() {
@@ -331,7 +331,7 @@ export async function judgeStructure(
       label: "De vanlige typene er der fortsatt",
       done: standard >= TYPES.length,
       message:
-        "`...S.documentTypeListItems()` mangler, så Item, Observation og de andre forsvinner fra Studio.",
+        "`...S.documentTypeListItems()` mangler, så Gjenstand, Observasjon og de andre forsvinner fra Studio.",
     },
   ];
   const done = requirements.every((r) => r.done);
@@ -380,7 +380,7 @@ export function StructurePanes({ verdict }: { verdict: Verdict | null }) {
   return (
     <div className="cw-sb" aria-label="Slik blir det i Studio">
       <div className="cw-sb-pane">
-        <p className="cw-sb-head">Content</p>
+        <p className="cw-sb-head">Innhold</p>
         <ul className="cw-sb-items">
           {root.map((r) =>
             r.divider ? (

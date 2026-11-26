@@ -23,11 +23,11 @@ import { isNameTaken } from "../lib/guild"
 // Legg til validation: krev navn, stopp navn som allerede er brukt, og våpen uten sprite.
 export const item = defineType({
   name: "item",
-  title: "Item",
+  title: "Gjenstand",
   type: "document",
   fields: [
-    defineField({ name: "name", title: "Name", type: "string" }),
-    defineField({ name: "kind", title: "Kind", type: "string" }),
+    defineField({ name: "name", title: "Navn", type: "string" }),
+    defineField({ name: "kind", title: "Sort", type: "string" }),
     defineField({ name: "sprite", title: "Sprite", type: "string" }),
   ],
 })
@@ -429,14 +429,14 @@ validation: (rule) => [
     if (!name || !document) return true
     const client = getClient({ apiVersion: "2026-09-03" })
     const taken = await isNameTaken(client, name, document._id)
-    return taken ? \`Another item is already called "\${name}"\` : true
+    return taken ? \`Det finnes allerede en gjenstand som heter «\${name}»\` : true
   }),
 ],
 
 // på sprite:
 validation: (rule) =>
   rule.custom((sprite, context) =>
-    context.document?.kind === "weapon" && !sprite ? "A weapon needs a sprite" : true,
+    context.document?.kind === "weapon" && !sprite ? "Et våpen trenger en sprite" : true,
   ),`;
 
 const VALIDATION_SOLUTION = `import { defineField, defineType } from "sanity"
@@ -444,12 +444,12 @@ import { isNameTaken } from "../lib/guild"
 
 export const item = defineType({
   name: "item",
-  title: "Item",
+  title: "Gjenstand",
   type: "document",
   fields: [
     defineField({
       name: "name",
-      title: "Name",
+      title: "Navn",
       type: "string",
       validation: (rule) => [
         rule.required(),
@@ -458,18 +458,18 @@ export const item = defineType({
           if (!name || !document) return true
           const client = getClient({ apiVersion: "2026-09-03" })
           const taken = await isNameTaken(client, name, document._id)
-          return taken ? \`Another item is already called "\${name}"\` : true
+          return taken ? \`Det finnes allerede en gjenstand som heter «\${name}»\` : true
         }),
       ],
     }),
-    defineField({ name: "kind", title: "Kind", type: "string" }),
+    defineField({ name: "kind", title: "Sort", type: "string" }),
     defineField({
       name: "sprite",
       title: "Sprite",
       type: "string",
       validation: (rule) =>
         rule.custom((sprite, context) =>
-          context.document?.kind === "weapon" && !sprite ? "A weapon needs a sprite" : true,
+          context.document?.kind === "weapon" && !sprite ? "Et våpen trenger en sprite" : true,
         ),
     }),
   ],

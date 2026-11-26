@@ -144,7 +144,7 @@ export const archiveModelTask: BoardTask = {
       feedback: {
         text: "Fritekst gir meg «ukjent», «Ukjent» og skrivefeil som ikke kan filtreres sammen.",
         boolean:
-          "Ja/nei gir bare bekreftet eller ikke. Jeg trenger tre: *Unknown*, *Confirmed* og *Rumor*.",
+          "Ja/nei gir bare bekreftet eller ikke. Jeg trenger tre: *Ukjent*, *Bekreftet* og *Rykte*.",
         image: "Statusen skal kunne filtreres, ikke tydes fra et bilde.",
         place: "Status forteller hva vi vet, ikke hvor observasjonen skjedde.",
         witness:
