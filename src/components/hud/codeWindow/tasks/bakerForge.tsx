@@ -20,10 +20,13 @@ const starter = `import { useDocumentOperation } from "sanity"
 // Brann trenger én action som stempler og publiserer et våpen.
 export function ForgeAction(props) {
   const { patch, publish } = useDocumentOperation(props.id, props.type)
+  const doc = props.draft ?? props.published
   return {
     label: "Smi",
+    // Bare våpen kan smis: gjør knappen grå for alt annet.
     onHandle: () => {
       // Sett forgedAt til nå og publiser dokumentet.
+      props.onComplete()
     },
   }
 }
@@ -39,17 +42,35 @@ function result({ verdict }: { verdict: Verdict | null }) {
   );
 }
 
+type ActionDescription = {
+  label: string;
+  disabled?: boolean;
+  onHandle: () => void;
+};
+
 export function judgeBakerForge(exports: Record<string, unknown>): Verdict {
   calls = [];
   const action = exports.ForgeAction;
   let label = "";
+  let weaponOpen = false;
+  let othersGrey = false;
   let error: string | undefined;
   if (typeof action === "function") {
     try {
-      const description = (
-        action as (props: object) => { label: string; onHandle: () => void }
-      )({ id: "test-weapon", type: "item", draft: { kind: "weapon" } });
+      const run = (doc: object, published = false) =>
+        (action as (props: object) => ActionDescription)({
+          id: "test-item",
+          type: "item",
+          [published ? "published" : "draft"]: doc,
+          onComplete: () => {},
+        });
+      othersGrey =
+        run({ kind: "material" })?.disabled === true &&
+        run({ kind: "potion" }, true)?.disabled === true;
+      weaponOpen = !run({ kind: "weapon" }, true)?.disabled;
+      const description = run({ kind: "weapon" });
       label = description?.label;
+      weaponOpen &&= !description?.disabled;
       description?.onHandle?.();
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
@@ -61,6 +82,10 @@ export function judgeBakerForge(exports: Record<string, unknown>): Verdict {
   const timestamp = typeof stamp === "string" ? Date.parse(stamp) : NaN;
   const requirements = [
     { label: "En action som heter Smi", done: label === "Smi" },
+    {
+      label: "Grå for alt som ikke er våpen",
+      done: othersGrey && weaponOpen,
+    },
     {
       label: "Sett forgedAt til nå",
       done:
@@ -81,15 +106,20 @@ export const bakerForgeTask: WindowTask = {
   id: "baker-forge",
   file: "ForgeAction.ts",
   starter,
-  solution: starter.replace(
-    "      // Sett forgedAt til nå og publiser dokumentet.",
-    "      patch.execute([{ set: { forgedAt: new Date().toISOString() } }])\n      publish.execute()",
-  ),
+  solution: starter
+    .replace(
+      "    // Bare våpen kan smis: gjør knappen grå for alt annet.\n",
+      '    disabled: doc?.kind !== "weapon",\n',
+    )
+    .replace(
+      "      // Sett forgedAt til nå og publiser dokumentet.",
+      "      patch.execute([{ set: { forgedAt: new Date().toISOString() } }])\n      publish.execute()",
+    ),
   modules,
   judge: judgeBakerForge,
   resultTitle: "Ett trykk i Studio",
   Result: result,
-  ours: `patch.execute([{ set: { forgedAt: new Date().toISOString() } }]);\npublish.execute();`,
+  ours: `disabled: kind !== "weapon",\nonHandle: () => {\n  patch.execute([{ set: { forgedAt: new Date().toISOString() } }]);\n  publish.execute();\n  props.onComplete();\n}`,
   references: [],
   extend: {
     file: "src/sanity/studio/BakeryActions.ts",

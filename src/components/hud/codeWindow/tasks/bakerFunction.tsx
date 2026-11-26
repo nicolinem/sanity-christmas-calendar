@@ -1,10 +1,20 @@
+import type { Modules } from "../runCode";
 import type { Verdict, WindowTask } from "./types";
 
-const starter = `// Kjører når en bestilling publiseres. Spillet gir deg event og client:
-// client skriver til bodskiltet i bygda, ikke til Sanity-prosjektet ditt.
-export async function onOrderPublished(event, { client }) {
-  const order = event.document
-  // Sjekk at dette er en publisert bakeryOrder med en vare.
+// Shaped like a real Sanity Function (documentEventHandler, event.data, a
+// client from context.clientOptions), but the game plays Sanity: the client
+// only knows the sign in the village. Which changes run the function is the
+// blueprint's job, shown read-only beside the code.
+
+const starter = `import { documentEventHandler } from "@sanity/functions"
+import { createClient } from "@sanity/client"
+
+// Kjører når en bestilling publiseres (se sanity.blueprint.ts).
+// I spillet skriver client til bodskiltet i bygda, ikke til Sanity-prosjektet ditt.
+export const handler = documentEventHandler(async ({ context, event }) => {
+  const order = event.data
+  const client = createClient({ ...context.clientOptions, apiVersion: "2025-05-08" })
+  // Sjekk at bestillingen har en vare.
 
   const text = "Dagens bestilling: " + order.item.trim()
   const sign = await client.getDocument("bakery-sign")
@@ -16,15 +26,46 @@ export async function onOrderPublished(event, { client }) {
       children: [{ _type: "span", _key: "order-text", text, marks: [] }],
     }],
   }).commit()
-}
+})
 `;
 
-type Event = { transition: string; document: { _type: string; item?: string } };
+const blueprint = `import { defineBlueprint, defineDocumentFunction } from "@sanity/blueprints"
+
+export default defineBlueprint({
+  resources: [
+    defineDocumentFunction({
+      name: "bakery-sign",
+      event: {
+        on: ["create", "update"],
+        filter: '_type == "bakeryOrder"',
+        projection: "{_id, _type, item}",
+      },
+    }),
+  ],
+})
+`;
+
+// The game hands its own client through clientOptions, so the player's
+// createClient(...) gets it back. A real Function gets project, dataset and
+// token there instead.
+const modules: Modules = {
+  "@sanity/functions": {
+    documentEventHandler: (fn: unknown) => fn,
+  },
+  "@sanity/client": {
+    createClient: (options: { gameClient?: unknown }) => options?.gameClient,
+  },
+};
+
+export type FunctionArgs = {
+  context: { clientOptions: { gameClient: unknown } };
+  event: { data: { _type: string; item?: string } };
+};
 type Sign = { text: { children: { text: string }[] }[] };
 
 async function exercise(
-  fn: (event: Event, context: object) => unknown,
-  events: Event[],
+  fn: (args: FunctionArgs) => unknown,
+  orders: FunctionArgs["event"]["data"][],
 ) {
   let text = "Bakerens bod";
   let writes = 0;
@@ -49,38 +90,35 @@ async function exercise(
       }),
     }),
   };
-  for (const event of events) await fn(event, { client });
+  for (const data of orders)
+    await fn({
+      context: { clientOptions: { gameClient: client } },
+      event: { data },
+    });
   return { text, writes };
 }
 
-const order: Event = {
-  transition: "publish",
-  document: { _type: "bakeryOrder", item: "Julekake" },
-};
+const order = { _type: "bakeryOrder", item: "Julekake" };
 
 export async function judgeBakerFunction(
   exports: Record<string, unknown>,
 ): Promise<Verdict> {
-  const fn = exports.onOrderPublished;
+  const fn = exports.handler;
   let updated = false;
-  let ignoresOthers = false;
+  let ignoresEmpty = false;
   let idempotent = false;
   let error: string | undefined;
   if (typeof fn === "function") {
     try {
-      const handler = fn as (event: Event, context: object) => unknown;
+      const handler = fn as (args: FunctionArgs) => unknown;
       const first = await exercise(handler, [order]);
       updated =
         first.text === "Dagens bestilling: Julekake" && first.writes === 1;
-      const unrelated = await exercise(handler, [
-        {
-          transition: "update",
-          document: { _type: "bakeryOrder", item: "Julekake" },
-        },
-        { transition: "publish", document: { _type: "item", item: "Sverd" } },
-        { transition: "publish", document: { _type: "bakeryOrder" } },
+      const empty = await exercise(handler, [
+        { _type: "bakeryOrder" },
+        { _type: "bakeryOrder", item: "  " },
       ]);
-      ignoresOthers = unrelated.writes === 0;
+      ignoresEmpty = empty.writes === 0;
       const repeated = await exercise(handler, [order, order]);
       idempotent =
         repeated.text === "Dagens bestilling: Julekake" &&
@@ -94,10 +132,7 @@ export async function judgeBakerFunction(
       label: "Oppdater bodskiltet når en bestilling publiseres",
       done: updated,
     },
-    {
-      label: "Ignorer andre hendelser og tomme bestillinger",
-      done: ignoresOthers,
-    },
+    { label: "Ignorer bestillinger uten vare", done: ignoresEmpty },
     { label: "Ikke oppdater samme skilt to ganger", done: idempotent },
   ];
   const done = requirements.every((r) => r.done);
@@ -109,31 +144,49 @@ function Result({ verdict }: { verdict: Verdict | null }) {
     <p>
       {verdict?.done
         ? "Bestått. Publiser en bestilling i Studio og se på bodskiltet."
-        : "Hvilke hendelser skal endre skiltet?"}
+        : "Når skal skiltet endres, og når skal det stå i fred?"}
     </p>
   );
 }
 
 export const bakerFunctionTask: WindowTask = {
   id: "baker-function",
-  file: "onOrderPublished.ts",
+  file: "functions/bakery-sign/index.ts",
   starter,
   solution: starter
     .replace(
-      "  // Sjekk at dette er en publisert bakeryOrder med en vare.\n",
-      '  if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return\n',
+      "  // Sjekk at bestillingen har en vare.\n",
+      "  if (!order?.item?.trim()) return\n",
     )
     .replace(
       "  // Ikke skriv hvis skiltet allerede viser denne teksten.\n",
       "  if (sign?.text?.[0]?.children?.[0]?.text === text) return\n",
     ),
-  modules: {},
+  modules,
   judge: judgeBakerFunction,
   resultTitle: "Sanity Function",
   Result,
-  ours: `if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return;
+  ours: `if (!order?.item?.trim()) return;
 // Etter getDocument:
 if (sign?.text?.[0]?.children?.[0]?.text === text) return;`,
-  references: [],
+  references: [
+    {
+      file: "sanity.blueprint.ts",
+      source: blueprint,
+      about:
+        "Blueprinten sier når funksjonen kjører. Den er ferdig: bare publiserte bestillinger kommer til koden din.",
+      examples: [
+        {
+          code: 'on: ["create", "update"]',
+          shows:
+            "Når en bestilling publiseres første gang, og hver gang den publiseres igjen",
+        },
+        {
+          code: "filter: '_type == \"bakeryOrder\"'",
+          shows: "Bare bestillinger, ikke våpen eller skilt",
+        },
+      ],
+    },
+  ],
   studioCode: false,
 };

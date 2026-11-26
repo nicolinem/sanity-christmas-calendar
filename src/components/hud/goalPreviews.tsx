@@ -543,7 +543,7 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   "archive-model": {
     before: (
       <Note>
-        21:40 – fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde.
+        18:45 – fotspor i snøen ved smia, tror jeg. Kari så det selv, tok bilde.
         Ikke sjekket.
       </Note>
     ),

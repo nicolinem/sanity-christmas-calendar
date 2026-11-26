@@ -15,11 +15,11 @@ test("the starter does not pass the simulated Function challenge", async () => {
   assert.equal((await run(bakerFunctionTask.starter)).done, false);
 });
 
-test("event filtering and checking the current sign pass all three checks", async () => {
+test("skipping empty orders and checking the current sign pass all three checks", async () => {
   const source = bakerFunctionTask.starter
     .replace(
-      "// Sjekk at dette er en publisert bakeryOrder med en vare.",
-      'if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return',
+      "// Sjekk at bestillingen har en vare.",
+      "if (!order?.item?.trim()) return",
     )
     .replace(
       "// Ikke skriv hvis skiltet allerede viser denne teksten.",
@@ -31,10 +31,19 @@ test("event filtering and checking the current sign pass all three checks", asyn
 
 test("unconditional sign writes fail the repeat-delivery check", async () => {
   const source = bakerFunctionTask.starter.replace(
-    "// Sjekk at dette er en publisert bakeryOrder med en vare.",
-    'if (event.transition !== "publish" || order?._type !== "bakeryOrder" || !order.item?.trim()) return',
+    "// Sjekk at bestillingen har en vare.",
+    "if (!order?.item?.trim()) return",
   );
   const verdict = await run(source);
   assert.equal(verdict.requirements[0].done, true);
   assert.equal(verdict.requirements[2].done, false);
+});
+
+test("the task has the shape of a real Sanity Function and its blueprint", () => {
+  assert.match(bakerFunctionTask.starter, /documentEventHandler/);
+  assert.match(bakerFunctionTask.starter, /event\.data/);
+  assert.doesNotMatch(bakerFunctionTask.starter, /transition|event\.document/);
+  const blueprint = bakerFunctionTask.references[0].source;
+  assert.match(blueprint, /on: \["create", "update"\]/);
+  assert.match(blueprint, /_type == "bakeryOrder"/);
 });

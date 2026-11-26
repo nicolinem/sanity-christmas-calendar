@@ -1,5 +1,11 @@
 # Historien: snømonsteret og julemarkedet
 
+> **Utgått som ukeplan (26. november 2026).** Ukene under er det første
+> utkastet: monstre i uke 2 og Brann som eneste giver. Slik ble det ikke.
+> Lukene og replikkene som gjelder, står i `src/game/quests/chapters.ts`:
+> Brann i uke 1, Arkivaren i uke 2 og Bakeren i uke 3. Reglene for teksten og
+> julaften-delen gjelder fortsatt.
+
 Et forslag til plottet som driver kalenderen, og hva Brann sier underveis.
 Oppgavene står i [questplan.md](questplan.md). Alt her er utkast.
 

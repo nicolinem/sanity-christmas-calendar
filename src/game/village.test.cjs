@@ -37,7 +37,10 @@ test("Kari waits at the west house where the player can ask about her order", ()
     NPCS.kari.y - QUEST_SITES.westHouse.y,
   );
   assert.ok(apart > 28 && apart < 64, `Kari står ${apart}px fra døra`);
-  assert.equal(npcQuestLine("kari", "morning-rush"), "Julekake, selvfølgelig!");
+  assert.equal(
+    npcQuestLine("kari", "morning-rush"),
+    "Bestillingen min? Julekake, selvfølgelig! Det er det samme hvert år.",
+  );
   assert.equal(npcQuestLine("kari", "baker-sign"), undefined);
 });
 

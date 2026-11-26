@@ -3,6 +3,7 @@ import {
   APPRENTICE_ITEM_ID,
   APPRENTICE_MISTAKE,
   BRANN_HAMMER,
+  needsFreshHistory,
 } from "@/game/apprentice";
 import { apiVersion, dataset, projectId } from "@/sanity/env";
 
@@ -24,13 +25,24 @@ export async function POST(request: Request) {
   });
 
   try {
-    if (await writer.getDocument(APPRENTICE_ITEM_ID))
+    const [published, draft] = await Promise.all([
+      writer.getDocument(APPRENTICE_ITEM_ID),
+      writer.getDocument(`drafts.${APPRENTICE_ITEM_ID}`),
+    ]);
+    if (published && !needsFreshHistory(published, draft ?? null, Date.now()))
       return Response.json({ ok: true, created: false });
 
     // Two separate writes create the two published revisions used in History.
-    await writer.create(BRANN_HAMMER);
+    // An old hammer gets them again, so the right one is still in History.
+    if (published) {
+      const { name, kind, description, sprite } = BRANN_HAMMER;
+      await writer
+        .patch(APPRENTICE_ITEM_ID)
+        .set({ name, kind, description, sprite })
+        .commit();
+    } else await writer.create(BRANN_HAMMER);
     await writer.patch(APPRENTICE_ITEM_ID).set(APPRENTICE_MISTAKE).commit();
-    return Response.json({ ok: true, created: true });
+    return Response.json({ ok: true, created: !published });
   } catch (error) {
     console.error("Could not seed the apprentice's mistake:", error);
     return Response.json({ error: "write_failed" }, { status: 502 });

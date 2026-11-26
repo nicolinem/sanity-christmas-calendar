@@ -2,7 +2,7 @@ import type { BoardTask } from "@/game/modelBoard/modelBoard";
 
 export const bakerModelTask: BoardTask = {
   id: "baker-model",
-  note: "Bakerens notat: «Lussekatter til Brann, fredag. Ny.» Bakeren skriver status og dato om igjen hver gang og glemmer varen av og til.",
+  note: "Bakerens notat: «Lussekatter til Brann, i dag. Ny.»",
   slots: [
     { id: "text", label: "Tekst · `string`", about: "Ord som varierer" },
     { id: "date", label: "Dato · `date`", about: "En kalenderdato" },
@@ -15,7 +15,7 @@ export const bakerModelTask: BoardTask = {
   cards: [
     { id: "item", text: "Lussekatter" },
     { id: "orderedBy", text: "Brann" },
-    { id: "date", text: "fredag" },
+    { id: "date", text: "i dag" },
     { id: "status", text: "Ny" },
   ],
   decisions: [
@@ -60,7 +60,7 @@ export const bakerModelTask: BoardTask = {
       card: "date",
       accept: ["date"],
       feedback: {
-        text: "Hvis fredag bare er tekst, kan jeg ikke sortere bestillingene etter dato.",
+        text: "Står «i dag» bare som tekst, kan jeg ikke sortere bestillingene etter dato.",
         list: "En liste over alle mulige datoer blir aldri ferdig.",
       },
       toggles: {

@@ -5,14 +5,13 @@ import type { BakeryOrder, BakerySign } from "./bakery";
 // event, and what it writes to the sign shows in the village. Nothing is
 // deployed and their project is never written to.
 
-export type OrderEvent = {
-  transition: "publish";
-  document: BakeryOrder & { _type: "bakeryOrder" };
-};
-export type OrderFunction = (
-  event: OrderEvent,
-  context: { client: unknown },
-) => unknown;
+// The same arguments a real document Function gets: the document in
+// `event.data`, and client options in `context`. Here the options carry the
+// game's own client, which the code window's createClient hands back.
+export type OrderFunction = (args: {
+  context: { clientOptions: { gameClient: unknown } };
+  event: { data: BakeryOrder & { _type: "bakeryOrder" } };
+}) => unknown;
 export type Run = { item: string; wrote: boolean; error?: string };
 
 // The orders that were published since last time: new ones, and ones
@@ -57,10 +56,10 @@ export async function runOrderFunction(
     };
     const item = order.item?.trim() || "en bestilling uten vare";
     try {
-      await fn(
-        { transition: "publish", document: { ...order, _type: "bakeryOrder" } },
-        { client },
-      );
+      await fn({
+        context: { clientOptions: { gameClient: client } },
+        event: { data: { ...order, _type: "bakeryOrder" } },
+      });
       runs.push({ item, wrote });
     } catch (e) {
       runs.push({
