@@ -22,7 +22,7 @@ import SpriteImage from "../../components/SpriteImage"
 // og vis spriten ved siden av navnet.
 export const item = defineType({
   name: "item",
-  title: "Item",
+  title: "Gjenstand",
   type: "document",
   // fields: name, kind, sprite og description ligger i Studio
 

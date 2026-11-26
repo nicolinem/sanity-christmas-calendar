@@ -469,9 +469,9 @@ function SpritePickerPreview({ verdict }: { verdict: Verdict | null }) {
           }}
         >
           <option value="">Velg type først</option>
-          <option value="weapon">Weapon</option>
-          <option value="material">Material</option>
-          <option value="potion">Potion</option>
+          <option value="weapon">Våpen</option>
+          <option value="material">Materiale</option>
+          <option value="potion">Drikk</option>
         </select>
       </label>
       <Safe

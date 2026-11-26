@@ -3,7 +3,13 @@
 // recorded in Progress.crafted. Pure, so it runs anywhere (and in tests).
 
 import { addItems, MATERIALS, type MaterialId } from "./materials";
-import { RECIPES, isRecipeId, unlockedRecipes, type RecipeId } from "./recipes";
+import {
+  RECIPE_IDS,
+  RECIPES,
+  isRecipeId,
+  unlockedRecipes,
+  type RecipeId,
+} from "./recipes";
 import type { Progress } from "./quests/types";
 
 export type Forging = { _id: string; name: string; recipe: string | null };
@@ -95,4 +101,23 @@ export function recipeStates(p: Progress, forgings: Forging[]): RecipeState[] {
       missing,
     };
   });
+}
+
+// What the cave is for right now, shown under the floor in the cave HUD: the
+// next chest with a recipe, then that recipe against what you hold (the trip
+// counts here, since getting home makes it yours). Null when all is forged.
+export function caveGoal(
+  p: Pick<Progress, "chests" | "crafted" | "inventory" | "trip">,
+): string | null {
+  const done = Object.values(p.crafted);
+  const held = { ...p.inventory };
+  for (const [id, count] of Object.entries(p.trip))
+    held[id] = (held[id] ?? 0) + count;
+  for (const id of RECIPE_IDS) {
+    const { chest, name } = RECIPES[id];
+    if (!p.chests[chest])
+      return `Kista er på etasje ${chest.replace("cave-", "")}`;
+    if (!done.includes(id)) return `${name}: ${ingredientLine(held, id)}`;
+  }
+  return null;
 }

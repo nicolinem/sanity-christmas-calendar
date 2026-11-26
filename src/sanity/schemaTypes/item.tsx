@@ -13,15 +13,21 @@ import { isSolved, ItemIcon, ItemMedia, ItemSpriteInput } from "../lib/solved";
 // code window. What you see here is our version of the same code: it switches
 // on once you've solved the task there. This file is yours from Luke 4 on.
 // Look for the QUEST comments.
+const KINDS = [
+  { title: "Våpen", value: "weapon" },
+  { title: "Materiale", value: "material" },
+  { title: "Drikk", value: "potion" },
+];
+
 export const item = defineType({
   name: "item",
-  title: "Item",
+  title: "Gjenstand",
   type: "document",
   icon: ItemIcon,
   fields: [
     defineField({
       name: "name",
-      title: "Name",
+      title: "Navn",
       type: "string",
       // QUEST: Luke 3. Studio stopper like navn ved vanlig redigering. Dette er
       // ikke en databasebegrensning; API-mutasjoner valideres ikke av Studio-regler.
@@ -33,20 +39,18 @@ export const item = defineType({
           if (!isSolved("the-guilds-law") || !name || !document) return true;
           const client = getClient({ apiVersion: "2026-09-03" });
           const taken = await isNameTaken(client, name, document._id);
-          return taken ? `Another item is already called "${name}"` : true;
+          return taken
+            ? `Det finnes allerede en gjenstand som heter «${name}»`
+            : true;
         }),
       ],
     }),
     defineField({
       name: "kind",
-      title: "Kind",
+      title: "Sort",
       type: "string",
       options: {
-        list: [
-          { title: "Weapon", value: "weapon" },
-          { title: "Material", value: "material" },
-          { title: "Potion", value: "potion" },
-        ],
+        list: KINDS,
         layout: "radio",
         direction: "horizontal",
       },
@@ -62,7 +66,7 @@ export const item = defineType({
       type: "string",
       components: { input: ItemSpriteInput },
       description:
-        "How it looks in the game. Unknown sprites fall back to a default.",
+        "Slik ser den ut i spillet. En ukjent sprite blir byttet med en standard.",
       options: { list: KNOWN_SPRITE_IDS },
       // QUEST: Luke 3. Vår versjon av koden fra kodevinduet: bare våpen må ha en
       // sprite. Er først på når Luke 3 er løst i spillet.
@@ -73,19 +77,19 @@ export const item = defineType({
             context.document?.kind === "weapon" &&
             !sprite
           )
-            return "A weapon needs a sprite";
+            return "Et våpen trenger en sprite";
           if (
             isSolved("the-drawing-board") &&
             sprite &&
             !isSpriteAllowedForKind(sprite, context.document?.kind)
           )
-            return "This sprite does not match the item type";
+            return "Denne spriten passer ikke til sorten";
           return true;
         }),
     }),
     defineField({
       name: "description",
-      title: "Description",
+      title: "Beskrivelse",
       type: "text",
       rows: 2,
     }),
@@ -102,7 +106,7 @@ export const item = defineType({
     select: { title: "name", subtitle: "kind", spriteId: "sprite" },
     prepare: ({ title, subtitle, spriteId }) => ({
       title,
-      subtitle,
+      subtitle: KINDS.find((k) => k.value === subtitle)?.title ?? subtitle,
       media: <ItemMedia spriteId={spriteId} kind={subtitle} />,
     }),
   },

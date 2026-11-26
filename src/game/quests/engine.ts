@@ -68,6 +68,44 @@ export type QuestBoard = {
   total: number;
 };
 
+// Each luke in order with when it opens and whether every core luke before it
+// is done. `ignoreDates` (?dev) treats every date as come.
+function* openings(
+  chapters: Chapter[],
+  completed: Progress["completed"],
+  now: Date,
+  ignoreDates: boolean,
+) {
+  let previousResolved = true;
+  for (const chapter of chapters) {
+    for (const [index, quest] of chapter.quests.entries()) {
+      const chapterStart = chapterOpensAt(chapter, now);
+      const opensAt =
+        chapter.number <= 1 && index === 0
+          ? firstLukeOpensAt(chapterStart)
+          : chapterStart;
+      const dateOpen = ignoreDates || !opensAt || opensAt <= now;
+      yield { quest, chapter, opensAt, dateOpen, previousResolved };
+      // Bonus quests remain optional and never hold back the next core quest.
+      if (!quest.bonus) previousResolved = Boolean(completed[quest.id]);
+    }
+  }
+}
+
+// The lukes that are open now: their date has come and every core luke before
+// them is done. Handed over or not doesn't matter.
+export function openQuestIds(
+  chapters: Chapter[],
+  completed: Progress["completed"],
+  now: Date,
+  ignoreDates = false,
+): Set<string> {
+  const open = new Set<string>();
+  for (const o of openings(chapters, completed, now, ignoreDates))
+    if (o.previousResolved && o.dateOpen) open.add(o.quest.id);
+  return open;
+}
+
 // `devUnlock` (?dev) opens everything for testing, ignoring order and dates.
 export function evaluateQuests(
   chapters: Chapter[],
@@ -76,50 +114,45 @@ export function evaluateQuests(
   devUnlock = false,
 ): QuestBoard {
   const states: QuestState[] = [];
-  let previousResolved = true;
 
-  for (const chapter of chapters) {
-    for (const [index, quest] of chapter.quests.entries()) {
-      const chapterStart = chapterOpensAt(chapter, now);
-      const opensAt =
-        chapter.number <= 1 && index === 0
-          ? firstLukeOpensAt(chapterStart)
-          : chapterStart;
-      const dateOpen = devUnlock || !opensAt || opensAt <= now;
-      const result = quest.check(ctx);
-      const done = Boolean(ctx.progress.completed[quest.id]);
-      const unlocked = devUnlock || (previousResolved && dateOpen);
-      // An optional luke isn't handed over: it waits at its place once open.
-      const briefed =
-        Boolean(ctx.progress.briefed[quest.id]) ||
-        Boolean(quest.bonus) ||
-        quest.villageSite === "bakerySign";
-      // A door with its own place is picked up there after Brann's briefing.
-      const site = quest.villageSite;
-      const pickup =
-        briefed &&
-        site &&
-        site !== giverOf(quest).site &&
-        !ctx.progress.fetched?.[quest.id]
-          ? site
-          : undefined;
-      states.push({
-        quest,
-        chapter,
-        status: done
-          ? "done"
-          : !unlocked
-            ? "locked"
-            : briefed && !pickup
-              ? "active"
-              : "offered",
-        result,
-        opensAt: !done && previousResolved && !dateOpen ? opensAt : undefined,
-        ...(!done && unlocked && pickup ? { pickup } : {}),
-      });
-      // Bonus quests remain optional and never hold back the next core quest.
-      if (!quest.bonus) previousResolved = done;
-    }
+  for (const {
+    quest,
+    chapter,
+    opensAt,
+    dateOpen,
+    previousResolved,
+  } of openings(chapters, ctx.progress.completed, now, devUnlock)) {
+    const result = quest.check(ctx);
+    const done = Boolean(ctx.progress.completed[quest.id]);
+    const unlocked = devUnlock || (previousResolved && dateOpen);
+    // An optional luke isn't handed over: it waits at its place once open.
+    const briefed =
+      Boolean(ctx.progress.briefed[quest.id]) ||
+      Boolean(quest.bonus) ||
+      quest.villageSite === "bakerySign";
+    // A door with its own place is picked up there after Brann's briefing.
+    const site = quest.villageSite;
+    const pickup =
+      briefed &&
+      site &&
+      site !== giverOf(quest).site &&
+      !ctx.progress.fetched?.[quest.id]
+        ? site
+        : undefined;
+    states.push({
+      quest,
+      chapter,
+      status: done
+        ? "done"
+        : !unlocked
+          ? "locked"
+          : briefed && !pickup
+            ? "active"
+            : "offered",
+      result,
+      opensAt: !done && previousResolved && !dateOpen ? opensAt : undefined,
+      ...(!done && unlocked && pickup ? { pickup } : {}),
+    });
   }
 
   // The next core luke leads; an optional one only when no core luke waits.

@@ -105,7 +105,7 @@ function structureFrom(items) {
   return {
     structure: new Function(
       "S",
-      `return S.list().title("Content").items([${items}...S.documentTypeListItems()])`,
+      `return S.list().title("Innhold").items([${items}...S.documentTypeListItems()])`,
     ),
   };
 }

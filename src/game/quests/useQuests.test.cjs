@@ -127,6 +127,8 @@ function harness(
       },
     },
     "@/game/bakery": require("../bakery.ts"),
+    // Tested in studioTypes.test.cjs; nothing opens with the fixture chapters.
+    "@/game/studioTypes": { studioTypesOpen: () => [] },
     "./richText": { plainText: (text) => text },
     "./Toasts": { pushToast: (toast) => toasts.push({ ...toast }) },
   };

@@ -83,7 +83,8 @@ test("every wrong placement returns its own consequence", () => {
         [decision.card]: { slot: slot.id },
       }).requirements.find(({ label }) =>
         task.cards.some(
-          (card) => card.id === decision.card && card.text === label,
+          (card) =>
+            card.id === decision.card && (card.field ?? card.text) === label,
         ),
       );
       assert.equal(requirement.message, decision.feedback[slot.id]);
@@ -119,33 +120,31 @@ test("every board task covers every believable wrong slot", () => {
   }
 });
 
-test("the archive model has more cards than slots, and some must be weighed", () => {
+test("the archive model is a table of the fields Observasjon gets in Studio", () => {
   const board = BOARD_TASKS["archive-model"];
+  assert.equal(board.layout, "table");
+  assert.deepEqual(
+    board.cards.map(({ field }) => field),
+    ["Hva ble sett", "Tid", "Sted", "Vitne", "Så det selv", "Bilde", "Status"],
+  );
   const placement = {
-    time: { slot: "text" },
-    big: { slot: "text" },
     tracks: { slot: "text" },
-    smia: { slot: "place" },
+    time: { slot: "text" },
     place: { slot: "place" },
     witness: { slot: "witness" },
     seen: { slot: "boolean" },
     photo: { slot: "image" },
     status: { slot: "list" },
   };
-  assert.ok(board.cards.length > board.slots.length);
-  assert.equal(
-    board.cards.find(({ id }) => id === "seen").text,
-    "Kari så det selv (ikke hørt fra andre)",
-  );
   assert.equal(judgeBoard(board, placement).done, true);
-  const smiaAsText = judgeBoard(board, {
+  const placeAsText = judgeBoard(board, {
     ...placement,
-    smia: { slot: "text" },
+    place: { slot: "text" },
   });
-  assert.equal(smiaAsText.done, false);
+  assert.equal(placeAsText.done, false);
   assert.match(
-    smiaAsText.requirements.find(({ label }) => label === "Smia").message,
-    /samme stedet/,
+    placeAsText.requirements.find(({ label }) => label === "Sted").message,
+    /Per sted/,
   );
 });
 
@@ -177,7 +176,7 @@ test("a toggle left undecided is not an answer, and says nothing yet", () => {
   });
   const row = (label) =>
     verdict.requirements.find((requirement) => requirement.label === label);
-  assert.equal(row("Brann").done, false);
-  assert.equal(row("Brann").message, undefined);
-  assert.equal(row("Lussekatter").message, undefined);
+  assert.equal(row("Bestilt av").done, false);
+  assert.equal(row("Bestilt av").message, undefined);
+  assert.equal(row("Vare").message, undefined);
 });

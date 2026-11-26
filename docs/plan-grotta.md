@@ -199,7 +199,7 @@ Alle tallene her er **startverdier** (se del 8).
 | `src/game/cave/combat.ts` | Rene regler: `hitEnemy`, `hitPlayer`, `canDrink` og `xpFor`. Ingen Phaser og ingen React |
 | `src/game/cave/CaveScene.ts` | Phaser: tegning, bevegelse, oppførsel og varsler |
 | `src/game/materials.ts` | Materialene (fase A) |
-| `src/components/hud/CaveHud.tsx` | Hjerter, «Etasje 3», «Funnet på turen: 4», sjefens liv og «Gå hjem» |
+| `src/components/hud/CaveHud.tsx` | «Etasje 3», «På turen:» med ikon og antall per materiale, sjefens liv og «Gå hjem» |
 | `scripts/winterize-tiles.py` | Utvides til å lage `public/assets/winter-cave.png` |
 
 ### Typer
@@ -581,3 +581,89 @@ To ferdige typer, på samme måte som arkivet i uke 2. Spillerens egne filer (`i
 - Våpen, drikker eller andre typer ting fra oppskrifter.
 - En «Smi»-knapp (*document action*) og GROQ-oppgaven «Hva kan jeg lage nå?». De passer som luker senere.
 - Flere oppskrifter enn to, og oppskrifter fra steder utenfor grotta.
+
+## 16. Etter første spilltest (2026-11-26)
+
+Brukeren spilte grotta med flagget på og sa:
+
+- «jeg har ikke [våpenet] mitt equipped?» og «får ikke equippet?»
+- «Det sto funnet på turen: 2 men hadde ingenting i inventaret mitt?»
+- «Sto at jeg fikk gammel malm men ser det ikke i inventaret?»
+- «Litt for lett å slå monstre kanskje litt for få monstre?»
+- «Føler ingen utfordring i de første nivåene i alle fall. Jeg går sakte og lite ting å se eller lete etter(?)»
+- «Føles litt meningsløst og ikke vanskelig nok som i Stardew»
+
+### Rettet
+
+- **Våpenet i hånda.** Grotta tegnet aldri våpenet, bare figuren. Skaden kom fra våpenet, men du så det ikke, og et bytte på beltet så ut som om ingenting skjedde. Nå holder figuren våpenet i grotta, som i bygda, og det svinger når du slår.
+- **Funn fra turen.** Det var ikke en tapt lagring. Funnene ligger i `trip` til du er trygg (del 4), men Ting-fanen viste bare `inventory`. Besvimte du, forsvant funnene uten at det sto hva du mistet. Nå:
+  - viser Ting «Fra grotta» med «3 på turen» ved hvert materiale, og én linje om når funnene blir dine;
+  - viser HUD-en «På turen:» med ikon og antall per materiale;
+  - sier toasten hva du tok med hjem («Du har 1 isskår og 3 gammel malm i sekken nå.»), hva som ble trygt på en hvileplass, og hva som ble liggende igjen da du besvimte.
+
+### Mer utfordring og mer å lete etter (besluttet og bygd 2026-11-26)
+
+Brukeren valgte hele forslaget, også 4c og 5b.
+
+**Mål.** Etasje 1–4 skal kjennes som en prøve, ikke en gåtur. Det skal også være noe å se etter, og en grunn til å gå én etasje til.
+
+**Hvorfor det er lett i dag.** Del 8 sier at et vanlig monster skal ta 2–4 slag på nivået `ceil(etasje / 2) + 1`. Men deltakerne får mest XP fra lukene, og kommer ned i grotta på et høyere nivå enn det:
+
+| Hva | Tall | Merkelapp |
+| --- | --- | --- |
+| Monstre på etasje 1 | 2–3, snitt 2,5. Bare rotter og slim, ingen reir, aldri sperret trapp | Målt i generatoren, 1 000 seeds, 2026-11-26 |
+| Monstre på etasje 2 | 2–5, snitt 3,3 | Målt, som over |
+| Monstre på etasje 3–4 | 1–10, snitt 7,6–8,4 | Målt, som over |
+| Nivå etter 8 luker (800 XP) | 4, som gir 10 skade (+0–2) | Regnet ut fra `rules.ts` |
+| Slag til en rotte på etasje 1 | 2 på nivå 4, 1 fra nivå 5 | Regnet ut fra `combat.ts` |
+| Slag til et slim på etasje 1 | 2 fra nivå 3 | Regnet ut, som over |
+| Bitt fra rotte og slim på etasje 1–2 | ½ hjerte, med 1 s pause etterpå | `enemies.ts` og `combat.ts` |
+| Ganghastighet | 64 px/s, 4 ruter i sekundet. Etasje 1 er 48 ruter bred, så det tar 12 s å gå over | Regnet ut fra `CaveScene.ts` |
+| Ting å finne | Bare steiner (40 % malm, 15 % isskår) og reirkista. Monstrene slipper ingenting | `combat.ts`, `generate.ts` |
+
+**Det som er bygd.** Hvert tall er en startverdi. Testen og hva vi gjør hvis den feiler, står i tabellen under.
+
+1. **Flere monstre.**
+   - Etasje 1: 4–5 monstre i det andre rommet. Startrommet er fortsatt tomt.
+   - Etasje 2: 5–6. Det andre rommet får 4–5, og startrommet får ett monster, så langt fra startpunktet som rommet tillater (aldri innenfor `AGGRO_RANGE`). Ett rom har bare 5–7 plasser, så 5–7 i ett rom gikk ikke.
+   - Vanlige rom fra etasje 3: 3–4 monstre, ikke 2–3. Startrommets ene monster står også der langt fra start.
+   - Taket går fra 10 til 12 per etasje.
+2. **Et vanlig monster tåler alltid minst to slag** fra våpenet du har i hånda da monsteret kom fram, og et slim minst tre. Det regnes med det beste kastet (+2) og uten element (`sturdyHp` i `combat.ts`). Et element monsteret er svakt for, kan fortsatt gjøre det på færre slag. Sjefene har sitt eget liv. Det gjør regelen i del 8 sann også for den som kommer ned på nivå 5. Du merker fortsatt nivået: 2 slag i stedet for 4, og mer XP dypere ned.
+3. **Raskere gange i grotta:** 80 px/s, 5 ruter i sekundet, i stedet for 64. Etasje 1 tar 9,6 s å gå over. Monstre som jager, blir 20 % raskere (rotte 55, slim 26, flaggermus 48), så de ikke blir lettere å løpe fra. Storming og kast er som før. Bygda er som før.
+4. **Noe å lete etter.**
+   - a. **Malmårer.** 1–2 steiner per etasje glitrer. Stein-ruta er farget varm og tegnes uten lys, som fakkelflammene, så den gløder i mørket. Små gnister stiger opp, men ikke med `prefers-reduced-motion`. En åre gir alltid 2 gammel malm. Den fikk ikke eget lys, fordi en etasje kan ha opptil 16 fakler og taket er 20 lys.
+   - b. **Monstre slipper noe.** 1 av 4 slipper ett materiale. Del 5 sa «noen monstre gir materialer», men det ble aldri bygd.
+   - c. **Trappa under en stein.** På omtrent hver tredje etasje fra etasje 2 ligger trappa under en stein i rommet sitt, slik stigen kan dukke opp når du knuser steiner i gruvene i Stardew ([The Mines](https://stardewvalleywiki.com/The_Mines)). Det skjer aldri på en etasje med sperret trapp. HUD-en sier «Trappa ligger under en stein.» Trappa, lyset og «Gå ned trappa» kommer når steinen er knust.
+5. **Grunn til å gå dypere.**
+   - a. **Isskår ligger dypere.** På etasje 1–2 gir steinene 5 % isskår, på 3–4 gir de 15 % som i dag, og fra etasje 6 gir de 25 %. Malm er 40 % overalt. Isskjoldet trenger 2 isskår og ishjelmen 4.
+   - b. **Målet vises i grotta.** Under «Etasje 2» står «Kista er på etasje 5» til den er åpnet. Etterpå står den første oppskriften som ikke er smidd, med det du har hjemme og på turen, for eksempel «Isskjold: Gammel malm 3/4 · Isskår 1/2» (`caveGoal` i `forge.ts`). Så «Kista er på etasje 10», og ingenting når alt er smidd.
+   - Beskjeder om trappa står på egen linje under knappene, så «Gå hjem» blir stående.
+
+| Tall | Startverdi | Test | Hvis testen feiler |
+| --- | --- | --- | --- |
+| Monstre, etasje 1 / 2 / vanlig rom | 4–5 / 5–6 / 3–4, tak 12 | Generatortest med 1 000 seeds. Én gjennomspilling: en etasje tar 1–3 minutter (del 8) | Ett monster færre per rom |
+| Minste antall slag | 2, slim 3 | Enhetstest: på alle nivåer 1–10 og etasje 1–10 tar et vanlig monster minst 2 slag (slim 3) med beste kast. Testen fra del 8 (2–5 slag på forventet nivå) står fortsatt | Ned til 2 for slim |
+| Ganghastighet | 80 px/s, jagere +20 % | Ingen tester sier «sakte». Ingen sier at de ikke treffer | 72 px/s |
+| Malmårer | 1–2 per etasje, 2 malm | Testeren ser dem uten å bli fortalt det | Sterkere glitring |
+| Monster slipper noe | 25 %, 1 materiale | Isskjoldet kan smis etter 2–3 turer til etasje 5 | 35 % |
+| Isskår etter dybde | 5 / 15 / 25 % | Som over | Juster 15 % til 20 % |
+| Trappa under en stein | 1 av 3 etasjer fra 2 | Ingen tester sier at de satt fast | Hver femte, eller ta den bort |
+
+**Fem spørsmål** (`luke-design`, avsnitt 3):
+
+| Spørsmål | Nå | Etter | Hvorfor |
+| --- | --- | --- | --- |
+| Tydelig | ~ | ✓ | Funnene og våpenet vises nå. Glitringen sier hvor det er verdt å slå |
+| Verdt det | ✗ | ~ | Funn fra monstre og årer gir mer å smi, og isskår gir grunn til å gå dypere. Uten 5b er målet fortsatt litt gjemt |
+| Svarer | ✓ | ✓ | Flytende tall, snøsky og toast som før |
+| Belønnende | ~ | ✓ | Flere kamper som tar to slag eller mer, og funn du ser i sekken |
+| Passer | ✓ | ✓ | Ingen nye begreper, ingen ny grafikk. Bare Kenney-ruter som finnes |
+
+**Risiko og misbruk.**
+
+- Flere monstre kan gjøre etasje 3–4 for tung for den som kommer på nivå 2. Brann sier allerede «vent til nivå 2», og drikkene og hvileplassen hjelper.
+- Regelen om minst to slag kan gjøre at et nytt våpen ikke kjennes sterkere på etasje 1. Det kjennes dypere ned, der monstrene har mer liv enn minstegrensen.
+- Trappa under en stein (4c) kan gjøre at noen leter lenge. Derfor er den valgfri, og aldri på en etasje med sperret trapp.
+
+**Hva vi justerer først** hvis det ikke føles riktig: antall monstre, så ganghastigheten, og først til slutt liv og skade.
+

@@ -78,8 +78,8 @@ const theBrokenForge: Quest = {
     why: "Du lærer det grunnleggende i Studio: lage et *document*, fylle det ut og publisere det. Våpenet ditt brukes også videre i de neste lukene.",
   },
   steps: [
-    "Åpne Sanity Studio og lag et nytt *Item*-dokument.",
-    "Sett *Kind* til *Weapon*, og gi det et navn og en sprite.",
+    "Åpne Sanity Studio og lag en ny *Gjenstand*.",
+    "Sett *Sort* til *Våpen*, og gi den et navn og en sprite.",
     "Trykk *Publish*.",
     "Gå til snømonsteret øst for brønnen, og slå med mellomrom.",
   ],
@@ -90,7 +90,7 @@ const theBrokenForge: Quest = {
   where: "I Sanity Studio.",
   hints: [
     {
-      text: "Alt i Studio er *documents*. Et våpen er et *Item*-dokument der *Kind* er satt til *Weapon*.",
+      text: "Alt i Studio er *documents*. Et våpen er en *Gjenstand* der *Sort* er satt til *Våpen*.",
       link: {
         label: "Hello, Studio",
         url: `${LEARN}/day-one-with-sanity-studio/hello-studio`,
@@ -158,12 +158,12 @@ const weaponDescription: Quest = {
   ],
   goal: "Endre våpenets beskrivelse, skriv minst én hel setning, og publiser.",
   explain: {
-    what: "En salgstekst i feltet *Description* på våpenet ditt. Samme tekst vises to steder: første setning på tavla i smia, og hele teksten i tingene dine.",
+    what: "En salgstekst i feltet *Beskrivelse* på våpenet ditt. Samme tekst vises to steder: første setning på tavla i smia, og hele teksten i tingene dine.",
     why: "Kunden må skjønne hva våpenet er godt for før hun kjøper det. Retter Brann teksten senere, er den riktig både på tavla og i tingene dine.",
   },
   steps: [
     "Åpne våpenet ditt i Studio.",
-    "Skriv minst én hel setning i feltet *Description*.",
+    "Skriv minst én hel setning i feltet *Beskrivelse*.",
     "Trykk *Publish*.",
     "Se på tavla i smia og i tingene dine (I).",
   ],
@@ -174,7 +174,7 @@ const weaponDescription: Quest = {
   where: "I Sanity Studio, på våpenet du publiserte i første luke.",
   hints: [
     {
-      text: "Feltet *Description* ligger under navnet på våpenet. I tingene dine (I) ser du hele teksten når du holder musa over våpenet.",
+      text: "Feltet *Beskrivelse* ligger under navnet på våpenet. I tingene dine (I) ser du hele teksten når du holder musa over våpenet.",
       link: { label: "String type", url: `${DOCS}/string-type` },
     },
     {
@@ -315,14 +315,14 @@ const brannsLedger: Quest = {
   villageSite: "noticeboard",
   intro: [
     "I går skulle jeg finne den nye øksa i Studio, men lista viser bare navn. Jeg åpnet tre sverd før jeg endelig fant den.",
-    "Jeg har hengt våpenlista på oppslagstavla. Velg et ikon for Item, og vis navn og bilde for hvert våpen, så jeg slipper å lete neste gang.",
+    "Jeg har hengt våpenlista på oppslagstavla. Velg et ikon for gjenstandene, og vis navn og bilde for hvert våpen, så jeg slipper å lete neste gang.",
   ],
   outro: [
     "Nå kjenner jeg igjen hvert våpen på bildet, uten å åpne et eneste ett.",
   ],
-  goal: "Velg et `icon` for *Item*, og vis navn og sprite i hvert våpens *preview*.",
+  goal: "Velg et `icon` for *Gjenstand*, og vis navn og sprite i hvert våpens *preview*.",
   explain: {
-    what: "To ting i *schema*-koden for *Item*: et ikon for hele dokumenttypen, og en *preview* som viser navn og sprite for hvert våpen i lista i Studio.",
+    what: "To ting i *schema*-koden for `item`: et ikon for hele dokumenttypen, og en *preview* som viser navn og sprite for hvert våpen i lista i Studio.",
     why: "Med bilde i lista finner Brann riktig våpen med ett blikk, i stedet for å åpne dem ett for ett.",
   },
   goalPreview: {
@@ -360,7 +360,7 @@ const brannsLedger: Quest = {
   },
   checkedBy: "window",
   studioPractice:
-    "Vil du se det i Studio? Finn ikonet du valgte for *Item*. Åpne dokumentlista, og finn våpenet ditt ved hjelp av navn og sprite.",
+    "Vil du se det i Studio? Finn ikonet du valgte for *Gjenstand*. Åpne dokumentlista, og finn våpenet ditt ved hjelp av navn og sprite.",
   check: fromWindow("branns-ledger"),
 };
 
@@ -433,7 +433,7 @@ const theGuildsLaw: Quest = {
   },
   checkedBy: "window",
   studioPractice:
-    "Vil du teste i Studio? Lag et *Weapon* uten sprite og prøv *Publish*. Prøv også uten navn og med et navn som allerede finnes. Studio skal nekte alle tre. Slett utkastene etterpå.",
+    "Vil du teste i Studio? Lag et våpen uten sprite og prøv *Publish*. Prøv også uten navn og med et navn som allerede finnes. Studio skal nekte alle tre. Slett utkastene etterpå.",
   check: fromWindow("the-guilds-law"),
 };
 
@@ -493,7 +493,7 @@ const theDrawingBoard: Quest = {
   },
   checkedBy: "window",
   studioPractice:
-    "Vil du prøve det i Studio? Åpne våpenet fra første luke, bytt sprite og trykk *Publish*. Se endringen i spillet. Test gjerne også valgene for *Material* og knappen som fjerner valget.",
+    "Vil du prøve det i Studio? Åpne våpenet fra første luke, bytt sprite og trykk *Publish*. Se endringen i spillet. Test gjerne også valgene for *Materiale* og knappen som fjerner valget.",
   check: fromWindow("the-drawing-board"),
 };
 
@@ -729,18 +729,18 @@ const archiveModel: Quest = {
   ],
   outro: [
     "Nå har hver opplysning sin egen plass. Neste gang noen spør hva som skjedde ved smia, finner Studio det for meg.",
-    "Åpne Studio og se: valgene dine er blitt feltene i *Observation*.",
+    "Åpne Studio og se: valgene dine er blitt feltene i *Observasjon*.",
   ],
-  goal: "Sorter bitene i notatet etter hvordan de bør lagres.",
+  goal: "Velg en type for hvert felt Arkivaren vil ha i Studio.",
   explain: {
-    what: "En innholdsmodell: for hver del av notatet bestemmer du hvilken type felt det blir i Studio. Når brettet er løst, slår spillet på de feltene i *Observation*.",
+    what: "En innholdsmodell: for hvert felt Arkivaren vil ha, bestemmer du hvilken type det blir i Studio. Når brettet er løst, slår spillet på de feltene i *Observasjon*.",
     why: "Felttypen avgjør hva du kan gjøre med innholdet senere: sortere på tid, filtrere på status, samle alt fra ett sted. Det er denne samtalen du har med utviklerne før de lager *schema*-et.",
   },
   steps: [
     "Trykk «Åpne modellbrettet».",
-    "Velg et kort fra notatet, og trykk «Legg valgt kort her» på feltet det hører hjemme i.",
-    "Et kort som ligger riktig, får en hake. Ligger det feil, forklarer Arkivaren hvorfor.",
-    "Når alle kortene har hake, er notatet ryddet.",
+    "Hver rad er et felt Observasjon skal ha i Studio, med eksempelet fra notatet. Velg en type for hvert.",
+    "Et felt med riktig type får en hake. Er typen feil, forklarer Arkivaren hvorfor.",
+    "Når alle feltene har hake, er notatet ryddet.",
   ],
   goalPreview: {
     before: "Ett notat der alt er blandet sammen.",
@@ -779,7 +779,7 @@ const whoIsLying: Quest = {
   topic: "*Reference*",
   intro: [
     "Det er fem historier hele bygda snakker om. Men under Bakeriet mangler én av dem, for noen skrev «bakriet».",
-    "Regelen min: noe er *Confirmed* hvis vitnet så det selv og har bilde, eller hvis et annet vitne så det samme på samme sted. Alt annet er *Rumor*.",
+    "Regelen min: noe er *Bekreftet* hvis vitnet så det selv og har bilde, eller hvis et annet vitne så det samme på samme sted. Alt annet er *Rykte*.",
   ],
   outro: [
     "Nå vet jeg hva som er fakta og hva som er rykter. Men folk på torget tror fortsatt på det de har hørt.",
@@ -787,20 +787,20 @@ const whoIsLying: Quest = {
   ],
   goal: "Koble observasjon C til Bakeriet, gi alle fem riktig *Status*, og publiser.",
   explain: {
-    what: "Du kobler én observasjon til riktig sted med en *reference*, og gir alle fem en status: *Confirmed* eller *Rumor*.",
+    what: "Du kobler én observasjon til riktig sted med en *reference*, og gir alle fem en status: *Bekreftet* eller *Rykte*.",
     why: "En *reference* samler alt fra Bakeriet på samme liste, uansett hvordan noen staver navnet. Statusen er det som skiller fakta fra rykter.",
   },
   steps: [
-    "Åpne observasjon C i Studio, og velg Bakeriet i feltet *Place*.",
+    "Åpne observasjon C i Studio, og velg Bakeriet i feltet *Sted*.",
     "Åpne «Per sted» og se hvem som så hva på samme sted.",
-    "Gi hver av de fem observasjonene *Confirmed* eller *Rumor* etter regelen.",
+    "Gi hver av de fem observasjonene *Bekreftet* eller *Rykte* etter regelen.",
     "Trykk *Publish* på hver av dem.",
   ],
   goalPreview: {
     before: "Under Bakeriet står bare B. C er stavet «bakriet».",
     after: "C peker på Bakeriet, og begge er vurdert.",
   },
-  where: "I Sanity Studio, under *Observation* og «Per sted».",
+  where: "I Sanity Studio, under *Observasjon* og «Per sted».",
   hints: [
     {
       text: "Start med de som står alene. A har bilde, og E er hørt fra andre. Da gjenstår tre ved Bakeriet.",
@@ -858,14 +858,14 @@ const caseFile: Quest = {
     "Saksmappa henger på torget, og krangelen har stilnet. Store fotspor ved smia og en revnet melsekk ved bakeriet, og ingen ble skadet. Markedet går som planlagt.",
     "Mappa peker på observasjonene i stedet for å kopiere dem. Prøv å gi Bakeriet et nytt navn i Studio og publiser: tavla på torget følger med.",
   ],
-  goal: "Lag og publiser en *Case* med alle de bekreftede observasjonene i tidsrekkefølge, og ingen rykter.",
+  goal: "Lag og publiser en *Saksmappe* med alle de bekreftede observasjonene i tidsrekkefølge, og ingen rykter.",
   explain: {
-    what: "En saksmappe, et *Case*-dokument, med en liste av *references* til de bekreftede observasjonene, i den rekkefølgen de skjedde. Den henges opp på oppslagstavla på torget.",
+    what: "En *Saksmappe* med en liste av *references* til de bekreftede observasjonene, i den rekkefølgen de skjedde. Den henges opp på oppslagstavla på torget.",
     why: "Mappa peker på observasjonene i stedet for å kopiere dem. Retter noen en observasjon, er mappa riktig med en gang.",
   },
   steps: [
-    "Lag et nytt *Case*-dokument i Studio, og gi det en tittel.",
-    "Under *Observations*: trykk «Add item» og velg en bekreftet observasjon. Gjør det for alle.",
+    "Lag en ny *Saksmappe* i Studio, og gi den en tittel.",
+    "Under *Observasjoner*: trykk «Add item» og velg en bekreftet observasjon. Gjør det for alle.",
     "Sett dem i tidsrekkefølge, det som skjedde først øverst.",
     "Trykk *Publish*, og se saksmappa på oppslagstavla på torget.",
   ],
@@ -873,13 +873,13 @@ const caseFile: Quest = {
     before: "Løse lapper, rykter også, på tavla.",
     after: "Én saksmappe med bare det som er sikkert, i tidsrekkefølge.",
   },
-  where: "I Sanity Studio, under *Case*.",
+  where: "I Sanity Studio, under *Saksmappe*.",
   hints: [
     {
       text: "Lista «Bare bekreftede» i Studio viser hvilke observasjoner som skal med.",
     },
     {
-      text: "Trykk *Add item* under *Observations*, og skriv noen bokstaver av det som ble sett, for eksempel «fotspor». Velg treffet.",
+      text: "Trykk *Add item* under *Observasjoner*, og skriv noen bokstaver av det som ble sett, for eksempel «fotspor». Velg treffet.",
     },
     {
       text: "Står de i feil rekkefølge? Dra i håndtaket til venstre på en observasjon for å flytte den. Klokkeslettet står i hver av dem.",
@@ -889,7 +889,7 @@ const caseFile: Quest = {
   learn: { label: "Array of references", url: `${DOCS}/array-type` },
   lesson: {
     title: "En liste av *references*",
-    text: "Én *Case* kan peke på mange observasjoner uten å kopiere dem, og lista husker rekkefølgen du la dem i. Tavla følger referansene videre til stedsnavnet, så en endring slår gjennom overalt.",
+    text: "Én *Saksmappe* kan peke på mange observasjoner uten å kopiere dem, og lista husker rekkefølgen du la dem i. Tavla følger referansene videre til stedsnavnet, så en endring slår gjennom overalt.",
     atWork:
       "Én kilde, mange steder: endrer du den ett sted, er den riktig overalt.",
   },
@@ -1233,7 +1233,7 @@ const morningRush: Quest = {
     "Åpne bestillingene i Studio.",
     "Fyll inn datoen på Arkivarens bestilling.",
     "Spør Kari ved huset vest i bygda hva hun bestilte, og fyll inn varen hennes.",
-    "Velg *Klar* på alle fire. Den ligger i menyen ved siden av *Publish*.",
+    "Trykk *Klar* på alle fire. Den står nederst til høyre, der *Publish* pleier å stå.",
   ],
   goalPreview: {
     before: "To av fire lapper har mangler, og ingen er klare.",
@@ -1250,7 +1250,7 @@ const morningRush: Quest = {
       link: { label: "Document actions", url: `${DOCS}/document-actions` },
     },
     {
-      text: "Har du trykket *Publish* i stedet? Da er status fortsatt den gamle. Trykk *Klar* også; den setter status og publiserer i ett.",
+      text: "Har du trykket *Publish* fra menyen i stedet? Da er status fortsatt den gamle. Trykk *Klar* også; den setter status og publiserer i ett.",
     },
   ],
   learn: { label: "Document actions", url: `${DOCS}/document-actions` },

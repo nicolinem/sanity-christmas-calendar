@@ -48,7 +48,8 @@ export type WorldState = {
   area: "bygda" | "grotta"; // which scene the player is in
   // The floor and life, while in the cave. `stairsLocked`: the knight is in
   // the stairs room and its monsters still guard the way down. `boss`: the
-  // floor's boss while it lives, else null. `bottomNear`: on the deepest
+  // floor's boss while it lives, else null. `stairsHidden`: the stairs lie
+  // under a rock not yet broken. `bottomNear`: on the deepest
   // floor, the knight stands where the stairs would be.
   cave: {
     depth: number;
@@ -57,6 +58,7 @@ export type WorldState = {
     hp: number;
     maxHp: number;
     stairsLocked: boolean;
+    stairsHidden: boolean;
     boss: { name: string; hp: number; maxHp: number } | null;
     bottomNear: boolean;
   } | null;
@@ -121,6 +123,7 @@ type EventMap = {
   reachedFloor: number; // cave → HUD: a new floor was entered
   leftCave: void; // cave → HUD: back in the village
   caveAttack: void; // HUD → cave: swing
+  villageSwing: void; // HUD → village: Space away from the wraith swings at the air
   drink: string; // HUD → cave: drink this item (id)
   drinkResult: "ok" | "again" | "limit" | "full"; // cave → HUD
   enemyDefeated: { enemy: EnemyId; depth: number }; // cave → HUD

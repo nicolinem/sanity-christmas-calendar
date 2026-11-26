@@ -52,10 +52,15 @@ import {
   weekSummary,
 } from "@/game/quests/weeks";
 import Opening from "./hud/Opening";
+import {
+  backupWanted,
+  startProgressBackup,
+} from "@/game/quests/progressBackup";
 import { useProgress, useQuestBoard } from "./hud/useQuests";
 import {
   PLAYER_ID,
   PROGRESS_PROJECT,
+  readProgress,
   updateProgress,
 } from "@/game/quests/progress";
 import {
@@ -72,14 +77,21 @@ import { levelUpToast } from "@/game/levelUp";
 import CaveLeaveConfirm from "./hud/CaveLeaveConfirm";
 import { ropeFloors } from "@/game/cave/floors";
 import { CHEST_TOASTS } from "@/game/cave/chests";
-import { applyForgings, type Forging } from "@/game/forge";
+import { applyForgings, caveGoal, type Forging } from "@/game/forge";
 import { RECIPES, unlockedRecipes } from "@/game/recipes";
 
 const FORGED_GEAR = new Set<string>(
   Object.values(RECIPES).map((recipe) => recipe.gear),
 );
 import { xpFor } from "@/game/cave/combat";
-import { addToTrip, bankTrip, dropTrip, secureTrip } from "@/game/cave/trip";
+import {
+  addToTrip,
+  bankTrip,
+  dropTrip,
+  caveFinds,
+  findsText,
+  secureTrip,
+} from "@/game/cave/trip";
 import { useWindowActive } from "./hud/useWindowActive";
 import ArchiveNoticeboard from "./hud/ArchiveNoticeboard";
 import ForgeDescription from "./hud/ForgeDescription";
@@ -199,6 +211,14 @@ function useCaveStairsLocked() {
   );
 }
 
+function useCaveStairsHidden() {
+  return useSyncExternalStore(
+    (cb) => bridge.on("world", cb),
+    () => bridge.world.cave?.stairsHidden ?? false,
+    () => false,
+  );
+}
+
 function useCaveBottomNear() {
   return useSyncExternalStore(
     (cb) => bridge.on("world", cb),
@@ -273,6 +293,7 @@ export default function GameClient() {
   const caveHp = useCaveHp();
   const caveBoss = useCaveBoss();
   const caveStairsLocked = useCaveStairsLocked();
+  const caveStairsHidden = useCaveStairsHidden();
   const caveBottomNear = useCaveBottomNear();
   const caveView = useCaveView();
   const narrow = useNarrow();
@@ -382,6 +403,20 @@ export default function GameClient() {
       })
       .catch(() => {}); // The shared project is optional; the game stays playable offline.
   }, []);
+  // A copy of the progress in the player's own project, so another browser
+  // gets it back. Nothing is shared with the others until it has answered, so
+  // a choice made in another browser (stop sharing, remove the figure) counts.
+  const [backupSettled, setBackupSettled] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      !backupWanted(PROGRESS_PROJECT, window.location.search),
+  );
+  useEffect(() => {
+    if (backupWanted(PROGRESS_PROJECT, window.location.search))
+      return startProgressBackup(PROGRESS_PROJECT, {
+        onSettled: () => setBackupSettled(true),
+      });
+  }, []);
   const dev = useDevMode();
   const ghosts = dev ? DEV_GHOSTS : communityGhosts;
   // The figure as worn: gear the player hasn't earned (yet) is left off.
@@ -453,14 +488,17 @@ export default function GameClient() {
       if (progress.shareProfile && !shareProfile) withdrawCommunityProfile();
       const written =
         about.food || about.activity || about.topics.length || about.saying;
+      const at = new Date().toISOString();
       updateProgress(PROGRESS_PROJECT, (p) => ({
         ...p,
         figure: { ...choice },
         name: name || undefined,
         about: written ? about : undefined,
+        lookAt: at,
         shareProfile,
         shareHints,
         sharePrompted: true,
+        shareAt: at,
         introSeen: true,
       }));
       setSheetOpen(false);
@@ -468,6 +506,26 @@ export default function GameClient() {
     },
     [progress.shareProfile, withdrawCommunityProfile],
   );
+  // «Fjern figuren min»: off «Hvem er med», and figure and name gone, here
+  // and in the backup.
+  const removeFigure = useCallback(() => {
+    withdrawCommunityProfile();
+    const at = new Date().toISOString();
+    updateProgress(PROGRESS_PROJECT, (p) => {
+      const next = {
+        ...p,
+        lookAt: at,
+        shareProfile: false,
+        sharePrompted: true,
+        shareAt: at,
+      };
+      delete next.figure;
+      delete next.name;
+      delete next.about;
+      return next;
+    });
+    setSheetOpen(false);
+  }, [withdrawCommunityProfile]);
   const begin = useCallback(() => {
     setEntryStage(progress.trackChosen ? "welcome" : "track");
   }, [progress.trackChosen]);
@@ -478,6 +536,7 @@ export default function GameClient() {
         ...p,
         shareProfile,
         sharePrompted: true,
+        shareAt: new Date().toISOString(),
       }));
       setEntryStage("game");
     },
@@ -651,6 +710,7 @@ export default function GameClient() {
   useEffect(() => {
     if (
       !communityReady ||
+      !backupSettled ||
       configured !== true ||
       PROGRESS_PROJECT === "demo" ||
       !progress.shareProfile ||
@@ -688,6 +748,7 @@ export default function GameClient() {
     }).catch(() => {});
   }, [
     communityReady,
+    backupSettled,
     configured,
     progress.completed,
     progress.shareProfile,
@@ -967,10 +1028,13 @@ export default function GameClient() {
   useEffect(
     () =>
       bridge.on("fainted", () => {
+        const lost = findsText(readProgress(PROGRESS_PROJECT).trip);
         updateProgress(PROGRESS_PROJECT, dropTrip);
         pushToast({
           title: "Du besvimte",
-          body: "Du våknet hos Brann. Det du fant på turen, ble liggende igjen.",
+          body: lost
+            ? `Du våknet hos Brann, men ${lost} ble liggende igjen i grotta.`
+            : "Du våknet hos Brann.",
           tone: "lesson",
         });
       }),
@@ -1001,9 +1065,17 @@ export default function GameClient() {
   // A resting place: the trip's finds so far are safe.
   useEffect(
     () =>
-      bridge.on("restReached", () =>
-        updateProgress(PROGRESS_PROJECT, secureTrip),
-      ),
+      bridge.on("restReached", () => {
+        const safe = findsText(readProgress(PROGRESS_PROJECT).trip);
+        updateProgress(PROGRESS_PROJECT, secureTrip);
+        // Said only when something was made safe: the rope starts here too.
+        if (safe)
+          pushToast({
+            title: "En hvileplass",
+            body: `Livet er fylt opp, og ${safe} ligger trygt i sekken.`,
+            tone: "lesson",
+          });
+      }),
     [],
   );
   // A trip left open by a closed tab: its finds are banked once on mount.
@@ -1013,7 +1085,14 @@ export default function GameClient() {
   useEffect(
     () =>
       bridge.on("leftCave", () => {
+        const home = findsText(readProgress(PROGRESS_PROJECT).trip);
         updateProgress(PROGRESS_PROJECT, bankTrip);
+        if (home)
+          pushToast({
+            title: "Hjemme med funnene",
+            body: `Du har ${home} i sekken nå.`,
+            tone: "forge",
+          });
         const target = pendingTravel.current;
         pendingTravel.current = null;
         if (target) bridge.emit("travelToSite", target);
@@ -1044,7 +1123,8 @@ export default function GameClient() {
     () => bridge.emit("caveAttack", undefined),
     [],
   );
-  const found = Object.values(progress.trip).reduce((sum, n) => sum + n, 0);
+  const found = useMemo(() => caveFinds({}, progress.trip), [progress.trip]);
+  const caveGoalText = useMemo(() => caveGoal(progress), [progress]);
   useEffect(
     () =>
       bridge.on("drinkResult", (result) => {
@@ -1110,18 +1190,20 @@ export default function GameClient() {
     side.states.some(
       (s) => s.quest.id === "kari-saw" && s.status === "active",
     ) ||
+    // As soon as week 2 has opened, when Studio starts showing Observasjon,
+    // whether or not Arkivaren has handed the luke over yet: a player who
+    // looks in Studio first (or jumps ahead) finds the five there. In the
+    // non-technical track the board's fields stay hidden until it is solved.
+    Boolean(progress.studioTypes?.observation) ||
     board.states.some(
       (s) =>
-        // From the model board on: the five are in Studio, with the board's
-        // fields hidden, when the board is solved. The technical track needs
-        // them for its lists and document view (luke 6–7) in Studio.
         [
           "archive-model",
           "who-is-lying",
           "case-file",
           "archive-lists",
           "who-points-here",
-        ].includes(s.quest.id) && s.status === "active",
+        ].includes(s.quest.id) && s.status !== "locked",
     );
   const archiveTrack = progress.track;
   useEffect(() => {
@@ -1574,6 +1656,19 @@ export default function GameClient() {
         combat.attack();
         return;
       }
+      // Elsewhere in the village Space swings at the air, like in the cave,
+      // so the key always does something. Not while talking or typing.
+      if (
+        e.key === " " &&
+        area === "bygda" &&
+        !talkOpen &&
+        !onControl &&
+        !(e.target as HTMLElement)?.closest?.("input, textarea")
+      ) {
+        e.preventDefault();
+        bridge.emit("villageSwing", undefined);
+        return;
+      }
       if (
         e.key === " " &&
         area === "grotta" &&
@@ -1711,6 +1806,8 @@ export default function GameClient() {
                 found={found}
                 boss={caveBoss}
                 stairsLocked={caveStairsLocked}
+                stairsHidden={caveStairsHidden}
+                goal={caveGoalText}
                 bottomNear={caveBottomNear}
                 onLeave={leaveCave}
                 waiting={studio.open}
@@ -1881,6 +1978,8 @@ export default function GameClient() {
                   found={found}
                   boss={caveBoss}
                   stairsLocked={caveStairsLocked}
+                  stairsHidden={caveStairsHidden}
+                  goal={caveGoalText}
                   bottomNear={caveBottomNear}
                   onLeave={leaveCave}
                   onAttack={attackInCave}
@@ -2076,10 +2175,12 @@ export default function GameClient() {
             onEquip={handleEquip}
             level={forgeLevel}
             inventory={progress.inventory}
+            trip={progress.trip}
             forgings={forgings ?? []}
             chests={progress.chests}
             crafted={progress.crafted}
             onDone={saveFigure}
+            onRemove={progress.figure ? removeFigure : undefined}
             onClose={() => setSheetOpen(false)}
           />
         )}

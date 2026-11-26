@@ -20,6 +20,7 @@ import {
   spriteIdsForItemKind,
 } from "../../game/sprites";
 import { unlockedRecipes } from "../../game/recipes";
+import { isLockedStudioType } from "../../game/studioTypes";
 import type { QuestTrack, SolvedTask } from "../../game/quests/types";
 import { TASK_ICONS, type TaskIconName } from "./taskIcons";
 
@@ -30,6 +31,7 @@ let last: Solved = {};
 let lastTrack: QuestTrack = "technical";
 let lastBriefed: Record<string, boolean> = {};
 let lastChests: Record<string, true> = {};
+let lastStudioTypes: Record<string, true> = {};
 
 function read(): Solved {
   let raw: string | null = null;
@@ -46,11 +48,13 @@ function read(): Solved {
     lastTrack = parsed.track === "nonTechnical" ? "nonTechnical" : "technical";
     lastBriefed = parsed.briefed || {};
     lastChests = parsed.chests || {};
+    lastStudioTypes = parsed.studioTypes || {};
   } catch {
     last = {};
     lastTrack = "technical";
     lastBriefed = {};
     lastChests = {};
+    lastStudioTypes = {};
   }
   return last;
 }
@@ -74,6 +78,18 @@ export function unlockedRecipeIds(): string[] {
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
   return () => window.removeEventListener("storage", onChange);
+}
+
+// Calls back whenever the game saves progress, for code that isn't React.
+export const watchProgress = subscribe;
+
+// Item, and types no luke waits for, always show. The rest show once the game
+// has opened a luke that uses them (src/game/studioTypes.ts), and then stay.
+export function isTypeShown(type: string): boolean {
+  if (!isLockedStudioType(type)) return true;
+  if (typeof window === "undefined") return false;
+  read();
+  return lastStudioTypes[type] === true;
 }
 
 export function useMorningRush(): boolean {

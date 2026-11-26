@@ -84,7 +84,7 @@ const LEDGER = [
 
 function ListBefore() {
   return (
-    <StudioCard label="Item">
+    <StudioCard label="Gjenstand">
       <ul className="gp-list">
         {LEDGER.map((row) => (
           <li key={row.name}>
@@ -99,7 +99,7 @@ function ListBefore() {
 
 function ListAfter() {
   return (
-    <StudioCard label="Item">
+    <StudioCard label="Gjenstand">
       <ul className="gp-list">
         {LEDGER.map((row) => (
           <li key={row.name}>
@@ -128,12 +128,14 @@ function DocumentCard({ blocked }: { blocked: boolean }) {
       <dl className="gp-fields">
         <dt>Name</dt>
         <dd>Nyhugger</dd>
-        <dt>Kind</dt>
-        <dd>weapon</dd>
+        <dt>Sort</dt>
+        <dd>Våpen</dd>
         <dt>Sprite</dt>
         <dd>
           <em>tom</em>
-          {blocked && <span className="gp-error">A weapon needs a sprite</span>}
+          {blocked && (
+            <span className="gp-error">Et våpen trenger en sprite</span>
+          )}
         </dd>
       </dl>
     </StudioCard>
@@ -145,7 +147,7 @@ function DocumentCard({ blocked }: { blocked: boolean }) {
 // Luke 1: the forge's list in Studio, empty after the storm.
 function EmptyList() {
   return (
-    <StudioCard label="Item">
+    <StudioCard label="Gjenstand">
       <p className="gp-empty">Ingen dokumenter ennå</p>
     </StudioCard>
   );
@@ -181,7 +183,7 @@ function TimedList({
 // The Studio's left pane: one row per list.
 function StructurePane({ items }: { items: [string, boolean?][] }) {
   return (
-    <StudioCard label="Content">
+    <StudioCard label="Innhold">
       <ul className="gp-list gp-structure">
         {items.map(([name, isNew]) => (
           <li key={name} className={isNew ? "is-new" : undefined}>
@@ -198,7 +200,7 @@ function StructurePane({ items }: { items: [string, boolean?][] }) {
 function StructureOpen() {
   return (
     <div className="gp-panes">
-      <StudioCard label="Content">
+      <StudioCard label="Innhold">
         <ul className="gp-list gp-structure">
           <li className="is-new">
             <span className="gp-row-title">Bare bekreftede</span>
@@ -207,7 +209,7 @@ function StructureOpen() {
             <span className="gp-row-title">Per sted</span>
           </li>
           <li>
-            <span className="gp-row-title">Item</span>
+            <span className="gp-row-title">Gjenstand</span>
           </li>
         </ul>
       </StudioCard>
@@ -312,7 +314,7 @@ function ItemRow({
   wrong?: boolean;
 }) {
   return (
-    <StudioCard label="Item">
+    <StudioCard label="Gjenstand">
       <ul className="gp-list">
         <li>
           <span className="gp-media">
@@ -338,7 +340,7 @@ function Note({ children }: { children: ReactNode }) {
 // A Studio form: field name, value and the field type as a small chip.
 function TypedForm({ rows }: { rows: [string, string, string][] }) {
   return (
-    <StudioCard label="Observation">
+    <StudioCard label="Observasjon">
       <dl className="gp-fields">
         {rows.map(([field, value, type]) => (
           <div key={field} className="gp-typed">
@@ -496,7 +498,7 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   "archive-lists": {
     before: (
       <StructurePane
-        items={[["Item"], ["Observation"], ["Place"], ["Witness"]]}
+        items={[["Gjenstand"], ["Observasjon"], ["Sted"], ["Vitne"]]}
       />
     ),
     after: <StructureOpen />,
@@ -557,11 +559,11 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
     after: (
       <TypedForm
         rows={[
-          ["What", "fotspor i snøen", "?"],
-          ["Place", "ved smia", "?"],
-          ["Witness", "Kari", "?"],
-          ["Seen", "så det selv", "?"],
-          ["Picture", "bilde", "?"],
+          ["Hva ble sett", "fotspor i snøen", "?"],
+          ["Sted", "ved smia", "?"],
+          ["Vitne", "Kari", "?"],
+          ["Så det selv", "ja", "?"],
+          ["Bilde", "bilde", "?"],
           ["Status", "Ikke sjekket", "?"],
         ]}
       />
@@ -569,7 +571,7 @@ const PREVIEWS: Record<string, { before: ReactNode; after: ReactNode }> = {
   },
   "who-is-lying": {
     before: (
-      <PlaceList rows={[{ what: "B · Melsekken revnet", status: "Unknown" }]} />
+      <PlaceList rows={[{ what: "B · Melsekken revnet", status: "Ukjent" }]} />
     ),
     after: (
       <PlaceList

@@ -62,7 +62,7 @@ export const SIDE_QUESTS: SideQuest[] = [
     topic: "*Publish*",
     requires: { luke: ["the-broken-forge"] },
     ask: ["Det er så kaldt i dag. Har du noe varmt å drikke?"],
-    goal: "Publiser en ting med Kind `Potion` i Studio, og gi den til Kari.",
+    goal: "Publiser en gjenstand med sorten *Drikk* i Studio, og gi den til Kari.",
     steps: [
       {
         kind: "studio",
@@ -79,7 +79,7 @@ export const SIDE_QUESTS: SideQuest[] = [
     thanks: "Å, så godt! Jeg strikket en topplue til deg.",
     reward: { xp: 30, unlock: ["gear:hat:bobble"] },
     hint: {
-      text: "Lag en ny ting i Studio, velg Kind `Potion` og trykk `Publish`.",
+      text: "Lag en ny gjenstand i Studio, velg *Drikk* under *Sort* og trykk `Publish`.",
     },
   },
   {
@@ -90,7 +90,7 @@ export const SIDE_QUESTS: SideQuest[] = [
     topic: "*Document* og `description`",
     requires: { luke: ["the-broken-forge"] },
     ask: ["Jeg trenger malm, og jeg vil vite hvor den kom fra."],
-    goal: "Publiser en ting med Kind `Material` og en beskrivelse av hvor den ble funnet.",
+    goal: "Publiser en gjenstand med sorten *Materiale* og en beskrivelse av hvor den ble funnet.",
     steps: [
       {
         kind: "studio",
@@ -116,7 +116,7 @@ export const SIDE_QUESTS: SideQuest[] = [
     thanks: "God malm, og nå vet jeg hvor den kom fra. Ta denne lærvesten.",
     reward: { xp: 30, unlock: ["gear:armour:leather"] },
     hint: {
-      text: "Lag en ny ting med Kind `Material`, og skriv en setning i `description` før du trykker `Publish`.",
+      text: "Lag en ny gjenstand med sorten *Materiale*, og skriv en setning i *Beskrivelse* før du trykker `Publish`.",
     },
   },
   {
@@ -184,7 +184,7 @@ export const SIDE_QUESTS: SideQuest[] = [
       luke: ["case-file", "who-points-here"],
     },
     ask: ["Jeg så spor langs gjerdet, men ingen har skrevet det ned."],
-    goal: "Publiser en ny Observation med Kari som Witness og Gjerdet som Place.",
+    goal: "Publiser en ny observasjon med Kari som vitne og Gjerdet som sted.",
     steps: [
       {
         kind: "studio",
@@ -212,7 +212,7 @@ export const SIDE_QUESTS: SideQuest[] = [
     thanks: "Nå står det i arkivet, med mitt navn. Du kan få låne hjelmen min.",
     reward: { xp: 40, unlock: ["gear:hat:viking"] },
     hint: {
-      text: "Lag en ny Observation i Studio. Velg Kari under `Witness` og Gjerdet under `Place`, skriv hva hun så, og trykk `Publish`.",
+      text: "Lag en ny *Observasjon* i Studio. Velg Kari under *Vitne* og Gjerdet under *Sted*, skriv hva hun så, og trykk `Publish`.",
     },
   },
   {
@@ -250,7 +250,7 @@ export const SIDE_QUESTS: SideQuest[] = [
     thanks: "Nå ser boden ut som et marked! Ta denne stjerna.",
     reward: { xp: 40, unlock: ["gear:extra:star"] },
     hint: {
-      text: "Lag en drikk eller et materiale, og bytt `Sprite` til en du ikke har brukt i kurven ennå.",
+      text: "Lag en drikk eller et materiale, og bytt *Sprite* til en du ikke har brukt i kurven ennå.",
     },
   },
 ];
