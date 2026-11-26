@@ -253,24 +253,25 @@ export const HAIRSTYLES: Part[] = [
 ];
 
 // Facial hair, in the hair colour, drawn over the clothes.
+// Facial hair: D main, d shade, in its own colour (grey beard, dark hair).
 export const FACIAL_HAIR: Part[] = [
   { id: "none", label: "Ingen", grid: BLANK },
-  { id: "moustache", label: "Bart", grid: grid(9, "......HhhH") },
+  { id: "moustache", label: "Bart", grid: grid(9, "......DddD") },
   {
     id: "beard",
     label: "Skjegg",
-    grid: grid(8, "....H......H", "....HHHHHHHH", ".....hHHHHh"),
+    grid: grid(8, "....D......D", "....DDDDDDDD", ".....dDDDDd"),
   },
   {
     id: "long",
     label: "Langt skjegg",
     grid: grid(
       8,
-      "....H......H",
-      "....HHHHHHHH",
-      ".....HHHHHH",
-      "......HHHH",
-      ".......hh",
+      "....D......D",
+      "....DDDDDDDD",
+      ".....DDDDDD",
+      "......DDDD",
+      ".......dd",
     ),
   },
   // Down to the belt, like the wizard's (frame 84).
@@ -279,13 +280,13 @@ export const FACIAL_HAIR: Part[] = [
     label: "Trollmannsskjegg",
     grid: grid(
       8,
-      "....H......H",
-      "....HHHHHHHH",
-      "....HHHHHHHH",
-      ".....HHHHHH",
-      ".....HHHHHH",
-      "......HHhH",
-      ".......hH",
+      "....D......D",
+      "....DDDDDDDD",
+      "....DDDDDDDD",
+      ".....DDDDDD",
+      ".....DDDDDD",
+      "......DDdD",
+      ".......dD",
     ),
   },
 ];
@@ -616,6 +617,7 @@ export type FigureChoice = {
   hair: string;
   hairColor: string;
   facialHair: string;
+  beardColor: string;
   top: string;
   topColor: string;
   armour: string;
@@ -636,6 +638,7 @@ export const FIGURE_OPTIONS: {
   hair: HAIRSTYLES,
   hairColor: HAIR_COLORS,
   facialHair: FACIAL_HAIR,
+  beardColor: HAIR_COLORS,
   top: TOPS,
   topColor: CLOTH_COLORS,
   armour: ARMOURS,
@@ -653,6 +656,7 @@ export const DEFAULT_FIGURE: FigureChoice = {
   hair: "short",
   hairColor: "brown",
   facialHair: "none",
+  beardColor: "brown",
   top: "sweater",
   topColor: "red",
   armour: "none",
@@ -676,6 +680,9 @@ export function normalizeFigure(
   // a figure saved then keeps its look.
   if (typeof input?.scarfColor === "string" && input.extraColor == null)
     out.extraColor = input.scarfColor;
+  // Facial hair had the hair's colour before it had its own.
+  if (typeof input?.hairColor === "string" && input.beardColor == null)
+    out.beardColor = input.hairColor;
   for (const key of Object.keys(FIGURE_OPTIONS) as (keyof FigureChoice)[]) {
     const value = input?.[key];
     if (
@@ -693,6 +700,8 @@ export function randomFigure(random: () => number = Math.random): FigureChoice {
   const out = {} as FigureChoice;
   for (const key of Object.keys(FIGURE_OPTIONS) as (keyof FigureChoice)[])
     out[key] = pick(FIGURE_OPTIONS[key]);
+  // A random beard matches the hair; a different colour is a choice to make.
+  out.beardColor = out.hairColor;
   return out;
 }
 
@@ -728,6 +737,8 @@ export function drawFigure(
     s: pair(SKINS, c.skin)[1],
     H: pair(HAIR_COLORS, c.hairColor)[0],
     h: pair(HAIR_COLORS, c.hairColor)[1],
+    D: pair(HAIR_COLORS, c.beardColor)[0],
+    d: pair(HAIR_COLORS, c.beardColor)[1],
     C: pair(CLOTH_COLORS, c.topColor)[0],
     c: pair(CLOTH_COLORS, c.topColor)[1],
     P: pair(PANTS, c.pants)[0],

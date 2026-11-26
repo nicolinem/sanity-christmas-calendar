@@ -47,6 +47,7 @@ type PartKey =
 type ColorKey =
   | "skin"
   | "hairColor"
+  | "beardColor"
   | "topColor"
   | "pants"
   | "hatColor"
@@ -60,7 +61,7 @@ type Category = { id: string; label: string; sections: Section[] };
 
 const LOOK: Category[] = [
   // Skin, hair and facial hair together, so the first tab is more than a
-  // row of skin colours. Facial hair has the hair's colour.
+  // row of skin colours. Facial hair has its own colour.
   {
     id: "head",
     label: "Hode",
@@ -71,7 +72,15 @@ const LOOK: Category[] = [
         heading: "Hår",
         color: { key: "hairColor", label: "Hårfarge", options: HAIR_COLORS },
       },
-      { part: "facialHair", heading: "Ansiktshår" },
+      {
+        part: "facialHair",
+        heading: "Ansiktshår",
+        color: {
+          key: "beardColor",
+          label: "Farge på ansiktshår",
+          options: HAIR_COLORS,
+        },
+      },
     ],
   },
   {

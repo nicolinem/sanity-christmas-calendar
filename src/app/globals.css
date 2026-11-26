@@ -6424,13 +6424,28 @@ kbd {
   margin-top: 6px;
   margin-left: 18px;
 }
+/* The game's own box, like the journal's ticks: a dark square with a frost
+   edge, amber edge and a pixel tick when on. Not the browser's checkbox. */
 .cs-share input {
   flex: none;
-  width: 24px;
-  height: 24px;
-  margin: 0;
-  accent-color: var(--amber);
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  background: var(--night-2);
+  box-shadow: inset 0 0 0 2px var(--frost-dim);
   cursor: pointer;
+}
+.cs-share input:checked {
+  box-shadow: inset 0 0 0 2px var(--amber);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath fill='%23fdbe53' d='M7 1h1v2H7zM6 3h1v1H6zM5 4h1v1H5zM1 4h1v1H1zM2 5h1v1H2zM4 5h1v1H4zM3 6h1v1H3z'/%3E%3C/svg%3E")
+      center / 12px 12px no-repeat,
+    var(--night-2);
+}
+.cs-share input:focus-visible {
+  outline: 2px solid var(--glacier);
+  outline-offset: 2px;
 }
 .cs-share span,
 .cs-share small {
@@ -6438,7 +6453,7 @@ kbd {
 }
 .cs-share strong {
   color: var(--snow);
-  font-size: 14px;
+  font-size: 13px;
 }
 .cs-share small {
   margin-top: 3px;

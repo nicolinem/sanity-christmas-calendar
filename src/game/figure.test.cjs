@@ -118,3 +118,19 @@ test("a figure saved before extraColor keeps its scarf-coloured mittens", () => 
     "red",
   );
 });
+
+test("facial hair has its own colour, and old figures keep the hair's", () => {
+  const base = { ...DEFAULT_FIGURE, hair: "bald", facialHair: "beard" };
+  assert.notDeepEqual(
+    [...drawFigure({ ...base, beardColor: "grey" })],
+    [...drawFigure({ ...base, beardColor: "black" })],
+  );
+  // Hair colour no longer touches a beard on a bald head.
+  assert.deepEqual(
+    [...drawFigure({ ...base, hairColor: "grey" })],
+    [...drawFigure({ ...base, hairColor: "black" })],
+  );
+  assert.equal(normalizeFigure({ hairColor: "red" }).beardColor, "red");
+  const random = randomFigure(() => 0.42);
+  assert.equal(random.beardColor, random.hairColor);
+});
