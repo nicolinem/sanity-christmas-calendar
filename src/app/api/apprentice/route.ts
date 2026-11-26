@@ -32,13 +32,17 @@ export async function POST(request: Request) {
     if (published && !needsFreshHistory(published, draft ?? null, Date.now()))
       return Response.json({ ok: true, created: false });
 
-    // Two separate writes create the two published revisions used in History.
-    // An old hammer gets them again, so the right one is still in History.
+    // Two separate writes create the two revisions used in History. An old
+    // hammer gets them again, so the right one is still there. It goes in as
+    // a publish (draft, then publish), because two live edits in a row show
+    // as one entry in History, and the right one couldn't be picked.
     if (published) {
-      const { name, kind, description, sprite } = BRANN_HAMMER;
+      const draftId = `drafts.${APPRENTICE_ITEM_ID}`;
+      await writer.createOrReplace({ ...BRANN_HAMMER, _id: draftId });
       await writer
-        .patch(APPRENTICE_ITEM_ID)
-        .set({ name, kind, description, sprite })
+        .transaction()
+        .createOrReplace(BRANN_HAMMER)
+        .delete(draftId)
         .commit();
     } else await writer.create(BRANN_HAMMER);
     await writer.patch(APPRENTICE_ITEM_ID).set(APPRENTICE_MISTAKE).commit();

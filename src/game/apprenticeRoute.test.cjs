@@ -48,6 +48,17 @@ vm.runInNewContext(
             getDocument: async (id) =>
               id.startsWith("drafts.") ? draft : existing,
             create: async (doc) => writes.push(["create", doc]),
+            createOrReplace: async (doc) =>
+              writes.push(["createOrReplace", doc._id]),
+            transaction: () => {
+              const ops = [];
+              const tx = {
+                createOrReplace: (doc) => (ops.push(["publish", doc._id]), tx),
+                delete: (id) => (ops.push(["delete", id]), tx),
+                commit: async () => writes.push(["transaction", ops]),
+              };
+              return tx;
+            },
             patch: (id) => ({
               set: (fields) => ({
                 commit: async () => writes.push(["patch", id, fields]),
@@ -99,10 +110,17 @@ test("an old, unrestored hammer gets both History revisions again", async () => 
   };
   draft = null;
   await mod.exports.POST(request());
-  const { name, kind, description, sprite } = BRANN_HAMMER;
-  // The route builds the first patch in its own realm: compare as JSON.
+  // The right hammer as a publish, then the mistake as a live edit: two live
+  // edits in a row show as one entry in Studio's History.
   assert.deepEqual(JSON.parse(JSON.stringify(writes)), [
-    ["patch", APPRENTICE_ITEM_ID, { name, kind, description, sprite }],
+    ["createOrReplace", `drafts.${APPRENTICE_ITEM_ID}`],
+    [
+      "transaction",
+      [
+        ["publish", APPRENTICE_ITEM_ID],
+        ["delete", `drafts.${APPRENTICE_ITEM_ID}`],
+      ],
+    ],
     ["patch", APPRENTICE_ITEM_ID, APPRENTICE_MISTAKE],
   ]);
 });
