@@ -127,6 +127,7 @@ export function normalizeProgress(raw: unknown): Progress | null {
   if (typeof value.savedAt !== "string") delete value.savedAt;
   if (typeof value.startedAt !== "string") delete value.startedAt;
   if (typeof value.lookAt !== "string") delete value.lookAt;
+  if (typeof value.equipped !== "string") delete value.equipped;
   if (typeof value.shareAt !== "string") delete value.shareAt;
   const about = normalizeAbout(saved.about);
   if (about) value.about = about;
@@ -167,7 +168,8 @@ function furthest(
 //
 // A newer game («Nytt spill») replaces an older one whole. Within one game
 // nothing earned is taken back: lukes, hints, finds and the rest are kept from
-// both. Choices that can change (track, figure, sharing, the cave bag) come
+// both. Choices that can change (track, figure, sharing, the weapon in hand,
+// the cave bag) come
 // from the copy saved last, unless that copy hasn't made the choice yet, as
 // in a fresh browser that hasn't fetched the backup.
 export function mergeProgress(a: Progress, b: Progress): Progress {
@@ -207,6 +209,7 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
     figure: look.figure,
     name: look.name,
     about: look.about,
+    equipped: madeBy((p) => p.equipped).equipped,
     lookAt: look.lookAt,
     shareProfile,
     shareHints: sharing.shareHints,

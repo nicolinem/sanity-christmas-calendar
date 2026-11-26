@@ -456,3 +456,11 @@ test("a saved Om meg loads cleaned, and a broken one is left out", () => {
   });
   assert.equal("about" in progress.readProgress("about-beta"), false);
 });
+
+test("the chosen weapon survives a reload; a bad value is dropped", () => {
+  progress.updateProgress("weapon", (p) => ({ ...p, equipped: "sword-1" }));
+  progress = loadProgress();
+  assert.equal(progress.readProgress("weapon").equipped, "sword-1");
+  records.set(progress.storageKey("bad"), JSON.stringify({ equipped: 3 }));
+  assert.equal(Object.hasOwn(progress.readProgress("bad"), "equipped"), false);
+});

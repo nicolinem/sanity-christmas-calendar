@@ -1,6 +1,6 @@
 # Plan: sideoppdrag
 
-Status: godkjent 2026-11-24. S0, S1 og S2 er bygget bak flagget. Kartprikkene og journalsiden kom med i PR 31.
+Status: godkjent 2026-11-24. S0, S1 og S2 er bygget bak flagget. Kartprikkene og journalsiden kom med i PR 31. Fra 2026-11-26 er flagget på som standard, og `NEXT_PUBLIC_FEATURE_SIDE_QUESTS=0` slår det av.
 Skrevet 2026-11-24. Påstandene om koden er sjekket mot `main` (b3c645f).
 
 ## 1. Kort fortalt

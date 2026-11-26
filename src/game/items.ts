@@ -107,8 +107,24 @@ export const DEMO_ITEMS: GameItemView[] = [
   ),
 ];
 
-export function isUsableWeapon(item: GameItemView | null): boolean {
+export function isUsableWeapon(
+  item: Pick<GameItemView, "kind" | "power"> | null,
+): boolean {
   return Boolean(
     item && item.kind === "weapon" && (item.power?.damage ?? 0) > 0,
   );
+}
+
+// The weapon in hand: the one the player chose (Progress.equipped) while it
+// still exists, else the strongest usable weapon, as before any choice.
+export function pickEquipped(
+  items: Pick<GameItemView, "id" | "kind" | "power">[],
+  chosen: string | undefined,
+): string | null {
+  const own = items.find((i) => i.id === chosen && i.kind === "weapon");
+  if (own) return own.id;
+  const best = items
+    .filter(isUsableWeapon)
+    .sort((a, b) => (b.power?.damage ?? 0) - (a.power?.damage ?? 0))[0];
+  return best?.id ?? null;
 }

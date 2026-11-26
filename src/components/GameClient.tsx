@@ -28,6 +28,7 @@ import {
   BUILTIN_ITEMS,
   DEMO_ITEMS,
   isUsableWeapon,
+  pickEquipped,
   toGameItem,
   type GameItemView,
 } from "@/game/items";
@@ -282,10 +283,6 @@ export default function GameClient() {
     import("@/game/bakery").BakerySign | null
   >(null);
   const [communityReady, setCommunityReady] = useState(false);
-  const [equippedId, setEquippedId] = useState<string | null>(null);
-  // While true, the game keeps the strongest weapon equipped as content loads.
-  // A manual click turns it off so the player's choice sticks.
-  const [autoEquip, setAutoEquip] = useState(true);
 
   const zone = useZone();
   const area = useArea();
@@ -693,18 +690,15 @@ export default function GameClient() {
     }
   }, [items, configured]);
 
-  // Auto-equip the strongest usable weapon the first time items load / change,
-  // unless the player has already chosen one that still exists.
+  // The weapon the player chose, kept in progress so it survives a reload;
+  // the strongest usable one until they choose, or once theirs is deleted.
+  const equippedId = useMemo(
+    () => pickEquipped(items, progress.equipped),
+    [items, progress.equipped],
+  );
   const equipped = useMemo(
     () => items.find((i) => i.id === equippedId) ?? null,
     [items, equippedId],
-  );
-  const bestWeapon = useMemo(
-    () =>
-      [...items]
-        .filter(isUsableWeapon)
-        .sort((a, b) => (b.power?.damage ?? 0) - (a.power?.damage ?? 0))[0],
-    [items],
   );
 
   useEffect(() => {
@@ -714,7 +708,6 @@ export default function GameClient() {
       configured !== true ||
       PROGRESS_PROJECT === "demo" ||
       !progress.shareProfile ||
-      (autoEquip && bestWeapon && equippedId !== bestWeapon.id) ||
       new URLSearchParams(window.location.search).has("dev")
     )
       return;
@@ -758,16 +751,7 @@ export default function GameClient() {
     progress.name,
     progress.about,
     equipped,
-    autoEquip,
-    bestWeapon,
-    equippedId,
   ]);
-
-  useEffect(() => {
-    if (!autoEquip) return;
-    if (bestWeapon && bestWeapon.id !== equippedId)
-      setEquippedId(bestWeapon.id);
-  }, [bestWeapon, autoEquip, equippedId]);
 
   const handleEquip = useCallback((item: GameItemView) => {
     // A potion is not equipped: in the cave it is drunk, in the village nothing.
@@ -776,8 +760,9 @@ export default function GameClient() {
         bridge.emit("drink", item.id);
       return;
     }
-    setAutoEquip(false);
-    setEquippedId(item.id);
+    updateProgress(PROGRESS_PROJECT, (p) =>
+      p.equipped === item.id ? p : { ...p, equipped: item.id },
+    );
   }, []);
 
   const forged = findForgedWeapon(items);
