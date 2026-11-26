@@ -7,6 +7,7 @@ const {
   DEFAULT_FIGURE,
   FIGURE_OPTIONS,
   HIDDEN_GEAR,
+  RECIPE_5_SOURCE,
 } = require("./figure.ts");
 const {
   GEAR_REWARDS,
@@ -157,4 +158,16 @@ test("the cave chest source is hidden while the cave is off", () => {
     "Arkivarens spørsmål",
   );
   assert.equal(visibleGearSource(undefined, false), undefined);
+});
+
+test("forged gear comes from crafted recipes only", () => {
+  const owned = ownedGear({
+    completed: {},
+    crafted: { f1: "recipe-isskjold" },
+  });
+  assert.ok(owned.has("extra:shield"));
+  assert.equal(owned.has("hat:icehelm"), false);
+  assert.equal(ownedGear({ completed: {}, crafted: { f1: "nope" } }).size, 0);
+  assert.equal(visibleGearSource(RECIPE_5_SOURCE, false), HIDDEN_GEAR);
+  assert.equal(visibleGearSource(RECIPE_5_SOURCE, true), RECIPE_5_SOURCE);
 });

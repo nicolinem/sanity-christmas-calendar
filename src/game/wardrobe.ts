@@ -9,8 +9,11 @@ import {
   DEFAULT_FIGURE,
   FIGURE_OPTIONS,
   HIDDEN_GEAR,
+  RECIPE_10_SOURCE,
+  RECIPE_5_SOURCE,
   type FigureChoice,
 } from "./figure";
+import { RECIPES, isRecipeId } from "./recipes";
 import type { Progress } from "./quests/types";
 import { rewardGear } from "./reward";
 import { SIDE_QUESTS } from "./sideQuests/data";
@@ -34,7 +37,11 @@ export function gearSource(
 }
 
 // With the cave off, cave sources look like any other hidden gear.
-const CAVE_SOURCES: string[] = [CAVE_CHEST_5_SOURCE];
+const CAVE_SOURCES: string[] = [
+  CAVE_CHEST_5_SOURCE,
+  RECIPE_5_SOURCE,
+  RECIPE_10_SOURCE,
+];
 export function visibleGearSource(
   source: string | undefined,
   caveOn: boolean,
@@ -92,7 +99,7 @@ const ALL_GEAR: GearKey[] = KEYS.flatMap((key) =>
 // Worked out from those facts every time, never stored.
 export function ownedGear(
   progress: Pick<Progress, "completed"> &
-    Partial<Pick<Progress, "side" | "chests">>,
+    Partial<Pick<Progress, "side" | "chests" | "crafted">>,
   opts: { dev?: boolean } = {},
 ): Set<GearKey> {
   if (opts.dev) return new Set(ALL_GEAR);
@@ -111,6 +118,8 @@ export function ownedGear(
           owned.add(`${part}:${id}`);
       }
   if (progress.chests?.["cave-5"]) owned.add("armour:plate");
+  for (const id of Object.values(progress.crafted ?? {}))
+    if (isRecipeId(id)) owned.add(RECIPES[id].gear);
   return owned;
 }
 

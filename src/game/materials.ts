@@ -12,12 +12,12 @@ export const MATERIALS: Record<
   isskar: {
     name: "Isskår",
     sprite: { sheet: "dungeon", frame: 56 },
-    description: "Kald og klar. Brukes i smia senere.",
+    description: "Kald og klar. Brukes i smia.",
   },
   malm: {
     name: "Gammel malm",
     sprite: { sheet: "dungeon", frame: 42 },
-    description: "Tung og rusten. Brukes i smia senere.",
+    description: "Tung og rusten. Brukes i smia.",
   },
 };
 

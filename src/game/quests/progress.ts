@@ -27,6 +27,7 @@ export const EMPTY_PROGRESS: Progress = {
   chests: {},
   xp: 0,
   inventory: {},
+  crafted: {},
   deepest: 0,
   trip: {},
 };
@@ -45,6 +46,15 @@ function counts(value: unknown): Record<string, number> {
       ([, count]) => Number.isInteger(count) && (count as number) >= 0,
     ),
   ) as Record<string, number>;
+}
+
+// A stored map keeping only string values.
+function strings(value: unknown): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(record<unknown>(value)).filter(
+      ([, v]) => typeof v === "string",
+    ),
+  ) as Record<string, string>;
 }
 
 // A stored fact map keeping only entries that are exactly true.
@@ -125,6 +135,7 @@ export function readProgress(project: string): Progress {
               : 0,
           inventory: counts(saved.inventory),
           trip: counts(saved.trip),
+          crafted: strings(saved.crafted),
           deepest:
             Number.isInteger(saved.deepest) && (saved.deepest as number) >= 0
               ? (saved.deepest as number)

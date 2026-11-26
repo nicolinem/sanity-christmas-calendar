@@ -424,3 +424,15 @@ test("bosses and chests are washed like found", () => {
     "cave-5": true,
   });
 });
+
+test("crafted keeps only string values and defaults to empty", () => {
+  records.set(
+    progress.storageKey("crafted"),
+    JSON.stringify({ crafted: { a: "recipe-isskjold", b: 3, c: null, d: [] } }),
+  );
+  assert.deepEqual(progress.readProgress("crafted").crafted, {
+    a: "recipe-isskjold",
+  });
+  records.set(progress.storageKey("old"), JSON.stringify({ completed: {} }));
+  assert.deepEqual(progress.readProgress("old").crafted, {});
+});

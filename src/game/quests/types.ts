@@ -50,6 +50,9 @@ export type Progress = {
   xp: number;
   // Materials from the cave: material id → count (src/game/materials.ts).
   inventory: Record<string, number>;
+  // Forgings used: the Smiing's _id → the recipe it was forged from
+  // (src/game/forge.ts). Each id is used once.
+  crafted: Record<string, string>;
   // The deepest cave floor the player has reached (src/game/cave/floors.ts).
   deepest: number;
   // Finds from the current cave trip, banked into inventory on a safe return.
